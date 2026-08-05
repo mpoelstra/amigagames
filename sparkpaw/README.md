@@ -68,7 +68,7 @@ into the game; see `docs/RENDERBENCH.txt`.
 ## Source layout
 
 - `src/main.c`: startup, cleanup and the raster-phased top-level loop
-- `src/sparkpaw.c` / `src/renderer.h`: gameplay display, Copper construction,
+- `src/renderer.c` / `src/renderer.h`: gameplay display, Copper construction,
   hardware sprites, packed render caches and Bob rendering behind an explicit
   renderer API
 - `src/game.c` / `src/game.h`: gameplay initialization and update ordering,

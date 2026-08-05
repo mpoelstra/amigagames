@@ -779,6 +779,15 @@ clean `make` and `make release` succeeded, and MrDig confirmed in FS-UAE that
 startup, visuals, scrolling and gameplay still work correctly. The next step
 is the mechanical `sparkpaw.c` to `renderer.c` rename with no code changes.
 
+The tenth accepted extraction completes Phase 1 by renaming the renderer
+implementation from `sparkpaw.c` to `renderer.c`. The file was verified
+byte-for-byte identical before rebuilding; only the Makefile and source map
+changed. A clean `make` and `make release` succeeded, the source archive uses
+the new filename, and MrDig confirmed in FS-UAE that startup, visuals,
+scrolling and gameplay still work correctly. Phase 2 can now begin with an
+explicit top-level state model before title assets or loading presentation are
+introduced.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.
