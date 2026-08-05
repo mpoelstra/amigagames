@@ -6,6 +6,7 @@
 #include "game.h"
 #include "platform_amiga.h"
 #include "renderer.h"
+#include "title.h"
 
 enum AppState {
     APP_BOOT,
@@ -17,6 +18,7 @@ enum AppState {
 
 static void cleanup(void)
 {
+    titleRestoreSystemView(); titleRelease();
     audioUnload();
     rendererCleanup();
     platformClose();
@@ -32,14 +34,20 @@ int main(void)
 {
     enum AppState state=APP_BOOT;
     BOOL platformReady=platformOpen();
+    state=APP_TITLE_LOADING;
+    if(!platformReady||!titleShowLoading()) {
+        PutStr("Sparkpaw: title assets or display unavailable.\n");
+        cleanup(); return 10;
+    }
     gameInit();
     state=APP_LEVEL_LOADING;
-    if(!platformReady||!loadLevel()) {
+    if(!loadLevel()) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
         cleanup(); return 10;
     }
     rendererUpdateGameplay();
     platformTakeover(rendererCopperList());
+    titleRelease();
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
         while(platformRasterLine()<100) { }

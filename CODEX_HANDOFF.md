@@ -805,7 +805,18 @@ is 61,644 bytes and is packaged in HD, archive and ADF releases, but the current
 startup path does not load or display it yet. A clean `make` and `make release`
 succeeded, and MrDig confirmed in FS-UAE that existing startup and gameplay
 remain unchanged. Next display this asset through an OS-managed early title
-view with `Loading...` before level asset loading and custom-chip takeover.
+view before level asset loading and custom-chip takeover.
+
+The third accepted Phase 2 step displays the clean 64-colour title through an
+OS-managed View while DOS and graphics.library remain active. The first text
+overlay experiment was removed because it did not match the authored pixel-art
+language; the runtime title now remains pixel-identical to its generated asset.
+The original Workbench View is captured before title presentation so gameplay
+takeover still restores the correct system display. A clean `make` and
+`make release` succeeded, and MrDig confirmed in FS-UAE that the clean title,
+transition and gameplay work correctly. The agreed next flow is: show the title
+for 150 PAL frames (three seconds), switch to a separate original Sparkpaw
+level-disk loading image, load the level, then enter `PLAYING`.
 
 Acceptance for every extraction step:
 
@@ -828,21 +839,15 @@ Use the newly separated modules to introduce an explicit state flow such as:
 BOOT -> TITLE_LOADING -> TITLE_READY -> LEVEL_LOADING -> PLAYING
 ```
 
-The first visual feature after modularisation should be a title-first startup,
-not a separate generic loading screen followed by the title. As soon as the
-executable can draw, show a lightweight but recognizable AGA title screen based
-on the established cover concept art. While initial title/menu resources are
-being prepared, that same screen displays `Loading...`. When preparation is
-complete, replace the loading status in place with an interactive `Start Game`
-option instead of switching to a different start screen.
+The first visual feature after modularisation is a title-first startup, not a
+generic loading screen followed by the title. Show the clean established AGA
+title for 150 PAL frames before switching to a separate level-loading image.
+Do not place generic runtime text over the authored title artwork.
 
-Activating `Start Game` enters a distinct `LEVEL_LOADING` state. Keep the title
-presentation visible or transition to a closely related loading composition
-that clearly depicts a floppy/level disk being accessed. Load and prepare the
-large playfield, player, enemy and gameplay-audio assets there, then enter
-`PLAYING` only when the complete level runtime state is ready. This makes the
-two waits understandable: startup prepares the title, while Start Game loads
-the selected level and gameplay resources.
+After the timed title, enter `LEVEL_LOADING` and show a related composition
+that clearly depicts an original Sparkpaw floppy/level disk being accessed.
+Load and prepare the large playfield, player, enemy and gameplay-audio assets
+there, then enter `PLAYING` only when the complete level runtime state is ready.
 
 Measure the current startup phases and asset costs before choosing what is
 embedded or early-resident. Sparkpaw cannot draw before DOS has loaded enough

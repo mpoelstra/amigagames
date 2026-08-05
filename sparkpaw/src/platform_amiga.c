@@ -13,13 +13,14 @@
 struct GfxBase *GfxBase;
 
 static volatile struct Custom *hardware=(volatile struct Custom *)0xdff000;
-static struct View *oldView;
+static struct View *systemView;
 static UWORD oldDma,oldIntena;
 static BOOL systemLocked,interruptsDisabled;
 
 BOOL platformOpen(void)
 {
     GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
+    if(GfxBase) systemView=GfxBase->ActiView;
     return GfxBase!=NULL;
 }
 
@@ -33,7 +34,6 @@ void platformClose(void)
 
 void platformTakeover(UWORD *copper)
 {
-    oldView=GfxBase->ActiView;
     oldDma=hardware->dmaconr&DMAF_ALL;
     oldIntena=hardware->intenar&0x7fff;
     LoadView(NULL); WaitTOF(); WaitTOF();
@@ -52,14 +52,14 @@ void platformRestore(void)
         audioSetHardwareActive(FALSE);
         hardware->dmacon=DMAF_ALL;
         hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|oldDma;
-        if(oldView) {
-            LoadView(oldView);
-            if(oldView->LOFCprList&&oldView->LOFCprList->start) {
-                hardware->cop1lc=(ULONG)oldView->LOFCprList->start;
-                hardware->cop2lc=(ULONG)((oldView->SHFCprList&&
-                                          oldView->SHFCprList->start)?
-                                         oldView->SHFCprList->start:
-                                         oldView->LOFCprList->start);
+        if(systemView) {
+            LoadView(systemView);
+            if(systemView->LOFCprList&&systemView->LOFCprList->start) {
+                hardware->cop1lc=(ULONG)systemView->LOFCprList->start;
+                hardware->cop2lc=(ULONG)((systemView->SHFCprList&&
+                                          systemView->SHFCprList->start)?
+                                         systemView->SHFCprList->start:
+                                         systemView->LOFCprList->start);
                 hardware->copjmp1=0;
             }
         }
@@ -67,7 +67,7 @@ void platformRestore(void)
         hardware->intena=0x8000|oldIntena;
         Enable(); interruptsDisabled=FALSE;
     }
-    if(oldView) { WaitTOF(); WaitTOF(); }
+    if(systemView) { WaitTOF(); WaitTOF(); }
     if(systemLocked) {
         DisownBlitter(); Permit(); systemLocked=FALSE;
     }
