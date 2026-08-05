@@ -788,6 +788,15 @@ scrolling and gameplay still work correctly. Phase 2 can now begin with an
 explicit top-level state model before title assets or loading presentation are
 introduced.
 
+The first accepted Phase 2 step adds the complete top-level state vocabulary
+to `main.c`: `BOOT`, `TITLE_LOADING`, `TITLE_READY`, `LEVEL_LOADING` and
+`PLAYING`. Until early title rendering and title input exist, the compatibility
+path deliberately remains `BOOT -> LEVEL_LOADING -> PLAYING`; title states are
+not entered as placeholders. Gameplay asset loading and both raster phases are
+unchanged. A clean `make` and `make release` succeeded, and MrDig confirmed in
+FS-UAE that startup and gameplay still work correctly. Next separate a small
+early-resident title asset from the large level/gameplay asset set.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

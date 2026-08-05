@@ -67,7 +67,9 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 ## Source layout
 
-- `src/main.c`: startup, cleanup and the raster-phased top-level loop
+- `src/main.c`: startup, cleanup, explicit application states and the
+  raster-phased top-level loop; the compatibility path currently runs
+  `BOOT -> LEVEL_LOADING -> PLAYING` until title rendering is introduced
 - `src/renderer.c` / `src/renderer.h`: gameplay display, Copper construction,
   hardware sprites, packed render caches and Bob rendering behind an explicit
   renderer API

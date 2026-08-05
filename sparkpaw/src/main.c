@@ -7,6 +7,14 @@
 #include "platform_amiga.h"
 #include "renderer.h"
 
+enum AppState {
+    APP_BOOT,
+    APP_TITLE_LOADING,
+    APP_TITLE_READY,
+    APP_LEVEL_LOADING,
+    APP_PLAYING
+};
+
 static void cleanup(void)
 {
     audioUnload();
@@ -14,18 +22,26 @@ static void cleanup(void)
     platformClose();
 }
 
+static BOOL loadLevel(void)
+{
+    return rendererLoadGameplay()&&collisionLoad()&&audioLoad()&&
+           rendererPrepareGameplay();
+}
+
 int main(void)
 {
+    enum AppState state=APP_BOOT;
     BOOL platformReady=platformOpen();
     gameInit();
-    if(!platformReady||!rendererLoadGameplay()||!collisionLoad()||
-       !audioLoad()||!rendererPrepareGameplay()) {
+    state=APP_LEVEL_LOADING;
+    if(!platformReady||!loadLevel()) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
         cleanup(); return 10;
     }
     rendererUpdateGameplay();
     platformTakeover(rendererCopperList());
-    for(;;) {
+    state=APP_PLAYING;
+    while(state==APP_PLAYING) {
         while(platformRasterLine()<100) { }
         gameUpdate();
         /* The Copper consumes these list entries at frame start. Update them
