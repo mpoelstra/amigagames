@@ -704,8 +704,15 @@ projectile hit detection and damage/death state. The synchronized enemy Bob
 cache and restore/draw code deliberately remain in `sparkpaw.c` until the later
 renderer boundary. A clean `make` and `make release` succeeded, and MrDig
 confirmed that the modularized build still works correctly in FS-UAE. This is
-the first boundary, not the completed Phase 1 structure; projectiles are the
-next intended extraction.
+the first boundary, not the completed Phase 1 structure.
+
+The second accepted extraction moves the fixed projectile pool, spawn/movement,
+impact state and enemy-hit dispatch into `projectiles.c` and `projectiles.h`.
+Packed plasma pattern generation and synchronized Bob restore/draw deliberately
+remain in `sparkpaw.c` with the renderer-sensitive code. A clean `make` and
+`make release` succeeded, and MrDig confirmed in FS-UAE that the modularized
+projectile build still works correctly. Collision ownership is the next
+intended boundary before player physics is moved.
 
 Acceptance for every extraction step:
 

@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "enemies.h"
+#include "projectiles.h"
 
 #define SCREEN_W 320
 #define SCREEN_H 256
@@ -35,10 +36,6 @@
 #define SPRITE_CHANNELS 6
 #define TOTAL_SPRITE_CHANNELS 8
 #define SPRITE_WORDS (2+SPRITE_H*2+2)
-#define PROJECTILE_W 16
-#define PROJECTILE_H 9
-#define PROJECTILE_SPEED 2300
-#define MAX_PROJECTILES 6
 #define PLASMA_PATTERNS 5
 #define PLASMA_SOURCE_WORDS 2
 #define HIT_LEFT 4
@@ -67,20 +64,12 @@ struct Player {
     UWORD runTick,idleTicks;
 };
 
-struct Projectile {
-    LONG x,y,vx;
-    UBYTE life,impactTimer;
-    BOOL active,drawn,lowShot;
-    WORD drawnX,drawnY;
-};
-
 struct GfxBase *GfxBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static struct PlanarAsset frontClean,rearWorld,sprites,enemySprites;
 static struct BitMap *frontDisplay;
 static UBYTE collision[MAP_COLS*MAP_ROWS];
 static struct Player player;
-static struct Projectile projectiles[MAX_PROJECTILES];
 static struct View *oldView;
 static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
@@ -363,54 +352,6 @@ static void updateAudio(void)
     if(shotDmaTicks&&!--shotDmaTicks) hw->dmacon=DMAF_AUD0;
 }
 
-static void spawnProjectile(void)
-{
-    WORD i,px=(WORD)(player.x>>8),py=(WORD)(player.y>>8);
-    for(i=0;i<MAX_PROJECTILES;i++) if(!projectiles[i].active&&!projectiles[i].drawn) {
-        struct Projectile *p=&projectiles[i];
-        /* Frame 40's cyan muzzle is at cell (45,28); crouch-fire frame 48's
-           is at (45,41). The actor cell begins eight pixels left/above the
-           physics box, and projectile Y is its top rather than its centre. */
-        p->x=(LONG)(player.facingLeft?px-22:px+37)<<8;
-        p->y=(LONG)(py+(player.crouching?29:15))<<8;
-        p->vx=player.facingLeft?-PROJECTILE_SPEED:PROJECTILE_SPEED;
-        p->life=80; p->impactTimer=0; p->lowShot=player.crouching;
-        p->active=TRUE;
-        playShot(); return;
-    }
-}
-
-static void updateProjectiles(void)
-{
-    WORD i;
-    for(i=0;i<MAX_PROJECTILES;i++) {
-        struct Projectile *p=&projectiles[i]; WORD x,y;
-        BOOL hitEnemy;
-        if(!p->active) continue;
-        if(p->impactTimer) {
-            if(!--p->impactTimer) p->active=FALSE;
-            continue;
-        }
-        p->x+=p->vx;
-        x=(WORD)(p->x>>8)+(p->vx>0?PROJECTILE_W-1:0);
-        y=(WORD)(p->y>>8)+(PROJECTILE_H>>1);
-        hitEnemy=enemiesHitProjectile(x,y,p->lowShot);
-        {
-            WORD screenHit;
-            if(hitEnemy||solidAt(x,y)||!--p->life) {
-                screenHit=x-(WORD)cameraX;
-                /* Never show a clipped impact on invisible off-screen geometry. */
-                if(screenHit<2||screenHit>SCREEN_W-3) p->active=FALSE;
-                else {
-                    p->x=(LONG)(x-(PROJECTILE_W>>1))<<8;
-                    p->y=(LONG)(y-(PROJECTILE_H>>1))<<8;
-                    p->vx=0; p->impactTimer=5;
-                }
-            }
-        }
-    }
-}
-
 static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
 {
     WORD lx=left?PROJECTILE_W-1-x:x;
@@ -519,18 +460,21 @@ static void blitMaskedBob(UWORD *mask,UWORD *bits,WORD sourceWords,
 static void eraseProjectileBobs(void)
 {
     WORD i;
-    for(i=0;i<MAX_PROJECTILES;i++) if(projectiles[i].drawn) {
-        blitRestoreRect(projectiles[i].drawnX,projectiles[i].drawnY,
+    for(i=0;i<MAX_PROJECTILES;i++) {
+        struct Projectile *projectile=projectileAt(i);
+        if(!projectile->drawn) continue;
+        blitRestoreRect(projectile->drawnX,projectile->drawnY,
                         PROJECTILE_W,PROJECTILE_H);
-        projectiles[i].drawn=FALSE;
+        projectile->drawn=FALSE;
     }
 }
 
 static void drawProjectileBobs(void)
 {
     WORD i;
-    for(i=0;i<MAX_PROJECTILES;i++) if(projectiles[i].active) {
-        struct Projectile *p=&projectiles[i]; UBYTE pattern,left;
+    for(i=0;i<MAX_PROJECTILES;i++) {
+        struct Projectile *p=projectileAt(i); UBYTE pattern,left;
+        if(!p->active) continue;
         p->drawnX=(WORD)(p->x>>8); p->drawnY=(WORD)(p->y>>8);
         if(p->drawnX<0||p->drawnX+PROJECTILE_W>WORLD_W||
            p->drawnY<0||p->drawnY+PROJECTILE_H>WORLD_H) continue;
@@ -581,7 +525,9 @@ static void startShot(BOOL pressed)
     if(pressed&&!player.shootCooldown&&!player.turnTimer) {
         player.shootTimer=player.crouching?CROUCH_SHOT_TICKS:(player.grounded?7:10);
         player.shootCooldown=3; player.shotPending=FALSE;
-        player.idleTicks=0; spawnProjectile();
+        player.idleTicks=0;
+        projectilesSpawn((WORD)(player.x>>8),(WORD)(player.y>>8),
+                 player.facingLeft,player.crouching,playShot);
     }
 }
 
@@ -844,7 +790,7 @@ static BOOL prepare(void)
     for(p=0;p<3;p++) CopyMem(frontClean.bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
     if(!buildEnemyPatterns()||!buildPlasmaPatterns()) return FALSE;
-    enemiesInit();
+    enemiesInit(); projectilesInit();
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
@@ -914,7 +860,7 @@ int main(void)
         joystick(&left,&right,&down,&jump,&fire); wasGrounded=player.grounded;
         startShot(fire); physics(left,right,down,jump); updateShot();
         enemiesUpdate(frameCounter,solidAt);
-        updateProjectiles();
+        projectilesUpdate((WORD)cameraX,solidAt,enemiesHitProjectile);
         updateAudio(); camera(); animatePlayer(!wasGrounded&&player.grounded);
         frameCounter++;
           /* The Copper consumes these list entries at frame start. Update them
