@@ -15,13 +15,12 @@
 #include <string.h>
 
 #include "assets.h"
-#include "audio.h"
-#include "collision.h"
 #include "enemies.h"
 #include "game.h"
 #include "platform_amiga.h"
 #include "player.h"
 #include "projectiles.h"
+#include "renderer.h"
 
 #define SCREEN_W 320
 #define SCREEN_H 256
@@ -389,17 +388,18 @@ static void drawEnemyBob(void)
     }
 }
 
-static BOOL loadData(void)
+BOOL rendererLoadGameplay(void)
 {
     if(!assetsLoadGameplay()) return FALSE;
     frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
     sprites=assetsPlayerSprites(); enemySprites=assetsEnemySprites();
-    return collisionLoad()&&audioLoad();
+    return TRUE;
 }
 
-static BOOL prepare(void)
+BOOL rendererPrepareGameplay(void)
 {
     UBYTE p;
+    game=gameState();
     frontDisplay=AllocBitMap(WORLD_W,WORLD_H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
     if(!frontDisplay||!cop||!buildHardwareSprites()) return FALSE;
@@ -409,7 +409,7 @@ static BOOL prepare(void)
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
-static void cleanup(void)
+void rendererCleanup(void)
 {
     WORD facing,frame,channel;
     if(cop) FreeMem(cop,COP_WORDS*2);
@@ -426,31 +426,23 @@ static void cleanup(void)
                           ENEMY_SOURCE_WORDS*3*2);
     if(enemyMask) FreeMem(enemyMask,2L*ENEMY_FRAMES*ENEMY_H*
                           ENEMY_SOURCE_WORDS*2);
-    audioUnload();
     if(frontDisplay) FreeBitMap(frontDisplay);
     assetsUnloadGameplay();
-    platformClose();
 }
 
-int main(void)
+UWORD *rendererCopperList(void)
 {
-    BOOL platformReady=platformOpen();
-    gameInit(); game=gameState();
-    if(!platformReady||!loadData()||!prepare()) { PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n"); cleanup(); return 10; }
-    setHardwareSprite();
-    platformTakeover(cop);
-    for(;;) {
-        while(platformRasterLine()<100) { }
-        gameUpdate();
-        /* The Copper consumes these list entries at frame start. Update them
-           well after that read and well before the next wrap, independent of
-           how long the post-display Bob pass takes. */
-        setHardwareSprite(); setScroll(game->cameraX,game->cameraX>>2);
-        while(platformRasterLine()<300) { }
-        eraseProjectileBobs(); restoreEnemyBob();
-        drawEnemyBob(); drawProjectileBobs();
-        platformWaitBlit();
-        while(platformRasterLine()>=300) { }
-    }
-    return 0;
+    return cop;
+}
+
+void rendererUpdateGameplay(void)
+{
+    setHardwareSprite(); setScroll(game->cameraX,game->cameraX>>2);
+}
+
+void rendererDrawGameplayBobs(void)
+{
+    eraseProjectileBobs(); restoreEnemyBob();
+    drawEnemyBob(); drawProjectileBobs();
+    platformWaitBlit();
 }

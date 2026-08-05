@@ -67,10 +67,12 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 ## Source layout
 
-- `src/sparkpaw.c`: platform startup, raster-phased main loop, display and
-  renderer implementation
+- `src/main.c`: startup, cleanup and the raster-phased top-level loop
+- `src/sparkpaw.c` / `src/renderer.h`: gameplay display, Copper construction,
+  hardware sprites, packed render caches and Bob rendering behind an explicit
+  renderer API
 - `src/game.c` / `src/game.h`: gameplay initialization and update ordering,
-  frame progression and camera state; renderer timing remains in `sparkpaw.c`
+  frame progression and camera state
 - `src/platform_amiga.c` / `src/platform_amiga.h`: graphics-library lifetime,
   custom-chip takeover/restore, raster reads and the required Blitter wait;
   Copper construction and concrete rendering commands remain in `sparkpaw.c`

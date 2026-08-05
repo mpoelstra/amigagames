@@ -770,6 +770,15 @@ FS-UAE that startup, visuals, scrolling and gameplay still work correctly.
 Next isolate the top-level loop behind an explicit renderer API before moving
 the renderer implementation itself.
 
+The ninth accepted extraction moves startup, cleanup and the raster-phased
+top-level loop into `main.c` and introduces `renderer.h` as the renderer API.
+The implementation remains physically in `sparkpaw.c`; it no longer owns
+`main()` or gameplay orchestration. Asset, collision and audio loading retain
+their established order, as do the line-100 update and line-300 Bob phases. A
+clean `make` and `make release` succeeded, and MrDig confirmed in FS-UAE that
+startup, visuals, scrolling and gameplay still work correctly. The next step
+is the mechanical `sparkpaw.c` to `renderer.c` rename with no code changes.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.
