@@ -67,9 +67,10 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 ## Source layout
 
-- `src/sparkpaw.c`: current monolithic display, camera, input, movement,
-  animation, collision, projectile and enemy implementation; incremental
-  modularisation is the next planned engineering phase
+- `src/sparkpaw.c`: current main loop, display, camera, input, player,
+  collision, projectile and renderer implementation
+- `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
+  and damage state; this is the first incremental modularisation boundary
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
   sprite/enemy planes and masks, packed Bob caches and the tile collision map
 - `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples

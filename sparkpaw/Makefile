@@ -9,7 +9,8 @@ PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 BENCH_TARGET = sparkpaw-renderbench
-SOURCES = src/sparkpaw.c
+SOURCES = src/sparkpaw.c src/enemies.c
+HEADERS = src/enemies.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/storm-front.spbm \
 	assets/runtime/storm-rear.spbm \
@@ -50,7 +51,7 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 sfx/raw/energy-shot.raw: tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
-$(TARGET): $(SOURCES) $(RUNTIME_ASSETS)
+$(TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)"
 	$(CC) $(CFLAGS) -o $@ $(SOURCES)
 

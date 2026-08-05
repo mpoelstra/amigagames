@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "enemies.h"
+
 #define SCREEN_W 320
 #define SCREEN_H 256
 #define WORLD_W 1280
@@ -39,12 +41,6 @@
 #define MAX_PROJECTILES 6
 #define PLASMA_PATTERNS 5
 #define PLASMA_SOURCE_WORDS 2
-#define ENEMY_W 32
-#define ENEMY_H 24
-#define ENEMY_FRAMES 9
-#define ENEMY_SOURCE_WORDS 3
-#define MAX_ENEMIES 4
-#define ENEMY_SPEED 96
 #define HIT_LEFT 4
 #define HIT_RIGHT 27
 #define HIT_TOP 5
@@ -78,13 +74,6 @@ struct Projectile {
     WORD drawnX,drawnY;
 };
 
-struct Enemy {
-    LONG x,vx;
-    WORD y,drawnX,drawnY,patrolLeft,patrolRight;
-    UBYTE animFrame,health,hitTimer,deathTimer;
-    BOOL active,drawn,facingLeft,dying;
-};
-
 struct GfxBase *GfxBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static struct PlanarAsset frontClean,rearWorld,sprites,enemySprites;
@@ -104,7 +93,6 @@ static BOOL joystickUpHeld,joystickFireHeld;
 static UBYTE shotDmaTicks;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
-static struct Enemy enemies[MAX_ENEMIES];
 
 static BOOL solidAt(WORD x,WORD y);
 
@@ -396,8 +384,8 @@ static void updateProjectiles(void)
 {
     WORD i;
     for(i=0;i<MAX_PROJECTILES;i++) {
-        struct Projectile *p=&projectiles[i]; WORD x,y,enemyIndex;
-        struct Enemy *hitEnemy=NULL;
+        struct Projectile *p=&projectiles[i]; WORD x,y;
+        BOOL hitEnemy;
         if(!p->active) continue;
         if(p->impactTimer) {
             if(!--p->impactTimer) p->active=FALSE;
@@ -406,26 +394,10 @@ static void updateProjectiles(void)
         p->x+=p->vx;
         x=(WORD)(p->x>>8)+(p->vx>0?PROJECTILE_W-1:0);
         y=(WORD)(p->y>>8)+(PROJECTILE_H>>1);
-        for(enemyIndex=0;enemyIndex<MAX_ENEMIES;enemyIndex++) {
-            struct Enemy *candidate=&enemies[enemyIndex];
-            if(p->lowShot&&candidate->active&&!candidate->dying&&
-               x>=(WORD)(candidate->x>>8)+2&&
-               x<=(WORD)(candidate->x>>8)+ENEMY_W-3&&
-               y>=candidate->y+7&&y<=candidate->y+ENEMY_H-1) {
-                hitEnemy=candidate; break;
-            }
-        }
+        hitEnemy=enemiesHitProjectile(x,y,p->lowShot);
         {
             WORD screenHit;
             if(hitEnemy||solidAt(x,y)||!--p->life) {
-                if(hitEnemy) {
-                    if(!--hitEnemy->health) {
-                        hitEnemy->dying=TRUE; hitEnemy->deathTimer=20;
-                        hitEnemy->vx=0; hitEnemy->animFrame=5;
-                    } else {
-                        hitEnemy->hitTimer=8; hitEnemy->animFrame=4;
-                    }
-                }
                 screenHit=x-(WORD)cameraX;
                 /* Never show a clipped impact on invisible off-screen geometry. */
                 if(screenHit<2||screenHit>SCREEN_W-3) p->active=FALSE;
@@ -575,9 +547,11 @@ static void drawProjectileBobs(void)
 static void restoreEnemyBob(void)
 {
     WORD i;
-    for(i=0;i<MAX_ENEMIES;i++) if(enemies[i].drawn) {
-        blitRestoreRect(enemies[i].drawnX,enemies[i].drawnY,ENEMY_W,ENEMY_H);
-        enemies[i].drawn=FALSE;
+    for(i=0;i<MAX_ENEMIES;i++) {
+        struct Enemy *enemy=enemyAt(i);
+        if(!enemy->drawn) continue;
+        blitRestoreRect(enemy->drawnX,enemy->drawnY,ENEMY_W,ENEMY_H);
+        enemy->drawn=FALSE;
     }
 }
 
@@ -585,7 +559,7 @@ static void drawEnemyBob(void)
 {
     WORD i;
     for(i=0;i<MAX_ENEMIES;i++) {
-        struct Enemy *enemy=&enemies[i]; UBYTE facing;
+        struct Enemy *enemy=enemyAt(i); UBYTE facing;
         if(!enemy->active) continue;
         enemy->drawnX=(WORD)(enemy->x>>8); enemy->drawnY=enemy->y;
         if(enemy->drawnX+ENEMY_W<(WORD)cameraX-32||
@@ -599,32 +573,6 @@ static void drawEnemyBob(void)
                       ENEMY_SOURCE_WORDS,ENEMY_W,ENEMY_H,
                       enemy->drawnX,enemy->drawnY);
         enemy->drawn=TRUE;
-    }
-}
-
-static void updateEnemy(void)
-{
-    WORD i;
-    for(i=0;i<MAX_ENEMIES;i++) {
-        struct Enemy *enemy=&enemies[i]; WORD nextX,front;
-        if(!enemy->active) continue;
-        if(enemy->dying) {
-            enemy->animFrame=(UBYTE)(5+(20-enemy->deathTimer)/5);
-            if(!--enemy->deathTimer) enemy->active=FALSE;
-            continue;
-        }
-        if(enemy->hitTimer) {
-            enemy->hitTimer--; enemy->animFrame=4; continue;
-        }
-        nextX=(WORD)((enemy->x+enemy->vx)>>8);
-        front=nextX+(enemy->vx<0?1:ENEMY_W-2);
-        if(nextX<enemy->patrolLeft||nextX>enemy->patrolRight-ENEMY_W||
-           solidAt(front,enemy->y+ENEMY_H-8)||
-           !solidAt(front,enemy->y+ENEMY_H)) {
-            enemy->vx=-enemy->vx;
-        } else enemy->x+=enemy->vx;
-        enemy->facingLeft=enemy->vx<0;
-        enemy->animFrame=(UBYTE)((frameCounter>>2)&3);
     }
 }
 
@@ -889,9 +837,6 @@ static BOOL loadData(void)
 
 static BOOL prepare(void)
 {
-    static const WORD spawnX[MAX_ENEMIES]={300,535,790,1080};
-    static const WORD patrolLeft[MAX_ENEMIES]={286,500,752,1035};
-    static const WORD patrolRight[MAX_ENEMIES]={392,640,900,1195};
     UBYTE p;
     frontDisplay=AllocBitMap(WORLD_W,WORLD_H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
@@ -899,15 +844,7 @@ static BOOL prepare(void)
     for(p=0;p<3;p++) CopyMem(frontClean.bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
     if(!buildEnemyPatterns()||!buildPlasmaPatterns()) return FALSE;
-    memset(enemies,0,sizeof(enemies));
-    for(p=0;p<MAX_ENEMIES;p++) {
-        enemies[p].x=(LONG)spawnX[p]<<8; enemies[p].y=184;
-        enemies[p].vx=(p&1)?-ENEMY_SPEED:ENEMY_SPEED;
-        enemies[p].patrolLeft=patrolLeft[p];
-        enemies[p].patrolRight=patrolRight[p];
-        enemies[p].health=2; enemies[p].active=TRUE;
-        enemies[p].facingLeft=enemies[p].vx<0;
-    }
+    enemiesInit();
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
@@ -975,7 +912,8 @@ int main(void)
     for(;;) {
         while(rasterLine()<100) { }
         joystick(&left,&right,&down,&jump,&fire); wasGrounded=player.grounded;
-        startShot(fire); physics(left,right,down,jump); updateShot(); updateEnemy();
+        startShot(fire); physics(left,right,down,jump); updateShot();
+        enemiesUpdate(frameCounter,solidAt);
         updateProjectiles();
         updateAudio(); camera(); animatePlayer(!wasGrounded&&player.grounded);
         frameCounter++;

@@ -698,6 +698,15 @@ Blitter ordering, dual-playfield pointers and six-channel player sprites are
 accepted sensitive paths. Do not create circular headers or expose custom-chip
 register writes to gameplay modules. Keep shared state explicit and small.
 
+Progress on 5 August 2026: the first extraction is accepted. `enemies.c` and
+`enemies.h` now own the fixed four-enemy pool, spawn/patrol initialization, AI,
+projectile hit detection and damage/death state. The synchronized enemy Bob
+cache and restore/draw code deliberately remain in `sparkpaw.c` until the later
+renderer boundary. A clean `make` and `make release` succeeded, and MrDig
+confirmed that the modularized build still works correctly in FS-UAE. This is
+the first boundary, not the completed Phase 1 structure; projectiles are the
+next intended extraction.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.
