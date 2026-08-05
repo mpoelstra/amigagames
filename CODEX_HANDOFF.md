@@ -714,6 +714,15 @@ remain in `sparkpaw.c` with the renderer-sensitive code. A clean `make` and
 projectile build still works correctly. Collision ownership is the next
 intended boundary before player physics is moved.
 
+The third accepted extraction moves collision-map loading and solid point,
+horizontal-span and vertical-span queries into `collision.c` and `collision.h`.
+Player movement, enemy patrol and projectile impacts now share that API without
+changing their query order or rules. A clean `make` and `make release`
+succeeded, and MrDig confirmed in FS-UAE that movement, collision and gameplay
+still work correctly. Player state, input, physics and animation selection are
+the next intended boundary; hardware-sprite preparation and Copper updates must
+remain with the renderer/platform side.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

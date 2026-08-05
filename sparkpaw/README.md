@@ -74,6 +74,8 @@ into the game; see `docs/RENDERBENCH.txt`.
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
   impact state and hit dispatch; packed plasma rendering remains with the
   renderer-sensitive code in `sparkpaw.c`
+- `src/collision.c` / `src/collision.h`: collision-map loading and solid-point,
+  horizontal-span and vertical-span tile queries shared by gameplay modules
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
   sprite/enemy planes and masks, packed Bob caches and the tile collision map
 - `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples

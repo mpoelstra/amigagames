@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "collision.h"
 #include "enemies.h"
 #include "projectiles.h"
 
@@ -21,10 +22,6 @@
 #define SCREEN_H 256
 #define WORLD_W 1280
 #define WORLD_H 256
-#define GAME_H 224
-#define TILE_SIZE 16
-#define MAP_COLS 80
-#define MAP_ROWS 14
 #define FETCH_BYTES 42
 #define COP_WORDS 320
 #define FIX_SHIFT 8
@@ -68,7 +65,6 @@ struct GfxBase *GfxBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static struct PlanarAsset frontClean,rearWorld,sprites,enemySprites;
 static struct BitMap *frontDisplay;
-static UBYTE collision[MAP_COLS*MAP_ROWS];
 static struct Player player;
 static struct View *oldView;
 static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
@@ -82,8 +78,6 @@ static BOOL joystickUpHeld,joystickFireHeld;
 static UBYTE shotDmaTicks;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
-
-static BOOL solidAt(WORD x,WORD y);
 
 static UWORD be16(const UBYTE *p) { return (UWORD)(((UWORD)p[0]<<8)|p[1]); }
 
@@ -121,14 +115,6 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *a,UBYTE wantedDepth)
         size=(LONG)a->rowBytes*a->height; a->mask=(UBYTE *)AllocMem(size,MEMF_CHIP);
         if(!a->mask||Read(f,a->mask,size)!=size) { Close(f); freeAsset(a); return FALSE; }
     }
-    Close(f); return TRUE;
-}
-
-static BOOL loadCollision(void)
-{
-    BPTR f=Open("PROGDIR:assets/runtime/storm-collision.bin",MODE_OLDFILE);
-    if(!f) return FALSE;
-    if(Read(f,collision,sizeof(collision))!=sizeof(collision)) { Close(f); return FALSE; }
     Close(f); return TRUE;
 }
 
@@ -613,28 +599,6 @@ static void animatePlayer(BOOL landed)
     } else player.animFrame=((frameCounter%180)>=176)?1:0;
 }
 
-static BOOL solidAt(WORD x,WORD y)
-{
-    WORD tx,ty;
-    if(x<0||x>=WORLD_W||y<0||y>=GAME_H) return TRUE;
-    tx=x/TILE_SIZE; ty=y/TILE_SIZE;
-    return collision[ty*MAP_COLS+tx]!=0;
-}
-
-static BOOL solidHorizontal(WORD left,WORD right,WORD y)
-{
-    WORD x;
-    for(x=left;x<=right;x++) if(solidAt(x,y)) return TRUE;
-    return FALSE;
-}
-
-static BOOL solidVertical(WORD x,WORD top,WORD bottom)
-{
-    WORD y;
-    for(y=top;y<=bottom;y++) if(solidAt(x,y)) return TRUE;
-    return FALSE;
-}
-
 static WORD playerHitTop(void)
 {
     return player.crouching?HIT_CROUCH_TOP:HIT_TOP;
@@ -644,7 +608,7 @@ static BOOL canStand(WORD x,WORD y)
 {
     WORD yy;
     for(yy=y+HIT_TOP;yy<y+HIT_CROUCH_TOP;yy++)
-        if(solidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,yy)) return FALSE;
+        if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,yy)) return FALSE;
     return TRUE;
 }
 
@@ -652,14 +616,14 @@ static void moveX(LONG delta)
 {
     LONG target=player.x+delta; WORD x=(WORD)(player.x>>FIX_SHIFT);
     WORD end=(WORD)(target>>FIX_SHIFT),y=(WORD)(player.y>>FIX_SHIFT),dir=delta<0?-1:1;
-    if(delta&&solidVertical(x+(dir<0?HIT_LEFT-1:HIT_RIGHT+1),
-                            y+playerHitTop(),y+HIT_BOTTOM)) {
+    if(delta&&collisionSolidVertical(x+(dir<0?HIT_LEFT-1:HIT_RIGHT+1),
+                                     y+playerHitTop(),y+HIT_BOTTOM)) {
         player.wallBlocked=TRUE; player.vx=0; player.x=(LONG)x<<8; return;
     }
     while(x!=end) {
         WORD n=x+dir;
         WORD side=n+(dir<0?HIT_LEFT:HIT_RIGHT);
-        if(solidVertical(side,y+playerHitTop(),y+HIT_BOTTOM)) {
+        if(collisionSolidVertical(side,y+playerHitTop(),y+HIT_BOTTOM)) {
             player.wallBlocked=TRUE; player.vx=0; player.x=(LONG)x<<8; return;
         }
         x=n;
@@ -675,14 +639,15 @@ static void moveY(LONG delta)
     while(y!=end) {
         WORD n=y+dir;
         WORD edge=n+(dir<0?playerHitTop():HIT_BOTTOM);
-        if(solidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,edge)) {
+        if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,edge)) {
             if(dir>0) player.grounded=TRUE;
             player.vy=0; player.y=(LONG)y<<8; return;
         }
         y=n;
     }
     player.y=target;
-    if(solidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,y+HIT_BOTTOM+1)) player.grounded=TRUE;
+    if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,y+HIT_BOTTOM+1))
+        player.grounded=TRUE;
 }
 
 static void joystick(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
@@ -778,7 +743,7 @@ static BOOL loadData(void)
            loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",&sprites,4)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",&enemySprites,3)&&
-           loadCollision()&&loadShotSample();
+           collisionLoad()&&loadShotSample();
 }
 
 static BOOL prepare(void)
@@ -859,8 +824,8 @@ int main(void)
         while(rasterLine()<100) { }
         joystick(&left,&right,&down,&jump,&fire); wasGrounded=player.grounded;
         startShot(fire); physics(left,right,down,jump); updateShot();
-        enemiesUpdate(frameCounter,solidAt);
-        projectilesUpdate((WORD)cameraX,solidAt,enemiesHitProjectile);
+        enemiesUpdate(frameCounter,collisionSolidAt);
+        projectilesUpdate((WORD)cameraX,collisionSolidAt,enemiesHitProjectile);
         updateAudio(); camera(); animatePlayer(!wasGrounded&&player.grounded);
         frameCounter++;
           /* The Copper consumes these list entries at frame start. Update them
