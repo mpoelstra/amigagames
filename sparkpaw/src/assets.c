@@ -7,7 +7,7 @@
 #include <proto/graphics.h>
 #include <string.h>
 
-static struct PlanarAsset frontClean,rearWorld,playerSprites,enemySprites;
+static struct PlanarAsset title,frontClean,rearWorld,playerSprites,enemySprites;
 
 static UWORD readBigEndian16(const UBYTE *value)
 {
@@ -82,12 +82,23 @@ BOOL assetsLoadGameplay(void)
                      &enemySprites,3);
 }
 
+BOOL assetsLoadTitle(void)
+{
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,6);
+}
+
+void assetsUnloadTitle(void)
+{
+    freeAsset(&title);
+}
+
 void assetsUnloadGameplay(void)
 {
     freeAsset(&enemySprites); freeAsset(&playerSprites);
     freeAsset(&rearWorld); freeAsset(&frontClean);
 }
 
+const struct PlanarAsset *assetsTitle(void) { return &title; }
 const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }

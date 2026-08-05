@@ -8,12 +8,15 @@ struct PlanarAsset {
     struct BitMap *bitmap;
     UWORD width,height,rowBytes;
     UBYTE depth,hasMask;
-    UBYTE palette[32][3];
+    UBYTE palette[64][3];
     UBYTE *mask;
 };
 
+BOOL assetsLoadTitle(void);
+void assetsUnloadTitle(void);
 BOOL assetsLoadGameplay(void);
 void assetsUnloadGameplay(void);
+const struct PlanarAsset *assetsTitle(void);
 const struct PlanarAsset *assetsFrontClean(void);
 const struct PlanarAsset *assetsRearWorld(void);
 const struct PlanarAsset *assetsPlayerSprites(void);

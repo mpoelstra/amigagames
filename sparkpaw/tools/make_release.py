@@ -95,6 +95,7 @@ def copy_runtime() -> None:
     STAGE.mkdir(parents=True)
     shutil.copy2(ROOT / "sparkpaw", STAGE / "Sparkpaw")
     for name in (
+        "sparkpaw-title.spbm",
         "storm-front.spbm", "storm-rear.spbm",
         "storm-collision.bin", "sparkpaw-sprites4.spbm",
         "clockwork-beetle.spbm",

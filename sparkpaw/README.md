@@ -89,8 +89,8 @@ into the game; see `docs/RENDERBENCH.txt`.
   movement/physics and the established 50-frame animation selection; hardware
   sprite preparation and Copper updates remain in `sparkpaw.c`
 - `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
-  lifetime and cleanup; packed hardware-sprite and Bob cache preparation
-  remains with the renderer-sensitive code in `sparkpaw.c`
+  lifetime and cleanup plus a separate early-title lifetime; packed
+  hardware-sprite and Bob cache preparation remains in `renderer.c`
 - `src/audio.c` / `src/audio.h`: energy-shot sample loading and lifetime,
   Paula channel 0 playback and explicit hardware-active lifecycle control
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source

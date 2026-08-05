@@ -58,6 +58,8 @@ REAR8 = [
     (68, 68, 153), (102, 85, 170), (153, 119, 187), (204, 187, 221),
 ]
 
+TITLE_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-title-concept-aga64-preview.png"
+
 
 def nearest_index(rgb: tuple[int, int, int], palette: list[tuple[int, int, int]], *, avoid_zero=False) -> int:
     begin = 1 if avoid_zero else 0
@@ -162,6 +164,19 @@ def save_spbm(path: Path, image: Image.Image, palette: list[tuple[int, int, int]
     header = b"SPBM" + struct.pack(">HHBBH", image.width, image.height, depth, 1 if mask else 0, row_bytes)
     pal = bytes(v for rgb in palette[:1 << depth] for v in rgb)
     path.write_bytes(header + pal + bits + mask)
+
+
+def load_title() -> tuple[Image.Image, list[tuple[int, int, int]]]:
+    with Image.open(TITLE_SOURCE) as source:
+        if source.size != (320, 256) or source.mode != "P":
+            raise ValueError("title preview must be a 320x256 indexed image")
+        image = source.copy()
+        palette_data = source.getpalette()
+    if palette_data is None or image.getextrema()[1] >= 64:
+        raise ValueError("title preview must use palette indices 0..63")
+    palette = [tuple(palette_data[index:index + 3])
+               for index in range(0, 64 * 3, 3)]
+    return image, palette
 
 
 def make_background() -> Image.Image:
@@ -543,6 +558,9 @@ def main() -> None:
     fg, collision = make_foreground()
     sprites, mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
+    title, title_palette = load_title()
+
+    save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
     # renderer. The rear artwork repeats across the entire five-screen world.

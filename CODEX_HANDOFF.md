@@ -797,6 +797,16 @@ unchanged. A clean `make` and `make release` succeeded, and MrDig confirmed in
 FS-UAE that startup and gameplay still work correctly. Next separate a small
 early-resident title asset from the large level/gameplay asset set.
 
+The second accepted Phase 2 step generates the established 320x256 AGA title
+preview as a compact 64-colour, six-plane `sparkpaw-title.spbm` and adds a
+separate title asset lifetime in `assets.c` and `assets.h`. A full planar
+decode reproduced all 81,920 source palette indices exactly. The runtime asset
+is 61,644 bytes and is packaged in HD, archive and ADF releases, but the current
+startup path does not load or display it yet. A clean `make` and `make release`
+succeeded, and MrDig confirmed in FS-UAE that existing startup and gameplay
+remain unchanged. Next display this asset through an OS-managed early title
+view with `Loading...` before level asset loading and custom-chip takeover.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.
