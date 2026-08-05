@@ -9,9 +9,10 @@ PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 BENCH_TARGET = sparkpaw-renderbench
-SOURCES = src/sparkpaw.c src/collision.c src/enemies.c src/player.c \
+SOURCES = src/sparkpaw.c src/assets.c src/collision.c src/enemies.c src/player.c \
 	src/projectiles.c
-HEADERS = src/collision.h src/enemies.h src/player.h src/projectiles.h
+HEADERS = src/assets.h src/collision.h src/enemies.h src/player.h \
+	src/projectiles.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/storm-front.spbm \
 	assets/runtime/storm-rear.spbm \

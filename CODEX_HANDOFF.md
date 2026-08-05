@@ -733,6 +733,14 @@ behaviour still works correctly. Asset loading and preparation are the next
 intended boundary because they are prerequisites for the later title-first and
 level-loading state flow.
 
+The fifth accepted extraction moves SPBM loading, validation, gameplay-asset
+lifetime and partial-failure cleanup into `assets.c` and `assets.h`. Renderer
+code consumes read-only asset handles; packed hardware-sprite and Bob cache
+preparation deliberately remains in `sparkpaw.c`. A clean `make` and
+`make release` succeeded, and MrDig confirmed in FS-UAE that startup, visuals
+and gameplay still work correctly. Audio sample lifetime and Paula channel
+ownership are the next intended boundary.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

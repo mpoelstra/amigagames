@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "assets.h"
 #include "collision.h"
 #include "enemies.h"
 #include "player.h"
@@ -34,17 +35,9 @@
 #define PLASMA_PATTERNS 5
 #define PLASMA_SOURCE_WORDS 2
 
-struct PlanarAsset {
-    struct BitMap *bitmap;
-    UWORD width,height,rowBytes;
-    UBYTE depth,hasMask;
-    UBYTE palette[32][3];
-    UBYTE *mask;
-};
-
 struct GfxBase *GfxBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
-static struct PlanarAsset frontClean,rearWorld,sprites,enemySprites;
+static const struct PlanarAsset *frontClean,*rearWorld,*sprites,*enemySprites;
 static struct BitMap *frontDisplay;
 static struct View *oldView;
 static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
@@ -57,45 +50,6 @@ static LONG cameraX,frameCounter;
 static UBYTE shotDmaTicks;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
-
-static UWORD be16(const UBYTE *p) { return (UWORD)(((UWORD)p[0]<<8)|p[1]); }
-
-static void freeAsset(struct PlanarAsset *a)
-{
-    if(a->mask) { FreeMem(a->mask,(LONG)a->rowBytes*a->height); a->mask=NULL; }
-    if(a->bitmap) { FreeBitMap(a->bitmap); a->bitmap=NULL; }
-}
-
-static BOOL readRows(BPTR f,PLANEPTR p,UWORD fileRow,UWORD memRow,UWORD h)
-{
-    UWORD y;
-    if(fileRow==memRow) return Read(f,p,(LONG)fileRow*h)==(LONG)fileRow*h;
-    for(y=0;y<h;y++) if(Read(f,p+(LONG)y*memRow,fileRow)!=fileRow) return FALSE;
-    return TRUE;
-}
-
-static BOOL loadAsset(const char *name,struct PlanarAsset *a,UBYTE wantedDepth)
-{
-    BPTR f; UBYTE header[12],plane; LONG size;
-    memset(a,0,sizeof(*a)); f=Open((STRPTR)name,MODE_OLDFILE); if(!f) return FALSE;
-    if(Read(f,header,12)!=12||memcmp(header,"SPBM",4)!=0) { Close(f); return FALSE; }
-    a->width=be16(header+4); a->height=be16(header+6); a->depth=header[8];
-    a->hasMask=header[9]; a->rowBytes=be16(header+10);
-    if(a->depth!=wantedDepth||Read(f,a->palette,(LONG)(1<<a->depth)*3)!=(LONG)(1<<a->depth)*3) {
-        Close(f); return FALSE;
-    }
-    a->bitmap=AllocBitMap(a->width,a->height,a->depth,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
-    if(!a->bitmap) { Close(f); return FALSE; }
-    for(plane=0;plane<a->depth;plane++)
-        if(!readRows(f,a->bitmap->Planes[plane],a->rowBytes,a->bitmap->BytesPerRow,a->height)) {
-            Close(f); freeAsset(a); return FALSE;
-        }
-    if(a->hasMask) {
-        size=(LONG)a->rowBytes*a->height; a->mask=(UBYTE *)AllocMem(size,MEMF_CHIP);
-        if(!a->mask||Read(f,a->mask,size)!=size) { Close(f); freeAsset(a); return FALSE; }
-    }
-    Close(f); return TRUE;
-}
 
 static BOOL loadShotSample(void)
 {
@@ -143,12 +97,12 @@ static void buildCopper(void)
     cmove(0x100,0x6600); cmove(0x102,0); scrollValue=copPos-1;
     cmove(0x104,0x0024); cmove(0x106,0x0c00);
     cmove(0x108,frontDisplay->BytesPerRow-FETCH_BYTES);
-    cmove(0x10a,rearWorld.bitmap->BytesPerRow-FETCH_BYTES);
+    cmove(0x10a,rearWorld->bitmap->BytesPerRow-FETCH_BYTES);
     /* AGA defaults: both even and odd sprites use palette bank 1 (16..31). */
     cmove(0x10c,0x0011); cmove(0x1fc,0);
-    cptr(0x0e0,frontDisplay->Planes[0],0); cptr(0x0e4,rearWorld.bitmap->Planes[0],1);
-    cptr(0x0e8,frontDisplay->Planes[1],2); cptr(0x0ec,rearWorld.bitmap->Planes[1],3);
-    cptr(0x0f0,frontDisplay->Planes[2],4); cptr(0x0f4,rearWorld.bitmap->Planes[2],5);
+    cptr(0x0e0,frontDisplay->Planes[0],0); cptr(0x0e4,rearWorld->bitmap->Planes[0],1);
+    cptr(0x0e8,frontDisplay->Planes[1],2); cptr(0x0ec,rearWorld->bitmap->Planes[1],3);
+    cptr(0x0f0,frontDisplay->Planes[2],4); cptr(0x0f4,rearWorld->bitmap->Planes[2],5);
     for(i=0;i<16;i++) cmove((UWORD)(0x180+i*2),colors[i]);
     /* Three attached pairs provide one 48x48 actor; the final attached pair
        is reserved for the energy bolt and its compact impact flash. */
@@ -157,7 +111,7 @@ static void buildCopper(void)
     for(i=SPRITE_CHANNELS;i<TOTAL_SPRITE_CHANNELS;i++)
         spriteCptr((UWORD)(0x120+i*4),nullSprite,(UWORD)i);
     for(i=0;i<16;i++) {
-        UBYTE *rgb=sprites.palette[i];
+        const UBYTE *rgb=sprites->palette[i];
         UWORD amiga=(UWORD)(((rgb[0]>>4)<<8)|((rgb[1]>>4)<<4)|(rgb[2]>>4));
         cmove((UWORD)(0x1a0+i*2),amiga);
     }
@@ -166,7 +120,7 @@ static void buildCopper(void)
     cmove(0x106,0x0e00);
     for(i=0;i<16;i++) cmove((UWORD)(0x180+i*2),0);
     for(i=0;i<16;i++) {
-        UBYTE *rgb=sprites.palette[i];
+        const UBYTE *rgb=sprites->palette[i];
         UWORD amiga=(UWORD)(((rgb[0]&15)<<8)|((rgb[1]&15)<<4)|(rgb[2]&15));
         cmove((UWORD)(0x1a0+i*2),amiga);
     }
@@ -185,8 +139,8 @@ static void setScroll(LONG front,LONG rear)
     UWORD ff=(UWORD)(15-(front&15)),rf=(UWORD)(15-(rear&15));
     LONG fo=(front>>4)<<1,ro=(rear>>4)<<1;
     setPtr(0,frontDisplay->Planes[0],fo); setPtr(2,frontDisplay->Planes[1],fo);
-    setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,rearWorld.bitmap->Planes[0],ro);
-    setPtr(3,rearWorld.bitmap->Planes[1],ro); setPtr(5,rearWorld.bitmap->Planes[2],ro);
+    setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,rearWorld->bitmap->Planes[0],ro);
+    setPtr(3,rearWorld->bitmap->Planes[1],ro); setPtr(5,rearWorld->bitmap->Planes[2],ro);
     cop[scrollValue]=(rf<<4)|ff;
 }
 
@@ -212,15 +166,15 @@ static UBYTE pixel(const struct BitMap *bm,WORD x,WORD y,UBYTE depth)
 static UBYTE spritePen(WORD x,WORD y)
 {
     UBYTE mask=(UBYTE)(0x80>>(x&7));
-    if(!(sprites.mask[(LONG)y*sprites.rowBytes+(x>>3)]&mask)) return 0;
-    return pixel(sprites.bitmap,x,y,4);
+    if(!(sprites->mask[(LONG)y*sprites->rowBytes+(x>>3)]&mask)) return 0;
+    return pixel(sprites->bitmap,x,y,4);
 }
 
 static UBYTE enemyPen(WORD x,WORD y)
 {
     UBYTE mask=(UBYTE)(0x80>>(x&7));
-    if(!(enemySprites.mask[(LONG)y*enemySprites.rowBytes+(x>>3)]&mask)) return 0;
-    return pixel(enemySprites.bitmap,x,y,3);
+    if(!(enemySprites->mask[(LONG)y*enemySprites->rowBytes+(x>>3)]&mask)) return 0;
+    return pixel(enemySprites->bitmap,x,y,3);
 }
 
 static UWORD *enemyMaskRow(UBYTE facing,UBYTE frame,WORD row)
@@ -392,9 +346,9 @@ static void blitRestoreRect(WORD x,WORD y,WORD width,WORD height)
         waitPrivateBlit();
         hw->bltcon0=0x09f0; hw->bltcon1=0;
         hw->bltafwm=0xffff; hw->bltalwm=0xffff;
-        hw->bltamod=(UWORD)(frontClean.bitmap->BytesPerRow-words*2);
+        hw->bltamod=(UWORD)(frontClean->bitmap->BytesPerRow-words*2);
         hw->bltdmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
-        hw->bltapt=frontClean.bitmap->Planes[plane]+at;
+        hw->bltapt=frontClean->bitmap->Planes[plane]+at;
         hw->bltdpt=frontDisplay->Planes[plane]+at;
         hw->bltsize=(UWORD)((height<<6)|words);
     }
@@ -497,11 +451,10 @@ static void camera(void)
 
 static BOOL loadData(void)
 {
-    return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,3)&&
-           loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3)&&
-           loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",&sprites,4)&&
-           loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",&enemySprites,3)&&
-           collisionLoad()&&loadShotSample();
+    if(!assetsLoadGameplay()) return FALSE;
+    frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
+    sprites=assetsPlayerSprites(); enemySprites=assetsEnemySprites();
+    return collisionLoad()&&loadShotSample();
 }
 
 static BOOL prepare(void)
@@ -510,7 +463,7 @@ static BOOL prepare(void)
     frontDisplay=AllocBitMap(WORLD_W,WORLD_H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
     if(!frontDisplay||!cop||!buildHardwareSprites()) return FALSE;
-    for(p=0;p<3;p++) CopyMem(frontClean.bitmap->Planes[p],frontDisplay->Planes[p],
+    for(p=0;p<3;p++) CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
     if(!buildEnemyPatterns()||!buildPlasmaPatterns()) return FALSE;
     enemiesInit(); projectilesInit();
@@ -565,8 +518,7 @@ static void cleanup(void)
                           ENEMY_SOURCE_WORDS*2);
     if(shotSample) FreeMem(shotSample,shotSampleBytes);
     if(frontDisplay) FreeBitMap(frontDisplay);
-    freeAsset(&sprites); freeAsset(&rearWorld); freeAsset(&frontClean);
-    freeAsset(&enemySprites);
+    assetsUnloadGameplay();
     if(GfxBase) CloseLibrary((struct Library *)GfxBase);
 }
 

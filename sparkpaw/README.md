@@ -79,6 +79,9 @@ into the game; see `docs/RENDERBENCH.txt`.
 - `src/player.c` / `src/player.h`: player state, joystick input, shooting,
   movement/physics and the established 50-frame animation selection; hardware
   sprite preparation and Copper updates remain in `sparkpaw.c`
+- `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
+  lifetime and cleanup; packed hardware-sprite and Bob cache preparation
+  remains with the renderer-sensitive code in `sparkpaw.c`
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
   sprite/enemy planes and masks, packed Bob caches and the tile collision map
 - `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples
