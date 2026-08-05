@@ -1,0 +1,2 @@
+Pillow>=10,<13
+amigainfo==0.6.0

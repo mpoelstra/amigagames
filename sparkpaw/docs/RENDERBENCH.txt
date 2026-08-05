@@ -1,0 +1,25 @@
+SPARKPAW AGA RENDER BENCHMARK
+=============================
+
+Run sparkpaw-renderbench from its directory. Click the left mouse button to
+exit, or wait approximately one minute.
+
+After a normal exit it writes renderbench.log beside the executable
+(PROGDIR:). The log records the exact build, display/fetch values, frame
+count, exit reason and Workbench restoration path. Please send this small
+text file with any visual report.
+
+This first isolated benchmark tests only the risky display foundation:
+
+- a private PAL Copper display, independent from Intuition and Workbench;
+- two independently hardware-scrolled 672x256 planar bitmaps;
+- foreground at full speed and background at quarter speed;
+- explicit 320x256 display/fetch timing and one update per PAL frame;
+- no gameplay, sprites, HUD, full-screen copies or per-frame drawing.
+
+Expected result: a full-height display with two differently scrolling layers.
+The foreground automatically travels left/right. The background moves slower.
+
+If it is malformed or half-height, photograph it and report whether it was
+started from HD or ADF. If it is correct and smooth, the next benchmark adds
+the tile-edge updater and an AGA hardware sprite.

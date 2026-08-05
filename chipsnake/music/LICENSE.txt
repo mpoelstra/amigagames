@@ -1,0 +1,14 @@
+ChipSnake Title Module
+======================
+
+The musical compositions, pattern data, and synthesized instrument samples in
+chipsnake-title.mod, chipsnake-circuit.mod, chipsnake-turbo.mod,
+chipsnake-thunder.mod, chipsnake-neon.mod, and chipsnake-hall.mod are
+dedicated to the public domain under CC0 1.0 Universal.
+
+Created for MrDig Productions, 2026.
+
+To the extent possible under law, the creator has waived all copyright and
+related or neighboring rights to this work.
+
+CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/

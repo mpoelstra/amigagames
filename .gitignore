@@ -1,0 +1,62 @@
+# macOS and emulator metadata
+.DS_Store
+*.uaem
+
+# Locally installed compilers, SDKs, and Python environments
+**/.toolchain/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.py[cod]
+
+# Generated build and release trees
+**/build/
+**/dist/
+**/src/*.o
+**/third_party/LSPlayer/build/
+**/third_party/LSPlayer/benchmark.adf
+
+# Local test evidence, historical snapshots, and logs
+/backups/
+**/backups/
+**/baselines/
+**/testresults/
+**/*.log
+**/*.mov
+**/*.mp4
+
+# Reference packages that are not licensed for repository redistribution
+/ACM_PDF/
+/ACM_PDF.lha
+/WHDLoad_usr.lha
+
+# Generated executables and mutable local state
+/chipsnake/snake
+/chipsnake/snake.info
+/chipsnake/chipsnake.highscores
+/mrdigs-futsal/futsal
+/mrdigs-futsal/futsal.info
+/sparkpaw/sparkpaw
+/sparkpaw/sparkpaw-renderbench
+
+# Reproducible runtime conversions
+/chipsnake/music/*.lsmusic
+/chipsnake/music/*.lsbank
+/chipsnake/music/.protracker-compatible
+/mrdigs-futsal/music/*.lsmusic
+/mrdigs-futsal/music/*.lsbank
+/mrdigs-futsal/assets/title/*.iff
+/mrdigs-futsal/assets/options/*.iff
+/mrdigs-futsal/assets/sfx/previews/
+/mrdigs-futsal/assets/sfx/*.wav
+/mrdigs-futsal/sfx/raw/
+/mrdigs-futsal/sfx/futsal-sfx.bank
+/sparkpaw/assets/runtime/
+/sparkpaw/assets/sprites/sparkpaw-48x48-aga16.png
+/sparkpaw/assets/sprites/sparkpaw-48x48-aga16-source.png
+/sparkpaw/assets/levels/storm-background-preview.png
+/sparkpaw/assets/levels/storm-ruins-milestone-preview.png
+/sparkpaw/sfx/raw/
+/sparkpaw/sfx/sparkpaw-sfx.bank
+/sparkpaw/sfx/sparkpaw-sfx.json
+/sparkpaw/assets/sfx/previews/

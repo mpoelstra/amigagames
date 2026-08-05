@@ -1,0 +1,11 @@
+MrDig's Futsal Music
+====================
+
+The musical compositions, pattern data, and synthesized instrument samples in
+mrdigs-futsal-title.mod and mrdigs-futsal-ingame.mod are dedicated to the
+public domain under CC0 1.0 Universal.
+
+Created for MrDig Productions, 2026. No samples were copied from another
+module or recording.
+
+CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/

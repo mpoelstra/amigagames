@@ -1,0 +1,17 @@
+{
+  "cell_width": 32,
+  "cell_height": 24,
+  "frames": [
+    "walk-contact",
+    "walk-recoil",
+    "walk-opposite-contact",
+    "walk-opposite-recoil",
+    "hit-flash",
+    "destruction-crack",
+    "destruction-collapse",
+    "destruction-burst",
+    "destruction-sparks"
+  ],
+  "hit_points": 2,
+  "prototype_note": "Native-resolution AGA art. The authored left-facing cells are mirrored pixel-perfectly for the right-facing column."
+}

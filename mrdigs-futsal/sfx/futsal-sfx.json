@@ -1,0 +1,96 @@
+{
+  "format": "MDFS v1",
+  "sample_rate": 11025,
+  "effects": [
+    {
+      "name": "kick",
+      "offset": 0,
+      "length": 2096,
+      "period": 322,
+      "volume": 64,
+      "priority": 4,
+      "cooldown_frames": 4
+    },
+    {
+      "name": "power-shot",
+      "offset": 2096,
+      "length": 3528,
+      "period": 322,
+      "volume": 64,
+      "priority": 7,
+      "cooldown_frames": 8
+    },
+    {
+      "name": "wall-rebound",
+      "offset": 5624,
+      "length": 1434,
+      "period": 322,
+      "volume": 64,
+      "priority": 3,
+      "cooldown_frames": 3
+    },
+    {
+      "name": "player-bump",
+      "offset": 7058,
+      "length": 1654,
+      "period": 322,
+      "volume": 60,
+      "priority": 2,
+      "cooldown_frames": 4
+    },
+    {
+      "name": "dribble-tap",
+      "offset": 8712,
+      "length": 718,
+      "period": 322,
+      "volume": 30,
+      "priority": 1,
+      "cooldown_frames": 8
+    },
+    {
+      "name": "goal",
+      "offset": 9430,
+      "length": 7608,
+      "period": 322,
+      "volume": 64,
+      "priority": 10,
+      "cooldown_frames": 30
+    },
+    {
+      "name": "ref-whistle",
+      "offset": 17038,
+      "length": 5734,
+      "period": 322,
+      "volume": 64,
+      "priority": 9,
+      "cooldown_frames": 20
+    },
+    {
+      "name": "crowd-cheer",
+      "offset": 22772,
+      "length": 13230,
+      "period": 322,
+      "volume": 64,
+      "priority": 8,
+      "cooldown_frames": 45
+    },
+    {
+      "name": "menu-select",
+      "offset": 36002,
+      "length": 882,
+      "period": 322,
+      "volume": 56,
+      "priority": 1,
+      "cooldown_frames": 3
+    },
+    {
+      "name": "keeper-save",
+      "offset": 36884,
+      "length": 2316,
+      "period": 322,
+      "volume": 64,
+      "priority": 6,
+      "cooldown_frames": 8
+    }
+  ]
+}

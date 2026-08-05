@@ -1,0 +1,33 @@
+* text=auto
+
+*.c text eol=lf
+*.h text eol=lf
+*.s text eol=lf
+*.asm text eol=lf
+*.py text eol=lf
+Makefile text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.gpl text eol=lf
+
+*.adf binary
+*.bank binary
+*.bin binary
+*.bmp binary
+*.iff binary
+*.info binary
+*.lha binary
+*.lsbank binary
+*.lsmusic binary
+*.mod binary
+*.png binary
+*.raw binary
+*.spbm binary
+*.wav binary
+*.zip binary
+
+chipsnake/third_party/LSPlayer/** whitespace=-trailing-space,-space-before-tab
+mrdigs-futsal/third_party/LSPlayer/** whitespace=-trailing-space,-space-before-tab
+chipsnake/whdload/ReadMe.txt whitespace=-blank-at-eof
+mrdigs-futsal/whdload/MrDigsFutsal.asm whitespace=-blank-at-eof
