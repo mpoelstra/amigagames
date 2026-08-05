@@ -716,19 +716,32 @@ Acceptance for every extraction step:
 Use the newly separated modules to introduce an explicit state flow such as:
 
 ```text
-BOOT -> LOADING -> TITLE -> PLAYING -> PLAYER_HIT -> GAME_OVER
+BOOT -> TITLE_LOADING -> TITLE_READY -> LEVEL_LOADING -> PLAYING
 ```
 
-The first visual feature after modularisation should be an attractive AGA
-loading screen followed by a title screen based on the established cover
-concept art. A small early-resident display may show a floppy/disk-loading
-animation while the large playfield, sprite, enemy and audio assets load.
-Measure the current startup phases first. Sparkpaw cannot draw before DOS has
-loaded enough of the executable to enter its code, so the loading screen can
-hide runtime asset preparation but cannot hide the complete executable load.
-Keep the loading display small and cheap enough that it does not make startup
-meaningfully longer. Loading must remain correct from Workbench, HD packages
-and the bootable ADF.
+The first visual feature after modularisation should be a title-first startup,
+not a separate generic loading screen followed by the title. As soon as the
+executable can draw, show a lightweight but recognizable AGA title screen based
+on the established cover concept art. While initial title/menu resources are
+being prepared, that same screen displays `Loading...`. When preparation is
+complete, replace the loading status in place with an interactive `Start Game`
+option instead of switching to a different start screen.
+
+Activating `Start Game` enters a distinct `LEVEL_LOADING` state. Keep the title
+presentation visible or transition to a closely related loading composition
+that clearly depicts a floppy/level disk being accessed. Load and prepare the
+large playfield, player, enemy and gameplay-audio assets there, then enter
+`PLAYING` only when the complete level runtime state is ready. This makes the
+two waits understandable: startup prepares the title, while Start Game loads
+the selected level and gameplay resources.
+
+Measure the current startup phases and asset costs before choosing what is
+embedded or early-resident. Sparkpaw cannot draw before DOS has loaded enough
+of the executable to enter its code, so the early title can hide runtime asset
+preparation but cannot hide the complete executable load. Keep its first-draw
+asset set small and cheap enough that it appears quickly and does not make
+startup meaningfully longer. Loading and state transitions must remain correct
+from Workbench, HD packages and the bootable ADF.
 
 Screen-state work must not disturb the proven gameplay Copper-list update
 window. Define ownership and transitions first; title art, title interaction,
