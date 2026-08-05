@@ -19,6 +19,7 @@
 #include "collision.h"
 #include "enemies.h"
 #include "game.h"
+#include "platform_amiga.h"
 #include "player.h"
 #include "projectiles.h"
 
@@ -37,15 +38,12 @@
 #define PLASMA_PATTERNS 5
 #define PLASMA_SOURCE_WORDS 2
 
-struct GfxBase *GfxBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static const struct PlanarAsset *frontClean,*rearWorld,*sprites,*enemySprites;
 static struct BitMap *frontDisplay;
-static struct View *oldView;
-static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
+static UWORD *cop,copPos,ptrValue[6],scrollValue;
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
 static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
-static BOOL systemLocked,interruptsDisabled;
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
@@ -127,17 +125,6 @@ static void setScroll(LONG front,LONG rear)
     setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,rearWorld->bitmap->Planes[0],ro);
     setPtr(3,rearWorld->bitmap->Planes[1],ro); setPtr(5,rearWorld->bitmap->Planes[2],ro);
     cop[scrollValue]=(rf<<4)|ff;
-}
-
-static UWORD rasterLine(void)
-{
-    UWORD h=hw->vposr,l=hw->vhposr; return (UWORD)(((h&7)<<8)|(l>>8));
-}
-
-static void waitFrame(void)
-{
-    while(rasterLine()<300) { }
-    while(rasterLine()>=300) { }
 }
 
 static UBYTE pixel(const struct BitMap *bm,WORD x,WORD y,UBYTE depth)
@@ -300,18 +287,12 @@ static BOOL buildPlasmaPatterns(void)
     return TRUE;
 }
 
-static void waitPrivateBlit(void)
-{
-    (void)hw->dmaconr;
-    while(hw->dmaconr&DMAF_BLTDONE) { }
-}
-
 static void blitRestoreRect(WORD x,WORD y,WORD width,WORD height)
 {
     UBYTE plane; UWORD words=(UWORD)(((x&15)+width+15)>>4);
     LONG at=(LONG)y*frontDisplay->BytesPerRow+(x>>4)*2;
     for(plane=0;plane<3;plane++) {
-        waitPrivateBlit();
+        platformWaitBlit();
         hw->bltcon0=0x09f0; hw->bltcon1=0;
         hw->bltafwm=0xffff; hw->bltalwm=0xffff;
         hw->bltamod=(UWORD)(frontClean->bitmap->BytesPerRow-words*2);
@@ -329,7 +310,7 @@ static void blitMaskedBob(UWORD *mask,UWORD *bits,WORD sourceWords,
     UWORD words=(UWORD)((width>>4)+(shift?1:0));
     LONG at=(LONG)y*frontDisplay->BytesPerRow+(x>>4)*2;
     for(plane=0;plane<3;plane++) {
-        waitPrivateBlit();
+        platformWaitBlit();
         hw->bltcon0=(UWORD)((shift<<12)|0x0fca);
         hw->bltcon1=(UWORD)(shift<<12);
         hw->bltafwm=0xffff; hw->bltalwm=0xffff;
@@ -428,37 +409,6 @@ static BOOL prepare(void)
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
-static void takeover(void)
-{
-    oldView=GfxBase->ActiView; oldDma=hw->dmaconr&DMAF_ALL; oldIntena=hw->intenar&0x7fff;
-    LoadView(NULL); WaitTOF(); WaitTOF(); OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
-    Disable(); interruptsDisabled=TRUE; hw->intena=0x7fff; hw->dmacon=DMAF_ALL;
-    hw->cop1lc=(ULONG)cop; hw->copjmp1=0;
-    hw->dmacon=DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE|
-               DMAF_BLITTER;
-    audioSetHardwareActive(TRUE);
-}
-
-static void restoreSystem(void)
-{
-    if(interruptsDisabled) {
-        audioSetHardwareActive(FALSE);
-        hw->dmacon=DMAF_ALL; hw->dmacon=DMAF_SETCLR|DMAF_MASTER|oldDma;
-        if(oldView) {
-            LoadView(oldView);
-            if(oldView->LOFCprList&&oldView->LOFCprList->start) {
-                hw->cop1lc=(ULONG)oldView->LOFCprList->start;
-                hw->cop2lc=(ULONG)((oldView->SHFCprList&&oldView->SHFCprList->start)?
-                                  oldView->SHFCprList->start:oldView->LOFCprList->start);
-                hw->copjmp1=0;
-            }
-        }
-        hw->intena=0x7fff; hw->intena=0x8000|oldIntena; Enable(); interruptsDisabled=FALSE;
-    }
-    if(oldView) { WaitTOF(); WaitTOF(); }
-    if(systemLocked) { DisownBlitter(); Permit(); systemLocked=FALSE; }
-}
-
 static void cleanup(void)
 {
     WORD facing,frame,channel;
@@ -479,28 +429,28 @@ static void cleanup(void)
     audioUnload();
     if(frontDisplay) FreeBitMap(frontDisplay);
     assetsUnloadGameplay();
-    if(GfxBase) CloseLibrary((struct Library *)GfxBase);
+    platformClose();
 }
 
 int main(void)
 {
-    GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
+    BOOL platformReady=platformOpen();
     gameInit(); game=gameState();
-    if(!GfxBase||!loadData()||!prepare()) { PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n"); cleanup(); return 10; }
+    if(!platformReady||!loadData()||!prepare()) { PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n"); cleanup(); return 10; }
     setHardwareSprite();
-    takeover();
+    platformTakeover(cop);
     for(;;) {
-        while(rasterLine()<100) { }
+        while(platformRasterLine()<100) { }
         gameUpdate();
         /* The Copper consumes these list entries at frame start. Update them
            well after that read and well before the next wrap, independent of
            how long the post-display Bob pass takes. */
         setHardwareSprite(); setScroll(game->cameraX,game->cameraX>>2);
-        while(rasterLine()<300) { }
+        while(platformRasterLine()<300) { }
         eraseProjectileBobs(); restoreEnemyBob();
         drawEnemyBob(); drawProjectileBobs();
-        waitPrivateBlit();
-        while(rasterLine()>=300) { }
+        platformWaitBlit();
+        while(platformRasterLine()>=300) { }
     }
     return 0;
 }

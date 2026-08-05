@@ -760,6 +760,16 @@ four beetles still work correctly. The remaining Phase 1 work is the sensitive
 renderer/platform ownership split; perform that mechanically before adding the
 Phase 2 title and loading states.
 
+The eighth accepted extraction moves graphics-library lifetime, custom-chip
+takeover/restore, saved DMA and interrupt state, raster reads and the required
+preliminary-read Blitter wait into `platform_amiga.c` and
+`platform_amiga.h`. Copper construction and concrete Blitter commands remain
+in `sparkpaw.c`, and the line-100 and line-300 phases retain their established
+order. A clean `make` and `make release` succeeded, and MrDig confirmed in
+FS-UAE that startup, visuals, scrolling and gameplay still work correctly.
+Next isolate the top-level loop behind an explicit renderer API before moving
+the renderer implementation itself.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

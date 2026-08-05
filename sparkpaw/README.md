@@ -71,6 +71,9 @@ into the game; see `docs/RENDERBENCH.txt`.
   renderer implementation
 - `src/game.c` / `src/game.h`: gameplay initialization and update ordering,
   frame progression and camera state; renderer timing remains in `sparkpaw.c`
+- `src/platform_amiga.c` / `src/platform_amiga.h`: graphics-library lifetime,
+  custom-chip takeover/restore, raster reads and the required Blitter wait;
+  Copper construction and concrete rendering commands remain in `sparkpaw.c`
 - `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
   and damage state; this is the first incremental modularisation boundary
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
