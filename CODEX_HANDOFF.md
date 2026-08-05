@@ -741,6 +741,15 @@ preparation deliberately remains in `sparkpaw.c`. A clean `make` and
 and gameplay still work correctly. Audio sample lifetime and Paula channel
 ownership are the next intended boundary.
 
+The sixth accepted extraction moves energy-shot sample loading and lifetime,
+Paula channel 0 playback, shot timing and explicit hardware-active lifecycle
+control into `audio.c` and `audio.h`. The platform layer activates audio only
+after custom-chip takeover and deactivates it before restoring system DMA. A
+clean `make` and `make release` succeeded, and MrDig confirmed in FS-UAE that
+startup, gameplay and repeated shot playback still work correctly. Gameplay
+orchestration and camera state are the next intended boundary; raster waits,
+Copper updates and Bob rendering must remain in `sparkpaw.c` during that step.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

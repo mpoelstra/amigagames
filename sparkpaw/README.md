@@ -82,6 +82,8 @@ into the game; see `docs/RENDERBENCH.txt`.
 - `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
   lifetime and cleanup; packed hardware-sprite and Bob cache preparation
   remains with the renderer-sensitive code in `sparkpaw.c`
+- `src/audio.c` / `src/audio.h`: energy-shot sample loading and lifetime,
+  Paula channel 0 playback and explicit hardware-active lifecycle control
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
   sprite/enemy planes and masks, packed Bob caches and the tile collision map
 - `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples

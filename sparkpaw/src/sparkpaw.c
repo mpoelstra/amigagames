@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "assets.h"
+#include "audio.h"
 #include "collision.h"
 #include "enemies.h"
 #include "player.h"
@@ -43,27 +44,10 @@ static struct View *oldView;
 static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
 static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
-static UBYTE *shotSample;
-static LONG shotSampleBytes;
 static BOOL systemLocked,interruptsDisabled;
 static LONG cameraX,frameCounter;
-static UBYTE shotDmaTicks;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
-
-static BOOL loadShotSample(void)
-{
-    BPTR f=Open("PROGDIR:assets/runtime/energy-shot.raw",MODE_OLDFILE);
-    LONG size;
-    if(!f) return FALSE;
-    Seek(f,0,OFFSET_END); size=Seek(f,0,OFFSET_BEGINNING);
-    if(size<=0) { Close(f); return FALSE; }
-    shotSample=(UBYTE *)AllocMem(size,MEMF_CHIP);
-    if(!shotSample||Read(f,shotSample,size)!=size) {
-        Close(f); if(shotSample) FreeMem(shotSample,size); shotSample=NULL; return FALSE;
-    }
-    Close(f); shotSampleBytes=size; return TRUE;
-}
 
 static void cmove(UWORD reg,UWORD value) { cop[copPos++]=reg; cop[copPos++]=value; }
 
@@ -255,23 +239,6 @@ static void setHardwareSprite(void)
     }
 }
 
-static void playShot(void)
-{
-    if(!shotSample||!systemLocked) return;
-    hw->dmacon=DMAF_AUD0;
-    hw->aud[0].ac_ptr=(UWORD *)shotSample;
-    hw->aud[0].ac_len=(UWORD)(shotSampleBytes>>1);
-    hw->aud[0].ac_per=322;
-    hw->aud[0].ac_vol=60;
-    hw->dmacon=DMAF_SETCLR|DMAF_AUD0;
-    shotDmaTicks=9;
-}
-
-static void updateAudio(void)
-{
-    if(shotDmaTicks&&!--shotDmaTicks) hw->dmacon=DMAF_AUD0;
-}
-
 static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
 {
     WORD lx=left?PROJECTILE_W-1-x:x;
@@ -454,7 +421,7 @@ static BOOL loadData(void)
     if(!assetsLoadGameplay()) return FALSE;
     frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
     sprites=assetsPlayerSprites(); enemySprites=assetsEnemySprites();
-    return collisionLoad()&&loadShotSample();
+    return collisionLoad()&&audioLoad();
 }
 
 static BOOL prepare(void)
@@ -478,11 +445,13 @@ static void takeover(void)
     hw->cop1lc=(ULONG)cop; hw->copjmp1=0;
     hw->dmacon=DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE|
                DMAF_BLITTER;
+    audioSetHardwareActive(TRUE);
 }
 
 static void restoreSystem(void)
 {
     if(interruptsDisabled) {
+        audioSetHardwareActive(FALSE);
         hw->dmacon=DMAF_ALL; hw->dmacon=DMAF_SETCLR|DMAF_MASTER|oldDma;
         if(oldView) {
             LoadView(oldView);
@@ -516,7 +485,7 @@ static void cleanup(void)
                           ENEMY_SOURCE_WORDS*3*2);
     if(enemyMask) FreeMem(enemyMask,2L*ENEMY_FRAMES*ENEMY_H*
                           ENEMY_SOURCE_WORDS*2);
-    if(shotSample) FreeMem(shotSample,shotSampleBytes);
+    audioUnload();
     if(frontDisplay) FreeBitMap(frontDisplay);
     assetsUnloadGameplay();
     if(GfxBase) CloseLibrary((struct Library *)GfxBase);
@@ -535,11 +504,11 @@ int main(void)
         while(rasterLine()<100) { }
         playerReadInput(&left,&right,&down,&jump,&fire);
         wasGrounded=player->grounded;
-        playerStartShot(fire,playShot);
+        playerStartShot(fire,audioPlayShot);
         playerUpdatePhysics(left,right,down,jump); playerUpdateShot();
         enemiesUpdate(frameCounter,collisionSolidAt);
         projectilesUpdate((WORD)cameraX,collisionSolidAt,enemiesHitProjectile);
-        updateAudio(); camera(); playerAnimate(!wasGrounded&&player->grounded,
+        audioUpdate(); camera(); playerAnimate(!wasGrounded&&player->grounded,
                                frameCounter);
         frameCounter++;
           /* The Copper consumes these list entries at frame start. Update them
