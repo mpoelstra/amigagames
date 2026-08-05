@@ -14,9 +14,17 @@ inside the game directory being changed. Inspect the current files before
 editing: this document is context, while source code and generated manifests are
 the final authority.
 
-The repository root is not currently a Git repository. Do not assume that Git
-history can recover a regression. Preserve existing backups and make a dated
-ZIP backup before risky renderer, audio, physics, or format changes.
+The repository is versioned in Git. `main` is the accepted shared state and the
+annotated tag `sparkpaw-pre-modularisation` identifies the stable four-beetle
+Sparkpaw baseline before the planned source split. Check `git status`, recent
+commits and relevant tags before editing. Make a focused commit after a
+validated step; do not combine unrelated renderer, gameplay and asset work.
+
+Historical ZIP backups, test recordings, toolchains, build trees and release
+archives remain local and are intentionally ignored by Git. Do not delete or
+overwrite them. Git is the normal recovery path for committed source changes;
+make an additional dated ZIP before high-risk renderer, audio, physics, asset
+format or bulk source-movement work where ignored/generated files also matter.
 
 ## Repository map
 
@@ -26,8 +34,8 @@ amigagame/
   chipsnake/             finished/releasable Snake prototype
   mrdigs-futsal/         finished/releasable indoor football prototype
   sparkpaw/              active AGA action-platformer prototype
-  backups/               cross-project snapshots; never delete casually
-  ACM_PDF/               Amiga C manuals supplied as research material
+  backups/               ignored local snapshots; never delete casually
+  ACM_PDF/               ignored local Amiga C reference manuals
 ```
 
 `AlexInTown`, if present in the workspace, is third-party/reference source used
@@ -150,8 +158,9 @@ because compilation succeeded.
    small in-memory trace, occasional samples, or a log written outside the hot
    path.
 10. Make one focused fix, rebuild executable and releases, state exactly what
-    changed and give MrDig a short regression checklist. Preserve the previous
-    working backup until the retest succeeds.
+  changed and give MrDig a short regression checklist. Commit accepted source
+  milestones and preserve any relevant ignored backup until the retest
+  succeeds.
 
 Phone-filmed displays can introduce camera exposure, refresh beating, scaling
 and moire. They remain excellent evidence of major motion/corruption, but do
@@ -289,7 +298,9 @@ hand, clipped head, inconsistent scale or a valid-looking unwanted fragment.
 
 ### Adding frames safely
 
-1. Make a dated backup before changing sheets, generator layout or frame IDs.
+1. Start from a clean Git state and identify the accepted tag/commit. Make a
+  dated local backup too when changing source sheets, generator layout or
+  frame IDs because generated and intermediate assets may be ignored.
 2. Add the chroma and transparent source sheets under `assets/sprites/`.
 3. Append new logical frames after the current 46 whenever possible. Do not
    renumber proven run/jump/turn/idle/fire IDs merely to make a sheet prettier.
@@ -592,16 +603,18 @@ accepted baseline.
 
 ### Current beetle milestone
 
-Milestone 2A replaces the static target with one native 32x24 low clockwork
-beetle. It uses four walk frames, one hit frame, four destruction frames,
-deterministic mirrored facing and packed three-plane Bob drawing. It patrols a
-fixed floor section and turns at bounds, walls and ledges. Only explicitly
-marked crouch-shots can hit it; the first hit reacts and the second destroys it.
-Player damage, random spawning and respawn remain out of scope.
+Milestone 2A originally replaced the static target with one native 32x24 low
+clockwork beetle. The accepted current build has four instances sharing the
+same nine-frame art cache: four walk frames, one hit frame and four destruction
+frames. Each instance has independent patrol, HP, hit and death state and uses
+camera-plus-32-pixel culling. Deterministic mirrored facing, the fixed ground
+baseline and the low crouch-shot hit zone are established contracts. The first
+hit reacts and the second destroys the instance. Player damage, random
+spawning and respawn remain out of scope.
 
-Backup: `backups/Sparkpaw-pre-milestone2a-20260805-110912.zip`.
-The root executable and Milestone 2A release packages were rebuilt on 5 August
-2026. The enemy still awaits MrDig's FS-UAE visual and timing test.
+The initial one-enemy checkpoint is
+`backups/Sparkpaw-pre-milestone2a-20260805-110912.zip`. It is historical, not
+the current gameplay baseline.
 
 After the first visual review, the beetle received a focused art refinement.
 Its authored column faces left toward Sparkpaw, and the runtime now selects
@@ -640,7 +653,7 @@ confirmed in FS-UAE that horizontal scrolling no longer tears, both during
 normal running and while running and firing. Real-A1200 verification remains
 open.
 
-The next focused test iteration polishes the same 32x24 beetle without changing
+The latest focused iteration polishes the same 32x24 beetle without changing
 its baseline, hit zone, frame IDs or three-plane contract. Native pixel clusters
 now provide consistent dome highlights, panel depth, under-armour, rivets,
 lens glass, brighter mechanical joints and richer destruction debris. Four
@@ -694,8 +707,9 @@ Acceptance for every extraction step:
 4. MrDig rechecks running, jumping, scrolling, rapid fire, crouch fire and all
    four beetles in FS-UAE; do not claim emulator or hardware verification from
    a successful cross-build.
-5. Preserve a dated backup before moving renderer/platform ownership or making
-   another change with similar regression risk.
+5. Commit each accepted extraction step. Preserve a dated local backup before
+  moving renderer/platform ownership or when ignored/generated state makes
+  Git alone an incomplete safety net.
 
 #### Phase 2: boot, loading and title states
 
@@ -804,25 +818,32 @@ per-pixel `setFrontPixel` or CPU byte-compositing hot paths.
 
 ### Known Sparkpaw limitations/backlog
 
-- Clean exit back to Workbench is deliberately disabled. Earlier direct Copper
+- Clean exit back to Workbench is not yet implemented. Earlier direct Copper
   experiments left the Workbench display and mouse sprite corrupted for seconds
-  or indefinitely. Do not casually re-enable left-mouse exit.
+  or indefinitely. Do not re-enable left-mouse exit without treating system
+  restoration as a separate tested milestone or moving it to a WHDLoad path.
 - For now the user resets the Amiga/emulator to leave the prototype.
 - In-game rendering became stable after the isolated renderbench work, but
   Workbench restoration still needs a separate, careful implementation or a
   later WHDLoad path.
-- Plasma performance has just been optimized and should continue to be tested
-  with running, jumping and rapid fire together on the A1200 configuration.
-- The air-fire animation has just been added; preserve its body scale and check
-  rise/apex/fall transitions on hardware.
+- Plasma and beetle Bobs now share the accepted synchronized Blitter approach:
+  packed planar caches, $F0 restore, $CA cookie-cut draw, BBUSY waits, BLTSIZE
+  written last and no BLITHOG. Keep stress-testing running, jumping, rapid fire
+  and four visible enemies together on the A1200 configuration; do not restore
+  CPU read-modify-write compositing against displayed Chip RAM.
+- Air-fire frames 42-45 are part of the established 50-frame scale/anchor
+  baseline. Preserve their body scale and transition timing; real-hardware
+  rise/apex/fall verification remains open.
 - Crouch-fire frames 46-49 are accepted. Preserve their established scale,
   baseline, hitbox and muzzle origin.
 - The four-instance polished beetle pool still needs a focused final stress
   test with rapid fire and camera traversal. Preserve the proven player,
-  dual-playfield and packed plasma paths while fixing any observed issue.
+  dual-playfield and synchronized projectile/enemy Blitter paths while fixing
+  any observed issue.
 - There are no additional enemy types, player damage loop, HUD, menus, music,
   collectables or full level progression yet. This remains an engine milestone.
-- Keyboard controls are intentionally absent at this stage.
+- Keyboard controls are deferred until after the modularisation milestone;
+  current gameplay input is joystick port 2 only.
 - Fifty-fps smoothness is a hard design goal. Avoid full-frame CPU copying,
   per-pixel inner loops and redrawing static scenery.
 
@@ -834,6 +855,8 @@ per-pixel `setFrontPixel` or CPU byte-compositing hot paths.
   immediately before dedicated crouch shooting was introduced.
 - `backups/Sparkpaw-pre-milestone2a-20260805-110912.zip`: accepted
   crouch-shooting state immediately before the first moving enemy.
+- `backups/Sparkpaw-pre-beetle-art-v2-20260805-151521.zip`: intermediate
+  one-beetle art refinement checkpoint.
 - `backups/Sparkpaw-pre-beetle-art-v3-20260805.zip`: Milestone 2A state before
   correcting the apparent backwards walk and refining the beetle artwork.
 - `backups/Sparkpaw-pre-beetle-art-performance-v4-20260805.zip`: user-tested
@@ -849,18 +872,23 @@ per-pixel `setFrontPixel` or CPU byte-compositing hot paths.
 
 Do not overwrite or delete these.
 
-### Most useful next test
+### Required regression test for the next modularisation step
 
-Run the freshly built root executable and test:
+Before extracting a module, record the current result; after the extraction,
+run the rebuilt root executable and repeat the same checks:
 
-1. watch the beetle traverse and turn at both patrol limits;
-2. verify that all walk poses remain grounded and consistently scaled;
-3. verify that standing and airborne shots do not damage it;
-4. inspect the first crouch-shot hit reaction;
-5. inspect all four destruction stages after the second crouch-shot;
-6. attack from both directions and while crouch-walking;
-7. overlap it with several pulses and impacts, watching for Bob residue;
-8. combine combat with running, jumping and camera movement.
+1. traverse the complete five-screen level and observe all four beetle patrols;
+2. verify each beetle turns at both limits and stays grounded and consistently
+  scaled;
+3. verify standing and airborne shots do not damage beetles;
+4. inspect the first crouch-shot reaction and all four destruction stages after
+  the second hit, attacking from both directions and while crouch-walking;
+5. overlap several pulses, impacts and enemies and watch for Bob residue;
+6. combine rapid fire with running, jumping and camera movement;
+7. verify the player animation baseline, crouch-fire muzzle origin, scrolling,
+  parallax, audio and collision are unchanged;
+8. watch specifically for a one-frame mixed-scroll tear during both quiet and
+  heavy Blitter workloads.
 
 If performance or residue is poor, change only enemy/projectile Bob ordering or
 drawing. Do not rewrite the proven dual-playfield or player hardware-sprite path
@@ -898,6 +926,22 @@ Read `sparkpaw/README.md` before implementing the next milestone.
 12. **Keep public claims accurate.** These are AI-assisted original prototypes;
     inspiration from classic games is about feel and engineering, not copied
     artwork, music, characters or levels.
+13. **Do not let workload hide a synchronization race.** Sparkpaw's Copper-list
+    race became less visible while firing because extra Blitter work shifted
+    unsafe writes past frame start. Visible improvement under load can be a
+    timing clue, not proof that the renderer is correct. Keep scroll/sprite
+    Copper writes in the accepted line-100 phase and Bob work after line 300.
+14. **Attribute crashes from evidence, not proximity.** A one-off Workbench
+    Software Failure named task `SpeedLoad`, reported as an illegal instruction,
+    was not attributable to the Sparkpaw executable and disappeared after a
+    reboot. Direct custom-chip takeover means indirect corruption cannot be
+    ruled out, but do not change stable game code without recurrence evidence.
+    If it returns, record task name, PC/registers, launch path and whether it
+    happened during gameplay, startup or reset/Workbench return.
+15. **Use Git for source history, not generated releases.** Keep `main` at an
+    accepted build, use short feature branches and focused commits, and tag
+    playable milestones. `build/`, `dist/`, local SDKs, recordings and backups
+    are ignored; publish ZIP/LHA/ADF files through GitHub Releases when needed.
 
 ## Recommended first prompt in a new Codex task
 
@@ -906,10 +950,20 @@ We are continuing the Amiga game workspace in this repository.
 
 First read CODEX_HANDOFF.md completely, then read sparkpaw/README.md and inspect
 the current Sparkpaw source before changing anything. Sparkpaw is the active
-AGA A1200 project. Preserve the stable dual-playfield renderer, 50-frame player
-animation, packed planar plasma-Bob optimization and existing backups. Always
-run make and make release after implementation. Do not claim emulator or real
-hardware verification unless I provide the test result.
+AGA A1200 project. Check git status, recent commits and tags first; use
+sparkpaw-pre-modularisation as the accepted four-beetle baseline.
+
+Preserve the stable dual-playfield renderer, line-100 Copper-list staging,
+50-frame player animation contract, six-channel hardware-sprite player and the
+synchronized Blitter Bob pipelines used by plasma projectiles and the
+four-instance clockwork-beetle pool. Preserve packed planar caches, camera
+culling, Bob restore/draw ordering and accepted animation/collision contracts.
+Do not reintroduce CPU read-modify-write compositing in displayed Chip RAM.
+
+Work in small reviewable steps and do not combine renderer changes with
+unrelated gameplay or asset changes. Do not modify or delete ignored local
+backups or test evidence. Always run make and make release after implementation.
+Do not claim FS-UAE or real-hardware verification unless I provide the result.
 
 My next request is: ...
 ```
