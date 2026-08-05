@@ -16,6 +16,7 @@
 
 #include "collision.h"
 #include "enemies.h"
+#include "player.h"
 #include "projectiles.h"
 
 #define SCREEN_W 320
@@ -24,26 +25,14 @@
 #define WORLD_H 256
 #define FETCH_BYTES 42
 #define COP_WORDS 320
-#define FIX_SHIFT 8
-#define PLAYER_W 32
-#define PLAYER_H 40
 #define SPRITE_W 48
 #define SPRITE_H 48
-#define ANIM_FRAMES 50
+#define ANIM_FRAMES PLAYER_ANIM_FRAMES
 #define SPRITE_CHANNELS 6
 #define TOTAL_SPRITE_CHANNELS 8
 #define SPRITE_WORDS (2+SPRITE_H*2+2)
 #define PLASMA_PATTERNS 5
 #define PLASMA_SOURCE_WORDS 2
-#define HIT_LEFT 4
-#define HIT_RIGHT 27
-#define HIT_TOP 5
-#define HIT_CROUCH_TOP 19
-#define HIT_BOTTOM 38
-#define IDLE_ACT_DELAY 100
-#define LAND_TICKS 10
-#define TURN_TICKS 28
-#define CROUCH_SHOT_TICKS 11
 
 struct PlanarAsset {
     struct BitMap *bitmap;
@@ -53,19 +42,10 @@ struct PlanarAsset {
     UBYTE *mask;
 };
 
-struct Player {
-    LONG x,y,vx,vy,turnStartVx;
-    BOOL grounded,facingLeft,crouching,wallBlocked,turnTargetLeft,turnFinishing;
-    UBYTE animFrame,runFrame,landTimer,turnTimer,shootTimer,shootCooldown;
-    BOOL shotPending;
-    UWORD runTick,idleTicks;
-};
-
 struct GfxBase *GfxBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static struct PlanarAsset frontClean,rearWorld,sprites,enemySprites;
 static struct BitMap *frontDisplay;
-static struct Player player;
 static struct View *oldView;
 static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
@@ -74,7 +54,6 @@ static UBYTE *shotSample;
 static LONG shotSampleBytes;
 static BOOL systemLocked,interruptsDisabled;
 static LONG cameraX,frameCounter;
-static BOOL joystickUpHeld,joystickFireHeld;
 static UBYTE shotDmaTicks;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
@@ -305,13 +284,14 @@ static BOOL buildHardwareSprites(void)
 
 static void setHardwareSprite(void)
 {
-    WORD channel,screenX=(WORD)(player.x>>8)-(WORD)cameraX+128-
+    const struct PlayerState *player=playerState();
+    WORD channel,screenX=(WORD)(player->x>>8)-(WORD)cameraX+128-
                          (SPRITE_W-PLAYER_W)/2;
-    WORD screenY=(WORD)(player.y>>8)+44-(SPRITE_H-PLAYER_H);
+    WORD screenY=(WORD)(player->y>>8)+44-(SPRITE_H-PLAYER_H);
     WORD stopY=screenY+SPRITE_H;
-    UWORD facing=player.facingLeft?1:0;
+    UWORD facing=player->facingLeft?1:0;
     for(channel=0;channel<SPRITE_CHANNELS;channel++) {
-        UWORD *data=hwSprites[facing][player.animFrame][channel];
+        UWORD *data=hwSprites[facing][player->animFrame][channel];
         WORD x=screenX+(channel>>1)*16;
         ULONG p=(ULONG)data; UWORD hi=spritePtrValue[channel];
         data[0]=(UWORD)((screenY<<8)|((x>>1)&0xff));
@@ -506,232 +486,10 @@ static void drawEnemyBob(void)
     }
 }
 
-static void startShot(BOOL pressed)
-{
-    if(pressed&&!player.shootCooldown&&!player.turnTimer) {
-        player.shootTimer=player.crouching?CROUCH_SHOT_TICKS:(player.grounded?7:10);
-        player.shootCooldown=3; player.shotPending=FALSE;
-        player.idleTicks=0;
-        projectilesSpawn((WORD)(player.x>>8),(WORD)(player.y>>8),
-                 player.facingLeft,player.crouching,playShot);
-    }
-}
-
-static void updateShot(void)
-{
-    if(player.shootCooldown) player.shootCooldown--;
-    if(player.shootTimer) player.shootTimer--;
-}
-
-static void animatePlayer(BOOL landed)
-{
-    if(landed) player.landTimer=LAND_TICKS;
-    if(!player.grounded) {
-        UBYTE base=player.shootTimer?42:10;
-        if(player.vy<-220) player.animFrame=base;
-        else if(player.vy<180) player.animFrame=(UBYTE)(base+1);
-        else if(player.vy<700) player.animFrame=(UBYTE)(base+2);
-        else player.animFrame=(UBYTE)(base+3);
-        return;
-    }
-    if(player.landTimer) {
-        if(player.landTimer>7) player.animFrame=14;
-        else if(player.landTimer>4) player.animFrame=15;
-        else player.animFrame=16;
-        player.landTimer--; return;
-    }
-    if(player.crouching&&player.shootTimer) {
-        if(player.shootTimer>9) player.animFrame=46;
-        else if(player.shootTimer>7) player.animFrame=47;
-        else if(player.shootTimer>3) player.animFrame=48;
-        else player.animFrame=49;
-        return;
-    }
-    if(player.shootTimer) {
-        if(player.shootTimer>9) player.animFrame=38;
-        else if(player.shootTimer>7) player.animFrame=39;
-        else if(player.shootTimer>3) player.animFrame=40;
-        else player.animFrame=41;
-        return;
-    }
-    if(player.crouching) {
-        if(player.vx>45||player.vx< -45)
-            player.animFrame=(UBYTE)(((frameCounter>>2)&1)?18:19);
-        else player.animFrame=17;
-        return;
-    }
-    if(player.turnTimer) {
-        UBYTE progress=(UBYTE)(TURN_TICKS-player.turnTimer);
-        /* The two poses after the visual pivot share a longer inertia beat:
-           Sparkpaw is already facing back while still sliding forward. */
-        if(progress<16) player.animFrame=(UBYTE)(20+(progress/4));
-        else if(progress<24) player.animFrame=24;
-        else player.animFrame=25;
-        player.turnTimer--;
-        if(!player.turnTimer) player.turnFinishing=TRUE;
-        return;
-    }
-    if(player.wallBlocked) {
-        /* Do not keep cycling stretched run poses while pressing into a wall. */
-        player.runTick=0; player.runFrame=0; player.animFrame=5; return;
-    }
-    if(player.vx>70||player.vx< -70) {
-        LONG speed=player.vx<0?-player.vx:player.vx;
-        /* Eight authored phases need a calmer cadence than the old four-pose
-           cycle.  Roughly 12-13 animation changes/sec at full running speed
-           keeps the paws readable without making locomotion feel sluggish. */
-        player.runTick+=(UWORD)(speed/10);
-        while(player.runTick>=256) {
-            player.runTick-=256; player.runFrame=(UBYTE)((player.runFrame+1)&7);
-        }
-        player.animFrame=(UBYTE)(2+player.runFrame); return;
-    }
-    player.runTick=0; player.runFrame=0;
-    if(player.idleTicks>=IDLE_ACT_DELAY) {
-        /* A single deliberate side-to-front acknowledgement and return.  The
-           old extended tail-sway sequence shifted the silhouette sideways and
-           read as a moonwalk, so it is deliberately not part of playback. */
-        UWORD phase=(UWORD)((player.idleTicks-IDLE_ACT_DELAY)%250);
-        if(phase<32) player.animFrame=(UBYTE)(26+(phase/8));
-        else if(phase<82) player.animFrame=30;
-        else if(phase<114) player.animFrame=(UBYTE)(29-((phase-82)/8));
-        else player.animFrame=0;
-    } else player.animFrame=((frameCounter%180)>=176)?1:0;
-}
-
-static WORD playerHitTop(void)
-{
-    return player.crouching?HIT_CROUCH_TOP:HIT_TOP;
-}
-
-static BOOL canStand(WORD x,WORD y)
-{
-    WORD yy;
-    for(yy=y+HIT_TOP;yy<y+HIT_CROUCH_TOP;yy++)
-        if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,yy)) return FALSE;
-    return TRUE;
-}
-
-static void moveX(LONG delta)
-{
-    LONG target=player.x+delta; WORD x=(WORD)(player.x>>FIX_SHIFT);
-    WORD end=(WORD)(target>>FIX_SHIFT),y=(WORD)(player.y>>FIX_SHIFT),dir=delta<0?-1:1;
-    if(delta&&collisionSolidVertical(x+(dir<0?HIT_LEFT-1:HIT_RIGHT+1),
-                                     y+playerHitTop(),y+HIT_BOTTOM)) {
-        player.wallBlocked=TRUE; player.vx=0; player.x=(LONG)x<<8; return;
-    }
-    while(x!=end) {
-        WORD n=x+dir;
-        WORD side=n+(dir<0?HIT_LEFT:HIT_RIGHT);
-        if(collisionSolidVertical(side,y+playerHitTop(),y+HIT_BOTTOM)) {
-            player.wallBlocked=TRUE; player.vx=0; player.x=(LONG)x<<8; return;
-        }
-        x=n;
-    }
-    player.x=target;
-}
-
-static void moveY(LONG delta)
-{
-    LONG target=player.y+delta; WORD x=(WORD)(player.x>>FIX_SHIFT);
-    WORD y=(WORD)(player.y>>FIX_SHIFT),end=(WORD)(target>>FIX_SHIFT),dir=delta<0?-1:1;
-    player.grounded=FALSE;
-    while(y!=end) {
-        WORD n=y+dir;
-        WORD edge=n+(dir<0?playerHitTop():HIT_BOTTOM);
-        if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,edge)) {
-            if(dir>0) player.grounded=TRUE;
-            player.vy=0; player.y=(LONG)y<<8; return;
-        }
-        y=n;
-    }
-    player.y=target;
-    if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,y+HIT_BOTTOM+1))
-        player.grounded=TRUE;
-}
-
-static void joystick(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
-{
-    UWORD v=*(volatile UWORD *)0xdff00c; BOOL up,held;
-    *left=(v&0x0200)!=0; *right=(v&0x0002)!=0;
-    *down=((v^(v>>1))&0x0001)!=0;
-    up=((v^(v>>1))&0x0100)!=0; *jump=up&&!joystickUpHeld; joystickUpHeld=up;
-    held=(*(volatile UBYTE *)0xbfe001&0x80)==0;
-    *fire=held&&!joystickFireHeld; joystickFireHeld=held;
-}
-
-static void physics(BOOL left,BOOL right,BOOL down,BOOL jump)
-{
-    WORD px=(WORD)(player.x>>FIX_SHIFT),py=(WORD)(player.y>>FIX_SHIFT);
-    LONG acceleration,maxSpeed;
-    if(player.turnFinishing) {
-        player.facingLeft=player.turnTargetLeft;
-        player.turnFinishing=FALSE;
-    }
-    if(player.grounded&&down) { player.crouching=TRUE; player.turnTimer=0; }
-    else if(player.crouching&&!down&&canStand(px,py)) player.crouching=FALSE;
-    if(!player.grounded&&canStand(px,py)) player.crouching=FALSE;
-    acceleration=player.crouching?38:64;
-    maxSpeed=player.crouching?280:650;
-    player.wallBlocked=FALSE;
-    if(player.turnTimer) {
-        UBYTE turnProgress=(UBYTE)(TURN_TICKS-player.turnTimer);
-        static const UBYTE brakePercent[12]={100,100,96,90,82,72,60,48,36,24,12,0};
-        static const UWORD launchSpeed[8]={25,60,110,170,240,320,410,500};
-        if(turnProgress<12) {
-            /* A deterministic Flashback-style run-out: visible old-direction
-               travel, then a clean planted zero at the centre of the pivot. */
-            player.vx=(player.turnStartVx*brakePercent[turnProgress])/100;
-        } else if(turnProgress<20) {
-            /* The authored pose has already rotated toward the new direction,
-               but inertia still carries Sparkpaw about five pixels along the
-               old run direction.  The final tick plants before launch. */
-            static const UWORD skidSpeed[8]={280,250,220,190,155,110,60,0};
-            LONG skid=(LONG)skidSpeed[turnProgress-12];
-            player.vx=player.turnStartVx<0?-skid:skid;
-        } else {
-            /* Then accelerate visibly in the new direction over two poses. */
-            LONG launch=(LONG)launchSpeed[turnProgress-20];
-            player.vx=player.turnTargetLeft?-launch:launch;
-        }
-        if(player.vx>-16&&player.vx<16) player.vx=0;
-    }
-    else if(left&&!right) {
-        if(player.grounded&&!player.crouching&&player.vx>70) {
-            player.turnTimer=TURN_TICKS; player.turnTargetLeft=TRUE;
-            player.turnStartVx=player.vx;
-            player.runTick=0; player.runFrame=0;
-        } else {
-            player.vx-=acceleration; if(player.vx< -maxSpeed) player.vx=-maxSpeed;
-            player.facingLeft=TRUE;
-        }
-    }
-    else if(right&&!left) {
-        if(player.grounded&&!player.crouching&&player.vx< -70) {
-            player.turnTimer=TURN_TICKS; player.turnTargetLeft=FALSE;
-            player.turnStartVx=player.vx;
-            player.runTick=0; player.runFrame=0;
-        } else {
-            player.vx+=acceleration; if(player.vx>maxSpeed) player.vx=maxSpeed;
-            player.facingLeft=FALSE;
-        }
-    }
-    else { player.vx=(player.vx*205)>>8; if(player.vx>-18&&player.vx<18) player.vx=0; }
-    if(jump&&player.grounded&&canStand(px,py)) {
-        player.crouching=FALSE; player.turnTimer=0;
-        player.vy=-1300; player.grounded=FALSE;
-    }
-    player.vy+=55; if(player.vy>1050) player.vy=1050;
-    moveX(player.vx); moveY(player.vy);
-    if(player.grounded&&!player.crouching&&!player.turnTimer&&
-       player.vx>-20&&player.vx<20) {
-        if(player.idleTicks<65535) player.idleTicks++;
-    } else player.idleTicks=0;
-}
-
 static void camera(void)
 {
-    LONG px=player.x>>8,wanted=cameraX;
+    const struct PlayerState *player=playerState();
+    LONG px=player->x>>8,wanted=cameraX;
     if(px-cameraX>202) wanted=px-202; if(px-cameraX<105) wanted=px-105;
     if(wanted<0) wanted=0; if(wanted>WORLD_W-SCREEN_W) wanted=WORLD_W-SCREEN_W;
     if(wanted>cameraX+5) cameraX+=5; else if(wanted<cameraX-5) cameraX-=5; else cameraX=wanted;
@@ -815,18 +573,22 @@ static void cleanup(void)
 int main(void)
 {
     BOOL left,right,down,jump,fire,wasGrounded;
+    const struct PlayerState *player;
     GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
-    memset(&player,0,sizeof(player)); player.x=36L<<8; player.y=164L<<8;
+    playerInit(); player=playerState();
     if(!GfxBase||!loadData()||!prepare()) { PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n"); cleanup(); return 10; }
     setHardwareSprite();
     takeover();
     for(;;) {
         while(rasterLine()<100) { }
-        joystick(&left,&right,&down,&jump,&fire); wasGrounded=player.grounded;
-        startShot(fire); physics(left,right,down,jump); updateShot();
+        playerReadInput(&left,&right,&down,&jump,&fire);
+        wasGrounded=player->grounded;
+        playerStartShot(fire,playShot);
+        playerUpdatePhysics(left,right,down,jump); playerUpdateShot();
         enemiesUpdate(frameCounter,collisionSolidAt);
         projectilesUpdate((WORD)cameraX,collisionSolidAt,enemiesHitProjectile);
-        updateAudio(); camera(); animatePlayer(!wasGrounded&&player.grounded);
+        updateAudio(); camera(); playerAnimate(!wasGrounded&&player->grounded,
+                               frameCounter);
         frameCounter++;
           /* The Copper consumes these list entries at frame start. Update them
               well after that read and well before the next wrap, independent of

@@ -723,6 +723,16 @@ still work correctly. Player state, input, physics and animation selection are
 the next intended boundary; hardware-sprite preparation and Copper updates must
 remain with the renderer/platform side.
 
+The fourth accepted extraction moves player state, joystick input, shooting,
+movement/physics and 50-frame animation selection into `player.c` and
+`player.h`. Renderer and camera code consume a stable read-only player state;
+hardware-sprite preparation, Copper pointer updates and camera ownership remain
+in `sparkpaw.c`. A clean `make` and `make release` succeeded, and MrDig
+confirmed in FS-UAE that the complete player, projectile, enemy and scrolling
+behaviour still works correctly. Asset loading and preparation are the next
+intended boundary because they are prerequisites for the later title-first and
+level-loading state flow.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

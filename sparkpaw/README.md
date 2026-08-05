@@ -67,8 +67,8 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 ## Source layout
 
-- `src/sparkpaw.c`: current main loop, display, camera, input, player,
-  collision and renderer implementation
+- `src/sparkpaw.c`: current main loop, display, camera and renderer
+  implementation
 - `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
   and damage state; this is the first incremental modularisation boundary
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
@@ -76,6 +76,9 @@ into the game; see `docs/RENDERBENCH.txt`.
   renderer-sensitive code in `sparkpaw.c`
 - `src/collision.c` / `src/collision.h`: collision-map loading and solid-point,
   horizontal-span and vertical-span tile queries shared by gameplay modules
+- `src/player.c` / `src/player.h`: player state, joystick input, shooting,
+  movement/physics and the established 50-frame animation selection; hardware
+  sprite preparation and Copper updates remain in `sparkpaw.c`
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
   sprite/enemy planes and masks, packed Bob caches and the tile collision map
 - `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples
