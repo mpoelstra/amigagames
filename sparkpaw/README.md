@@ -4,10 +4,11 @@ Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
 This is a deliberately small but real engine test. It validates the risky
-parts before enemies, music and level content are added: a native
-AGA dual-playfield display, two independently hardware-scrolled five-screen
-world layers, a fluid 15-colour hardware-sprite player, joystick input and
-solid platform collision and the first complete enemy vertical slice.
+parts before broader enemy variety, player damage, music and level progression
+are added: a native AGA dual-playfield display, two independently
+hardware-scrolled five-screen world layers, a fluid 15-colour hardware-sprite
+player, joystick input, solid platform collision, plasma projectiles and a
+four-instance clockwork-beetle vertical slice.
 
 ## Target
 
@@ -32,15 +33,18 @@ weapon responds to rapid tapping. Four low clockwork beetles patrol separate
 sections of the test level. Standing and airborne shots deliberately pass over
 them: crouch and fire twice to destroy each one through a hit reaction and
 four-stage destruction sequence. These enemies cannot damage Sparkpaw and do
-not respawn yet.
-Keyboard controls and the HUD are temporarily absent. Mouse exit is
-disabled so an accidental click cannot interrupt a test. Clean Workbench
-restoration remains on the technical backlog.
+not respawn yet. Keyboard controls and the HUD are deferred until after the
+planned source modularisation. Mouse exit is disabled because clean Workbench
+restoration remains a separate technical milestone; reset the Amiga or
+emulator to leave the current build.
 
 ## Build
 
-The workspace copy contains a private `.toolchain` so it does not depend on
-the ChipSnake or Futsal directories. From this directory:
+Install a project-local VBCC/NDK toolchain under `.toolchain/` as described in
+the repository's [build guide](../docs/BUILDING.md). The directory is
+intentionally ignored by Git and must not depend on the ChipSnake or Futsal
+toolchains. Install the host Python requirements from the repository root with
+`python3 -m pip install -r requirements-dev.txt`. Then, from this directory:
 
 ```sh
 make
@@ -63,16 +67,20 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 ## Source layout
 
-- `src/sparkpaw.c`: display, camera, input, movement, animation and collision
+- `src/sparkpaw.c`: current monolithic display, camera, input, movement,
+  animation, collision, projectile and enemy implementation; incremental
+  modularisation is the next planned engineering phase
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
-  sprite planes/mask and the tile collision map
+  sprite/enemy planes and masks, packed Bob caches and the tile collision map
+- `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples
 - `tools/make_release.py`: creates the HD archives, source archive and ADF
 - `assets/runtime/`: compact data loaded by the Amiga executable
 - `assets/concept/`: full-resolution concept art and AGA preview conversions
 - `assets/sprites/`: prototype animation art and named frame metadata
 - `assets/enemies/`: native-resolution enemy art, preview and frame metadata
 - `assets/sfx/previews/`: WAV previews for later milestones
-- `sfx/raw/`: signed 8-bit mono Paula-ready samples for later milestones
+- `sfx/raw/`: signed 8-bit mono Paula-ready samples; the current build uses the
+  energy-shot sample and reserves the others for later milestones
 
 ## What to test
 
@@ -81,28 +89,30 @@ reverse direction frequently. Verify that the foreground follows the camera
 while the mountain/tower layer moves at one quarter speed. Compare HD and ADF
 behaviour. Useful reports include the exact location and whether the issue
 concerns sprite flicker, tearing, collision, camera movement, parallax,
-controls or display colours.
+controls or display colours. Combine camera movement with rapid fire and watch
+specifically for a one-frame mixed-scroll tear under both quiet and heavy
+Blitter workloads.
 
 Check especially whether Sparkpaw retains the same apparent size and foot
-position while running, jumping, crouching, shooting and performing the idle pose. The
-50-pose animation source uses one anatomical scale per authored family and a
-shared pixel-exact foot baseline. It includes an eight-stage grounded run,
-a scale-locked four-stage jump, three-stage landing, six-stage momentum-based
-direction change and twelve-stage idle
-performance plus four dedicated crouch-fire poses; crouching changes posture
-without enlarging the character. More
-in-between poses can be added without changing the DMA renderer.
+position while running, jumping, crouching, shooting and performing the idle
+pose. The 50-frame animation set uses one anatomical scale per authored family
+and stable shared anchors. It includes an eight-stage grounded run, a
+scale-locked four-stage jump, three-stage landing, six-stage momentum-based
+direction change, twelve-stage idle performance and dedicated grounded,
+airborne and crouched firing poses. Crouching changes posture without enlarging
+the character. More in-between poses can be added without changing the DMA
+renderer.
 
-The Milestone 2A beetle is a 32x24, nine-frame, three-plane masked Bob. Four
-instances share one packed art cache and only camera-near beetles are drawn.
-Its
-fixed height keeps ordinary standing and airborne shots above the enemy, while
-its domed steel/violet shell, round cyan lens and jointed legs follow the
+The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
+Four fixed instances share one packed art cache, retain independent HP and
+animation state, and are drawn only near the camera. Their fixed height keeps
+ordinary standing and airborne shots above them, while the domed steel/violet
+shell, round cyan lens and jointed legs follow the
 gameplay concept at native AGA resolution. Enemy and plasma restore/draw passes
 use synchronized Blitter DMA with standard-copy and cookie-cut minterms; the
 68020 no longer composites their planar rows byte by byte in Chip RAM. Verify
 that all four walk smoothly between their fixed patrol limits, mirror cleanly
 when turning, remain grounded, ignore standing and airborne fire, react to the
 first crouch-shot and play all four destruction stages after the second.
-Stress it with several simultaneous plasma pulses and watch for residue where
-the enemy and projectiles overlap.
+Stress the renderer with several simultaneous plasma pulses and visible
+beetles, and watch for residue where enemies and projectiles overlap.
