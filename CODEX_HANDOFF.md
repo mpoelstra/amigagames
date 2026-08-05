@@ -750,6 +750,16 @@ startup, gameplay and repeated shot playback still work correctly. Gameplay
 orchestration and camera state are the next intended boundary; raster waits,
 Copper updates and Bob rendering must remain in `sparkpaw.c` during that step.
 
+The seventh accepted extraction moves gameplay initialization, the established
+input/update sequence, frame progression and camera state into `game.c` and
+`game.h`. `sparkpaw.c` consumes read-only game state for sprite, scroll and Bob
+presentation while retaining both raster phases, Copper updates and Blitter
+work in their proven order. A clean `make` and `make release` succeeded, and
+MrDig confirmed in FS-UAE that movement, jumping, scrolling, shooting and all
+four beetles still work correctly. The remaining Phase 1 work is the sensitive
+renderer/platform ownership split; perform that mechanically before adding the
+Phase 2 title and loading states.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

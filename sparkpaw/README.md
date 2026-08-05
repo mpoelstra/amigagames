@@ -67,8 +67,10 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 ## Source layout
 
-- `src/sparkpaw.c`: current main loop, display, camera and renderer
-  implementation
+- `src/sparkpaw.c`: platform startup, raster-phased main loop, display and
+  renderer implementation
+- `src/game.c` / `src/game.h`: gameplay initialization and update ordering,
+  frame progression and camera state; renderer timing remains in `sparkpaw.c`
 - `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
   and damage state; this is the first incremental modularisation boundary
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,

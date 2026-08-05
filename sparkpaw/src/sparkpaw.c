@@ -18,6 +18,7 @@
 #include "audio.h"
 #include "collision.h"
 #include "enemies.h"
+#include "game.h"
 #include "player.h"
 #include "projectiles.h"
 
@@ -45,7 +46,7 @@ static UWORD *cop,copPos,ptrValue[6],scrollValue,oldDma,oldIntena;
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
 static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static BOOL systemLocked,interruptsDisabled;
-static LONG cameraX,frameCounter;
+static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
 
@@ -223,7 +224,7 @@ static BOOL buildHardwareSprites(void)
 static void setHardwareSprite(void)
 {
     const struct PlayerState *player=playerState();
-    WORD channel,screenX=(WORD)(player->x>>8)-(WORD)cameraX+128-
+    WORD channel,screenX=(WORD)(player->x>>8)-(WORD)game->cameraX+128-
                          (SPRITE_W-PLAYER_W)/2;
     WORD screenY=(WORD)(player->y>>8)+44-(SPRITE_H-PLAYER_H);
     WORD stopY=screenY+SPRITE_H;
@@ -367,7 +368,7 @@ static void drawProjectileBobs(void)
            p->drawnY<0||p->drawnY+PROJECTILE_H>WORLD_H) continue;
         left=p->vx<0;
         pattern=p->impactTimer?(p->impactTimer>=4?2:(p->impactTimer>=2?3:4)):
-                                (UBYTE)((frameCounter>>1)&1);
+                                (UBYTE)((game->frameCounter>>1)&1);
         blitMaskedBob(plasmaMaskRow(pattern,left,0),
                       plasmaBitsRow(pattern,left,0,0),PLASMA_SOURCE_WORDS,
                       PROJECTILE_W,PROJECTILE_H,p->drawnX,p->drawnY);
@@ -393,8 +394,8 @@ static void drawEnemyBob(void)
         struct Enemy *enemy=enemyAt(i); UBYTE facing;
         if(!enemy->active) continue;
         enemy->drawnX=(WORD)(enemy->x>>8); enemy->drawnY=enemy->y;
-        if(enemy->drawnX+ENEMY_W<(WORD)cameraX-32||
-           enemy->drawnX>(WORD)cameraX+SCREEN_W+32||
+          if(enemy->drawnX+ENEMY_W<(WORD)game->cameraX-32||
+              enemy->drawnX>(WORD)game->cameraX+SCREEN_W+32||
            enemy->drawnX<0||enemy->drawnX+ENEMY_W>WORLD_W||
            enemy->drawnY<0||enemy->drawnY+ENEMY_H>WORLD_H) continue;
         /* The authored column faces left; the second is its exact mirror. */
@@ -405,15 +406,6 @@ static void drawEnemyBob(void)
                       enemy->drawnX,enemy->drawnY);
         enemy->drawn=TRUE;
     }
-}
-
-static void camera(void)
-{
-    const struct PlayerState *player=playerState();
-    LONG px=player->x>>8,wanted=cameraX;
-    if(px-cameraX>202) wanted=px-202; if(px-cameraX<105) wanted=px-105;
-    if(wanted<0) wanted=0; if(wanted>WORLD_W-SCREEN_W) wanted=WORLD_W-SCREEN_W;
-    if(wanted>cameraX+5) cameraX+=5; else if(wanted<cameraX-5) cameraX-=5; else cameraX=wanted;
 }
 
 static BOOL loadData(void)
@@ -433,7 +425,6 @@ static BOOL prepare(void)
     for(p=0;p<3;p++) CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
     if(!buildEnemyPatterns()||!buildPlasmaPatterns()) return FALSE;
-    enemiesInit(); projectilesInit();
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
@@ -493,28 +484,18 @@ static void cleanup(void)
 
 int main(void)
 {
-    BOOL left,right,down,jump,fire,wasGrounded;
-    const struct PlayerState *player;
     GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
-    playerInit(); player=playerState();
+    gameInit(); game=gameState();
     if(!GfxBase||!loadData()||!prepare()) { PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n"); cleanup(); return 10; }
     setHardwareSprite();
     takeover();
     for(;;) {
         while(rasterLine()<100) { }
-        playerReadInput(&left,&right,&down,&jump,&fire);
-        wasGrounded=player->grounded;
-        playerStartShot(fire,audioPlayShot);
-        playerUpdatePhysics(left,right,down,jump); playerUpdateShot();
-        enemiesUpdate(frameCounter,collisionSolidAt);
-        projectilesUpdate((WORD)cameraX,collisionSolidAt,enemiesHitProjectile);
-        audioUpdate(); camera(); playerAnimate(!wasGrounded&&player->grounded,
-                               frameCounter);
-        frameCounter++;
-          /* The Copper consumes these list entries at frame start. Update them
-              well after that read and well before the next wrap, independent of
-              how long the post-display Bob pass takes. */
-          setHardwareSprite(); setScroll(cameraX,cameraX>>2);
+        gameUpdate();
+        /* The Copper consumes these list entries at frame start. Update them
+           well after that read and well before the next wrap, independent of
+           how long the post-display Bob pass takes. */
+        setHardwareSprite(); setScroll(game->cameraX,game->cameraX>>2);
         while(rasterLine()<300) { }
         eraseProjectileBobs(); restoreEnemyBob();
         drawEnemyBob(); drawProjectileBobs();
