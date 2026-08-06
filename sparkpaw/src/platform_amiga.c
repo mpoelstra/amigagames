@@ -32,11 +32,16 @@ void platformClose(void)
     }
 }
 
-void platformTakeover(UWORD *copper)
+void platformBeginTakeover(void)
 {
     oldDma=hardware->dmaconr&DMAF_ALL;
     oldIntena=hardware->intenar&0x7fff;
-    LoadView(NULL); WaitTOF(); WaitTOF();
+    WaitTOF(); hardware->color[0]=0;
+    hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
+}
+
+void platformFinishTakeover(UWORD *copper)
+{
     OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
     Disable(); interruptsDisabled=TRUE;
     hardware->intena=0x7fff; hardware->dmacon=DMAF_ALL;

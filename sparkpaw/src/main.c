@@ -33,21 +33,34 @@ static BOOL loadLevel(void)
 int main(void)
 {
     enum AppState state=APP_BOOT;
+    BOOL loadingShown;
     BOOL platformReady=platformOpen();
     state=APP_TITLE_LOADING;
-    if(!platformReady||!titleShowLoading()) {
+    if(!platformReady||!titleShow()) {
         PutStr("Sparkpaw: title assets or display unavailable.\n");
+        if(platformReady) {
+            PutStr((STRPTR)titleFailureReason()); PutStr("\n");
+            Printf("OpenScreen error %ld, Chip %ld, largest %ld\n",
+                   titleScreenError(),titleChipFree(),titleChipLargest());
+        }
         cleanup(); return 10;
     }
+    state=APP_TITLE_READY;
+    titleWaitFrames(150);
     gameInit();
     state=APP_LEVEL_LOADING;
-    if(!loadLevel()) {
+    loadingShown=titleShowLevelLoading();
+    if(!loadingShown||!loadLevel()) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
+        if(!loadingShown) {
+            PutStr((STRPTR)titleFailureReason()); PutStr("\n");
+        }
         cleanup(); return 10;
     }
     rendererUpdateGameplay();
-    platformTakeover(rendererCopperList());
+    platformBeginTakeover();
     titleRelease();
+    platformFinishTakeover(rendererCopperList());
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
         while(platformRasterLine()<100) { }

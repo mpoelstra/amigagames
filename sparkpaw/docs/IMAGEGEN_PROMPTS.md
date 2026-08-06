@@ -10,6 +10,26 @@ Create original 4:3 title-screen concept art for the Commodore Amiga 1200 AGA ga
 
 Create an original side-view Amiga AGA gameplay scene demonstrating three readable parallax depths: violet storm mountains and clouds, pine forest with broken energy towers and waterfalls, and mossy technological ruins with cyan circuitry. Show Sparkpaw running right and firing a cyan energy bolt, one clockwork beetle enemy and three Stormstone collectibles. Use crisp 1990s Amiga pixel art, a 4:3 320x256-inspired composition and a compact bottom HUD. Keep platforms readable and do not copy existing game art.
 
+## Level-disk loading concept
+
+Create original 4:3 loading-screen concept art for the Commodore Amiga 1200
+AGA game `SPARKPAW: THE STORMSTONE QUEST`. On a near-black storm-blue
+background, show one large three-quarter-view navy floppy disk as a physical
+level artifact. Its label contains an original cyan Stormstone crystal emblem,
+amber paw-shaped registration marks and restrained metallic circuitry. Add a
+small cyan disk-access light and a few angular electric accents. Use crisp
+premium 1990s Amiga AGA pixel art, large deliberate clusters, hard edges and a
+visually limited palette. No characters, logos, instructions or loading text.
+Do not reproduce any existing game's disk, box art, typography or composition.
+
+The selected built-in Codex ImageGen source is preserved as
+`assets/concept/sparkpaw-level-loading-concept-v2.png`. The project converter
+uses a fixed centred 75-percent crop so the deliberately subtle source remains
+readable at PAL resolution, fits it to 320x256 and deterministically produces
+an indexed 16-colour preview and four-plane SPBM runtime asset, with black
+reserved as pen 0 for neutral borders and transitions. Pillow is used only for
+this conversion; it does not draw or replace the authored source art.
+
 ## Animation reference sheet
 
 Create a strict 4x4 pixel-art animation reference sheet for Sparkpaw on a perfectly uniform `#ff00ff` chroma-key background. Maintain identical costume, proportions and palette. Include exactly: idle, blink, four run poses, jump rise, jump apex, fall, land, crouch, aim, shoot, hurt, victory and death tumble. Use a shared limited 16-colour character palette, hard pixels, equal cells, no text, shadows, grid lines or licensed character resemblance.

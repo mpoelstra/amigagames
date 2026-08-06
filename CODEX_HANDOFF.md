@@ -818,6 +818,25 @@ transition and gameplay work correctly. The agreed next flow is: show the title
 for 150 PAL frames (three seconds), switch to a separate original Sparkpaw
 level-disk loading image, load the level, then enter `PLAYING`.
 
+The fourth Phase 2 step remains unaccepted. `TITLE_READY` gives the title an
+explicit 150-frame hold, then `LEVEL_LOADING` switches to an original
+Stormstone level-disk image while the existing gameplay assets load. The
+loading image has its own asset lifetime and its selected source was generated
+with the built-in Codex ImageGen workflow from the preserved art brief.
+Initial FS-UAE testing exposed a retained mouse sprite, flashes between raw
+Views and flat palette-colour screens from a minimal ADF boot. Intuition also
+reported `OSERR_TOODEEP` when asked for a six-plane screen despite AGA hardware.
+The current committed checkpoint is therefore a diagnostic compatibility
+version: deterministic four-plane title/loading assets are presented through
+prepared OS-managed screens with hidden pointers, and the loading-to-gameplay
+handoff blanks before starting the proven gameplay Copper. It displays both
+images from HD and ADF, but 16 colours are not the accepted visual target.
+The next focused step must restore the preserved 64-colour sources and present
+them through a small direct six-plane AGA Copper path while DOS remains active.
+Use complete off-screen Copper lists and VBlank swaps for title, loading and
+gameplay transitions; preserve the gameplay renderer and its line-100/line-300
+ordering. Do not treat the four-plane checkpoint as the final Phase 2 result.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

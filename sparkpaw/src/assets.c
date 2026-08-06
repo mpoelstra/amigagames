@@ -7,7 +7,8 @@
 #include <proto/graphics.h>
 #include <string.h>
 
-static struct PlanarAsset title,frontClean,rearWorld,playerSprites,enemySprites;
+static struct PlanarAsset title,levelLoading,frontClean,rearWorld;
+static struct PlanarAsset playerSprites,enemySprites;
 
 static UWORD readBigEndian16(const UBYTE *value)
 {
@@ -84,12 +85,23 @@ BOOL assetsLoadGameplay(void)
 
 BOOL assetsLoadTitle(void)
 {
-    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,6);
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,4);
 }
 
 void assetsUnloadTitle(void)
 {
     freeAsset(&title);
+}
+
+BOOL assetsLoadLevelLoading(void)
+{
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-loading.spbm",
+                     &levelLoading,4);
+}
+
+void assetsUnloadLevelLoading(void)
+{
+    freeAsset(&levelLoading);
 }
 
 void assetsUnloadGameplay(void)
@@ -99,6 +111,7 @@ void assetsUnloadGameplay(void)
 }
 
 const struct PlanarAsset *assetsTitle(void) { return &title; }
+const struct PlanarAsset *assetsLevelLoading(void) { return &levelLoading; }
 const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }

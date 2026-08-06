@@ -17,7 +17,7 @@ import math
 import struct
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "assets" / "runtime"
@@ -59,6 +59,8 @@ REAR8 = [
 ]
 
 TITLE_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-title-concept-aga64-preview.png"
+LEVEL_LOADING_SOURCE = (ROOT / "assets" / "concept" /
+                        "sparkpaw-level-loading-concept-v2.png")
 
 
 def nearest_index(rgb: tuple[int, int, int], palette: list[tuple[int, int, int]], *, avoid_zero=False) -> int:
@@ -176,7 +178,34 @@ def load_title() -> tuple[Image.Image, list[tuple[int, int, int]]]:
         raise ValueError("title preview must use palette indices 0..63")
     palette = [tuple(palette_data[index:index + 3])
                for index in range(0, 64 * 3, 3)]
+    return quantize_screen(image.convert("RGB"))
+
+
+def quantize_screen(source: Image.Image) -> tuple[Image.Image, list[tuple[int, int, int]]]:
+    """Reserve pen 0 as black so borders and display gaps stay neutral."""
+    reduced = source.quantize(colors=15, method=Image.Quantize.MEDIANCUT,
+                              dither=Image.Dither.FLOYDSTEINBERG)
+    palette_data = reduced.getpalette()
+    if palette_data is None:
+        raise ValueError("screen conversion produced no palette")
+    palette = [(0, 0, 0)] + [tuple(palette_data[index:index + 3])
+                             for index in range(0, 15 * 3, 3)]
+    image = indexed_image(source.size, palette, 0)
+    image.putdata([int(value) + 1 for value in reduced.getdata()])
     return image, palette
+
+
+def make_level_loading() -> tuple[Image.Image, list[tuple[int, int, int]]]:
+    with Image.open(LEVEL_LOADING_SOURCE) as source:
+        source = source.convert("RGB")
+        crop_width = source.width * 3 // 4
+        crop_height = source.height * 3 // 4
+        left = (source.width - crop_width) // 2
+        top = (source.height - crop_height) // 2
+        source = source.crop((left,top,left + crop_width,top + crop_height))
+        fitted = ImageOps.fit(source,(320,256),
+                              Image.Resampling.LANCZOS)
+    return quantize_screen(fitted)
 
 
 def make_background() -> Image.Image:
@@ -559,8 +588,13 @@ def main() -> None:
     sprites, mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
     title, title_palette = load_title()
+    level_loading, level_loading_palette = make_level_loading()
 
-    save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
+    save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=4)
+    save_spbm(RUNTIME / "sparkpaw-level-loading.spbm",level_loading,
+              level_loading_palette,depth=4)
+    level_loading.save(ROOT / "assets" / "concept" /
+                       "sparkpaw-level-loading-aga16-preview.png")
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
     # renderer. The rear artwork repeats across the entire five-screen world.

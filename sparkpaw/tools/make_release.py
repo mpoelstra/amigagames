@@ -7,6 +7,7 @@ import shutil
 import struct
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -96,6 +97,7 @@ def copy_runtime() -> None:
     shutil.copy2(ROOT / "sparkpaw", STAGE / "Sparkpaw")
     for name in (
         "sparkpaw-title.spbm",
+        "sparkpaw-level-loading.spbm",
         "storm-front.spbm", "storm-rear.spbm",
         "storm-collision.bin", "sparkpaw-sprites4.spbm",
         "clockwork-beetle.spbm",
@@ -138,6 +140,18 @@ def make_adf() -> Path:
         sys.executable, "-m", "amitools.tools.xdftool", "-r", str(adf),
         "boot", "show", "+", "list",
     ], cwd=ROOT, env=env, check=True)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        extracted = Path(temp_dir)
+        subprocess.run([
+            sys.executable, "-m", "amitools.tools.xdftool", "-r", str(adf),
+            "read", "Sparkpaw", str(extracted / "Sparkpaw"),
+            "+", "read", "S/startup-sequence",
+            str(extracted / "startup-sequence"),
+        ], cwd=ROOT, env=env, check=True)
+        if (extracted / "Sparkpaw").read_bytes() != (ROOT / "sparkpaw").read_bytes():
+            raise SystemExit("ADF verification failed: Sparkpaw")
+        if (extracted / "startup-sequence").read_bytes() != b"Sparkpaw\n":
+            raise SystemExit("ADF verification failed: S/startup-sequence")
     return adf
 
 

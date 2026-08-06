@@ -7,6 +7,7 @@ import shutil
 import struct
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -169,6 +170,25 @@ def build_adf():
         ],
         cwd=ROOT, env=env, check=True,
     )
+    with tempfile.TemporaryDirectory() as temp_dir:
+        extracted = Path(temp_dir)
+        subprocess.run(
+            [
+                sys.executable, "-m", "amitools.tools.xdftool",
+                "-r", str(ADF_ARCHIVE),
+                "read", "Snake", str(extracted / "Snake"),
+                "+", "read", "Snake.info", str(extracted / "Snake.info"),
+                "+", "read", "S/startup-sequence",
+                str(extracted / "startup-sequence"),
+            ],
+            cwd=ROOT, env=env, check=True,
+        )
+        for name, source in (("Snake", ROOT / "snake"),
+                             ("Snake.info", ROOT / "snake.info")):
+            if (extracted / name).read_bytes() != source.read_bytes():
+                raise SystemExit(f"ADF verification failed: {name}")
+        if (extracted / "startup-sequence").read_bytes() != b"Snake\n":
+            raise SystemExit("ADF verification failed: S/startup-sequence")
     print(ADF_ARCHIVE)
 
 

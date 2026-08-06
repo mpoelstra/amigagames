@@ -16,6 +16,7 @@ HEADERS = src/assets.h src/audio.h src/collision.h src/enemies.h src/game.h \
 	src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
+	assets/runtime/sparkpaw-level-loading.spbm \
 	assets/runtime/storm-front.spbm \
 	assets/runtime/storm-rear.spbm \
 	assets/runtime/storm-collision.bin \
@@ -39,6 +40,7 @@ assets: $(RUNTIME_ASSETS)
 
 $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
+	assets/concept/sparkpaw-level-loading-concept-v2.png \
 	assets/sprites/sparkpaw-sprites-reference-transparent.png \
 	assets/sprites/sparkpaw-supplemental-poses-v2-transparent.png \
 	assets/sprites/sparkpaw-run-compact-v3-transparent.png \

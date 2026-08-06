@@ -5,7 +5,8 @@
 
 BOOL platformOpen(void);
 void platformClose(void);
-void platformTakeover(UWORD *copper);
+void platformBeginTakeover(void);
+void platformFinishTakeover(UWORD *copper);
 void platformRestore(void);
 UWORD platformRasterLine(void);
 void platformWaitBlit(void);
