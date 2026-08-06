@@ -879,30 +879,42 @@ accepted.
   and/or more planes consume proportionally more fetch bandwidth and Chip RAM.
   They require a separate measured presenter experiment, not just a larger
   source PNG. Do not describe 320x256 as AGA's maximum resolution.
-5. The most promising next quality experiment is 320x256x8 with 256 indexed
-  colours. One uncompressed screen would use 81,920 bitmap bytes instead of
-  61,440, and two screens would add about 40 KiB before palette/header costs;
-  this appears to fit the current ADF but must be benchmarked for startup,
-  Chip RAM, palette setup and transition timing before adoption.
-6. HAM8 can show many more apparent colours through hold-and-modify encoding,
+5. The next step is not yet a 256-colour conversion. First reproduce the best
+  earlier HD appearance through the new floppy-compatible direct Copper path.
+  Use commit `ef32941` (`Show Sparkpaw early title view`) as the old HD
+  reference and current commit `f52c472` as the direct-AGA reference. Compare
+  the exact title SPBM bytes, decoded 81,920 palette indices, all 64 RGB palette
+  entries and native 320x256 FS-UAE screenshots with identical scaling and
+  filter settings. If the source bitmap and palette are equal but screenshots
+  differ, inspect Copper palette-bank writes, display registers and emulator
+  scaling before changing the art. If they are not equal, feed the old accepted
+  bitmap and palette unchanged into the direct presenter. The goal is to keep
+  ADF compatibility without sacrificing the earlier HD appearance.
+6. Only after that A/B comparison is understood should 320x256x8 with 256
+  indexed colours be tested as a separate quality enhancement. One
+  uncompressed screen would use 81,920 bitmap bytes instead of 61,440, and two
+  screens would add about 40 KiB before palette/header costs; this appears to
+  fit the current ADF but must be benchmarked for startup, Chip RAM, palette
+  setup and transition timing before adoption.
+7. HAM8 can show many more apparent colours through hold-and-modify encoding,
   but it is not an arbitrary 24-bit framebuffer and can create horizontal
   colour fringing. Treat it as a separate art/encoding mode and probably a
   poor default for crisp title typography and pixel-art edges.
-7. A 64-colour conversion can still look worse than its RGB source. Median Cut
+8. A 64-colour conversion can still look worse than its RGB source. Median Cut
   spent many loading-screen entries on dark source noise. Fast Octree without
   dithering reduced measured colour error and background transitions and
   restored cyan/amber focal details, but MrDig still did not find the result
   materially prettier. Preserve the RGB sources and judge conversions at
   nearest-neighbour 320x256 scale in FS-UAE, not only in a smoothed host viewer.
-8. The direct presenter needs separate build and active Copper indices. While
+9. The direct presenter needs separate build and active Copper indices. While
   preparing the loading list, reusing the active index would cause the switch
   to reinstall the title list. Keep complete lists off-screen, install only at
   VBlank, and free the old bitmap only after the new list is active.
-9. Keep DOS and interrupts available during title/loading. Load and build the
+10. Keep DOS and interrupts available during title/loading. Load and build the
   second screen while the title list continues scanning, measure the minimum
   150-frame hold from the first displayed title VBlank, then switch complete
   states rather than showing an empty View or partially programmed palette.
-10. FS-UAE floppy save-images can invalidate ADF debugging. A stale
+11. FS-UAE floppy save-images can invalidate ADF debugging. A stale
    `ChipSnake-A1200.sdf` under the FS-UAE Save States directory overlaid the
    newly built disk and made mounted contents disagree with `xdftool`. Delete
    or disable stale `.sdf` overlays before attributing missing or old files to
