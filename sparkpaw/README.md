@@ -69,9 +69,9 @@ into the game; see `docs/RENDERBENCH.txt`.
 
 - `src/main.c`: startup, cleanup, explicit application states and the
   raster-phased top-level loop
-- `src/title.c` / `src/title.h`: prepared OS-managed 16-colour low-resolution
-  screens with hidden pointers, timed title presentation and a complete-screen
-  switch to the Stormstone level-disk image while gameplay resources load
+- `src/title.c` / `src/title.h`: direct six-plane AGA title/loading presenter
+  with lossless 64-colour palettes, black border blanking, Chip RAM Copper
+  lists and VBlank-synchronised complete-screen switches while DOS remains live
 - `src/renderer.c` / `src/renderer.h`: gameplay display, Copper construction,
   hardware sprites, packed render caches and Bob rendering behind an explicit
   renderer API

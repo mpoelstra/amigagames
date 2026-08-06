@@ -85,7 +85,7 @@ BOOL assetsLoadGameplay(void)
 
 BOOL assetsLoadTitle(void)
 {
-    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,4);
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,6);
 }
 
 void assetsUnloadTitle(void)
@@ -96,7 +96,7 @@ void assetsUnloadTitle(void)
 BOOL assetsLoadLevelLoading(void)
 {
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-loading.spbm",
-                     &levelLoading,4);
+                     &levelLoading,6);
 }
 
 void assetsUnloadLevelLoading(void)

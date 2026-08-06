@@ -24,11 +24,13 @@ Do not reproduce any existing game's disk, box art, typography or composition.
 
 The selected built-in Codex ImageGen source is preserved as
 `assets/concept/sparkpaw-level-loading-concept-v2.png`. The project converter
-uses a fixed centred 75-percent crop so the deliberately subtle source remains
-readable at PAL resolution, fits it to 320x256 and deterministically produces
-an indexed 16-colour preview and four-plane SPBM runtime asset, with black
-reserved as pen 0 for neutral borders and transitions. Pillow is used only for
-this conversion; it does not draw or replace the authored source art.
+uses a fixed centred 75-percent crop, fits it to 320x256 with Lanczos and uses
+Fast Octree quantisation without dithering to preserve the cyan crystal and
+amber paw details without spending palette entries on dark background noise.
+It writes the indexed 64-colour preview and the matching six-plane SPBM runtime
+asset deterministically. The presenter uses AGA border blanking rather than
+sacrificing an image pen for neutral borders. Pillow performs format conversion
+only; it does not draw or replace the authored source art.
 
 ## Animation reference sheet
 

@@ -20,7 +20,11 @@ static BOOL systemLocked,interruptsDisabled;
 BOOL platformOpen(void)
 {
     GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
-    if(GfxBase) systemView=GfxBase->ActiView;
+    if(GfxBase) {
+        systemView=GfxBase->ActiView;
+        oldDma=hardware->dmaconr&DMAF_ALL;
+        oldIntena=hardware->intenar&0x7fff;
+    }
     return GfxBase!=NULL;
 }
 
@@ -34,8 +38,6 @@ void platformClose(void)
 
 void platformBeginTakeover(void)
 {
-    oldDma=hardware->dmaconr&DMAF_ALL;
-    oldIntena=hardware->intenar&0x7fff;
     WaitTOF(); hardware->color[0]=0;
     hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
 }

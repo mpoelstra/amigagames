@@ -2,144 +2,172 @@
 
 #include <exec/memory.h>
 #include <graphics/gfxbase.h>
-#include <graphics/modeid.h>
-#include <intuition/intuition.h>
-#include <intuition/screens.h>
+#include <graphics/view.h>
+#include <hardware/custom.h>
+#include <hardware/dmabits.h>
 #include <proto/exec.h>
 #include <proto/graphics.h>
-#include <proto/intuition.h>
 
 #include "assets.h"
 
-struct IntuitionBase *IntuitionBase;
+#define COPPER_WORDS 340
+#define SCREEN_ROW_BYTES 40
 
-static struct Screen *screen[2];
-static struct Window *window[2];
-static UWORD *hiddenPointer[2];
-static UBYTE currentScreen;
-static ULONG colors[1+16*3+1];
+static volatile struct Custom *hardware=(volatile struct Custom *)0xdff000;
+static struct View *previousView;
+static UWORD *copper[2];
+static UWORD copperPos,savedDma;
+static UBYTE buildCopperIndex,currentCopper;
+static BOOL displayed;
+static ULONG titleStartFrame;
 static const char *failureReason="unknown title failure";
-static LONG screenError;
 static ULONG chipFree,chipLargest;
 
-static void prepareColors(const struct PlanarAsset *asset)
+static void cmove(UWORD reg,UWORD value)
 {
-    UWORD index;
-    colors[0]=(16UL<<16);
-    for(index=0;index<16;index++) {
-        colors[1+index*3]=(ULONG)asset->palette[index][0]*0x01010101UL;
-        colors[2+index*3]=(ULONG)asset->palette[index][1]*0x01010101UL;
-        colors[3+index*3]=(ULONG)asset->palette[index][2]*0x01010101UL;
-    }
-    colors[1+16*3]=0;
+    copper[buildCopperIndex][copperPos++]=reg;
+    copper[buildCopperIndex][copperPos++]=value;
 }
 
-static void closeDisplay(UBYTE index)
+static void cptr(UWORD reg,APTR value)
 {
-    if(window[index]) {
-        CloseWindow(window[index]); window[index]=NULL;
-    }
-    if(screen[index]) {
-        CloseScreen(screen[index]); screen[index]=NULL;
-    }
-    if(hiddenPointer[index]) {
-        FreeMem(hiddenPointer[index],4); hiddenPointer[index]=NULL;
-    }
+    ULONG pointer=(ULONG)value;
+    cmove(reg,(UWORD)(pointer>>16));
+    cmove((UWORD)(reg+2),(UWORD)pointer);
 }
 
-static BOOL openDisplay(UBYTE index,const struct PlanarAsset *asset)
+static void writePalette(const struct PlanarAsset *asset)
 {
-    screenError=0;
-    screen[index]=OpenScreenTags(NULL,
-        SA_Width,320,SA_Height,256,SA_Depth,4,
-        SA_DisplayID,LORES_KEY,SA_ErrorCode,(ULONG)&screenError,
-        SA_Title,(ULONG)"Sparkpaw",SA_Quiet,TRUE,SA_ShowTitle,FALSE,
-        SA_Behind,TRUE,TAG_DONE);
-    if(!screen[index]) return FALSE;
-    window[index]=OpenWindowTags(NULL,
-        WA_CustomScreen,(ULONG)screen[index],WA_Left,0,WA_Top,0,
-        WA_Width,320,WA_Height,256,WA_Borderless,TRUE,WA_Backdrop,TRUE,
-        WA_Activate,TRUE,WA_RMBTrap,TRUE,WA_IDCMP,0,TAG_DONE);
-    if(!window[index]) { closeDisplay(index); return FALSE; }
-    hiddenPointer[index]=(UWORD *)AllocMem(4,MEMF_CHIP|MEMF_CLEAR);
-    if(hiddenPointer[index])
-        SetPointer(window[index],hiddenPointer[index],1,16,0,0);
-    BltBitMap(asset->bitmap,0,0,screen[index]->RastPort.BitMap,0,0,320,256,
-              0xc0,0x3f,NULL);
-    WaitBlit();
-    prepareColors(asset); LoadRGB32(&screen[index]->ViewPort,colors);
+    UWORD bank,index;
+    for(bank=0;bank<2;bank++) {
+        cmove(0x106,(UWORD)(0x0020|(bank<<13)));
+        for(index=0;index<32;index++) {
+            const UBYTE *rgb=asset->palette[bank*32+index];
+            cmove((UWORD)(0x180+index*2),
+                  (UWORD)(((rgb[0]>>4)<<8)|((rgb[1]>>4)<<4)|(rgb[2]>>4)));
+        }
+        cmove(0x106,(UWORD)(0x0220|(bank<<13)));
+        for(index=0;index<32;index++) {
+            const UBYTE *rgb=asset->palette[bank*32+index];
+            cmove((UWORD)(0x180+index*2),
+                  (UWORD)(((rgb[0]&15)<<8)|((rgb[1]&15)<<4)|(rgb[2]&15)));
+        }
+    }
+    cmove(0x106,0x0020);
+}
+
+static void buildCopper(const struct PlanarAsset *asset,UBYTE index)
+{
+    UBYTE plane;
+    buildCopperIndex=index; copperPos=0;
+    cmove(0x08e,0x2c81); cmove(0x090,0x2cc1);
+    cmove(0x092,0x0038); cmove(0x094,0x00d0);
+    cmove(0x100,0x6200); cmove(0x102,0x0000);
+    cmove(0x104,0x0000); cmove(0x106,0x0020);
+    cmove(0x108,(UWORD)(asset->bitmap->BytesPerRow-SCREEN_ROW_BYTES));
+    cmove(0x10a,(UWORD)(asset->bitmap->BytesPerRow-SCREEN_ROW_BYTES));
+    cmove(0x10c,0x0000); cmove(0x1fc,0x0000);
+    for(plane=0;plane<6;plane++)
+        cptr((UWORD)(0x0e0+plane*4),asset->bitmap->Planes[plane]);
+    writePalette(asset);
+    copper[index][copperPos++]=0xffff;
+    copper[index][copperPos++]=0xfffe;
+}
+
+static BOOL allocateCopper(void)
+{
+    UBYTE index;
+    for(index=0;index<2;index++) {
+        copper[index]=(UWORD *)AllocMem(COPPER_WORDS*sizeof(UWORD),
+                                        MEMF_CHIP|MEMF_CLEAR);
+        if(!copper[index]) return FALSE;
+    }
     return TRUE;
+}
+
+static void installCopper(UBYTE index)
+{
+    WaitTOF();
+    hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
+    hardware->cop1lc=(ULONG)copper[index]; hardware->copjmp1=0;
+    hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER;
+    currentCopper=index; displayed=TRUE;
 }
 
 BOOL titleShow(void)
 {
-    if(!assetsLoadTitle()) {
-        failureReason="title asset load failed"; return FALSE;
-    }
-    IntuitionBase=(struct IntuitionBase *)OpenLibrary("intuition.library",39);
-    if(!IntuitionBase) {
-        failureReason="intuition.library unavailable";
-        titleRelease(); return FALSE;
-    }
-    screenError=0;
     chipFree=AvailMem(MEMF_CHIP);
     chipLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
-    currentScreen=0;
-    if(!openDisplay(currentScreen,assetsTitle())) {
-        failureReason="16-colour title screen open failed";
+    if(!assetsLoadTitle()) {
+        failureReason="six-plane title asset load failed"; return FALSE;
+    }
+    if(!allocateCopper()) {
+        failureReason="title Copper allocation failed";
         titleRelease(); return FALSE;
     }
-    assetsUnloadTitle();
-    ScreenToFront(screen[currentScreen]); WaitTOF(); WaitTOF();
+    previousView=GfxBase->ActiView;
+    savedDma=hardware->dmaconr&DMAF_ALL;
+    buildCopper(assetsTitle(),0);
+    installCopper(0);
+    titleStartFrame=GfxBase->VBCounter;
+    return TRUE;
+}
+
+BOOL titlePrepareLevelLoading(void)
+{
+    UBYTE next;
+    if(!displayed) {
+        failureReason="title display unavailable for loading image";
+        return FALSE;
+    }
+    if(!assetsLoadLevelLoading()) {
+        failureReason="six-plane loading image asset load failed"; return FALSE;
+    }
+    next=currentCopper^1;
+    buildCopper(assetsLevelLoading(),next);
     return TRUE;
 }
 
 BOOL titleShowLevelLoading(void)
 {
-    UBYTE next;
-    if(!screen[currentScreen]) {
-        failureReason="title screen unavailable for loading image";
-        return FALSE;
+    UBYTE next=currentCopper^1;
+    if(!assetsLevelLoading()->bitmap) {
+        failureReason="loading image was not prepared"; return FALSE;
     }
-    if(!assetsLoadLevelLoading()) {
-        failureReason="loading image asset load failed"; return FALSE;
-    }
-    next=currentScreen^1;
-    if(!openDisplay(next,assetsLevelLoading())) {
-        failureReason="16-colour loading screen open failed";
-        assetsUnloadLevelLoading(); return FALSE;
-    }
-    assetsUnloadLevelLoading();
-    ScreenToFront(screen[next]); WaitTOF(); WaitTOF();
-    closeDisplay(currentScreen); currentScreen=next;
+    installCopper(next);
+    assetsUnloadTitle();
     return TRUE;
 }
 
-const char *titleFailureReason(void)
-{
-    return failureReason;
-}
-
-LONG titleScreenError(void) { return screenError; }
+const char *titleFailureReason(void) { return failureReason; }
 ULONG titleChipFree(void) { return chipFree; }
 ULONG titleChipLargest(void) { return chipLargest; }
 
 void titleWaitFrames(UWORD frames)
 {
-    while(frames--) WaitTOF();
+    while((ULONG)(GfxBase->VBCounter-titleStartFrame)<frames) WaitTOF();
 }
 
 void titleRestoreSystemView(void)
 {
-    titleRelease();
+    if(!displayed) return;
+    WaitTOF();
+    hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
+    if(previousView) LoadView(previousView);
+    hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|savedDma;
+    WaitTOF(); WaitTOF();
+    displayed=FALSE;
 }
 
 void titleRelease(void)
 {
-    closeDisplay(0); closeDisplay(1);
+    UBYTE index;
+    displayed=FALSE;
     assetsUnloadTitle(); assetsUnloadLevelLoading();
-    if(IntuitionBase) {
-        CloseLibrary((struct Library *)IntuitionBase);
-        IntuitionBase=NULL;
+    for(index=0;index<2;index++) {
+        if(copper[index]) {
+            FreeMem(copper[index],COPPER_WORDS*sizeof(UWORD));
+            copper[index]=NULL;
+        }
     }
 }

@@ -61,6 +61,8 @@ REAR8 = [
 TITLE_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-title-concept-aga64-preview.png"
 LEVEL_LOADING_SOURCE = (ROOT / "assets" / "concept" /
                         "sparkpaw-level-loading-concept-v2.png")
+LEVEL_LOADING_PREVIEW = (ROOT / "assets" / "concept" /
+                         "sparkpaw-level-loading-aga64-preview.png")
 
 
 def nearest_index(rgb: tuple[int, int, int], palette: list[tuple[int, int, int]], *, avoid_zero=False) -> int:
@@ -168,30 +170,16 @@ def save_spbm(path: Path, image: Image.Image, palette: list[tuple[int, int, int]
     path.write_bytes(header + pal + bits + mask)
 
 
-def load_title() -> tuple[Image.Image, list[tuple[int, int, int]]]:
-    with Image.open(TITLE_SOURCE) as source:
+def load_aga_screen(path: Path) -> tuple[Image.Image, list[tuple[int, int, int]]]:
+    with Image.open(path) as source:
         if source.size != (320, 256) or source.mode != "P":
-            raise ValueError("title preview must be a 320x256 indexed image")
+            raise ValueError(f"AGA screen must be a 320x256 indexed image: {path}")
         image = source.copy()
         palette_data = source.getpalette()
     if palette_data is None or image.getextrema()[1] >= 64:
-        raise ValueError("title preview must use palette indices 0..63")
+        raise ValueError(f"AGA screen must use palette indices 0..63: {path}")
     palette = [tuple(palette_data[index:index + 3])
                for index in range(0, 64 * 3, 3)]
-    return quantize_screen(image.convert("RGB"))
-
-
-def quantize_screen(source: Image.Image) -> tuple[Image.Image, list[tuple[int, int, int]]]:
-    """Reserve pen 0 as black so borders and display gaps stay neutral."""
-    reduced = source.quantize(colors=15, method=Image.Quantize.MEDIANCUT,
-                              dither=Image.Dither.FLOYDSTEINBERG)
-    palette_data = reduced.getpalette()
-    if palette_data is None:
-        raise ValueError("screen conversion produced no palette")
-    palette = [(0, 0, 0)] + [tuple(palette_data[index:index + 3])
-                             for index in range(0, 15 * 3, 3)]
-    image = indexed_image(source.size, palette, 0)
-    image.putdata([int(value) + 1 for value in reduced.getdata()])
     return image, palette
 
 
@@ -203,9 +191,16 @@ def make_level_loading() -> tuple[Image.Image, list[tuple[int, int, int]]]:
         left = (source.width - crop_width) // 2
         top = (source.height - crop_height) // 2
         source = source.crop((left,top,left + crop_width,top + crop_height))
-        fitted = ImageOps.fit(source,(320,256),
-                              Image.Resampling.LANCZOS)
-    return quantize_screen(fitted)
+        fitted = ImageOps.fit(source,(320,256),Image.Resampling.LANCZOS)
+    image = fitted.quantize(colors=64,method=Image.Quantize.FASTOCTREE,
+                            dither=Image.Dither.NONE)
+    palette_data = image.getpalette()
+    if palette_data is None:
+        raise ValueError("loading screen conversion produced no palette")
+    palette = [tuple(palette_data[index:index + 3])
+               for index in range(0,64*3,3)]
+    image.save(LEVEL_LOADING_PREVIEW)
+    return image,palette
 
 
 def make_background() -> Image.Image:
@@ -587,14 +582,12 @@ def main() -> None:
     fg, collision = make_foreground()
     sprites, mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
-    title, title_palette = load_title()
+    title, title_palette = load_aga_screen(TITLE_SOURCE)
     level_loading, level_loading_palette = make_level_loading()
 
-    save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=4)
+    save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-level-loading.spbm",level_loading,
-              level_loading_palette,depth=4)
-    level_loading.save(ROOT / "assets" / "concept" /
-                       "sparkpaw-level-loading-aga16-preview.png")
+              level_loading_palette,depth=6)
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
     # renderer. The rear artwork repeats across the entire five-screen world.

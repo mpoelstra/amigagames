@@ -837,6 +837,78 @@ Use complete off-screen Copper lists and VBlank swaps for title, loading and
 gameplay transitions; preserve the gameplay renderer and its line-100/line-300
 ordering. Do not treat the four-plane checkpoint as the final Phase 2 result.
 
+That focused step is now implemented after checkpoint commit `d39dd5f`. The
+title runtime screen is generated losslessly from its preserved indexed 320x256
+AGA preview. The loading screen is regenerated deterministically from its
+preserved RGB source using the fixed 75-percent crop, Lanczos fit and a
+64-colour Fast Octree conversion without dithering; this preserves the cyan and
+amber focal details without turning dark source noise into visible speckles.
+Decoding either six-plane SPBM reproduces its indexed preview palette and all
+81,920 pixels byte-for-byte. `title.c` owns two small Chip RAM Copper lists,
+programs exact 320-pixel fetches, enables AGA border blanking and writes both
+high and low palette nibbles. Interrupts and DOS remain active. The
+loading bitmap and its complete second Copper list are prepared while the first
+list continues to scan the title; only the remaining time to a measured minimum
+of 150 title frames is idle. Title-to-loading and loading-to-gameplay changes
+occur at VBlank, with the old bitmap released only after the new Copper is
+active. This direct AGA path has compiled and passed host-side asset checks.
+MrDig confirmed in FS-UAE that both direct AGA screens display and transition,
+but did not accept their visual quality as materially better; real-hardware
+verification also remains pending. Phase 2 is functional but not visually
+accepted.
+
+#### Title/loading display lessons from the HD and ADF investigation
+
+1. The earlier HD result was not a 24-bit truecolour framebuffer. It was a
+  320x256 indexed image with 64 simultaneously displayed colours; AGA selects
+  every one of those palette entries from a 24-bit RGB colour space. The large
+  1402x1122 and 1448x1086 PNG concepts are ordinary host-side 24-bit RGB
+  sources, and image viewers make them appear smoother through interpolation.
+2. Boot medium does not set AGA colour depth or resolution. HD and floppy can
+  program identical custom-chip modes. The minimal ADF boot instead exposed
+  an OS display-database difference: Intuition returned `OSERR_TOODEEP` for a
+  six-plane custom screen even though the A1200 hardware can scan it. Direct
+  Copper ownership bypasses that OS-mode dependency and works from the ADF.
+3. Floppy constrains capacity and loading latency, not display capability. The
+  current bootable ADF uses about 579 KiB of 880 KiB and each 320x256x6 SPBM is
+  61,644 bytes, so storage is not what limits these screens to 64 colours.
+  More planes increase disk reads, Chip RAM and display DMA, however.
+4. The current mode is deliberately PAL low-resolution 320x256 with six
+  bitplanes: 64 indexed colours, each with a full 24-bit AGA palette value.
+  AGA can support higher-resolution and eight-plane modes, but higher width
+  and/or more planes consume proportionally more fetch bandwidth and Chip RAM.
+  They require a separate measured presenter experiment, not just a larger
+  source PNG. Do not describe 320x256 as AGA's maximum resolution.
+5. The most promising next quality experiment is 320x256x8 with 256 indexed
+  colours. One uncompressed screen would use 81,920 bitmap bytes instead of
+  61,440, and two screens would add about 40 KiB before palette/header costs;
+  this appears to fit the current ADF but must be benchmarked for startup,
+  Chip RAM, palette setup and transition timing before adoption.
+6. HAM8 can show many more apparent colours through hold-and-modify encoding,
+  but it is not an arbitrary 24-bit framebuffer and can create horizontal
+  colour fringing. Treat it as a separate art/encoding mode and probably a
+  poor default for crisp title typography and pixel-art edges.
+7. A 64-colour conversion can still look worse than its RGB source. Median Cut
+  spent many loading-screen entries on dark source noise. Fast Octree without
+  dithering reduced measured colour error and background transitions and
+  restored cyan/amber focal details, but MrDig still did not find the result
+  materially prettier. Preserve the RGB sources and judge conversions at
+  nearest-neighbour 320x256 scale in FS-UAE, not only in a smoothed host viewer.
+8. The direct presenter needs separate build and active Copper indices. While
+  preparing the loading list, reusing the active index would cause the switch
+  to reinstall the title list. Keep complete lists off-screen, install only at
+  VBlank, and free the old bitmap only after the new list is active.
+9. Keep DOS and interrupts available during title/loading. Load and build the
+  second screen while the title list continues scanning, measure the minimum
+  150-frame hold from the first displayed title VBlank, then switch complete
+  states rather than showing an empty View or partially programmed palette.
+10. FS-UAE floppy save-images can invalidate ADF debugging. A stale
+   `ChipSnake-A1200.sdf` under the FS-UAE Save States directory overlaid the
+   newly built disk and made mounted contents disagree with `xdftool`. Delete
+   or disable stale `.sdf` overlays before attributing missing or old files to
+   the release builder. Both release builders now extract and byte-compare
+   critical ADF payloads after writing them.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.

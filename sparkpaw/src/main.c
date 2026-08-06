@@ -40,12 +40,17 @@ int main(void)
         PutStr("Sparkpaw: title assets or display unavailable.\n");
         if(platformReady) {
             PutStr((STRPTR)titleFailureReason()); PutStr("\n");
-            Printf("OpenScreen error %ld, Chip %ld, largest %ld\n",
-                   titleScreenError(),titleChipFree(),titleChipLargest());
+            Printf("Chip %ld, largest %ld\n",
+                   titleChipFree(),titleChipLargest());
         }
         cleanup(); return 10;
     }
     state=APP_TITLE_READY;
+    if(!titlePrepareLevelLoading()) {
+        PutStr("Sparkpaw: loading image unavailable.\n");
+        PutStr((STRPTR)titleFailureReason()); PutStr("\n");
+        cleanup(); return 10;
+    }
     titleWaitFrames(150);
     gameInit();
     state=APP_LEVEL_LOADING;
@@ -59,8 +64,8 @@ int main(void)
     }
     rendererUpdateGameplay();
     platformBeginTakeover();
-    titleRelease();
     platformFinishTakeover(rendererCopperList());
+    titleRelease();
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
         while(platformRasterLine()<100) { }
