@@ -36,14 +36,35 @@ them: crouch and fire twice to destroy each one through a hit reaction and
 four-stage destruction sequence. Contact with an active beetle now removes one
 of six internal half-heart health units, applies brief knockback/input lock and
 grants one second of invulnerability. Dedicated standing and crawl-height
-hurt art is present; the visible three-heart HUD, hurt audio and the eventual
-game-over presentation remain focused later steps. Beetles do
-not respawn during ordinary play. For rapid testing, reaching zero health
-immediately resets the player, camera, projectiles and four-enemy pool in
-memory without reloading resident level assets. The HUD is deferred until after the
-planned source modularisation. Mouse exit is disabled because clean Workbench
+hurt art is present; the eventual game-over presentation remains a focused
+later step. A full-width fixed HUD band across the bottom now shows the
+existing six health units as three full, half or empty hearts and reserves
+separate framed panels for the active life counter and later collectibles. Original
+player-hurt, enemy-hit and
+accepted-jump effects now share a prioritized Paula gameplay channel;
+the existing rapid plasma sound remains independently available. Beetles do
+not individually respawn during ordinary play. For rapid testing, reaching
+zero health or completing the fourth beetle's destruction sequence immediately
+resets the player, camera, projectiles and complete four-enemy pool in memory
+without reloading resident level assets. This completion reset is only a test
+loop, not the later spawn-data respawn system. Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.
+
+The HUD also shows the current attempt stock. A new test run starts at `x3`;
+each zero-health reset steps through `x2` and `x1`. Until the dedicated
+game-over state is implemented, losing the third attempt starts a fresh `x3`
+test cycle. Completing all four beetles also starts a fresh three-attempt run.
+The HUD is modular rather than a table of complete life/health combinations:
+one static base, compact health and lives patch atlases, and two presentation
+buffers keep updates tear-free. Only a stale dynamic panel is copied with the
+Blitter when its value changes; gameplay never CPU-composites displayed Chip
+RAM. Twenty fixed diamonds form short trails and original arcs across the
+five-screen test level. Four full-silhouette shimmer frames and a gentle
+two-pixel hover animate their camera-culled Bobs. Picking one up
+removes its Bob and increments the compact
+two-digit HUD counter. The counter currently stops at 49; awarding an extra
+life at 50 remains a separate gameplay step.
 
 ## Build
 
@@ -88,8 +109,8 @@ it switches to `CHARGING` during the silent sprite, Bob, bitplane and Copper
 preparation phase. This second phase remains visible for at least two seconds,
 including on accelerated systems. Both screens share one 64-colour palette.
 - `src/renderer.c` / `src/renderer.h`: gameplay display, Copper construction,
-  hardware sprites, packed render caches and Bob rendering behind an explicit
-  renderer API
+  six-channel hardware-sprite player, fixed bottom HUD Copper split, packed
+  render caches and Bob rendering behind an explicit renderer API
 - `src/game.c` / `src/game.h`: gameplay initialization and update ordering,
   frame progression and camera state
 - `src/platform_amiga.c` / `src/platform_amiga.h`: graphics-library lifetime,
@@ -109,8 +130,10 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
   lifetime and cleanup plus a separate early-title lifetime; packed
   hardware-sprite and Bob cache preparation remains in `renderer.c`
-- `src/audio.c` / `src/audio.h`: energy-shot sample loading and lifetime,
-  Paula channel 0 playback and explicit hardware-active lifecycle control
+- `src/audio.c` / `src/audio.h`: energy-shot, player-hurt, enemy-hit and jump
+  sample loading, Paula channel 0 rapid-shot playback, prioritized channel 1 gameplay effects
+  and explicit hardware-active lifecycle control; channels 2-3 remain reserved
+  for a future music layout
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
   sprite/enemy planes and masks, packed Bob caches and the tile collision map
 - `tools/generate_sparkpaw_sfx.py`: regenerates the Paula-ready raw samples
@@ -121,7 +144,8 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `assets/enemies/`: native-resolution enemy art, preview and frame metadata
 - `assets/sfx/previews/`: WAV previews for later milestones
 - `sfx/raw/`: signed 8-bit mono Paula-ready samples; the current build uses the
-  energy-shot sample and reserves the others for later milestones
+  energy-shot, player-hurt, enemy-hit and jump samples and reserves the others
+  for later steps
 
 ## What to test
 

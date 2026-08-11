@@ -9,6 +9,8 @@
 
 static struct PlanarAsset title,levelLoading,levelCharging,frontClean,rearWorld;
 static struct PlanarAsset playerSprites,enemySprites;
+static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
+static struct PlanarAsset collectibleDiamond;
 
 static UWORD readBigEndian16(const UBYTE *value)
 {
@@ -80,7 +82,17 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
                      &playerSprites,4)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
-                     &enemySprites,3);
+                     &enemySprites,3)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
+                     &hudBase,3)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-health.spbm",
+                     &hudHealth,3)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-lives.spbm",
+                     &hudLives,3)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-diamonds.spbm",
+                     &hudDiamonds,3)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
+                     &collectibleDiamond,3);
 }
 
 BOOL assetsLoadTitle(void)
@@ -117,6 +129,8 @@ void assetsUnloadLevelCharging(void)
 
 void assetsUnloadGameplay(void)
 {
+    freeAsset(&collectibleDiamond); freeAsset(&hudDiamonds);
+    freeAsset(&hudLives); freeAsset(&hudHealth); freeAsset(&hudBase);
     freeAsset(&enemySprites); freeAsset(&playerSprites);
     freeAsset(&rearWorld); freeAsset(&frontClean);
 }
@@ -128,3 +142,11 @@ const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }
 const struct PlanarAsset *assetsEnemySprites(void) { return &enemySprites; }
+const struct PlanarAsset *assetsHudBase(void) { return &hudBase; }
+const struct PlanarAsset *assetsHudHealth(void) { return &hudHealth; }
+const struct PlanarAsset *assetsHudLives(void) { return &hudLives; }
+const struct PlanarAsset *assetsHudDiamonds(void) { return &hudDiamonds; }
+const struct PlanarAsset *assetsCollectibleDiamond(void)
+{
+    return &collectibleDiamond;
+}

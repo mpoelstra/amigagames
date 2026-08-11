@@ -23,7 +23,8 @@ void projectilesResetPreservingDrawn(void);
 void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
                       ProjectilePlaySound playSound);
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
-                       ProjectileEnemyHit hitEnemy);
+                       ProjectileEnemyHit hitEnemy,
+                       ProjectilePlaySound playEnemyHitSound);
 struct Projectile *projectileAt(WORD index);
 
 #endif

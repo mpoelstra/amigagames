@@ -41,8 +41,17 @@ press launches a fast blue/cyan plasma pulse; rapid tapping supports several
 pulses in flight. Hold down to crouch; combine down with left/right to
 crouch-walk, and press fire to shoot from a dedicated low pose. Four low
 clockwork beetles patrol separate parts of the test level. Only crouch-shots
-can hit them; fire twice to destroy each one. These enemies cannot damage
-Sparkpaw and do not respawn.
+can hit them; fire twice to destroy each one. Beetle contact removes one of
+six internal half-heart health units, applies knockback and plays a short hurt
+effect. After the fourth beetle's complete destruction sequence, the current
+test level resets in memory so it can be replayed without rebooting.
+A fixed full-width HUD band at the bottom shows the six health units as three
+full, half or empty hearts. The Sparkpaw-head counter starts at x3, decreases on
+each zero-health reset and temporarily cycles to x3 after the third loss until
+the later game-over state is implemented. Twenty hovering diamonds form short
+trails and original arcs throughout the level; the adjacent two-digit HUD
+counter records them up to 49. Contact invulnerability is shown by a brief
+whole-character blink.
 Reset the Amiga or emulator to leave this bare-metal milestone. Mouse exit is
 disabled so an accidental click cannot interrupt a test.
 
@@ -61,8 +70,9 @@ overlap an enemy or two beetles approach the same screen edge.
 Please look for sprite flicker, apparent size changes, foot sliding, tearing,
 collision errors, camera jumps and parallax glitches.
 
-This milestone intentionally contains no player damage, random enemy spawning,
-music, collectables or menus. It validates one complete enemy vertical slice.
+This milestone intentionally contains no random enemy spawning, music or
+menus. It validates one complete enemy
+vertical slice and the first focused gameplay sound-effect integration.
 """
 
 
@@ -99,10 +109,19 @@ def copy_runtime() -> None:
         "sparkpaw-title.spbm",
         "sparkpaw-level-loading.spbm",
         "sparkpaw-level-charging.spbm",
+    "sparkpaw-hud-base.spbm",
+    "sparkpaw-hud-health.spbm",
+    "sparkpaw-hud-lives.spbm",
+    "sparkpaw-hud-diamonds.spbm",
+    "sparkpaw-diamond.spbm",
         "storm-front.spbm", "storm-rear.spbm",
         "storm-collision.bin", "sparkpaw-sprites4.spbm",
         "clockwork-beetle.spbm",
         "energy-shot.raw",
+        "player-hurt.raw",
+        "enemy-hit.raw",
+        "jump.raw",
+        "collect-spark.raw",
     ):
         target = STAGE / "assets" / "runtime" / name
         target.parent.mkdir(parents=True, exist_ok=True)

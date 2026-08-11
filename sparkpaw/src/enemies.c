@@ -67,6 +67,14 @@ void enemiesUpdate(LONG frameCounter,EnemySolidAt solidAt)
     }
 }
 
+BOOL enemiesAllDefeated(void)
+{
+    WORD index;
+    for(index=0;index<MAX_ENEMIES;index++)
+        if(enemies[index].active) return FALSE;
+    return TRUE;
+}
+
 BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
 {
     WORD index;

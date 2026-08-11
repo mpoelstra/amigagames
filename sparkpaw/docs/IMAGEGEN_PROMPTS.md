@@ -10,6 +10,20 @@ Create original 4:3 title-screen concept art for the Commodore Amiga 1200 AGA ga
 
 Create an original side-view Amiga AGA gameplay scene demonstrating three readable parallax depths: violet storm mountains and clouds, pine forest with broken energy towers and waterfalls, and mossy technological ruins with cyan circuitry. Show Sparkpaw running right and firing a cyan energy bolt, one clockwork beetle enemy and three Stormstone collectibles. Use crisp 1990s Amiga pixel art, a 4:3 320x256-inspired composition and a compact bottom HUD. Keep platforms readable and do not copy existing game art.
 
+## Full-width gameplay HUD source v1
+
+Reference: `sparkpaw-gameplay-concept.png`.
+
+Create a single full-width horizontal bottom HUD bar matching the reference
+artwork as closely as possible: chunky 1990s Amiga pixel art, dark navy inset
+panels, heavy steel borders, rivets, cyan energy accents and warm amber
+highlights. Include a faithful small Sparkpaw portrait, exactly three red heart
+containers for current health, and a separate Sparkpaw head with the exact
+text `x 3` for lives. Include a diamond/Stormstone panel prepared for a future
+counter and one additional empty framed panel. Use one straight shallow strip
+with no gameplay scene, perspective or background scenery. Keep hard pixel
+edges and avoid gradients that become noise after eight-colour quantisation.
+
 ## Level-disk loading concept
 
 Create original 4:3 loading-screen concept art for the Commodore Amiga 1200

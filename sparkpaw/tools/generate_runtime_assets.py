@@ -69,6 +69,19 @@ LEVEL_CHARGING_SOURCE = (ROOT / "assets" / "concept" /
                          "sparkpaw-level-charging-concept-v2.png")
 LEVEL_CHARGING_PREVIEW = (ROOT / "assets" / "concept" /
                           "sparkpaw-level-charging-aga64-preview.png")
+HUD_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-hud-concept-v1.png"
+HUD_RUNTIME_PREVIEW = ROOT / "assets" / "concept" / "sparkpaw-hud-aga8-preview.png"
+DIAMOND_RUNTIME_PREVIEW = (ROOT / "assets" / "concept" /
+                           "sparkpaw-diamond-aga8-preview.png")
+HUD_HEIGHT = 48
+HUD_LIVES = 3
+HUD_X_OFFSET = 2
+HUD_SEPARATOR_H = 2
+HUD_DIAMOND_STATES = 50
+HUD_PALETTE = [
+    (0, 0, 0), (5, 16, 25), (28, 37, 43), (102, 98, 88),
+    (239, 218, 164), (222, 47, 45), (239, 151, 39), (31, 201, 224),
+]
 
 
 def nearest_index(rgb: tuple[int, int, int], palette: list[tuple[int, int, int]], *, avoid_zero=False) -> int:
@@ -187,6 +200,155 @@ def load_aga_screen(path: Path) -> tuple[Image.Image, list[tuple[int, int, int]]
     palette = [tuple(palette_data[index:index + 3])
                for index in range(0, 64 * 3, 3)]
     return image, palette
+
+
+def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
+    """Build one static HUD plus compact dynamic-panel patch atlases."""
+    with Image.open(HUD_SOURCE) as source:
+        rgb = source.convert("RGB").crop((14, 238, 1969, 550))
+    # Keep the complete authored frame, but reserve a dark two-line separation
+    # above it so actors no longer appear to stand directly on the metal beam.
+    rgb = rgb.resize((320, HUD_HEIGHT-HUD_SEPARATOR_H),
+                     Image.Resampling.LANCZOS)
+    base = indexed_image((336, HUD_HEIGHT), HUD_PALETTE, 0)
+    src, dst = rgb.load(), base.load()
+    for y in range(HUD_HEIGHT-HUD_SEPARATOR_H):
+        for x in range(320):
+            dst[x + HUD_X_OFFSET, y + HUD_SEPARATOR_H] = nearest_index(
+                src[x, y], HUD_PALETTE)
+
+    heart_rows = (0x36, 0x7f, 0x7f, 0x3e, 0x1c, 0x08)
+    def shape(x: int, y: int) -> bool:
+        return 0 <= x < 7 and 0 <= y < 6 and bool(heart_rows[y] & (0x40 >> x))
+
+    digits = {
+        0:(0x7,0x5,0x5,0x5,0x7), 1:(0x2,0x6,0x2,0x2,0x7),
+        2:(0x6,0x1,0x2,0x4,0x7), 3:(0x6,0x1,0x2,0x1,0x6),
+        4:(0x5,0x5,0x7,0x1,0x1), 5:(0x7,0x4,0x6,0x1,0x6),
+        6:(0x3,0x4,0x7,0x5,0x7), 7:(0x7,0x1,0x2,0x2,0x2),
+        8:(0x7,0x5,0x7,0x5,0x7), 9:(0x7,0x5,0x7,0x1,0x6),
+    }
+    health_box = (48, 12, 128, 44)
+    lives_box = (160, 12, 192, 36)
+    diamonds_box = (224, 12, 256, 36)
+    draw = ImageDraw.Draw(base)
+    draw.rectangle((49 + HUD_X_OFFSET, 11 + HUD_SEPARATOR_H,
+                    125 + HUD_X_OFFSET, 40 + HUD_SEPARATOR_H), fill=1)
+    # Only erase the generated source digit.  Wider rectangles damage the
+    # life panel's bevelled upper-right and lower border.
+    draw.rectangle((168 + HUD_X_OFFSET, 14 + HUD_SEPARATOR_H,
+                    180 + HUD_X_OFFSET, 33 + HUD_SEPARATOR_H), fill=1)
+
+    def draw_lives(frame: Image.Image, lives: int) -> None:
+        draw = ImageDraw.Draw(frame)
+        for y,row in enumerate(digits[lives]):
+            for x in range(3):
+                if row&(0x4>>x):
+                    draw.rectangle((171 + HUD_X_OFFSET + x*2,
+                                    14 + HUD_SEPARATOR_H + y*3,
+                                    172 + HUD_X_OFFSET + x*2,
+                                    16 + HUD_SEPARATOR_H + y*3),fill=4)
+
+    def draw_health(frame: Image.Image, health: int) -> None:
+        draw = ImageDraw.Draw(frame)
+        for heart in range(3):
+            units = health - heart * 2
+            for y in range(6):
+                for x in range(7):
+                    if not shape(x, y):
+                        continue
+                    border = (not shape(x - 1, y) or not shape(x + 1, y) or
+                              not shape(x, y - 1) or not shape(x, y + 1))
+                    if border:
+                        pen = 2 if y >= 3 or x >= 5 else 4
+                    elif units >= 2 or (units == 1 and x <= 3):
+                        pen = 5
+                    else:
+                        pen = 1
+                    left = 52 + HUD_X_OFFSET + heart * 25 + x * 3
+                    top = 15 + HUD_SEPARATOR_H + y * 3
+                    draw.rectangle((left, top, left + 2, top + 2), fill=pen)
+
+    def draw_diamonds(frame: Image.Image, count: int) -> None:
+        draw = ImageDraw.Draw(frame)
+        for column,value in enumerate((count//10,count%10)):
+            for y,row in enumerate(digits[value]):
+                for x in range(3):
+                    if row&(0x4>>x):
+                        left=228+column*10+x*2
+                        top=14+HUD_SEPARATOR_H+y*3
+                        draw.rectangle((left,top,left+1,top+2),fill=4)
+
+    health_atlas = indexed_image((health_box[2]-health_box[0],
+                                  (health_box[3]-health_box[1])*7),
+                                 HUD_PALETTE, 0)
+    for health in range(7):
+        frame = base.copy()
+        draw_health(frame, health)
+        patch = frame.crop(health_box)
+        health_atlas.paste(patch, (0, health*(health_box[3]-health_box[1])))
+
+    lives_atlas = indexed_image((lives_box[2]-lives_box[0],
+                                 (lives_box[3]-lives_box[1])*HUD_LIVES),
+                                HUD_PALETTE, 0)
+    for lives in range(1,HUD_LIVES+1):
+        frame = base.copy()
+        draw_lives(frame, lives)
+        patch = frame.crop(lives_box)
+        lives_atlas.paste(patch, (0, (lives-1)*(lives_box[3]-lives_box[1])))
+
+    diamonds_atlas = indexed_image(
+        (diamonds_box[2]-diamonds_box[0],
+         (diamonds_box[3]-diamonds_box[1])*HUD_DIAMOND_STATES),
+        HUD_PALETTE, 0)
+    for count in range(HUD_DIAMOND_STATES):
+        frame = base.copy()
+        draw_diamonds(frame, count)
+        patch = frame.crop(diamonds_box)
+        diamonds_atlas.paste(
+            patch, (0, count*(diamonds_box[3]-diamonds_box[1])))
+
+    preview = base.copy()
+    draw_health(preview, 6)
+    draw_lives(preview, HUD_LIVES)
+    draw_diamonds(preview, 0)
+    preview.crop((0, 0, 320, HUD_HEIGHT)).save(HUD_RUNTIME_PREVIEW)
+    return base, health_atlas, lives_atlas, diamonds_atlas
+
+
+def make_collectible_diamond() -> tuple[Image.Image, bytes]:
+    """Create four full-silhouette concept-style diamond shimmer frames."""
+    # One padded source word supports arbitrary destination shifts without
+    # reading into the next packed row.
+    image=indexed_image((32,96),FRONT8,0)
+    for frame in range(4):
+        draw=ImageDraw.Draw(image); top=frame*24
+        # All frames retain the same unmistakable tall diamond silhouette.
+        draw.polygon(((8,top+1),(15,top+9),(9,top+23),
+                      (1,top+10)),fill=1)
+        draw.polygon(((7,top),(14,top+8),(7,top+22),(0,top+8)),fill=4)
+        draw.polygon(((7,top+2),(2,top+8),(7,top+8)),fill=7)
+        draw.polygon(((7,top+2),(12,top+8),(7,top+8)),fill=6)
+        draw.polygon(((2,top+9),(7,top+9),(7,top+19)),fill=6)
+        draw.polygon(((8,top+9),(12,top+9),(7,top+19)),fill=5)
+        # A restrained four-frame shimmer moves across stable facets.
+        if frame==0:
+            draw.line((3,top+7,7,top+2),fill=4)
+            draw.point((3,top+8),fill=4)
+        elif frame==1:
+            draw.line((5,top+4,8,top+4),fill=4)
+            draw.point((4,top+6),fill=4)
+        elif frame==2:
+            draw.line((7,top+3,7,top+16),fill=7)
+            draw.point((6,top+5),fill=4)
+        else:
+            draw.line((9,top+5,11,top+8),fill=7)
+            draw.point((10,top+6),fill=4)
+    preview=indexed_image((64,24),FRONT8,0)
+    for frame in range(4):
+        preview.paste(image.crop((0,frame*24,16,frame*24+24)),(frame*16,0))
+    preview.save(DIAMOND_RUNTIME_PREVIEW)
+    return image,bitmap_mask(image)
 
 
 def reserve_black_pen_zero(
@@ -706,12 +868,23 @@ def main() -> None:
     title,title_palette = reserve_black_pen_zero(title,title_palette)
     title.save(TITLE_RUNTIME_PREVIEW)
     level_loading,level_charging,level_loading_palette = make_level_loading()
+    hud_base,hud_health,hud_lives,hud_diamonds = make_hud()
+    collectible_diamond,collectible_diamond_mask = make_collectible_diamond()
 
     save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-level-loading.spbm",level_loading,
               level_loading_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-level-charging.spbm",level_charging,
               level_loading_palette,depth=6)
+    save_spbm(RUNTIME / "sparkpaw-hud-base.spbm",hud_base,HUD_PALETTE,depth=3)
+    save_spbm(RUNTIME / "sparkpaw-hud-health.spbm",hud_health,
+              HUD_PALETTE,depth=3)
+    save_spbm(RUNTIME / "sparkpaw-hud-lives.spbm",hud_lives,
+              HUD_PALETTE,depth=3)
+    save_spbm(RUNTIME / "sparkpaw-hud-diamonds.spbm",hud_diamonds,
+              HUD_PALETTE,depth=3)
+    save_spbm(RUNTIME / "sparkpaw-diamond.spbm",collectible_diamond,
+              FRONT8,depth=3,mask=collectible_diamond_mask)
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
     # renderer. The rear artwork repeats across the entire five-screen world.
@@ -732,6 +905,14 @@ def main() -> None:
               depth=3, mask=beetle_mask)
     (RUNTIME / "energy-shot.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "energy-shot.raw").read_bytes())
+    (RUNTIME / "player-hurt.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "player-hurt.raw").read_bytes())
+    (RUNTIME / "enemy-hit.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "enemy-hit.raw").read_bytes())
+    (RUNTIME / "jump.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "jump.raw").read_bytes())
+    (RUNTIME / "collect-spark.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "collect-spark.raw").read_bytes())
     world = indexed_image((WORLD_W, WORLD_H), WORLD_PALETTE, 16)
     shifted_bg = bg.point(lambda p: p + 16)
     for x in range(0, WORLD_W, PARALLAX_W):

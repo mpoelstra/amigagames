@@ -1158,6 +1158,149 @@ frame. Run `make` and `make release` after each accepted integration. HUD hearts
 and hurt/invulnerability visual feedback remain the following independent
 Phase 3C review.
 
+The main sound-style reference for this phase is the original Amiga
+`ThunderCats` game, especially the shooting/action around level 2 at 3:11 and
+the broader effects and level rhythm around level 1 at 2:19 in
+`https://youtu.be/ZHHgQkxiDfQ`. Use it only for broad qualities such as short
+attack, clear arcade feedback and sparse readable layering. All Sparkpaw
+samples, waveforms and compositions must remain original; do not copy or rip
+source-game audio. The existing plasma shot remains unchanged unless a later
+focused review explicitly replaces it.
+
+Phase 3B's first host-side integration is implemented. Paula channel 0 remains
+dedicated to the accepted rapid energy-shot path. Paula channel 1 is now the
+prioritized gameplay-effect voice, while channels 2-3 remain free for a future
+two-channel music layout. The original `player-hurt.raw` sample is loaded into
+Chip RAM and plays once only when `playerTakeEnemyHit()` accepts real damage;
+invulnerable overlap cannot retrigger it. After the first listening review
+found the placeholder three-note effect too melodic, several original
+synthesized vocal/impact candidates were reviewed. The selected runtime effect
+is `player-hurt-candidate-stomp-low`: a short low body impact followed by a
+falling involuntary grunt. Its bounded DMA lifetime is 12 frames, its cooldown
+is 16 frames and its priority is 9.
+
+The selected enemy-hit effect is `plasma-hit-candidate-energy-pop`. It plays
+only when the projectile pipeline reports an actual beetle hit, uses priority
+6, cooldown 4 and a bounded 8-frame DMA lifetime. The selected jump effect is
+`jump-candidate-soft-whoosh`. `playerUpdatePhysics()` reports a jump event only
+after the established grounded/clearance check accepts the jump; rejected or
+held input cannot produce a sound. Jump uses priority 4, cooldown 4 and a
+bounded 12-frame DMA lifetime. Both share Paula channel 1 under the explicit
+priority policy; neither changes the independent channel-0 plasma-shot path.
+
+For faster Phase 3B testing, completing all four beetle destruction sequences
+also invokes the existing in-memory zero-health test reset. It resets player,
+camera, projectiles and the complete fixed enemy pool while keeping assets and
+packed caches resident and preserving prior Bob restore rectangles. This is a
+whole-level test loop, not individual beetle respawn and not the Phase 4
+spawn-data system.
+
+#### Phase 3C: health HUD and invulnerability feedback
+
+Phase 3C's first host-side step adds a fixed 320-pixel-wide HUD across the
+bottom 48 logical PAL lines, following the placement and panel language of
+`assets/concept/sparkpaw-gameplay-concept.png`. The existing six health units
+map directly to three full, half or empty hearts; the accepted health and
+damage rules are unchanged. The art includes Sparkpaw's portrait, the agreed
+starting-life display `x 3`, a diamond icon without an invented count and one
+empty framed region for later selected status information.
+
+The HUD is a dedicated three-plane Copper section rather than an overlay in
+the scrolling world. Its source is the ImageGen-derived
+`assets/concept/sparkpaw-hud-concept-v1.png`; the deterministic host converter
+creates the reviewed eight-colour 320x48 preview, one static 336x48 base,
+seven compact 80x32 health patches and three compact 32x24 lives patches.
+`hud.c` owns two 336x48 presentation buffers and patches only stale dynamic
+regions with direct Blitter copies when state changes. Runtime code stages the
+selected buffer's six bitplane pointers during the established line-100
+update. The Copper switches at
+logical line 208 (hardware line 252), deliberately before the PAL line-255
+boundary; the list restart restores normal world pointers next frame. Hardware sprites 6-7
+remain free, Sparkpaw remains unchanged on attached sprites 0-5, and no CPU
+compositing occurs in displayed Chip RAM. Bob passes and their restore/draw
+ordering remain unchanged.
+
+The first programmatically drawn HUD attempt failed in FS-UAE with horizontal
+memory-like streaks throughout the bottom band and did not match the concept
+art closely enough. The replacement SPBM is stored 336 pixels wide: 320 visible
+pixels plus one padded fetch word, giving an exact 42-byte row equal to the
+gameplay Copper fetch width. Copper modulo is derived from the loaded bitmap's
+actual `BytesPerRow`, not assumed to be zero. The replacement also avoids the
+rejected version's post-line-255 switch entirely. The HUD programs its own
+eight-colour high/low AGA palette at the split. Treat the supplied corrupt HUD
+screenshot as rejected evidence; only the asset-backed replacement is a retest
+candidate.
+
+The first asset-backed FS-UAE review confirmed a stable, recognisable HUD but
+showed the complete bitmap about 15 pixels too far left: the portrait clipped,
+the right edge left empty space, the 14x12 hearts felt undersized and the life
+digit sat too close to its panel edge. The HUD split now uses fine scroll 15,
+matching the proven zero-world-offset fetch alignment. Hearts are enlarged to
+21x18 and vertically centred; the generated `x3/x2/x1` digit is moved six
+pixels left within its existing frame. No Copper pointer, modulo, palette or
+gameplay-rendering ownership changed in this alignment pass.
+
+The HUD's `x3` life display is functional rather than decorative. `GameState`
+starts with three total attempts including the current one. Zero health
+decrements the display to `x2` and `x1` while using the established in-memory
+reset. Because `GAME_OVER` remains a separate later state, losing the third
+attempt temporarily begins a fresh `x3` test cycle; completing all four beetles
+also starts a new three-attempt test run. The rejected first asset-backed
+implementation stored 21 complete HUD combinations and consumed 127,008
+bitmap bytes. The modular replacement uses about 13.4 KiB of loaded planar
+assets plus about 14 KiB for two presentation buffers and the blank companion
+plane. It therefore saves roughly 100 KiB of Chip RAM and avoids the future
+`lives x health x diamonds` state explosion. Initial buffer construction uses
+CPU copies before takeover; after display begins, only synchronized Blitter
+copies touch the inactive HUD buffer. No CPU read-modify-write compositing
+occurs in displayed Chip RAM.
+
+The HUD deliberately replaces the concept art's five-heart layout with the
+accepted three hearts per current life and omits the energy bar, weapon value,
+crystal value and gear value until their systems exist. Phase 3C.2 adds the
+safe whole-actor invulnerability blink; game-over remains a later state. The
+50-diamonds-for-one-life rule remains separate from the first collectible
+integration.
+
+#### Phase 3D.1: diamond collectibles and modular counter
+
+Twenty fixed 16x24 diamonds occupy a dedicated collectible pool; they do not
+consume any of the four enemy slots. Their 32-pixel padded three-plane source
+supports arbitrary word shifts without reading into the next row. Rendering
+uses the existing synchronized Blitter discipline with camera culling. Reverse
+restore order is projectiles, enemies, collectibles; forward draw order is
+collectibles, enemies, projectiles, preserving overlap correctness.
+
+Pickup collision uses the accepted player contact bounds. An inactive but
+previously drawn diamond retains its restore rectangle until the next Bob
+pass. The modular HUD adds one 32x24 patch atlas containing only counter states
+00 through 49; health, lives and the static HUD are not duplicated. `GameState`
+owns the count, and the current test implementation caps it at 49. The proposed
+50-diamonds-for-one-life rule remains deferred. The pickup sound was initially
+deferred until the first visual/collision review.
+
+The second FS-UAE collectible review requested richer concept fidelity,
+animated Superfrog-like readability and clustered placement, while remaining
+original. The pool now uses short trails and arcs above authored collision
+surfaces. The initial rotation was rejected after FS-UAE video showed its
+edge-on phases reading as sparks rather than diamonds. The replacement keeps
+the same complete tall silhouette in all four frames and moves only restrained
+facet highlights. Each item also follows an eight-step, two-pixel vertical
+hover with a per-item phase offset. A host validation checks every complete
+16x24 hover envelope against `storm-collision.bin`; the accepted set has zero
+solid overlaps. The packed source remains word-padded and every frame keeps
+the same Bob area.
+
+MrDig's first FS-UAE collectible review confirmed the hurt chirp and safe
+invulnerability blink, but found the counter baseline low, the first diamond
+art too arrow-like and several spawn Y values intersecting higher collision
+tiles. Lives and diamond digits now share logical top Y=16, three pixels above
+the original counter. The replacement diamond uses a cream concept-style
+rim, four cyan/blue facets and a dark offset silhouette. Every spawn top is
+derived from its local platform/column surface. Picking up a diamond now plays
+the original `collect-spark` three-note arcade effect on Paula channel 1 at
+priority 5: it may replace jump but cannot interrupt enemy-hit or player-hurt.
+
 #### Phase 4: beetle respawn through spawn data
 
 Implement respawn as a generic enemy-spawn system rather than a beetle-only
@@ -1433,3 +1576,33 @@ My next request is: ...
 
 Replace `sparkpaw/README.md` with the relevant game README when continuing
 ChipSnake or Futsal instead.
+- Latest HUD FS-UAE feedback (2026-08-11): after the 15-pixel fine-scroll
+  correction the strip was still perceived about two pixels too far left, and
+  the dynamic lives-digit clear rectangle erased part of the life panel's
+  bevelled upper-right border.  The generated HUD content now has a two-pixel
+  internal X offset and the clear rectangle is restricted to the digit area.
+- Follow-up HUD feedback: the lives-digit clear area still clipped a small
+  section of the lower inner bevel.  Its bottom is now restricted to logical
+  Y=33 and the 1/2/3 glyph is raised two pixels to align with the portrait.
+- HUD/playfield separation follow-up: the 48-line HUD now reserves two black
+  scanlines above the complete, slightly rescaled metal panel.
+- Rejected sprite-clipping experiment: dynamically shortening the six player
+  channels' VSTOP at the HUD boundary caused FS-UAE glitches supplied by
+  MrDig. Because each cache entry still contains 48 data rows, DMA interpreted
+  the unread rows as another sprite header after the shortened stop. The
+  clipping was removed immediately; keep the accepted complete 48-row sprite
+  stream and its real terminator. Any future hard clip needs correctly packed
+  per-height sprite streams, not a control-word-only VSTOP edit.
+- MrDig's subsequent FS-UAE test reported no further HUD graphics glitches
+  after that VSTOP experiment was removed. This is user-provided emulator
+  verification; no real-hardware verification has been performed.
+- Phase 3C.2 invulnerability feedback uses safe whole-actor blinking: during
+  accepted invulnerability, all six player Copper pointers periodically select
+  the existing null sprite. Cached 48-row streams, attached-pair control words
+  and terminators are never modified, explicitly avoiding the rejected VSTOP
+  clipping failure.
+- Four new original short hurt auditions were generated:
+  `player-hurt-candidate-meow-snap.wav`, `-meow-yelp.wav`, `-meow-rough.wav`
+  and `-meow-chirp.wav`. MrDig selected the very short arcade-like
+  `meow-chirp`; it now generates the runtime `player-hurt.raw` while preserving
+  the accepted damage trigger, Paula channel 1 and priority 9.

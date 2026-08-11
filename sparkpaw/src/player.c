@@ -214,10 +214,11 @@ static void moveY(LONG delta)
         player.grounded=TRUE;
 }
 
-void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
+BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
 {
     WORD playerX=(WORD)(player.x>>FIX_SHIFT),playerY=(WORD)(player.y>>FIX_SHIFT);
     LONG acceleration,maxSpeed;
+    BOOL jumped=FALSE;
     /* Preserve current crouch intent even when hurt physics returns before
        the ordinary grounded-input branch updates player.crouching. */
     crouchInputHeld=down;
@@ -233,7 +234,7 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
         player.vy+=55; if(player.vy>1050) player.vy=1050;
         moveX(player.vx); moveY(player.vy);
         player.idleTicks=0;
-        return;
+        return FALSE;
     }
     if(player.hurtCrouched&&player.grounded) player.hurtCrouched=FALSE;
     if(player.turnFinishing) {
@@ -290,6 +291,7 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
     if(jump&&player.grounded&&canStand(playerX,playerY)) {
         player.crouching=FALSE; player.turnTimer=0;
         player.vy=-1300; player.grounded=FALSE;
+        jumped=TRUE;
     }
     player.vy+=55; if(player.vy>1050) player.vy=1050;
     moveX(player.vx); moveY(player.vy);
@@ -297,6 +299,7 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
        player.vx>-20&&player.vx<20) {
         if(player.idleTicks<65535) player.idleTicks++;
     } else player.idleTicks=0;
+    return jumped;
 }
 
 void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom)

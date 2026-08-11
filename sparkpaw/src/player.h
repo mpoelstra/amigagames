@@ -23,7 +23,7 @@ typedef void (*PlayerPlayShot)(void);
 void playerInit(void);
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire);
 void playerStartShot(BOOL pressed,PlayerPlayShot playShot);
-void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);
+BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);
 void playerUpdateShot(void);
 void playerAnimate(BOOL landed,LONG frameCounter);
 void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom);

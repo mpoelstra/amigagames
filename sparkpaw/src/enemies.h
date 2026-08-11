@@ -21,6 +21,7 @@ typedef BOOL (*EnemySolidAt)(WORD x,WORD y);
 void enemiesInit(void);
 void enemiesResetPreservingDrawn(void);
 void enemiesUpdate(LONG frameCounter,EnemySolidAt solidAt);
+BOOL enemiesAllDefeated(void);
 BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot);
 BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
                           WORD *enemyCenterX);

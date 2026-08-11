@@ -9,19 +9,28 @@ PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 BENCH_TARGET = sparkpaw-renderbench
-SOURCES = src/main.c src/renderer.c src/assets.c src/audio.c src/collision.c \
+SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c \
 	src/enemies.c src/game.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
-HEADERS = src/assets.h src/audio.h src/collision.h src/enemies.h src/game.h \
+HEADERS = src/assets.h src/audio.h src/collision.h src/collectibles.h src/enemies.h src/game.h src/hud.h \
 	src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \
 	assets/runtime/sparkpaw-level-charging.spbm \
+	assets/runtime/sparkpaw-hud-base.spbm \
+	assets/runtime/sparkpaw-hud-health.spbm \
+	assets/runtime/sparkpaw-hud-lives.spbm \
+	assets/runtime/sparkpaw-hud-diamonds.spbm \
+	assets/runtime/sparkpaw-diamond.spbm \
 	assets/runtime/storm-front.spbm \
 	assets/runtime/storm-rear.spbm \
 	assets/runtime/storm-collision.bin \
 	assets/runtime/energy-shot.raw \
+	assets/runtime/player-hurt.raw \
+	assets/runtime/enemy-hit.raw \
+	assets/runtime/jump.raw \
+	assets/runtime/collect-spark.raw \
 	assets/runtime/clockwork-beetle.spbm \
 	assets/runtime/sparkpaw-sprites.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
@@ -43,6 +52,7 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
 	assets/concept/sparkpaw-level-loading-concept-v3.png \
 	assets/concept/sparkpaw-level-charging-concept-v2.png \
+	assets/concept/sparkpaw-hud-concept-v1.png \
 	assets/sprites/sparkpaw-sprites-reference-transparent.png \
 	assets/sprites/sparkpaw-supplemental-poses-v2-transparent.png \
 	assets/sprites/sparkpaw-run-compact-v3-transparent.png \
@@ -57,10 +67,15 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/sprites/sparkpaw-crouch-hurt-v13-transparent.png \
 	assets/enemies/clockwork-beetle-concept-v2-transparent.png \
 	assets/enemies/clockwork-beetle-animations.json \
-	sfx/raw/energy-shot.raw
+	sfx/raw/energy-shot.raw \
+	sfx/raw/player-hurt.raw \
+	sfx/raw/enemy-hit.raw \
+	sfx/raw/jump.raw
 	$(PYTHON) tools/generate_runtime_assets.py
 
-sfx/raw/energy-shot.raw: tools/generate_sparkpaw_sfx.py
+sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw \
+	sfx/raw/jump.raw sfx/raw/collect-spark.raw: \
+	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
 $(TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)

@@ -15,8 +15,10 @@
 #include <string.h>
 
 #include "assets.h"
+#include "collectibles.h"
 #include "enemies.h"
 #include "game.h"
+#include "hud.h"
 #include "platform_amiga.h"
 #include "player.h"
 #include "projectiles.h"
@@ -34,14 +36,19 @@
 #define SPRITE_CHANNELS 6
 #define TOTAL_SPRITE_CHANNELS 8
 #define SPRITE_WORDS (2+SPRITE_H*2+2)
+#define HUD_TOP 208
+#define HUD_H (SCREEN_H-HUD_TOP)
 #define PLASMA_PATTERNS 5
 #define PLASMA_SOURCE_WORDS 2
 
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static const struct PlanarAsset *frontClean,*rearWorld,*sprites,*enemySprites;
+static const struct PlanarAsset *hudBase;
+static const struct PlanarAsset *diamondSprite;
 static struct BitMap *frontDisplay;
 static UWORD *cop,copPos,ptrValue[6],scrollValue;
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
+static UWORD hudPtrValue[6];
 static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
@@ -86,8 +93,7 @@ static void buildCopper(void)
     cptr(0x0e8,frontDisplay->Planes[1],2); cptr(0x0ec,rearWorld->bitmap->Planes[1],3);
     cptr(0x0f0,frontDisplay->Planes[2],4); cptr(0x0f4,rearWorld->bitmap->Planes[2],5);
     for(i=0;i<16;i++) cmove((UWORD)(0x180+i*2),colors[i]);
-    /* Three attached pairs provide one 48x48 actor; the final attached pair
-       is reserved for the energy bolt and its compact impact flash. */
+    /* Three attached pairs provide one 48x48 actor. */
     for(i=0;i<SPRITE_CHANNELS;i++)
         spriteCptr((UWORD)(0x120+i*4),hwSprites[0][0][i],(UWORD)i);
     for(i=SPRITE_CHANNELS;i<TOTAL_SPRITE_CHANNELS;i++)
@@ -105,6 +111,37 @@ static void buildCopper(void)
         const UBYTE *rgb=sprites->palette[i];
         UWORD amiga=(UWORD)(((rgb[0]&15)<<8)|((rgb[1]&15)<<4)|(rgb[2]&15));
         cmove((UWORD)(0x1a0+i*2),amiga);
+    }
+    cmove(0x106,0x0c00);
+    /* Switch before the PAL line-255 boundary to a fixed bottom HUD bitmap.
+       The gameplay list restarts normally next frame, restoring the scrolling
+       world pointers above it without a vertical-counter wrap sequence. */
+    cop[copPos++]=(UWORD)(((44+HUD_TOP)<<8)|1); cop[copPos++]=0xfffe;
+    /* Match the proven zero-world-offset fetch alignment. A zero fine-scroll
+       value shifts this 42-byte fetch roughly 15 visible pixels left. */
+    cmove(0x102,0x000f);
+    for(i=0;i<6;i++) {
+        const struct BitMap *display=hudDisplayBitmap();
+        APTR value=(i&1)?(APTR)hudBlankPlane():
+                    (APTR)display->Planes[i>>1];
+        ULONG p=(ULONG)value;
+        UWORD reg=(UWORD)(0x0e0+i*4);
+        cmove(reg,(UWORD)(p>>16)); hudPtrValue[i]=copPos-1;
+        cmove(reg+2,(UWORD)p);
+    }
+    cmove(0x108,hudBase->bitmap->BytesPerRow-FETCH_BYTES);
+    cmove(0x10a,hudBase->bitmap->BytesPerRow-FETCH_BYTES);
+    cmove(0x106,0x0c00);
+    for(i=0;i<8;i++) {
+        const UBYTE *rgb=hudBase->palette[i];
+        UWORD amiga=(UWORD)(((rgb[0]>>4)<<8)|((rgb[1]>>4)<<4)|(rgb[2]>>4));
+        cmove((UWORD)(0x180+i*2),amiga);
+    }
+    cmove(0x106,0x0e00);
+    for(i=0;i<8;i++) {
+        const UBYTE *rgb=hudBase->palette[i];
+        UWORD amiga=(UWORD)(((rgb[0]&15)<<8)|((rgb[1]&15)<<4)|(rgb[2]&15));
+        cmove((UWORD)(0x180+i*2),amiga);
     }
     cmove(0x106,0x0c00);
     cop[copPos++]=0xffff; cop[copPos++]=0xfffe;
@@ -207,6 +244,23 @@ static BOOL buildHardwareSprites(void)
     return TRUE;
 }
 
+static void setHudPointers(void)
+{
+    const struct PlayerState *player=playerState();
+    UBYTE health=player->health<=PLAYER_MAX_HEALTH?player->health:
+                                                  PLAYER_MAX_HEALTH;
+    const struct BitMap *display;
+    WORD plane;
+    hudSetState(health,game->lives,game->diamonds);
+    display=hudDisplayBitmap();
+    for(plane=0;plane<6;plane++) {
+        APTR value=(plane&1)?(APTR)hudBlankPlane():
+                    (APTR)display->Planes[plane>>1];
+        ULONG p=(ULONG)value; UWORD hi=hudPtrValue[plane];
+        cop[hi]=(UWORD)(p>>16); cop[hi+2]=(UWORD)p;
+    }
+}
+
 static void setHardwareSprite(void)
 {
     const struct PlayerState *player=playerState();
@@ -215,6 +269,17 @@ static void setHardwareSprite(void)
     WORD screenY=(WORD)(player->y>>8)+44-(SPRITE_H-PLAYER_H);
     WORD stopY=screenY+SPRITE_H;
     UWORD facing=player->facingLeft?1:0;
+    /* Blink the complete attached-sprite actor during accepted invulnerability.
+       Pointer substitution preserves every cached 48-row stream and its real
+       terminator; never shorten VSTOP to clip an attached pair. */
+    if(player->invulnTimer&&!(player->invulnTimer&4)) {
+        ULONG p=(ULONG)nullSprite;
+        for(channel=0;channel<SPRITE_CHANNELS;channel++) {
+            UWORD hi=spritePtrValue[channel];
+            cop[hi]=(UWORD)(p>>16); cop[hi+2]=(UWORD)p;
+        }
+        return;
+    }
     for(channel=0;channel<SPRITE_CHANNELS;channel++) {
         UWORD *data=hwSprites[facing][player->animFrame][channel];
         WORD x=screenX+(channel>>1)*16;
@@ -325,6 +390,63 @@ static void blitMaskedBob(UWORD *mask,UWORD *bits,WORD sourceWords,
     }
 }
 
+static void blitAssetBob(const struct PlanarAsset *asset,WORD sourceY,
+                         WORD width,WORD height,WORD x,WORD y)
+{
+    UBYTE plane; UWORD shift=(UWORD)(x&15);
+    UWORD words=(UWORD)((width>>4)+(shift?1:0));
+    UWORD sourceWords=(UWORD)(asset->bitmap->BytesPerRow>>1);
+    LONG sourceAt=(LONG)sourceY*asset->bitmap->BytesPerRow;
+    LONG at=(LONG)y*frontDisplay->BytesPerRow+(x>>4)*2;
+    for(plane=0;plane<3;plane++) {
+        platformWaitBlit();
+        hw->bltcon0=(UWORD)((shift<<12)|0x0fca);
+        hw->bltcon1=(UWORD)(shift<<12);
+        hw->bltafwm=0xffff; hw->bltalwm=0xffff;
+        hw->bltamod=(UWORD)((sourceWords-words)*2);
+        hw->bltbmod=(UWORD)((sourceWords-words)*2);
+        hw->bltcmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
+        hw->bltdmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
+        hw->bltapt=asset->mask+sourceAt;
+        hw->bltbpt=asset->bitmap->Planes[plane]+sourceAt;
+        hw->bltcpt=frontDisplay->Planes[plane]+at;
+        hw->bltdpt=frontDisplay->Planes[plane]+at;
+        hw->bltsize=(UWORD)((height<<6)|words);
+    }
+}
+
+static void restoreCollectibleBobs(void)
+{
+    WORD index;
+    for(index=0;index<MAX_COLLECTIBLES;index++) {
+        struct Collectible *item=collectibleAt(index);
+        if(!item->drawn) continue;
+        blitRestoreRect(item->drawnX,item->drawnY,
+                        COLLECTIBLE_W,COLLECTIBLE_H);
+        item->drawn=FALSE;
+    }
+}
+
+static void drawCollectibleBobs(void)
+{
+    static const BYTE hover[8]={0,-1,-2,-1,0,1,2,1};
+    WORD index;
+    for(index=0;index<MAX_COLLECTIBLES;index++) {
+        struct Collectible *item=collectibleAt(index);
+        if(!item->active||item->x+COLLECTIBLE_W<(WORD)game->cameraX-16||
+           item->x>(WORD)game->cameraX+SCREEN_W+16) continue;
+        item->drawnX=item->x;
+        item->drawnY=(WORD)(item->y+
+            hover[((game->frameCounter>>2)+index)&7]);
+        blitAssetBob(diamondSprite,
+                     (WORD)(((game->frameCounter>>3)+index)&
+                            (COLLECTIBLE_FRAMES-1))*COLLECTIBLE_H,
+                     COLLECTIBLE_W,COLLECTIBLE_H,
+                     item->drawnX,item->drawnY);
+        item->drawn=TRUE;
+    }
+}
+
 static void eraseProjectileBobs(void)
 {
     WORD i;
@@ -393,6 +515,8 @@ BOOL rendererLoadGameplay(void)
     if(!assetsLoadGameplay()) return FALSE;
     frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
     sprites=assetsPlayerSprites(); enemySprites=assetsEnemySprites();
+    hudBase=assetsHudBase();
+    diamondSprite=assetsCollectibleDiamond();
     return TRUE;
 }
 
@@ -402,7 +526,8 @@ BOOL rendererPrepareGameplay(void)
     game=gameState();
     frontDisplay=AllocBitMap(WORLD_W,WORLD_H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
-    if(!frontDisplay||!cop||!buildHardwareSprites()) return FALSE;
+    if(!frontDisplay||!cop||!hudPrepare()||!buildHardwareSprites())
+        return FALSE;
     for(p=0;p<3;p++) CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
     if(!buildEnemyPatterns()||!buildPlasmaPatterns()) return FALSE;
@@ -418,6 +543,7 @@ void rendererCleanup(void)
             if(hwSprites[facing][frame][channel])
                 FreeMem(hwSprites[facing][frame][channel],SPRITE_WORDS*2);
     if(nullSprite) FreeMem(nullSprite,4);
+    hudRelease();
     if(plasmaBits) FreeMem(plasmaBits,PLASMA_PATTERNS*2L*PROJECTILE_H*
                            PLASMA_SOURCE_WORDS*3*2);
     if(plasmaMask) FreeMem(plasmaMask,PLASMA_PATTERNS*2L*PROJECTILE_H*
@@ -437,12 +563,13 @@ UWORD *rendererCopperList(void)
 
 void rendererUpdateGameplay(void)
 {
-    setHardwareSprite(); setScroll(game->cameraX,game->cameraX>>2);
+    setHardwareSprite(); setHudPointers();
+    setScroll(game->cameraX,game->cameraX>>2);
 }
 
 void rendererDrawGameplayBobs(void)
 {
-    eraseProjectileBobs(); restoreEnemyBob();
-    drawEnemyBob(); drawProjectileBobs();
+    eraseProjectileBobs(); restoreEnemyBob(); restoreCollectibleBobs();
+    drawCollectibleBobs(); drawEnemyBob(); drawProjectileBobs();
     platformWaitBlit();
 }

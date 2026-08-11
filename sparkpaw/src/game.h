@@ -6,7 +6,11 @@
 struct GameState {
     LONG cameraX;
     LONG frameCounter;
+    UBYTE lives;
+    UBYTE diamonds;
 };
+
+#define GAME_START_LIVES 3
 
 void gameInit(void);
 void gameUpdate(void);

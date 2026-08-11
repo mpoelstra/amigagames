@@ -49,7 +49,8 @@ void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
 }
 
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
-                       ProjectileEnemyHit hitEnemy)
+                       ProjectileEnemyHit hitEnemy,
+                       ProjectilePlaySound playEnemyHitSound)
 {
     WORD index;
     for(index=0;index<MAX_PROJECTILES;index++) {
@@ -64,6 +65,7 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         x=(WORD)(projectile->x>>8)+(projectile->vx>0?PROJECTILE_W-1:0);
         y=(WORD)(projectile->y>>8)+(PROJECTILE_H>>1);
         enemyWasHit=hitEnemy(x,y,projectile->lowShot);
+        if(enemyWasHit) playEnemyHitSound();
         if(enemyWasHit||solidAt(x,y)||!--projectile->life) {
             screenHit=x-cameraX;
             /* Never show a clipped impact on invisible off-screen geometry. */
