@@ -53,7 +53,8 @@ void gameUpdate(void)
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
     if(enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                             &enemyCenterX))
-        if(playerTakeEnemyHit(enemyCenterX)&&!playerState()->health) {
+        if(playerTakeEnemyHit(enemyCenterX)&&
+           !playerState()->health) {
             resetLevelRuntime();
             audioUpdate();
             return;

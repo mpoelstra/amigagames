@@ -51,7 +51,15 @@
     "crouch-shoot-raise",
     "crouch-shoot-aim",
     "crouch-shoot-fire",
-    "crouch-shoot-recover"
+    "crouch-shoot-recover",
+    "hurt-impact",
+    "hurt-slide",
+    "hurt-airborne",
+    "hurt-recover",
+    "crawl-hurt-impact",
+    "crawl-hurt-slide",
+    "crawl-hurt-tucked",
+    "crawl-hurt-recover"
   ],
-  "prototype_note": "All 50 poses use family-wide anatomical scaling, a common 48x48 canvas and stable shared anchors."
+  "prototype_note": "The accepted frames 0-49 remain unchanged. Standing hurt frames 50-53 and 24-pixel-high crawl-hurt frames 54-57 append with family-wide anatomical scaling on the same 48x48 canvas and stable anchors."
 }

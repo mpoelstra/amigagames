@@ -132,3 +132,50 @@ bottom-aligns them to the accepted row-22 ground line and maps opaque pixels to
 the fixed eight-colour foreground palette. Destruction frames may only shrink
 to keep their spreading parts inside the same 32x24 cell. Runtime mirroring,
 frame IDs, collision and Bob dimensions remain unchanged.
+
+## Player hurt refinement v10
+
+Production sprite strip: exactly four evenly spaced full-body Sparkpaw
+hurt/recoil poses, all facing right and matching the established character
+references in anatomy, head size, amber fur, cream muzzle, navy scarf, brown
+boots and teal energy gauntlet. Sequence sudden contact impact, backward slide,
+brief airborne recoil and controlled recovery/landing. Preserve one family
+scale and coherent ground baseline; keep the gauntlet on the same physical arm.
+Use crisp premium 1993 Amiga AGA pixel art on a perfectly flat `#ff00ff` chroma
+background. No death pose, detached impact effects, blood, text, labels, grid,
+floor, shadows, gradients or watermark.
+
+The selected built-in ImageGen source is preserved as
+`assets/sprites/sparkpaw-hurt-v10-chroma.png`; its locally keyed counterpart is
+`sparkpaw-hurt-v10-transparent.png`. The generator appends the four poses as
+frames 50-53 with one family-wide scale and deterministic mirrored-left cells.
+Accepted frame IDs 0-49 are unchanged.
+
+The first runtime review found the airborne recoil too upright and the recovery
+too close to a neutral idle. A focused built-in ImageGen edit preserves poses
+1-2, removes source residue near the sliding feet, tilts pose 3 into a compact
+backward trajectory with tucked knees, and makes pose 4 a low hand-braced
+landing bridge. The refined sources are
+`assets/sprites/sparkpaw-hurt-v12-chroma.png` and
+`sparkpaw-hurt-v12-transparent.png`; v10 remains preserved as review history,
+while the runtime generator now consumes v12.
+
+## Player crawl-hurt refinement v13
+
+Production sprite strip: exactly four evenly spaced full-body Sparkpaw
+crouch-hurt poses, all facing right and remaining below the established
+crouch/crouch-fire silhouette height. Sequence compact crouched impact, low
+backward slide, tucked low recoil and stable crouched recovery. Preserve the
+same anatomy, amber/cream fur, navy scarf, boots and teal gauntlet, with one
+family scale and the established ground baseline. Use crisp premium 1993 Amiga
+AGA pixel art on flat `#ff00ff` chroma. No standing pose, tall airborne pose,
+detached effects, blood, text, grid, floor, shadows, gradients or watermark.
+
+Runtime review showed that v11 still read as seated and visibly exceeded the
+physical crouch clearance. The focused v13 edit keeps all four poses horizontal:
+low impact on forearms and knees, backward crawl-slide, head-tucked compression
+and crawl recovery. The selected built-in ImageGen source is preserved as
+`assets/sprites/sparkpaw-crouch-hurt-v13-chroma.png`; its keyed counterpart is
+`sparkpaw-crouch-hurt-v13-transparent.png`. Frames 54-57 remain unchanged, and
+their deterministic conversion caps the complete family at 24 opaque pixels.
+The v11 sources remain preserved as review history.

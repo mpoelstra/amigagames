@@ -53,6 +53,8 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/sprites/sparkpaw-combat-refinement-v7-transparent.png \
 	assets/sprites/sparkpaw-air-fire-v8-transparent.png \
 	assets/sprites/sparkpaw-crouch-fire-v9-transparent.png \
+	assets/sprites/sparkpaw-hurt-v12-transparent.png \
+	assets/sprites/sparkpaw-crouch-hurt-v13-transparent.png \
 	assets/enemies/clockwork-beetle-concept-v2-transparent.png \
 	assets/enemies/clockwork-beetle-animations.json \
 	sfx/raw/energy-shot.raw

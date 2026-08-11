@@ -25,6 +25,7 @@ four-instance clockwork-beetle vertical slice.
 - Joystick port 2: left/right to run, up to jump and fire to shoot
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
+- Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots
 - Reset the Amiga or emulator to leave this engine milestone
 
 Each separate fire press launches a fast blue/cyan plasma pulse from
@@ -34,12 +35,12 @@ sections of the test level. Standing and airborne shots deliberately pass over
 them: crouch and fire twice to destroy each one through a hit reaction and
 four-stage destruction sequence. Contact with an active beetle now removes one
 of six internal half-heart health units, applies brief knockback/input lock and
-grants one second of invulnerability. Hurt art, the visible three-heart HUD,
-hurt audio and the eventual game-over presentation remain focused later steps. Beetles do
+grants one second of invulnerability. Dedicated standing and crawl-height
+hurt art is present; the visible three-heart HUD, hurt audio and the eventual
+game-over presentation remain focused later steps. Beetles do
 not respawn during ordinary play. For rapid testing, reaching zero health
 immediately resets the player, camera, projectiles and four-enemy pool in
-memory without reloading resident level assets. Keyboard controls and the HUD
-are deferred until after the
+memory without reloading resident level assets. The HUD is deferred until after the
 planned source modularisation. Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.
@@ -102,7 +103,8 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `src/collision.c` / `src/collision.h`: collision-map loading and solid-point,
   horizontal-span and vertical-span tile queries shared by gameplay modules
 - `src/player.c` / `src/player.h`: player state, joystick input, shooting,
-  movement/physics and the established 50-frame animation selection; hardware
+  movement/physics, the accepted 50-frame baseline and eight appended standing
+  and crouched hurt poses; hardware
   sprite preparation and Copper updates remain in `sparkpaw.c`
 - `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
   lifetime and cleanup plus a separate early-title lifetime; packed
@@ -134,11 +136,15 @@ Blitter workloads.
 
 Check especially whether Sparkpaw retains the same apparent size and foot
 position while running, jumping, crouching, shooting and performing the idle
-pose. The 50-frame animation set uses one anatomical scale per authored family
+pose. Frames 0-49 use one anatomical scale per authored family
 and stable shared anchors. It includes an eight-stage grounded run, a
 scale-locked four-stage jump, three-stage landing, six-stage momentum-based
 direction change, twelve-stage idle performance and dedicated grounded,
-airborne and crouched firing poses. Crouching changes posture without enlarging
+airborne and crouched firing poses. Frames 50-53 append contact impact,
+backward slide, airborne recoil and recovery without renumbering the accepted
+baseline. Frames 54-57 provide a separate 24-pixel-high crawl-recoil family so
+contact recoil respects the low crouch clearance beneath a platform.
+Crouching changes posture without enlarging
 the character. More in-between poses can be added without changing the DMA
 renderer.
 

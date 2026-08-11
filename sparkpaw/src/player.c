@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include "collision.h"
+#include "platform_amiga.h"
 #include "projectiles.h"
 
 #include <string.h>
@@ -9,6 +10,7 @@
 #define HIT_LEFT 4
 #define HIT_RIGHT 27
 #define HIT_TOP 5
+#define STAND_VISUAL_TOP 0
 #define HIT_CROUCH_TOP 19
 #define HIT_BOTTOM 38
 #define IDLE_ACT_DELAY 100
@@ -21,11 +23,12 @@
 #define CONTACT_KNOCKBACK_Y -500
 
 static struct PlayerState player;
-static BOOL joystickUpHeld,joystickFireHeld;
+static BOOL joystickUpHeld,joystickFireHeld,crouchInputHeld;
 
 void playerInit(void)
 {
     memset(&player,0,sizeof(player));
+    crouchInputHeld=FALSE;
     player.x=36L<<8; player.y=164L<<8;
     player.health=PLAYER_MAX_HEALTH;
 }
@@ -33,11 +36,16 @@ void playerInit(void)
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
 {
     UWORD value=*(volatile UWORD *)0xdff00c; BOOL up,held;
-    *left=(value&0x0200)!=0; *right=(value&0x0002)!=0;
-    *down=((value^(value>>1))&0x0001)!=0;
+    BOOL keyLeft,keyRight,keyDown,keyJump,keyFire;
+    platformReadGameKeys(&keyLeft,&keyRight,&keyDown,&keyJump,&keyFire);
+    *left=((value&0x0200)!=0)||keyLeft;
+    *right=((value&0x0002)!=0)||keyRight;
+    *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
     up=((value^(value>>1))&0x0100)!=0;
+    up=up||keyJump;
     *jump=up&&!joystickUpHeld; joystickUpHeld=up;
     held=(*(volatile UBYTE *)0xbfe001&0x80)==0;
+    held=held||keyFire;
     *fire=held&&!joystickFireHeld; joystickFireHeld=held;
 }
 
@@ -61,7 +69,24 @@ void playerUpdateShot(void)
 
 void playerAnimate(BOOL landed,LONG frameCounter)
 {
-    if(landed) player.landTimer=LAND_TICKS;
+    /* A crawl-height recoil lands directly into its low recovery. Queuing the
+       ordinary landing family here would reveal frames 14-16 only after hurt
+       ends, producing a brief impossible standing pose under platforms. */
+    if(landed&&!player.crouching&&!player.hurtCrouched)
+        player.landTimer=LAND_TICKS;
+    if(player.hurtTimer) {
+        UBYTE progress=(UBYTE)(CONTACT_HURT_TICKS-player.hurtTimer);
+        UBYTE base=player.hurtCrouched?54:50;
+        if(player.hurtCrouched) player.landTimer=0;
+        if(progress<2) player.animFrame=base;
+        else if(progress<5) player.animFrame=(UBYTE)(base+1);
+        else if(progress<8) player.animFrame=(UBYTE)(base+2);
+        else player.animFrame=(UBYTE)(base+3);
+        return;
+    }
+    /* A low contact recoil stays compact until physics has registered its
+       landing; do not pop directly into a standing-height airborne pose. */
+    if(player.hurtCrouched) { player.animFrame=57; return; }
     if(!player.grounded) {
         UBYTE base=player.shootTimer?42:10;
         if(player.vy<-220) player.animFrame=base;
@@ -140,7 +165,10 @@ static WORD playerHitTop(void)
 static BOOL canStand(WORD x,WORD y)
 {
     WORD positionY;
-    for(positionY=y+HIT_TOP;positionY<y+HIT_CROUCH_TOP;positionY++)
+    /* Standing art reaches five pixels above its deliberately forgiving
+       gameplay hitbox. Clearance must cover that visible silhouette too. */
+    for(positionY=y+STAND_VISUAL_TOP;
+        positionY<y+HIT_CROUCH_TOP;positionY++)
         if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,positionY))
             return FALSE;
     return TRUE;
@@ -190,10 +218,15 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
 {
     WORD playerX=(WORD)(player.x>>FIX_SHIFT),playerY=(WORD)(player.y>>FIX_SHIFT);
     LONG acceleration,maxSpeed;
+    /* Preserve current crouch intent even when hurt physics returns before
+       the ordinary grounded-input branch updates player.crouching. */
+    crouchInputHeld=down;
     if(player.invulnTimer) player.invulnTimer--;
     if(player.hurtTimer) {
         player.hurtTimer--;
-        player.crouching=FALSE; player.turnTimer=0; player.turnFinishing=FALSE;
+        /* A contact hit must not force the standing collision box under a low
+           ceiling. Recovery will leave crouch only through canStand(). */
+        player.turnTimer=0; player.turnFinishing=FALSE;
         player.wallBlocked=FALSE;
         player.vx=(player.vx*235)>>8;
         if(player.vx>-18&&player.vx<18) player.vx=0;
@@ -202,14 +235,17 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
         player.idleTicks=0;
         return;
     }
+    if(player.hurtCrouched&&player.grounded) player.hurtCrouched=FALSE;
     if(player.turnFinishing) {
         player.facingLeft=player.turnTargetLeft;
         player.turnFinishing=FALSE;
     }
     if(player.grounded&&down) { player.crouching=TRUE; player.turnTimer=0; }
-    else if(player.crouching&&!down&&canStand(playerX,playerY))
+    else if(player.crouching&&!down&&!player.hurtCrouched&&
+            canStand(playerX,playerY))
         player.crouching=FALSE;
-    if(!player.grounded&&canStand(playerX,playerY)) player.crouching=FALSE;
+    if(!player.grounded&&!player.hurtCrouched&&canStand(playerX,playerY))
+        player.crouching=FALSE;
     acceleration=player.crouching?38:64;
     maxSpeed=player.crouching?280:650;
     player.wallBlocked=FALSE;
@@ -272,18 +308,36 @@ void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom)
     *top=y+(player.crouching?20:7); *bottom=y+38;
 }
 
+static BOOL playerShowsLowPose(void)
+{
+    UBYTE frame=player.animFrame;
+    return (frame>=17&&frame<=19)||
+           (frame>=46&&frame<=49)||
+           (frame>=54&&frame<=57);
+}
+
 BOOL playerTakeEnemyHit(WORD enemyCenterX)
 {
     WORD centerX=(WORD)(player.x>>FIX_SHIFT)+(PLAYER_W>>1);
-    if(player.invulnTimer||!player.health) return FALSE;
+    WORD x=(WORD)(player.x>>FIX_SHIFT),y=(WORD)(player.y>>FIX_SHIFT);
+    BOOL keepCrouched;
+    if(!player.health) return FALSE;
+    if(player.invulnTimer) return FALSE;
+    /* Contact is resolved after physics but before this frame's animation.
+       Preserve the visible low posture as well as the logical flag, otherwise
+       a one-frame landing/input transition can select the tall hurt family. */
+    keepCrouched=crouchInputHeld||player.crouching||player.hurtCrouched||
+                  playerShowsLowPose()||!canStand(x,y);
     player.health--;
     player.invulnTimer=CONTACT_INVULN_TICKS;
     player.hurtTimer=CONTACT_HURT_TICKS;
     player.shootTimer=0; player.shotPending=FALSE;
-    player.crouching=FALSE; player.landTimer=0;
+    player.crouching=keepCrouched; player.landTimer=0;
+    player.hurtCrouched=keepCrouched;
     player.turnTimer=0; player.turnFinishing=FALSE;
     player.vx=centerX<enemyCenterX?-CONTACT_KNOCKBACK_X:CONTACT_KNOCKBACK_X;
-    player.vy=CONTACT_KNOCKBACK_Y; player.grounded=FALSE;
+    player.vy=keepCrouched?(CONTACT_KNOCKBACK_Y/2):CONTACT_KNOCKBACK_Y;
+    player.grounded=FALSE;
     player.idleTicks=0;
     return TRUE;
 }

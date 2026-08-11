@@ -549,7 +549,9 @@ Main files:
 
 ### Current animation state
 
-There are 50 authored runtime poses:
+There are 58 authored runtime poses. The accepted original 50 remain frames
+0-49, followed by standing hurt poses at 50-53 and crouched hurt poses at
+54-57:
 
 - 2 base idle/blink;
 - 8 run frames;
@@ -561,6 +563,9 @@ There are 50 authored runtime poses:
 - 4 grounded shooting frames;
 - 4 airborne shooting frames;
 - 4 dedicated crouch-shooting frames.
+- 4 appended hurt frames: impact, backward slide, airborne recoil and recovery.
+- 4 appended crawl-hurt frames capped at 24 opaque pixels so their visible
+  silhouette respects the low crouch collision clearance.
 
 All frames use a 48x48 cell, fixed family scaling and stable anchors. MrDig has
 iteratively tuned apparent character scale, foot baseline, jumping, landing,
@@ -1051,17 +1056,107 @@ units, and player/enemy modules expose separate authored contact rectangles.
 An accepted overlap removes one unit, cancels shooting/turn/crouch state,
 launches Sparkpaw away from the enemy, restricts control for 12 frames and
 blocks repeat damage for 60 frames. Solid-tile physics, projectile hitboxes and
-enemy projectile-damage boxes remain independent. There is deliberately no
-hurt art, HUD, hurt sound or zero-health transition in this first logic step;
-those remain separate Phase 3 reviews. MrDig confirmed in FS-UAE that contact
+enemy projectile-damage boxes remain independent. The four-pose hurt family is
+now appended as frames 50-53 and selected during the 12-frame input-restricted
+recoil; the accepted frames 0-49 remain unchanged. There is deliberately no
+HUD, hurt sound or full game-over transition yet; those remain separate Phase
+3 reviews. MrDig confirmed in FS-UAE that contact
 knockback behaves well in all tested situations. Reaching zero health now
 performs an immediate in-memory test reset: assets and packed caches remain
 resident, while player, camera, enemies and projectiles return to their initial
 state. Enemy/projectile reset preserves the preceding Bob restore rectangles
 until the next line-300 pass, preventing stale pixels without clearing or
-reloading the wide playfield. `make` and `make release` passed locally; the
-zero-health reset still requires MrDig's FS-UAE confirmation and all real-
-hardware behaviour remains unverified.
+reloading the wide playfield. `make` and `make release` passed locally. MrDig
+confirmed in FS-UAE that the zero-health reset enables rapid repeated enemy
+testing. Real-hardware behaviour remains unverified.
+
+The first hurt-animation review exposed one posture invariant under a low
+platform: contact code and the hurt-physics branch must not force
+`crouching=FALSE`. A crouched player, or any player for whom `canStand()` is
+false, retains the crouched collision box throughout recoil and may stand only
+after the ordinary clearance check succeeds. This fixes the stuck/embedded
+standing state shown in `IMG_2722.MOV` without changing the accepted knockback.
+`IMG_2723.MOV` then showed that logical crouch alone was insufficient because
+the ordinary hurt art still drew a standing-height silhouette through the
+platform. Frames 54-57 therefore form a distinct crouch-hurt family selected
+whenever recoil retains crouch posture.
+
+Reviews `IMG_2727.MOV` and `IMG_2728.MOV` led to the final timing/posture pass.
+The ordinary hurt source is refined from v10 to v12: its airborne pose follows
+a clearer backward trajectory and its last pose is a low hand-braced recovery
+instead of near-idle. Both hurt families now spend 2/3/3/4 PAL frames on
+impact/slide/recoil/recovery within the unchanged 12-frame input lock. A
+crouched contact uses half the ordinary upward impulse and retains a dedicated
+`hurtCrouched` posture until landing, preventing a mid-air pop from the low
+recovery pose into a standing-height jump/fall pose.
+
+`IMG_2729.MOV` exposed two remaining crouch-contact invariants. First, a seated
+hurt silhouette is still too tall even when it shares the ordinary crouch
+family's nominal size. The v13 source therefore redraws frames 54-57 as a
+horizontal crawl recoil and the generator caps the full family at 24 opaque
+pixels. `IMG_2732.MOV` then showed that forced hurt separation could still
+produce awkward crossings and could trap the player in narrow spaces, so
+beetles remain non-solid during invulnerability. The actual standing-pose leak
+came from `canStand()` checking only the gameplay hitbox, whose top begins five
+pixels below the visible art. Standing clearance now includes those five
+visual pixels, so a normal or hurt standing family is never selected where
+Sparkpaw's head cannot fit.
+
+A subsequent still proved one further frame-boundary case: contact is resolved
+after physics but before the new animation frame is selected. Near a recovery
+boundary the logical crouch flag can change while the displayed frame remains
+low, incorrectly selecting standing hurt. Hit posture now latches low when
+either the logical state or the currently displayed crouch, crouch-fire or
+crawl-hurt family is low. Collision dimensions and the 58 frame IDs remain
+unchanged.
+
+`IMG_2734.MOV` isolated the remaining repeated-hit path. Hurt physics returns
+before the ordinary grounded input branch, so held down/S was not guaranteed
+to reach `player.crouching` before a later accepted hit. Current crouch input
+is now latched at the start of every physics update, before that early return,
+and participates explicitly in low-hurt selection. Holding crouch therefore
+cannot start frames 50-53 across consecutive invulnerability cycles.
+
+`IMG_2736.MOV` exposed the final short high-pose source: landing during low
+hurt queued the ordinary landing timer before the hurt animation returned.
+Those standing-height frames 14-16 remained hidden until hurt ended and then
+took priority over crouch. Crawl-height hurt now suppresses and clears that
+landing timer, transitioning directly to low recovery without changing the
+accepted ordinary landing sequence.
+
+For easier one-handed filming and test capture, gameplay also accepts keyboard
+controls alongside joystick port 2: `W/A/S/D` map to jump/left/crouch/right and
+space maps to fire. Because the custom-chip takeover disables CPU interrupts,
+this is a bounded CIA-A serial-keyboard poll in the existing line-100 update,
+including the required two-raster-line acknowledge pulse only when a raw-key
+event arrives. Held state is retained from key-down through key-up; jump and
+fire continue through the existing edge-trigger contract. Do not add an
+Intuition event loop or re-enable interrupts inside gameplay for keyboard I/O.
+
+MrDig accepted the complete standing/crawl hurt presentation after
+`IMG_2736.MOV`: knockback, repeated contact, held-crouch behaviour, low-platform
+clearance and recovery now form the Phase 3A baseline. Preserve frames 0-49,
+standing hurt 50-53, crawl hurt 54-57, the 2/3/3/4 timing, half-height crouch
+impulse and the rule that crawl hurt never queues standing landing frames.
+
+#### Phase 3B: focused gameplay sound effects
+
+This is the recommended next session. Keep it separate from HUD, renderer,
+level-art and enemy-respawn work. First document and implement an explicit
+Paula channel/priority policy that preserves the existing rapid energy-shot
+sound and leaves a future music layout possible. Then generate host previews
+and integrate one event at a time in this review order:
+
+1. player hurt, triggered once per accepted damaging contact;
+2. enemy hit, distinct from both plasma fire and beetle destruction;
+3. jump, triggered only when a grounded jump is accepted.
+
+Use `tools/generate_sparkpaw_sfx.py`, signed 8-bit mono/even-length raw samples,
+Chip RAM and bounded DMA lifetimes. Add priority/cooldown rules before sharing
+channels; repeated overlaps or held inputs must not retrigger an effect every
+frame. Run `make` and `make release` after each accepted integration. HUD hearts
+and hurt/invulnerability visual feedback remain the following independent
+Phase 3C review.
 
 #### Phase 4: beetle respawn through spawn data
 
@@ -1306,6 +1401,10 @@ Read `sparkpaw/README.md` before implementing the next milestone.
     are safe art improvements; moving gameplay from 3+3 to 4+4 planes affects
     world memory, display DMA, Copper state and every Bob pass and therefore
     requires a separate measured renderbench milestone.
+23. **Temporary states must preserve posture constraints.** Hurt, attack or
+    scripted recovery may restrict input, but must not bypass `canStand()` or
+    force a standing collision box beneath a low ceiling. Keep logical posture
+    valid even when the temporary visual pose is taller than that hitbox.
 
 ## Recommended first prompt in a new Codex task
 

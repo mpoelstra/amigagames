@@ -571,8 +571,12 @@ def make_sprites() -> tuple[Image.Image, bytes]:
                                 "sparkpaw-air-fire-v8-transparent.png").convert("RGBA")
     crouch_fire_sheet = Image.open(ROOT / "assets" / "sprites" /
                                    "sparkpaw-crouch-fire-v9-transparent.png").convert("RGBA")
+    hurt_sheet = Image.open(ROOT / "assets" / "sprites" /
+                            "sparkpaw-hurt-v12-transparent.png").convert("RGBA")
+    crouch_hurt_sheet = Image.open(ROOT / "assets" / "sprites" /
+                                   "sparkpaw-crouch-hurt-v13-transparent.png").convert("RGBA")
     cell_w = cell_h = 48
-    frame_count = 50
+    frame_count = 58
     rows = math.ceil(frame_count / 4)
     source = Image.new("RGBA", (cell_w * 4, cell_h * rows), (0, 0, 0, 0))
     ref_w, ref_h = reference.width // 4, reference.height // 4
@@ -602,6 +606,8 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     combat_poses = [cropped_component(grid_cell(combat_sheet, 4, 1, i)) for i in range(4)]
     air_fire_poses = [cropped_component(grid_cell(air_fire_sheet, 4, 1, i)) for i in range(4)]
     crouch_fire_poses = [cropped_component(grid_cell(crouch_fire_sheet, 4, 1, i)) for i in range(4)]
+    hurt_poses = [cropped_component(grid_cell(hurt_sheet, 4, 1, i)) for i in range(4)]
+    crouch_hurt_poses = [cropped_component(grid_cell(crouch_hurt_sheet, 4, 1, i)) for i in range(4)]
     run_scale = family_scale(run_poses)
     jump_scale = family_scale(jump_poses)
     landing_scale = family_scale(landing_poses)
@@ -609,6 +615,9 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     crouch_scale = family_scale(crouch_poses, max_width=48)
     idle_scale = family_scale(idle_poses)
     combat_scale = family_scale(combat_poses, max_width=48)
+    hurt_scale = family_scale(hurt_poses, max_width=48)
+    crouch_hurt_scale = family_scale(crouch_hurt_poses,
+                                     max_width=48,max_height=24)
     # Match the established airborne body scale. The extended barrel may clip
     # by a pixel at the 48-pixel hardware-sprite cell edge, but shrinking the
     # whole actor would create the much more visible in-air zoom artifact.
@@ -644,6 +653,14 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     # baseline. The extended gauntlet must not make the actor stand up or zoom.
     for i, pose in enumerate(crouch_fire_poses):
         place(46 + i, pose, crouch_scale)
+    # Hurt poses append after the accepted 0-49 contract. One family scale
+    # preserves Sparkpaw's body mass while recoil changes his silhouette.
+    for i, pose in enumerate(hurt_poses):
+        place(50 + i, pose, hurt_scale)
+    # The crouched hurt family may not exceed the established 30-pixel crouch
+    # silhouette, so temporary visual recoil respects low-platform clearance.
+    for i, pose in enumerate(crouch_hurt_poses):
+        place(54 + i, pose, crouch_hurt_scale)
     source.save(ROOT / "assets" / "sprites" / "sparkpaw-48x48-aga16-source.png")
     # Preserve all sixteen authored poses. Left half contains the right-facing
     # cells and the second half contains deterministic pixel-perfect mirrors.
@@ -745,7 +762,7 @@ def main() -> None:
         "world": [WORLD_W, WORLD_H], "tile": TILE, "collision": [WORLD_W // TILE, 14],
         "foreground_palette": FG_PALETTE, "background_palette": BG_PALETTE,
         "sprite_sheet": {
-            "size": list(sprites.size), "frame": [48, 48], "frames": 50,
+            "size": list(sprites.size), "frame": [48, 48], "frames": 58,
             "depth": 4, "hardware_layout": "three attached sprite pairs",
         },
         "clockwork_beetle": {

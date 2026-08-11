@@ -10,5 +10,7 @@ void platformFinishTakeover(UWORD *copper);
 void platformRestore(void);
 UWORD platformRasterLine(void);
 void platformWaitBlit(void);
+void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
+                          BOOL *jump,BOOL *fire);
 
 #endif
