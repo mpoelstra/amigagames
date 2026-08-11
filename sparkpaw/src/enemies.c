@@ -24,6 +24,23 @@ void enemiesInit(void)
     }
 }
 
+void enemiesResetPreservingDrawn(void)
+{
+    BOOL wasDrawn[MAX_ENEMIES];
+    WORD oldX[MAX_ENEMIES],oldY[MAX_ENEMIES],index;
+    for(index=0;index<MAX_ENEMIES;index++) {
+        wasDrawn[index]=enemies[index].drawn;
+        oldX[index]=enemies[index].drawnX;
+        oldY[index]=enemies[index].drawnY;
+    }
+    enemiesInit();
+    for(index=0;index<MAX_ENEMIES;index++) {
+        enemies[index].drawn=wasDrawn[index];
+        enemies[index].drawnX=oldX[index];
+        enemies[index].drawnY=oldY[index];
+    }
+}
+
 void enemiesUpdate(LONG frameCounter,EnemySolidAt solidAt)
 {
     WORD index;
@@ -64,6 +81,26 @@ BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
             } else {
                 enemy->hitTimer=8; enemy->animFrame=4;
             }
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
+                          WORD *enemyCenterX)
+{
+    WORD index;
+    for(index=0;index<MAX_ENEMIES;index++) {
+        struct Enemy *enemy=&enemies[index];
+        WORD enemyLeft,enemyRight,enemyTop,enemyBottom;
+        if(!enemy->active||enemy->dying) continue;
+        enemyLeft=(WORD)(enemy->x>>8)+2;
+        enemyRight=(WORD)(enemy->x>>8)+ENEMY_W-3;
+        enemyTop=enemy->y+7; enemyBottom=enemy->y+ENEMY_H-1;
+        if(right>=enemyLeft&&left<=enemyRight&&
+           bottom>=enemyTop&&top<=enemyBottom) {
+            *enemyCenterX=(WORD)(enemy->x>>8)+(ENEMY_W>>1);
             return TRUE;
         }
     }

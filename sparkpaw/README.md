@@ -32,8 +32,14 @@ Sparkpaw's right-hand gauntlet. Up to six pulses can remain in flight, so the
 weapon responds to rapid tapping. Four low clockwork beetles patrol separate
 sections of the test level. Standing and airborne shots deliberately pass over
 them: crouch and fire twice to destroy each one through a hit reaction and
-four-stage destruction sequence. These enemies cannot damage Sparkpaw and do
-not respawn yet. Keyboard controls and the HUD are deferred until after the
+four-stage destruction sequence. Contact with an active beetle now removes one
+of six internal half-heart health units, applies brief knockback/input lock and
+grants one second of invulnerability. Hurt art, the visible three-heart HUD,
+hurt audio and the eventual game-over presentation remain focused later steps. Beetles do
+not respawn during ordinary play. For rapid testing, reaching zero health
+immediately resets the player, camera, projectiles and four-enemy pool in
+memory without reloading resident level assets. Keyboard controls and the HUD
+are deferred until after the
 planned source modularisation. Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.

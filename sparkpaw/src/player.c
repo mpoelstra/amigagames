@@ -15,6 +15,10 @@
 #define LAND_TICKS 10
 #define TURN_TICKS 28
 #define CROUCH_SHOT_TICKS 11
+#define CONTACT_INVULN_TICKS 60
+#define CONTACT_HURT_TICKS 12
+#define CONTACT_KNOCKBACK_X 700
+#define CONTACT_KNOCKBACK_Y -500
 
 static struct PlayerState player;
 static BOOL joystickUpHeld,joystickFireHeld;
@@ -23,6 +27,7 @@ void playerInit(void)
 {
     memset(&player,0,sizeof(player));
     player.x=36L<<8; player.y=164L<<8;
+    player.health=PLAYER_MAX_HEALTH;
 }
 
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
@@ -38,7 +43,7 @@ void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
 
 void playerStartShot(BOOL pressed,PlayerPlayShot playShot)
 {
-    if(pressed&&!player.shootCooldown&&!player.turnTimer) {
+    if(pressed&&!player.shootCooldown&&!player.turnTimer&&!player.hurtTimer) {
         player.shootTimer=player.crouching?CROUCH_SHOT_TICKS:
                           (player.grounded?7:10);
         player.shootCooldown=3; player.shotPending=FALSE;
@@ -185,6 +190,18 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
 {
     WORD playerX=(WORD)(player.x>>FIX_SHIFT),playerY=(WORD)(player.y>>FIX_SHIFT);
     LONG acceleration,maxSpeed;
+    if(player.invulnTimer) player.invulnTimer--;
+    if(player.hurtTimer) {
+        player.hurtTimer--;
+        player.crouching=FALSE; player.turnTimer=0; player.turnFinishing=FALSE;
+        player.wallBlocked=FALSE;
+        player.vx=(player.vx*235)>>8;
+        if(player.vx>-18&&player.vx<18) player.vx=0;
+        player.vy+=55; if(player.vy>1050) player.vy=1050;
+        moveX(player.vx); moveY(player.vy);
+        player.idleTicks=0;
+        return;
+    }
     if(player.turnFinishing) {
         player.facingLeft=player.turnTargetLeft;
         player.turnFinishing=FALSE;
@@ -244,6 +261,31 @@ void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
        player.vx>-20&&player.vx<20) {
         if(player.idleTicks<65535) player.idleTicks++;
     } else player.idleTicks=0;
+}
+
+void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom)
+{
+    WORD x=(WORD)(player.x>>FIX_SHIFT),y=(WORD)(player.y>>FIX_SHIFT);
+    /* Contact damage owns a deliberately narrower torso/leg box than solid
+       tile collision.  Neither box is derived from transparent sprite art. */
+    *left=x+6; *right=x+25;
+    *top=y+(player.crouching?20:7); *bottom=y+38;
+}
+
+BOOL playerTakeEnemyHit(WORD enemyCenterX)
+{
+    WORD centerX=(WORD)(player.x>>FIX_SHIFT)+(PLAYER_W>>1);
+    if(player.invulnTimer||!player.health) return FALSE;
+    player.health--;
+    player.invulnTimer=CONTACT_INVULN_TICKS;
+    player.hurtTimer=CONTACT_HURT_TICKS;
+    player.shootTimer=0; player.shotPending=FALSE;
+    player.crouching=FALSE; player.landTimer=0;
+    player.turnTimer=0; player.turnFinishing=FALSE;
+    player.vx=centerX<enemyCenterX?-CONTACT_KNOCKBACK_X:CONTACT_KNOCKBACK_X;
+    player.vy=CONTACT_KNOCKBACK_Y; player.grounded=FALSE;
+    player.idleTicks=0;
+    return TRUE;
 }
 
 const struct PlayerState *playerState(void)

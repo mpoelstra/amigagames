@@ -12,6 +12,23 @@ void projectilesInit(void)
     memset(projectiles,0,sizeof(projectiles));
 }
 
+void projectilesResetPreservingDrawn(void)
+{
+    BOOL wasDrawn[MAX_PROJECTILES];
+    WORD oldX[MAX_PROJECTILES],oldY[MAX_PROJECTILES],index;
+    for(index=0;index<MAX_PROJECTILES;index++) {
+        wasDrawn[index]=projectiles[index].drawn;
+        oldX[index]=projectiles[index].drawnX;
+        oldY[index]=projectiles[index].drawnY;
+    }
+    projectilesInit();
+    for(index=0;index<MAX_PROJECTILES;index++) {
+        projectiles[index].drawn=wasDrawn[index];
+        projectiles[index].drawnX=oldX[index];
+        projectiles[index].drawnY=oldY[index];
+    }
+}
+
 void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
                       ProjectilePlaySound playSound)
 {

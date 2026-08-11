@@ -11,6 +11,16 @@
 
 static struct GameState game;
 
+static void resetLevelRuntime(void)
+{
+    /* Assets and packed caches stay resident. Preserve only prior Bob restore
+       rectangles so the next line-300 pass erases the old runtime state. */
+    enemiesResetPreservingDrawn();
+    projectilesResetPreservingDrawn();
+    playerInit();
+    game.cameraX=0; game.frameCounter=0;
+}
+
 static void updateCamera(void)
 {
     const struct PlayerState *player=playerState();
@@ -33,12 +43,21 @@ void gameInit(void)
 void gameUpdate(void)
 {
     BOOL left,right,down,jump,fire,wasGrounded;
+    WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
     playerReadInput(&left,&right,&down,&jump,&fire);
     wasGrounded=player->grounded;
     playerStartShot(fire,audioPlayShot);
     playerUpdatePhysics(left,right,down,jump); playerUpdateShot();
     enemiesUpdate(game.frameCounter,collisionSolidAt);
+    playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+    if(enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
+                            &enemyCenterX))
+        if(playerTakeEnemyHit(enemyCenterX)&&!playerState()->health) {
+            resetLevelRuntime();
+            audioUpdate();
+            return;
+        }
     projectilesUpdate((WORD)game.cameraX,collisionSolidAt,enemiesHitProjectile);
     audioUpdate(); updateCamera();
     playerAnimate(!wasGrounded&&player->grounded,game.frameCounter);

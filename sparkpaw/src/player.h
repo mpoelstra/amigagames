@@ -6,11 +6,13 @@
 #define PLAYER_W 32
 #define PLAYER_H 40
 #define PLAYER_ANIM_FRAMES 50
+#define PLAYER_MAX_HEALTH 6
 
 struct PlayerState {
     LONG x,y,vx,vy,turnStartVx;
     BOOL grounded,facingLeft,crouching,wallBlocked,turnTargetLeft,turnFinishing;
     UBYTE animFrame,runFrame,landTimer,turnTimer,shootTimer,shootCooldown;
+    UBYTE health,invulnTimer,hurtTimer;
     BOOL shotPending;
     UWORD runTick,idleTicks;
 };
@@ -23,6 +25,8 @@ void playerStartShot(BOOL pressed,PlayerPlayShot playShot);
 void playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);
 void playerUpdateShot(void);
 void playerAnimate(BOOL landed,LONG frameCounter);
+void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom);
+BOOL playerTakeEnemyHit(WORD enemyCenterX);
 const struct PlayerState *playerState(void);
 
 #endif

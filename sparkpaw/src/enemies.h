@@ -19,8 +19,11 @@ struct Enemy {
 typedef BOOL (*EnemySolidAt)(WORD x,WORD y);
 
 void enemiesInit(void);
+void enemiesResetPreservingDrawn(void);
 void enemiesUpdate(LONG frameCounter,EnemySolidAt solidAt);
 BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot);
+BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
+                          WORD *enemyCenterX);
 struct Enemy *enemyAt(WORD index);
 
 #endif

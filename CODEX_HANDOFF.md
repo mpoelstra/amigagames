@@ -1031,6 +1031,38 @@ separate data. Do not derive contact damage directly from transparent art
 bounds. Tune the hurt box, knockback and invulnerability from FS-UAE evidence,
 then verify on the target A1200 configuration when available.
 
+The agreed health model is three hearts represented internally as six
+half-heart units. Ordinary beetle contact removes one unit (half a heart);
+future stronger attacks may remove one or two units. Water and bottomless pits
+remove two units (one full heart) and return Sparkpaw to the last checkpoint.
+Do not introduce a second, ambiguous stock of arcade lives yet. Reaching zero
+health will later enter an explicit `GAME_OVER` state.
+
+Implement Phase 3 incrementally. First add health state, explicit player/enemy
+contact rectangles, one-shot contact acceptance, knockback, bounded input
+restriction and about 60 frames of invulnerability. Then append a dedicated
+hurt family after the established frame IDs 0-49; never renumber the accepted
+50-frame baseline. Add the three-heart full/half/empty HUD and the planned
+player-hurt sound as separate reviewable steps rather than mixing gameplay,
+animation art, HUD rendering and audio in one change.
+
+Phase 3A is now implemented host-side. `PlayerState` starts with six health
+units, and player/enemy modules expose separate authored contact rectangles.
+An accepted overlap removes one unit, cancels shooting/turn/crouch state,
+launches Sparkpaw away from the enemy, restricts control for 12 frames and
+blocks repeat damage for 60 frames. Solid-tile physics, projectile hitboxes and
+enemy projectile-damage boxes remain independent. There is deliberately no
+hurt art, HUD, hurt sound or zero-health transition in this first logic step;
+those remain separate Phase 3 reviews. MrDig confirmed in FS-UAE that contact
+knockback behaves well in all tested situations. Reaching zero health now
+performs an immediate in-memory test reset: assets and packed caches remain
+resident, while player, camera, enemies and projectiles return to their initial
+state. Enemy/projectile reset preserves the preceding Bob restore rectangles
+until the next line-300 pass, preventing stale pixels without clearing or
+reloading the wide playfield. `make` and `make release` passed locally; the
+zero-health reset still requires MrDig's FS-UAE confirmation and all real-
+hardware behaviour remains unverified.
+
 #### Phase 4: beetle respawn through spawn data
 
 Implement respawn as a generic enemy-spawn system rather than a beetle-only
@@ -1068,6 +1100,25 @@ checkpoints, collectables and broader screen flow on that foundation. Music
 integration should first define Paula channel ownership so rapid plasma,
 player/enemy impacts and menu sounds are not arbitrarily interrupted.
 
+The agreed first-level direction is an original, polished left-to-right Storm
+Ruins action-platforming flow: alternate readable enemy encounters with safe
+breathing space, raised platforms and jumps across water or open gaps. Broad
+inspiration may come from the simple forward pacing of classic Amiga games,
+but do not copy their maps, characters, enemy designs, art or timing. The
+visual target remains the project concept: violet storm mountains and clouds
+in the far parallax, pine forest/waterfalls/broken energy towers in the rear
+layer, and mossy stone-machine ruins with cyan conduits in the foreground.
+
+Before doubling the current 1280-pixel, five-screen world, build one complete
+vertical slice inside it: safe start, beetle contact, one gap, one water jump,
+a raised route, the second enemy type, a checkpoint and a final mixed
+encounter. Hazards require checkpoint recovery, camera reset and projectile
+cleanup; they are not merely new collision-map colours. Once player damage,
+checkpoint recovery, generic respawn and two enemy types are stable, measure
+whether a ten-screen level remains one resident wide bitmap or should use
+generated segments/chunks. Do not double bitplane and collision assets before
+making that memory/loading decision.
+
 Roadmap invariants across all phases:
 
 - preserve the stable dual-playfield renderer, line-100 Copper staging,
@@ -1079,6 +1130,12 @@ Roadmap invariants across all phases:
   renderer rewrite, new gameplay system and new art family in one iteration;
 - always run `make` and `make release` after implementation work;
 - only MrDig's report may establish FS-UAE or real-hardware behaviour.
+- treat visible Bob count and total restored/drawn area, rather than the total
+  number of spawn records, as the primary runtime enemy-performance budget;
+  keep fixed pools, camera culling and shared per-type caches when respawning;
+- keep the current three-plane/eight-colour gameplay banks until a separate
+  4+4 dual-playfield renderbench proves that the extra colour depth, roughly
+  one-third additional Bob plane work and extra Chip RAM are affordable.
 
 ### Current projectile renderer
 
@@ -1235,6 +1292,20 @@ Read `sparkpaw/README.md` before implementing the next milestone.
     read or decompression. Sparkpaw reads uncompressed SPBM files first, then
     performs silent CPU preparation. Keep `LOADING` through the final read and
     show `CHARGING` only for sprite/Bob/bitplane/Copper preparation.
+20. **Ground generated art by opaque pixels, not canvas bounds.** Lanczos can
+    leave a transparent final row after resizing. Bottom-align the resulting
+    alpha silhouette itself; otherwise a correctly positioned actor can appear
+    to hover by one PAL pixel while its physics origin remains correct.
+21. **More spawn records are cheap; more visible Bob area is not.** Generic
+    respawn and two per-level enemy types can retain fixed pools and shared art
+    caches. Performance is governed mainly by simultaneously restored/drawn
+    planes and pixels, so cap on-screen concurrency and continue camera culling.
+22. **Treat gameplay colour depth as a renderer decision.** A 32x24 three-plane
+    Bob cannot reproduce a large RGB concept or Sparkpaw's 15-colour attached
+    hardware-sprite richness. Better native clusters and controlled dithering
+    are safe art improvements; moving gameplay from 3+3 to 4+4 planes affects
+    world memory, display DMA, Copper state and every Bob pass and therefore
+    requires a separate measured renderbench milestone.
 
 ## Recommended first prompt in a new Codex task
 

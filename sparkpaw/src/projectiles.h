@@ -19,6 +19,7 @@ typedef BOOL (*ProjectileEnemyHit)(WORD x,WORD y,BOOL lowShot);
 typedef void (*ProjectilePlaySound)(void);
 
 void projectilesInit(void);
+void projectilesResetPreservingDrawn(void);
 void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
                       ProjectilePlaySound playSound);
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
