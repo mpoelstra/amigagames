@@ -108,3 +108,27 @@ attached cyan muzzle glow, and recover. Keep every pose genuinely crouched at
 one family-wide scale. Pure flat `#ff00ff` background, crisp hard-edged 1993
 Amiga AGA pixel art, no text, crop, shadows, grids, projectile trails or loose
 effects. The chroma background is removed locally before palette reduction.
+
+## Clockwork beetle production replacement v2
+
+Production enemy sheet: exactly nine isolated left-facing clockwork-beetle
+poses in a clean 3x3 grid, closely matching the beetle in the Sparkpaw gameplay
+concept and the established Sparkpaw sprite's pixel density. Use a squat heavy
+brass-and-dark-steel body, large circular face plate with a bright cyan glass
+lens, tall rounded segmented shell, black recessed joins, six sturdy jointed
+legs and two compact ball-tipped antennae. Frames 0-3 are one consistent walk
+cycle; frame 4 is the first-hit recoil with a brief cyan electrical crack;
+frames 5-8 progress through sparking damage, collapsed shell, scattered parts
+and tiny fading debris. Preserve one body scale and ground baseline across the
+walk and hit poses. Use crisp premium 1990s Amiga AGA pixel clusters on a flat
+`#ff00ff` chroma background. No text, labels, grid lines, scenery, floor,
+shadows, gradients, watermark or unrelated effects.
+
+The selected built-in ImageGen source is preserved as
+`assets/enemies/clockwork-beetle-concept-v2-chroma.png`; the locally keyed
+source is `clockwork-beetle-concept-v2-transparent.png`. The runtime generator
+crops its 3x3 cells, applies one shared scale to the walk family and hit body,
+bottom-aligns them to the accepted row-22 ground line and maps opaque pixels to
+the fixed eight-colour foreground palette. Destruction frames may only shrink
+to keep their spreading parts inside the same 32x24 cell. Runtime mirroring,
+frame IDs, collision and Bob dimensions remain unchanged.

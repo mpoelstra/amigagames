@@ -450,10 +450,55 @@ def draw_beetle_frame(frame: int) -> Image.Image:
 
 
 def make_clockwork_beetle() -> tuple[Image.Image, bytes]:
+    concept = Image.open(ROOT / "assets" / "enemies" /
+                         "clockwork-beetle-concept-v2-transparent.png").convert("RGBA")
+    poses = []
+    for frame in range(BEETLE_FRAMES):
+        cell = grid_cell(concept, 3, 3, frame)
+        bounds = cell.getchannel("A").getbbox()
+        poses.append(cell.crop(bounds) if bounds else
+                     Image.new("RGBA", (1, 1), (0, 0, 0, 0)))
+
+    # One scale for the complete four-frame walk family.  The hit frame keeps
+    # that same body scale (its electric accents may clip at the cell edge),
+    # while the destruction stages are allowed only to shrink as parts spread.
+    # The generated source includes tall antennae.  A single isotropic fit
+    # would let those two thin details shrink the entire armoured body.  Use
+    # one shared X/Y reduction for the family instead: the very slight native
+    # wide-pixel correction restores the concept's heavy, planted silhouette.
+    walk_scale_x = 31 / max(p.width for p in poses[:4])
+    walk_scale_y = 18 / max(p.height for p in poses[:4])
+    cells = []
+    for frame, pose in enumerate(poses):
+        scale_x, scale_y = walk_scale_x, walk_scale_y
+        if frame >= 5:
+            fit = min(walk_scale_x, walk_scale_y,
+                      31 / pose.width, 21 / pose.height)
+            scale_x = scale_y = fit
+        width = max(1, round(pose.width * scale_x))
+        height = max(1, round(pose.height * scale_y))
+        reduced = pose.resize((width, height), Image.Resampling.LANCZOS)
+        reduced_bounds = reduced.getchannel("A").getbbox()
+        opaque_bottom = reduced_bounds[3] if reduced_bounds else height
+        canvas = Image.new("RGBA", (BEETLE_W, BEETLE_H), (0, 0, 0, 0))
+        # Align the actual opaque silhouette, not the resized RGBA canvas.
+        # Lanczos can leave a transparent final source row; grounding against
+        # the canvas height made the beetle appear to hover by one PAL pixel.
+        canvas.alpha_composite(reduced, ((BEETLE_W - width) // 2,
+                                         BEETLE_H - opaque_bottom))
+        indexed = indexed_image((BEETLE_W, BEETLE_H), FRONT8, 0)
+        source_pixels, target_pixels = canvas.load(), indexed.load()
+        for y in range(BEETLE_H):
+            for x in range(BEETLE_W):
+                red, green, blue, alpha = source_pixels[x, y]
+                if alpha >= 96:
+                    target_pixels[x, y] = nearest_index(
+                        (red, green, blue), FRONT8, avoid_zero=True)
+        cells.append(indexed)
+
     sheet = indexed_image((BEETLE_W * 2, BEETLE_H * BEETLE_FRAMES), FRONT8, 0)
     preview = indexed_image((BEETLE_W * BEETLE_FRAMES, BEETLE_H), FRONT8, 0)
-    for frame in range(BEETLE_FRAMES):
-        cell = draw_beetle_frame(frame)
+    for frame, cell in enumerate(cells):
         sheet.paste(cell, (0, frame * BEETLE_H))
         sheet.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
                     (BEETLE_W, frame * BEETLE_H))
