@@ -365,9 +365,13 @@ def draw_beetle_frame(frame: int) -> Image.Image:
         return image
 
     phase = frame if frame < 4 else 1
-    body_y = (4, 5, 4, 5)[phase]
+    # Keep the feet on the accepted row-22 ground line, but seat the normal
+    # silhouette two pixels lower than the first beetle pass.  The shorter
+    # antennae leave honest visual clearance below a standing plasma pulse;
+    # collision and the 32x24 Bob origin remain deliberately unchanged.
+    body_y = (6, 7, 6, 7)[phase]
     if frame == 4:
-        body_y = 5
+        body_y = 7
     elif frame == 6:
         body_y = 9
 
@@ -381,55 +385,56 @@ def draw_beetle_frame(frame: int) -> Image.Image:
     if frame == 6:
         feet = ((3, 13, 24), (8, 20, 30))
     for root, foot in zip((8, 16, 24), feet[0]):
-        d.line((root, body_y + 13, root - 1, 19, foot, 22), fill=1, width=2)
+        d.line((root, body_y + 11, root - 1, 19, foot, 22), fill=1, width=2)
         d.line((foot, 22, min(31, foot + 2), 22), fill=4)
         d.point((root - 1, 19), fill=5)
-        d.point((root, body_y + 14), fill=7)
+        d.point((root, body_y + 12), fill=7)
     for root, foot in zip((11, 20, 27), feet[1]):
-        d.line((root, body_y + 13, root + 1, 19, foot, 22), fill=1, width=2)
+        d.line((root, body_y + 11, root + 1, 19, foot, 22), fill=1, width=2)
         d.line((max(0, foot - 1), 22, min(31, foot + 1), 22), fill=4)
         d.point((root + 1, 19), fill=7)
-        d.point((root, body_y + 14), fill=5)
+        d.point((root, body_y + 12), fill=5)
 
-    # The concept silhouette is a high segmented dome over a round lens head.
-    d.ellipse((8, body_y, 31, body_y + 16), fill=1)
-    d.ellipse((10, body_y + 1, 29, body_y + 14), fill=7)
-    d.polygon(((11, body_y + 9), (13, body_y + 4), (18, body_y + 2),
-               (18, body_y + 14), (12, body_y + 13)), fill=5)
-    d.polygon(((20, body_y + 2), (25, body_y + 4), (28, body_y + 8),
-               (27, body_y + 12), (20, body_y + 14)), fill=5)
-    d.line((19, body_y + 2, 19, body_y + 14), fill=1)
-    d.line((12, body_y + 4, 15, body_y + 2), fill=4)
-    d.line((16, body_y + 2, 18, body_y + 2), fill=3)
+    # A compact three-segment dome carries the concept's armour volume without
+    # filling the cell with noisy single pixels.  Steel highlights describe a
+    # single light direction; violet is reserved for the recessed lower shell.
+    d.ellipse((8, body_y, 31, body_y + 13), fill=1)
+    d.ellipse((10, body_y + 1, 29, body_y + 12), fill=7)
+    d.polygon(((11, body_y + 8), (13, body_y + 4), (17, body_y + 2),
+               (18, body_y + 12), (12, body_y + 11)), fill=5)
+    d.polygon(((20, body_y + 2), (25, body_y + 4), (28, body_y + 7),
+               (27, body_y + 10), (20, body_y + 12)), fill=5)
+    d.line((19, body_y + 2, 19, body_y + 12), fill=1)
+    d.line((12, body_y + 5, 15, body_y + 2), fill=4)
+    d.line((16, body_y + 2, 17, body_y + 2), fill=3)
     d.line((21, body_y + 3, 24, body_y + 4), fill=4)
     d.point((25, body_y + 5), fill=3)
-    d.point((14, body_y + 8), fill=7)
-    d.point((23, body_y + 8), fill=7)
-    d.line((12, body_y + 12, 17, body_y + 14), fill=1)
-    d.line((21, body_y + 14, 26, body_y + 12), fill=1)
-    d.point((28, body_y + 9), fill=3)
+    d.line((12, body_y + 10, 17, body_y + 12), fill=1)
+    d.line((21, body_y + 12, 26, body_y + 10), fill=1)
+    d.point((28, body_y + 8), fill=3)
 
-    # A dark circular face plate and oversized cyan lens match the concept.
-    d.ellipse((1, body_y + 7, 14, body_y + 19), fill=1)
-    d.ellipse((3, body_y + 8, 12, body_y + 17), fill=5)
-    d.ellipse((4, body_y + 9, 11, body_y + 16), fill=1)
-    d.ellipse((5, body_y + 10, 10, body_y + 15), fill=6)
-    d.line((6, body_y + 10, 8, body_y + 10), fill=4)
-    d.point((6, body_y + 11), fill=4)
-    d.point((9, body_y + 14), fill=5)
-    d.point((4, body_y + 16), fill=7)
-    d.point((11, body_y + 11), fill=4)
-    d.line((5, body_y + 7, 3, body_y + 1 + (phase & 1)), fill=1)
-    d.line((9, body_y + 7, 11, body_y + 1 - (phase & 1)), fill=1)
-    d.point((3, body_y + (phase & 1)), fill=6)
-    d.point((11, body_y - (phase & 1)), fill=6)
-    d.point((2, body_y + 12), fill=4)
+    # The face plate overlaps the shell as one readable round head.  A dark
+    # bezel gives the cyan lens enough contrast to survive PAL scaling.
+    d.ellipse((1, body_y + 5, 14, body_y + 17), fill=1)
+    d.ellipse((3, body_y + 6, 12, body_y + 15), fill=5)
+    d.ellipse((4, body_y + 7, 11, body_y + 14), fill=1)
+    d.ellipse((5, body_y + 8, 10, body_y + 13), fill=6)
+    d.line((6, body_y + 8, 8, body_y + 8), fill=4)
+    d.point((6, body_y + 9), fill=4)
+    d.point((9, body_y + 12), fill=5)
+    d.point((4, body_y + 14), fill=7)
+    d.point((11, body_y + 9), fill=4)
+    d.line((5, body_y + 5, 4, body_y + 1 + (phase & 1)), fill=1)
+    d.line((9, body_y + 5, 10, body_y + 1 - (phase & 1)), fill=1)
+    d.point((4, body_y + (phase & 1)), fill=6)
+    d.point((10, body_y - (phase & 1)), fill=6)
+    d.point((2, body_y + 10), fill=4)
 
     if frame == 4:
-        d.line((14, 6, 18, 9, 15, 13, 21, 17), fill=6, width=2)
-        d.line((22, 6, 20, 10, 24, 13), fill=4)
-        d.point((30, 5), fill=6)
-        d.point((8, 4), fill=4)
+        d.line((14, 8, 18, 10, 15, 13, 21, 17), fill=6, width=2)
+        d.line((22, 8, 20, 11, 24, 14), fill=4)
+        d.point((30, 7), fill=6)
+        d.point((8, 6), fill=4)
         d.point((3, 18), fill=6)
     elif frame == 5:
         d.line((16, 5, 20, 9, 17, 13, 23, 18), fill=6, width=2)
