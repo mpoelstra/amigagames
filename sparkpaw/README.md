@@ -70,8 +70,16 @@ into the game; see `docs/RENDERBENCH.txt`.
 - `src/main.c`: startup, cleanup, explicit application states and the
   raster-phased top-level loop
 - `src/title.c` / `src/title.h`: direct six-plane AGA title/loading presenter
-  with lossless 64-colour palettes, black border blanking, Chip RAM Copper
-  lists and VBlank-synchronised complete-screen switches while DOS remains live
+  with ordinary (non-EHB) 64-colour palettes, black border blanking, smooth
+  VBlank-synchronised 24-bit palette fades, Chip RAM Copper lists and complete
+  screen switches while DOS remains live
+
+The startup presentation leaves a black PAL display briefly in place for
+scandoubler lock, then keeps the fully faded title visible before loading.
+While files are read the loading screen says `LOADING`; once disk I/O is done
+it switches to `CHARGING` during the silent sprite, Bob, bitplane and Copper
+preparation phase. This second phase remains visible for at least two seconds,
+including on accelerated systems. Both screens share one 64-colour palette.
 - `src/renderer.c` / `src/renderer.h`: gameplay display, Copper construction,
   hardware sprites, packed render caches and Bob rendering behind an explicit
   renderer API

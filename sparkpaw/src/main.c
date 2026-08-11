@@ -24,10 +24,9 @@ static void cleanup(void)
     platformClose();
 }
 
-static BOOL loadLevel(void)
+static BOOL loadLevelFiles(void)
 {
-    return rendererLoadGameplay()&&collisionLoad()&&audioLoad()&&
-           rendererPrepareGameplay();
+    return rendererLoadGameplay()&&collisionLoad()&&audioLoad();
 }
 
 int main(void)
@@ -51,17 +50,22 @@ int main(void)
         PutStr((STRPTR)titleFailureReason()); PutStr("\n");
         cleanup(); return 10;
     }
-    titleWaitFrames(150);
+    titleWaitFrames(225);
     gameInit();
     state=APP_LEVEL_LOADING;
     loadingShown=titleShowLevelLoading();
-    if(!loadingShown||!loadLevel()) {
+    if(!loadingShown||!loadLevelFiles()||!titleShowLevelCharging()||
+       !rendererPrepareGameplay()) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
         if(!loadingShown) {
             PutStr((STRPTR)titleFailureReason()); PutStr("\n");
         }
         cleanup(); return 10;
     }
+    /* Keep the second status readable even when preparation finishes quickly
+       on Fast RAM systems or accelerated/emulated CPUs. */
+    titleWaitLevelCharging(100);
+    titleFadeOut();
     rendererUpdateGameplay();
     platformBeginTakeover();
     platformFinishTakeover(rendererCopperList());

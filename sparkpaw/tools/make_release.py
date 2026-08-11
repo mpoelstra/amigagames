@@ -98,6 +98,7 @@ def copy_runtime() -> None:
     for name in (
         "sparkpaw-title.spbm",
         "sparkpaw-level-loading.spbm",
+        "sparkpaw-level-charging.spbm",
         "storm-front.spbm", "storm-rear.spbm",
         "storm-collision.bin", "sparkpaw-sprites4.spbm",
         "clockwork-beetle.spbm",

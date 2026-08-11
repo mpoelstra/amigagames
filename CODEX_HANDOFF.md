@@ -921,6 +921,52 @@ accepted.
    the release builder. Both release builders now extract and byte-compare
    critical ADF payloads after writing them.
 
+#### Accepted Phase 2 title/loading presentation (11 August 2026)
+
+The title/loading work is now accepted in FS-UAE and on a real A1200 from both
+HD/Workbench and a physical floppy written from the release ADF. The direct
+presenter remains 320x256, six-plane, 64-colour AGA and leaves DOS and
+interrupts active while startup assets are read. Gameplay takeover, the
+line-100 Copper update phase, the line-300 Bob phase and all established
+renderer/gameplay contracts remain unchanged.
+
+The final presenter explicitly programs ordinary 64-colour AGA mode with
+`ECSENA`, `KILLEHB`, border blanking and complete `DIWHIGH` state. It detaches
+the Workbench View with `LoadView(NULL)` and two settling VBlanks before owning
+`COP1LC`; this fixed the real-A1200 HD path that otherwise showed only black.
+Fades do not exchange full Copper lists every frame. They retain one active
+list and stage only its recorded high/low 24-bit palette value words after
+raster line 100 for the next frame, eliminating the transition corruption seen
+in the HD launch under FS-UAE. Complete bitmap changes still use an inactive
+Copper list and a VBlank pointer switch.
+
+The selected title and compact Stormstone-disk loading art are preserved as
+source PNGs and converted deterministically to SPBM. Runtime title/loading
+palettes reserve pen 0 as pure black; this removed coloured border lines that
+the Indivision AGA MK2 exposed outside the CRT's visible overscan. A 35-frame
+black PAL lock interval and a 225-frame fully faded title hold give the
+Indivision time to switch from Workbench to the game mode. The previously
+floppy-only left-edge line also disappeared after this longer stable startup
+and the rebuilt physical ADF, supporting a scandoubler lock/sampling cause
+rather than corrupt bitmap data.
+
+Startup loading has two truthful phases. `LOADING` remains visible while all
+gameplay files are read. Only after the last DOS read/close does the presenter
+switch to a palette-identical `CHARGING` screen while
+`rendererPrepareGameplay()` builds hardware-sprite DMA, packed Bob data,
+bitplanes and the gameplay Copper list. `CHARGING` is held for at least 100 PAL
+frames so it remains readable even on accelerated or HD systems. Both status
+assets are preloaded, share one palette and switch as complete bitmaps; there
+is no CPU read-modify-write compositing into displayed Chip RAM. The old
+loading bitmap is freed immediately after the switch to limit peak Chip RAM.
+
+The root executable, HD archives and bootable ADF contain byte-identical
+executables and critical runtime assets. MrDig confirmed no transition flicker
+in FS-UAE, working HD and physical-floppy startup on the real A1200, and clean
+left borders on both the Indivision HDMI output and CRT. Do not reopen this
+display path casually; treat future title art, status timing or 256-colour
+experiments as separate measured changes.
+
 Acceptance for every extraction step:
 
 1. `make` succeeds and the root executable is rebuilt.
@@ -1172,6 +1218,23 @@ Read `sparkpaw/README.md` before implementing the next milestone.
     accepted build, use short feature branches and focused commits, and tag
     playable milestones. `build/`, `dist/`, local SDKs, recordings and backups
     are ignored; publish ZIP/LHA/ADF files through GitHub Releases when needed.
+16. **Program the complete inherited display state.** A direct AGA Copper must
+    not assume Workbench and a minimal ADF boot leave the same registers.
+    Explicit `DIWHIGH`, `ECSENA`, `KILLEHB`, border blanking and a detached OS
+    View were all required for identical 64-colour HD/floppy behaviour.
+17. **Stage fades inside the active list's safe window.** Swapping complete
+    title Copper lists on every fade frame produced intermittent corrupt
+    palettes. Record the palette value-word positions, update them only after
+    their current-frame Copper use, and reserve full-list swaps for complete
+    screen transitions at VBlank.
+18. **Scandoublers expose borders and need lock time.** A CRT can hide a
+    one-pixel `COLOR00` edge and does not reproduce an Indivision mode-switch
+    delay. Reserve palette pen 0 as black and provide a stable black PAL period
+    before fading in; compare CRT and HDMI evidence before moving DIW/DDF.
+19. **Name loading phases truthfully.** A quiet floppy does not imply a stalled
+    read or decompression. Sparkpaw reads uncompressed SPBM files first, then
+    performs silent CPU preparation. Keep `LOADING` through the final read and
+    show `CHARGING` only for sprite/Bob/bitplane/Copper preparation.
 
 ## Recommended first prompt in a new Codex task
 

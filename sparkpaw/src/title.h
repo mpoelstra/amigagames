@@ -6,6 +6,9 @@
 BOOL titleShow(void);
 BOOL titlePrepareLevelLoading(void);
 BOOL titleShowLevelLoading(void);
+BOOL titleShowLevelCharging(void);
+void titleWaitLevelCharging(UWORD frames);
+void titleFadeOut(void);
 const char *titleFailureReason(void);
 ULONG titleChipFree(void);
 ULONG titleChipLargest(void);

@@ -32,6 +32,58 @@ asset deterministically. The presenter uses AGA border blanking rather than
 sacrificing an image pen for neutral borders. Pillow performs format conversion
 only; it does not draw or replace the authored source art.
 
+## Simplified level-disk loading concept v3
+
+Create a cleaner original Sparkpaw loading screen for a Commodore Amiga 1200
+AGA game. Use the established title art as the palette and style reference and
+the earlier Stormstone floppy only as an identity reference. Centre one compact,
+front-facing fantasy-tech 3.5-inch floppy on pure black, with broad midnight
+navy and steel pixel clusters, a large cyan Stormstone crystal, two restrained
+amber paw accents and one cyan access light. Put the exact word `LOADING` below
+it in large original angular cyan pixel lettering with a navy outline and small
+amber corner accents. Preserve generous, deliberate black negative space and
+make every shape readable after reduction to 320x256 and 64 indexed colours.
+Avoid characters, scenery, smoke, gradients, tiny circuitry, texture noise,
+extra text, logos, watermarks and copied typography or disk designs.
+
+The built-in ImageGen result is preserved as
+`assets/concept/sparkpaw-level-loading-concept-v3.png`. Unlike v2, it is already
+a 4:3 composition and is fitted directly to 320x256 without the old 75-percent
+crop. Fast Octree quantisation without dithering remains deterministic and
+preserves the crisp cyan, amber and steel clusters.
+
+For runtime presentation, both title and loading conversions reserve palette
+pen 0 as pure black. This hides the otherwise coloured one-pixel `COLOR00`
+border exposed by the Indivision AGA MK2 but normally outside CRT overscan. The
+loading conversion swaps in its existing black pen without RGB changes. The
+title merges its least-used colour into the nearest remaining palette entry
+and preserves the original pen-0 colour in the vacated slot. The remapped title
+is written as `assets/concept/sparkpaw-title-aga64-runtime-preview.png`; the
+accepted indexed source preview remains unchanged.
+
+### Silent preparation status variants
+
+Using `sparkpaw-level-loading-concept-v3.png` as the edit target, change only
+the bottom status text from `LOADING` to the exact phrase
+`CHARGING STORMSTONE`. Preserve the floppy, Stormstone crystal, paws,
+composition, black background, colours, hard-edged pixel-art treatment,
+lighting and proportions. Centre the phrase on one line below the disk in a
+smaller version of the same cyan/white/navy lettering with the same restrained
+gold corner accents. Add no other objects, text, gradients or borders.
+
+The built-in ImageGen edit is preserved as
+`assets/concept/sparkpaw-level-charging-stormstone-concept-v1.png`. At build
+time it is mapped onto the already-generated loading-screen palette, so the
+runtime status switch cannot introduce a palette flash.
+
+Hardware testing showed that the long phrase was visually subordinate to the
+much larger `LOADING` word. A second built-in ImageGen edit changes only that
+word to the exact text `CHARGING`, matching the original word's large height,
+weight, cyan/white/navy treatment and gold corner accents while preserving all
+other artwork. This accepted runtime source is stored as
+`assets/concept/sparkpaw-level-charging-concept-v2.png`; v1 remains preserved
+as design history.
+
 ## Animation reference sheet
 
 Create a strict 4x4 pixel-art animation reference sheet for Sparkpaw on a perfectly uniform `#ff00ff` chroma-key background. Maintain identical costume, proportions and palette. Include exactly: idle, blink, four run poses, jump rise, jump apex, fall, land, crouch, aim, shoot, hurt, victory and death tumble. Use a shared limited 16-colour character palette, hard pixels, equal cells, no text, shadows, grid lines or licensed character resemblance.

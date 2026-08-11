@@ -59,10 +59,16 @@ REAR8 = [
 ]
 
 TITLE_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-title-concept-aga64-preview.png"
+TITLE_RUNTIME_PREVIEW = (ROOT / "assets" / "concept" /
+                         "sparkpaw-title-aga64-runtime-preview.png")
 LEVEL_LOADING_SOURCE = (ROOT / "assets" / "concept" /
-                        "sparkpaw-level-loading-concept-v2.png")
+                        "sparkpaw-level-loading-concept-v3.png")
 LEVEL_LOADING_PREVIEW = (ROOT / "assets" / "concept" /
                          "sparkpaw-level-loading-aga64-preview.png")
+LEVEL_CHARGING_SOURCE = (ROOT / "assets" / "concept" /
+                         "sparkpaw-level-charging-concept-v2.png")
+LEVEL_CHARGING_PREVIEW = (ROOT / "assets" / "concept" /
+                          "sparkpaw-level-charging-aga64-preview.png")
 
 
 def nearest_index(rgb: tuple[int, int, int], palette: list[tuple[int, int, int]], *, avoid_zero=False) -> int:
@@ -183,15 +189,53 @@ def load_aga_screen(path: Path) -> tuple[Image.Image, list[tuple[int, int, int]]
     return image, palette
 
 
-def make_level_loading() -> tuple[Image.Image, list[tuple[int, int, int]]]:
-    with Image.open(LEVEL_LOADING_SOURCE) as source:
-        source = source.convert("RGB")
-        crop_width = source.width * 3 // 4
-        crop_height = source.height * 3 // 4
-        left = (source.width - crop_width) // 2
-        top = (source.height - crop_height) // 2
-        source = source.crop((left,top,left + crop_width,top + crop_height))
-        fitted = ImageOps.fit(source,(320,256),Image.Resampling.LANCZOS)
+def reserve_black_pen_zero(
+        image: Image.Image,
+        palette: list[tuple[int, int, int]],
+        ) -> tuple[Image.Image, list[tuple[int, int, int]]]:
+    """Make the hardware border pen black with the smallest indexed change.
+
+    Some scandoublers expose a one-pixel COLOR00 border that a CRT overscans.
+    If the image already has pure black, swapping that entry with pen zero is
+    RGB-lossless. Otherwise merge the least-used nonzero pen into its nearest
+    neighbour and use the vacated entry to preserve the old pen-zero colour.
+    """
+    palette = list(palette)
+    mapping = list(range(256))
+    try:
+        black_pen = palette.index((0, 0, 0))
+    except ValueError:
+        black_pen = -1
+    if black_pen >= 0:
+        if black_pen != 0:
+            mapping[0], mapping[black_pen] = black_pen, 0
+            palette[0], palette[black_pen] = palette[black_pen], palette[0]
+    else:
+        histogram = image.histogram()[:64]
+        drop = min(range(1, 64), key=lambda pen: histogram[pen])
+        replacement = min(
+            (pen for pen in range(1, 64) if pen != drop),
+            key=lambda pen: sum((palette[drop][c]-palette[pen][c])**2
+                                for c in range(3)),
+        )
+        mapping[drop] = replacement
+        mapping[0] = drop
+        palette[drop] = palette[0]
+        palette[0] = (0, 0, 0)
+    remapped = image.point(mapping)
+    remapped.putpalette([v for rgb in palette for v in rgb] + [0]*(768-192))
+    return remapped,palette
+
+
+def fit_screen_source(path: Path) -> Image.Image:
+    with Image.open(path) as source:
+        return ImageOps.fit(source.convert("RGB"),(320,256),
+                            Image.Resampling.LANCZOS)
+
+
+def make_level_loading() -> tuple[Image.Image, Image.Image,
+                                  list[tuple[int, int, int]]]:
+    fitted = fit_screen_source(LEVEL_LOADING_SOURCE)
     image = fitted.quantize(colors=64,method=Image.Quantize.FASTOCTREE,
                             dither=Image.Dither.NONE)
     palette_data = image.getpalette()
@@ -199,8 +243,17 @@ def make_level_loading() -> tuple[Image.Image, list[tuple[int, int, int]]]:
         raise ValueError("loading screen conversion produced no palette")
     palette = [tuple(palette_data[index:index + 3])
                for index in range(0,64*3,3)]
+    image,palette = reserve_black_pen_zero(image,palette)
     image.save(LEVEL_LOADING_PREVIEW)
-    return image,palette
+    charging_rgb = fit_screen_source(LEVEL_CHARGING_SOURCE)
+    charging = indexed_image(charging_rgb.size,palette)
+    source_pixels=charging_rgb.load()
+    charging_pixels=charging.load()
+    for y in range(charging.height):
+        for x in range(charging.width):
+            charging_pixels[x,y]=nearest_index(source_pixels[x,y],palette)
+    charging.save(LEVEL_CHARGING_PREVIEW)
+    return image,charging,palette
 
 
 def make_background() -> Image.Image:
@@ -583,10 +636,14 @@ def main() -> None:
     sprites, mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
     title, title_palette = load_aga_screen(TITLE_SOURCE)
-    level_loading, level_loading_palette = make_level_loading()
+    title,title_palette = reserve_black_pen_zero(title,title_palette)
+    title.save(TITLE_RUNTIME_PREVIEW)
+    level_loading,level_charging,level_loading_palette = make_level_loading()
 
     save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-level-loading.spbm",level_loading,
+              level_loading_palette,depth=6)
+    save_spbm(RUNTIME / "sparkpaw-level-charging.spbm",level_charging,
               level_loading_palette,depth=6)
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
