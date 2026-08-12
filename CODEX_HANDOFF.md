@@ -2029,11 +2029,15 @@ AGA A1200 project. Check git status, recent commits and tags first; use
 sparkpaw-pre-modularisation as the accepted four-beetle baseline.
 
 Preserve the stable dual-playfield renderer, line-100 Copper-list staging,
-50-frame player animation contract, six-channel hardware-sprite player and the
-synchronized Blitter Bob pipelines used by plasma projectiles and the
-four-instance clockwork-beetle pool. Preserve packed planar caches, camera
-culling, Bob restore/draw ordering and accepted animation/collision contracts.
-Do not reintroduce CPU read-modify-write compositing in displayed Chip RAM.
+accepted 50-frame player baseline plus eight appended hurt frames, and the
+six-channel hardware-sprite player. Preserve the line-252 HUD display switch
+and synchronized line-253 Blitter Bob pass used by plasma projectiles,
+collectibles and the generic four-slot enemy pool. Preserve packed planar
+caches, camera culling, Bob restore/draw ordering and the accepted beetle and
+Strider animation/collision contracts. Strider runtime slots 0..7 are walk,
+slot 8 is the endpoint turn, and slots 9..17 remain reserved for later
+attack/shooting, hurt/hit and death work. Do not reintroduce CPU
+read-modify-write compositing in displayed Chip RAM.
 
 Work in small reviewable steps and do not combine renderer changes with
 unrelated gameplay or asset changes. Do not modify or delete ignored local
