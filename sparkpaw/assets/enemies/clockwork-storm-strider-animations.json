@@ -1,0 +1,26 @@
+{
+  "cell_width": 48,
+  "cell_height": 40,
+  "frames": [
+    "alert-idle",
+    "alert-weight-shift",
+    "run-contact",
+    "run-passing",
+    "run-airborne",
+    "run-recovery",
+    "jump-compress-start",
+    "jump-compress-charged",
+    "jump-launch",
+    "jump-flight",
+    "jump-descent",
+    "landing-impact",
+    "landing-recovery",
+    "hit-recoil",
+    "destruction-core-fracture",
+    "destruction-collapse",
+    "destruction-burst",
+    "destruction-debris"
+  ],
+  "hit_points": 3,
+  "prototype_note": "Production-oriented right-facing source. Runtime generation applies one scale to frames 0-13 and mirrors exact indexed cells for left-facing animation. No runtime consumer exists yet."
+}

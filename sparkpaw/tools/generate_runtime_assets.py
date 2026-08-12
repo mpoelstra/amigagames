@@ -27,6 +27,8 @@ PARALLAX_W = 640
 TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
 BEETLE_FRAMES = 9
+STRIDER_W, STRIDER_H = 48, 40
+STRIDER_FRAMES = 18
 
 FG_PALETTE = [
     (0, 0, 0), (10, 8, 18), (29, 22, 39), (238, 242, 224),
@@ -654,6 +656,57 @@ def make_clockwork_beetle() -> tuple[Image.Image, bytes]:
     return sheet, bitmap_mask(sheet)
 
 
+def make_clockwork_strider() -> tuple[Image.Image, bytes]:
+    source = Image.open(ROOT / "assets" / "enemies" /
+                        "clockwork-storm-strider-production-v2-transparent.png").convert("RGBA")
+    poses = []
+    for frame in range(STRIDER_FRAMES):
+        cell = grid_cell(source, 6, 3, frame)
+        bounds = cell.getchannel("A").getbbox()
+        if not bounds:
+            raise ValueError(f"empty Strider source cell {frame}")
+        poses.append(cell.crop(bounds))
+
+    # Frames 0-13 share one anatomical scale. The four destruction stages may
+    # only shrink when their spreading parts exceed the same 46x38 envelope.
+    locomotion_scale = family_scale(poses[:14], 46, 38)
+    cells = []
+    for frame, pose in enumerate(poses):
+        scale = locomotion_scale
+        if frame >= 14:
+            scale = min(scale, 46 / pose.width, 38 / pose.height)
+        width = max(1, round(pose.width * scale))
+        height = max(1, round(pose.height * scale))
+        reduced = pose.resize((width, height), Image.Resampling.LANCZOS)
+        canvas = Image.new("RGBA", (STRIDER_W, STRIDER_H), (0, 0, 0, 0))
+        # Launch/flight/descent retain airborne clearance; every other pose is
+        # grounded against the same opaque-pixel foot baseline.
+        top = (STRIDER_H - height) // 2 if 8 <= frame <= 10 else STRIDER_H - height
+        canvas.alpha_composite(reduced, ((STRIDER_W - width) // 2, top))
+        indexed = indexed_image((STRIDER_W, STRIDER_H), FRONT8, 0)
+        source_pixels, target_pixels = canvas.load(), indexed.load()
+        for y in range(STRIDER_H):
+            for x in range(STRIDER_W):
+                red, green, blue, alpha = source_pixels[x, y]
+                if alpha >= 96:
+                    target_pixels[x, y] = nearest_index(
+                        (red, green, blue), FRONT8, avoid_zero=True)
+        cells.append(indexed)
+
+    sheet = indexed_image((STRIDER_W * 2, STRIDER_H * STRIDER_FRAMES),
+                          FRONT8, 0)
+    preview = indexed_image((STRIDER_W * STRIDER_FRAMES, STRIDER_H), FRONT8, 0)
+    for frame, cell in enumerate(cells):
+        sheet.paste(cell, (0, frame * STRIDER_H))
+        sheet.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
+                    (STRIDER_W, frame * STRIDER_H))
+        preview.paste(cell, (frame * STRIDER_W, 0))
+    preview.info["transparency"] = 0
+    preview.save(ROOT / "assets" / "enemies" /
+                 "clockwork-storm-strider-48x40-aga8.png")
+    return sheet, bitmap_mask(sheet)
+
+
 def cropped_component(image: Image.Image) -> Image.Image:
     image = keep_main_component(image)
     bounds = image.getchannel("A").getbbox()
@@ -847,6 +900,7 @@ def main() -> None:
     fg, collision = make_foreground()
     sprites, mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
+    strider, strider_mask = make_clockwork_strider()
     title, title_palette = load_aga_screen(TITLE_SOURCE)
     title,title_palette = reserve_black_pen_zero(title,title_palette)
     title.save(TITLE_RUNTIME_PREVIEW)
@@ -886,6 +940,8 @@ def main() -> None:
               depth=4, mask=mask)
     save_spbm(RUNTIME / "clockwork-beetle.spbm", beetle, FRONT8,
               depth=3, mask=beetle_mask)
+    save_spbm(RUNTIME / "clockwork-storm-strider.spbm", strider, FRONT8,
+              depth=3, mask=strider_mask)
     (RUNTIME / "energy-shot.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "energy-shot.raw").read_bytes())
     (RUNTIME / "player-hurt.raw").write_bytes(
@@ -933,6 +989,11 @@ def main() -> None:
             "size": list(beetle.size), "frame": [BEETLE_W, BEETLE_H],
             "frames": BEETLE_FRAMES, "depth": 3,
             "layout": "left-facing column followed by mirrored right-facing column",
+        },
+        "clockwork_storm_strider": {
+            "size": list(strider.size), "frame": [STRIDER_W, STRIDER_H],
+            "frames": STRIDER_FRAMES, "depth": 3,
+            "layout": "right-facing column followed by mirrored left-facing column",
         },
     }
     (RUNTIME / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")

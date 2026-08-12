@@ -153,6 +153,8 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `assets/concept/`: full-resolution concept art and AGA preview conversions
 - `assets/sprites/`: prototype animation art and named frame metadata
 - `assets/enemies/`: native-resolution enemy art, preview and frame metadata
+  (including the asset-only 48x40, eighteen-frame Clockwork Storm Strider
+  palette proof; it is not instantiated by gameplay yet)
 - `assets/sfx/previews/`: WAV previews for later milestones
 - `sfx/raw/`: signed 8-bit mono Paula-ready samples; the current build uses the
   energy-shot, player-hurt, enemy-hit and jump samples and reserves the others

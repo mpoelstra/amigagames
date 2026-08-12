@@ -32,6 +32,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
 	assets/runtime/clockwork-beetle.spbm \
+	assets/runtime/clockwork-storm-strider.spbm \
 	assets/runtime/sparkpaw-sprites.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
@@ -67,6 +68,7 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/sprites/sparkpaw-crouch-hurt-v13-transparent.png \
 	assets/enemies/clockwork-beetle-concept-v2-transparent.png \
 	assets/enemies/clockwork-beetle-animations.json \
+	assets/enemies/clockwork-storm-strider-production-v2-transparent.png \
 	sfx/raw/energy-shot.raw \
 	sfx/raw/player-hurt.raw \
 	sfx/raw/enemy-hit.raw \

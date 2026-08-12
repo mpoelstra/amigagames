@@ -211,6 +211,37 @@ It is a concept candidate only. If selected, a dedicated fixed-cell production
 sheet and eight-colour indexed preview must establish the actual dimensions,
 anchors, collision and leap poses.
 
+## Clockwork Storm Strider production v2
+
+Use case: production-oriented sprite source. Create exactly eighteen isolated
+right-facing full-body animation poses of the accepted Clockwork Storm Strider
+in a strict 6-column by 3-row sheet, read left-to-right and top-to-bottom:
+alert idle, alert weight shift; four coherent fast run phases; jump compression
+start and charged compression; launch, long airborne flight and descent;
+landing impact and recovery; hit recoil; core fracture, collapse, energy burst
+and scattered debris destruction stages.
+
+Preserve one anatomy and one body scale across frames 1-14: lean compact
+dark-steel torso, long digitigrade piston legs, swept stabilizer tail, restrained
+aged-brass armour, small shoulder vanes and one cyan glass visor/core. Grounded
+poses share one foot baseline. The run must loop cleanly, compression must read
+before launch, flight must travel horizontally, and the four destruction poses
+must progress rather than introduce a different creature. Use crisp premium
+1993 Amiga AGA pixel-art clusters with strong small-scale silhouettes on a
+perfectly flat `#ff00ff` chroma background. No text, labels, grid lines,
+scenery, floor, shadow, blur, gradients, shield, projectile, extra enemy,
+humanoid or feline anatomy, or licensed resemblance.
+
+The built-in ImageGen result is preserved as
+`assets/enemies/clockwork-storm-strider-production-v2-chroma.png`; the keyed
+source is `clockwork-storm-strider-production-v2-transparent.png`. The runtime
+generator crops the 6x3 cells, applies one shared scale to frames 0-13, maps
+opaque pixels deterministically to the fixed eight-colour foreground palette,
+and creates exact mirrored cells. Destruction stages may only shrink when
+their spreading parts exceed the 46x38 opaque envelope. The review preview is
+`clockwork-storm-strider-48x40-aga8.png`; the packed asset has no gameplay
+consumer yet.
+
 ## Player hurt refinement v10
 
 Production sprite strip: exactly four evenly spaced full-body Sparkpaw

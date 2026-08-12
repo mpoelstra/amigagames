@@ -1577,6 +1577,24 @@ guarantees. The renderer remains capped at four active enemy slots. The first
 Phase 5 implementation includes only the Strider; do not also implement the
 Sentinel or change gameplay colour depth, dual-playfield timing or HUD.
 
+Phase 5A and 5B are now implemented as an asset-only, reviewable step. The
+runtime contract is fixed at a 48x40 cell, eighteen frames and three HP. Frame
+order is alert idle, weight shift, four run phases, two compression phases,
+launch/flight/descent, landing/recovery, hit recoil and four destruction
+stages. The right-facing production source is
+`assets/enemies/clockwork-storm-strider-production-v2-transparent.png`; its
+exact frame contract is recorded in
+`assets/enemies/clockwork-storm-strider-animations.json`. Generation applies
+one anatomical scale to frames 0-13, allows only oversize destruction stages
+to shrink, preserves grounded foot anchoring, creates exact mirrored indexed
+cells and maps into the existing eight-colour foreground palette. Review the
+native palette proof in
+`assets/enemies/clockwork-storm-strider-48x40-aga8.png`; the generated packed
+proof is `assets/runtime/clockwork-storm-strider.spbm` (96x720, two directional
+columns, 3 bitplanes plus mask). There is deliberately no runtime consumer,
+spawn record, AI, collision or renderer dispatch for it yet. Phase 5C.1 is the
+next implementation step and must therefore remain a data-model change only.
+
 #### Phase 6: levels and progression
 
 Once two enemy types, player damage and respawn are stable, move patrol/spawn
