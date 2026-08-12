@@ -1491,6 +1491,92 @@ approximate dimensions, HP, contact damage, attack telegraph, collision
 rectangles and maximum simultaneous visibility. Do not combine its first art
 pass with changes to the dual-playfield renderer or HUD.
 
+Phase 5 concept pass v1 is prepared for review. The proposed enemy is the
+original **Clockwork Storm Sentinel**: a stocky two-legged ruin guardian with
+dark-steel body, restrained aged-brass family cues, moss wear, piston legs, one
+cyan glass core and an oversized shield/ram forearm. Its intended first-pass
+gameplay role is a slow heavy patrol with four HP, no jumping or projectile,
+an unmistakable cyan charge telegraph and a short horizontal ram. Target
+runtime envelope is approximately 48x40 pixels, with at most one Sentinel and
+two beetles simultaneously visible; these are design targets, not accepted
+runtime contracts yet. The four-pose concept shows guarded idle, heavy walk,
+charge and ram/recovery. Sources are
+`assets/enemies/clockwork-storm-sentinel-concept-v1-chroma.png` and
+`clockwork-storm-sentinel-concept-v1-transparent.png`; the full prompt is in
+`docs/IMAGEGEN_PROMPTS.md`. The concept intentionally carries more material
+detail than an eight-colour Bob. After MrDig's visual review, create a separate
+native-minded production sheet and indexed preview rather than auto-fitting
+each concept pose into a runtime cell.
+
+A contrasting Phase 5 concept candidate is also prepared: the **Clockwork
+Storm Strider**, a lean spring-loaded ruin machine with long digitigrade piston
+legs, compact torso, stabilizer tail and cyan visor/core. Its four-pose sheet
+shows alert idle, low fast run, charged crouch compression and a committed
+forward leap. The provisional role is a faster three-HP patrol that can later
+jump between explicitly authored platforms after a readable cyan telegraph; it
+has no shield, ram or projectile. Its lean silhouette should cost materially
+less Bob area than the Sentinel, though a leap adds AI, collision and recovery
+complexity. Sources are
+`assets/enemies/clockwork-storm-strider-concept-v1-chroma.png` and
+`clockwork-storm-strider-concept-v1-transparent.png`; prompt details are in
+`docs/IMAGEGEN_PROMPTS.md`. Select between Sentinel and Strider before creating
+any native production sheet or runtime code; do not combine both enemy types
+into the first Phase 5 implementation.
+
+MrDig selected the **Clockwork Storm Strider** as the Phase 5 enemy direction.
+The Sentinel concept remains preserved for a later heavy enemy or miniboss; if
+used, its shield should block frontal plasma only during an explicit guarded
+charge state, not create permanent frontal immunity.
+
+The accepted incremental Strider plan is:
+
+1. **Phase 5A — lock the runtime design contract.** Target approximately 48x40
+   pixels and three HP. Standing, crouched and airborne Sparkpaw shots all
+   damage it whenever their projectile path intersects its state-specific
+   hitbox; there is no shield, reflection or required firing posture. Contact
+   damage uses the existing player hurt/invulnerability contract. The level
+   should ultimately contain two guaranteed and one optional Strider alongside
+   four to six beetles, while retaining only four active runtime enemy slots.
+2. **Phase 5B — native production art and palette proof.** Create a fixed-cell,
+   shared-scale sheet with alert/idle, four-phase run, two-phase compression,
+   launch/flight/descent, landing/recovery, hit and four destruction stages.
+   Generate deterministic mirrored cells and an eight-colour indexed preview
+   before adding a runtime consumer. Preserve a single grounded foot baseline;
+   do not auto-fit individual crouched or airborne poses.
+3. **Phase 5C.1 — generic multi-type level data.** Expand persistent spawn
+   capacity to cover 4-6 beetles plus 2-3 Striders. Give each encounter an
+   authored patrol surface (`left`, `right`, `groundY`) so enemies can occupy
+   both the floor and raised platforms without runtime ground searching. Slot
+   selection remains type-independent, never parks a visible enemy, and gives
+   priority to visible/ahead-of-camera encounters.
+4. **Phase 5C.2 — packed Strider Bob integration.** Prepare one shared
+   type-specific packed cache and dispatch width, height, frames and culling by
+   enemy type while preserving the existing reverse restore/forward draw
+   ordering and synchronized Blitter minterms. Prove one static floor Strider
+   and one static raised-platform Strider before enabling AI.
+5. **Phase 5C.3 — floor and raised-platform patrols.** Enable two guaranteed
+   and one optional persistent Strider: at least one on the floor and one
+   walking back and forth on a higher authored platform. Each keeps its own
+   speed, animation, HP, hit/death and unlimited safe respawn state. Initially
+   it never leaves its assigned surface. Target no more than three visible
+   enemies during ordinary placement; test two simultaneous Striders before
+   allowing three on screen.
+6. **Phase 5D — one authored platform jump link.** At an explicit launch zone,
+   stop, show a two-stage cyan compression telegraph, follow a fixed proven
+   ballistic arc, land on an explicit destination surface and recover before
+   resuming patrol. Persist the complete state through camera slot parking. Do
+   not implement general pathfinding or infer arbitrary landings from pixels.
+7. **Phase 5E — broader traversal.** Only after the single link is accepted,
+   add return links, low/high transitions and authored jumps across gaps and
+   water, including blocked/missed-landing and off-camera rules. Never respawn
+   a Strider midway through a jump or begin an unseen attack immediately beyond
+   the camera edge.
+
+Two to three Striders means persistent level encounters, not simultaneous Bob
+guarantees. The renderer remains capped at four active enemy slots. The first
+Phase 5 implementation includes only the Strider; do not also implement the
+Sentinel or change gameplay colour depth, dual-playfield timing or HUD.
+
 #### Phase 6: levels and progression
 
 Once two enemy types, player damage and respawn are stable, move patrol/spawn

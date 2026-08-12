@@ -147,6 +147,70 @@ the fixed eight-colour foreground palette. Destruction frames may only shrink
 to keep their spreading parts inside the same 32x24 cell. Runtime mirroring,
 frame IDs, collision and Bob dimensions remain unchanged.
 
+## Clockwork Storm Sentinel concept v1
+
+Use case: stylized-concept. Phase 5 enemy concept sheet for a 1993 Commodore
+Amiga AGA action platformer. Use the canonical Storm Ruins gameplay concept as
+the world and colour-language reference, and the accepted clockwork beetle v2
+sheet as the mechanical-family, material and damage-language reference.
+
+Design one original medium-sized **Clockwork Storm Sentinel**, related to the
+beetle but clearly a new role rather than a larger beetle. It is a stocky
+two-legged ancient ruin guardian, roughly 1.2 times Sparkpaw's standing height,
+with a broad dark-steel torso, weathered brass armour, moss nicks, a single
+bright cyan glass core, piston legs and one oversized forearm that doubles as
+an energy shield and short-range battering ram. Use a hunched, low-centred
+silhouette with shield arm forward and a compact rear counterweight.
+
+Show exactly four isolated right-facing full-body poses in one horizontal row:
+guarded idle, slow heavy walk/contact, unmistakable cyan charge telegraph and a
+short forward ram/recovery. Preserve one scale and ground baseline. Use crisp
+premium early-1990s Amiga AGA pixel clusters on a perfectly flat `#ff00ff`
+background. Dark navy/steel and muted violet dominate; restrained aged brass
+connects it to the beetle; cyan is reserved for core, conduits and telegraph;
+tiny moss-green wear accents are allowed. No text, labels, UI, grid, scenery,
+floor, shadow, gradients, blur, watermark, extra enemies, projectile weapon,
+jumping pose, humanoid-knight cliché or licensed resemblance.
+
+The built-in ImageGen result is preserved as
+`assets/enemies/clockwork-storm-sentinel-concept-v1-chroma.png`; the locally
+keyed review source is `clockwork-storm-sentinel-concept-v1-transparent.png`.
+This is concept art only. Do not directly auto-fit these rich large poses into
+runtime cells. After visual acceptance, create a dedicated native-minded
+production sheet with a fixed cell, shared scale/anchor and an explicit
+eight-colour foreground mapping.
+
+## Clockwork Storm Strider concept v1
+
+Use case: stylized-concept. Alternative Phase 5 enemy concept using the Storm
+Ruins gameplay concept and accepted beetle as world/family references, while
+contrasting directly with the heavy Sentinel candidate.
+
+Design one original medium-sized **Clockwork Storm Strider**: lean,
+spring-loaded and fast, with a narrow dark-steel torso, long digitigrade piston
+legs, compact aged-brass armour, swept-back stabilizer tail, small shoulder
+vanes and one cyan glass core/visor. Its construction must support future
+sprinting, crouch compression and committed leaps between authored platforms.
+It is mechanical, not feline, humanoid or a larger beetle.
+
+Show exactly four isolated full-body left-facing poses in one row: alert
+stalking idle, fast low run contact, unmistakable crouched jump-load telegraph
+and a long forward airborne leap with tucked legs. Preserve one anatomy and
+body scale; grounded poses share a foot baseline. Use crisp early-1990s Amiga
+AGA pixel clusters and prioritize small-scale limb readability. Dark
+navy/steel and muted violet dominate, restrained brass links the family, and
+cyan is reserved for visor/core, leg conduits and the charge. Flat `#ff00ff`
+background. No text, grid, scenery, floor, shadow, loose effects, projectile,
+shield, bulky torso, beetle plan, cat/fox/wolf likeness, humanoid knight or
+licensed resemblance.
+
+The built-in ImageGen source is preserved as
+`assets/enemies/clockwork-storm-strider-concept-v1-chroma.png`; its locally
+keyed review version is `clockwork-storm-strider-concept-v1-transparent.png`.
+It is a concept candidate only. If selected, a dedicated fixed-cell production
+sheet and eight-colour indexed preview must establish the actual dimensions,
+anchors, collision and leap poses.
+
 ## Player hurt refinement v10
 
 Production sprite strip: exactly four evenly spaced full-body Sparkpaw
