@@ -19,6 +19,30 @@ Copper emission and records actual usage/capacity/overflow in `renderbench.log`.
 Test rb15 before any production renderer migration. The accepted
 3+3 game remains recoverable as commit `26b281a` on `main`.
 
+Rb17 premium idle art proof
+---------------------------
+
+Rb17 retains the accepted rb16 display proof and replaces its automatically
+recoloured production-sheet pose with one newly authored, broader 64x64
+premium idle candidate. It uses the representative Storm Ruins
+rear/foreground palette and places one static 15-colour bipedal Strider
+idle at world x=286, y=146 before display takeover. It should scroll left with
+the foreground while the rear remains at quarter speed. Look for coherent
+indigo/violet/blue torso and limb modelling, cyan visor/conduits, stable edges
+and clean Workbench restoration. This is an artistic colour-depth proof, not a
+gameplay, animation or dynamic-Bob test. The log must identify
+`2026-08-12-rb17-premium-aga15-strider-idle`, report
+`strider_idle=aga15 loaded=1 size=64x64` and no Copper overflow.
+
+Rb17a reserves one transparent row beneath the sprite. This removes the six
+isolated bottom-row pixels seen in the user-supplied rb17 recording; they were
+downsampling residue between the feet, not part of either foot or the tail.
+Rb17b moves that cleaned pose one display pixel down so its last opaque row
+again meets the ground instead of appearing to hover above it.
+Rb17c removes three disconnected source clusters on row 62 beneath the two
+otherwise continuous soles. Row 61 is now the deliberate final opaque row and
+the pose moves to y=146 so that row, not the discarded fragments, meets ground.
+
 Run sparkpaw-renderbench from its directory. Click the left mouse button to
 exit, or wait approximately one minute.
 

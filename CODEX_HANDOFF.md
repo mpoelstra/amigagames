@@ -1735,6 +1735,19 @@ hardware verification. The next isolated bench should use representative
 gameplay foreground/rear colours and one 15-colour Strider idle before any
 production renderer migration.
 
+Rb16 implements that isolated art proof without modifying the production game.
+`tools/generate_renderbench_assets.py` extracts only the accepted v5 idle,
+scales it into a 64x64 cell, maps it to a dedicated cool 15-colour foreground
+palette and writes a four-plane-plus-mask 2560-byte raw bench asset plus
+`clockwork-storm-strider-64x64-aga15-idle.png`. The bench loads and places that
+idle once at world x=286/y=144 before display takeover. This setup-only CPU
+write never touches a displayed bitmap; a future gameplay migration must keep
+the synchronized packed Blitter pipeline. Rb16's rear uses representative
+Storm Ruins colours at PF2 offset 16, foreground structures use the new cool
+bank, and the Strider scrolls with PF1 while PF2 stays quarter-speed. The log
+adds `strider_idle=aga15 loaded=1 size=64x64`. This remains a colour-depth/art
+proof only: no dynamic Bob, player, HUD, collision or gameplay renderer change.
+
 #### Phase 6: levels and progression
 
 Once two enemy types, player damage and respawn are stable, move patrol/spawn
@@ -2029,6 +2042,26 @@ ChipSnake or Futsal instead.
 - MrDig's subsequent FS-UAE test reported no further HUD graphics glitches
   after that VSTOP experiment was removed. This is user-provided emulator
   verification; no real-hardware verification has been performed.
+- A user-supplied FS-UAE recording accepted the isolated rb16 AGA 4+3 colour
+  proof: the static 64x64 Strider remained coherent while scrolling and the
+  display returned cleanly. Its log reported a loaded 4-plane/15-colour pose,
+  192 of 256 Copper words and no overflow. This proves colour/display capacity,
+  not production dynamic-Bob performance. Rb17 is the next isolated art-only
+  candidate: one newly authored, broader indigo/violet/cyan idle pose derived
+  from the accepted upright Strider concept. Do not generate an animation sheet
+  or migrate the game renderer until this native-size idle is visually accepted.
+  MrDig accepted rb17's richer silhouette in FS-UAE but noted that its many
+  nearby blue shades still read somewhat monotonously. The apparent loose toe
+  below it was confirmed as six isolated pixels on the final source row; rb17a
+  reserves a transparent baseline row to remove that scaling residue. A future
+  art pass should spend the same 15-colour budget on fewer blue ramp entries
+  and stronger secondary violet/steel accents, without changing the renderer.
+  The first rb17a screenshot then showed the expected one-pixel visual gap;
+  rb17b keeps the clean transparent row but places the static proof at y=145,
+  restoring foot contact without reintroducing the residue.
+  A closer rb17b screenshot revealed three remaining disconnected clusters on
+  source row 62 beneath the continuous soles on row 61. Rb17c clears rows
+  62-63 and places the proof at y=146, making row 61 the explicit contact row.
 - Phase 3C.2 invulnerability feedback uses safe whole-actor blinking: during
   accepted invulnerability, all six player Copper pointers periodically select
   the existing null sprite. Cached 48-row streams, attached-pair control words

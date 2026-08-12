@@ -9,6 +9,7 @@ PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 BENCH_TARGET = sparkpaw-renderbench
+BENCH_ASSET = assets/runtime/renderbench-strider-idle.raw
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
@@ -43,7 +44,11 @@ all: assets $(TARGET)
 
 bench: $(BENCH_TARGET)
 
-$(BENCH_TARGET): src/aga_renderbench.c
+$(BENCH_ASSET): tools/generate_renderbench_assets.py \
+	assets/enemies/clockwork-storm-strider-biped-production-v5-transparent.png
+	$(PYTHON) tools/generate_renderbench_assets.py
+
+$(BENCH_TARGET): src/aga_renderbench.c $(BENCH_ASSET)
 	@mkdir -p "$(TMPDIR)"
 	$(CC) $(CFLAGS) -o $@ $<
 

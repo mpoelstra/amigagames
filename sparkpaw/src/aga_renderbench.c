@@ -22,7 +22,12 @@
  */
 #define FETCH_BYTES 42
 #define COP_WORDS 256
-#define BUILD_ID "2026-08-12-rb15-aga-4plus3-copper-bounds"
+#define BUILD_ID "2026-08-12-rb17c-premium-idle-clean-soles"
+#define STRIDER_W 64
+#define STRIDER_H 64
+#define STRIDER_ROW_BYTES 8
+#define STRIDER_PLANE_BYTES (STRIDER_ROW_BYTES*STRIDER_H)
+#define STRIDER_RAW_BYTES (STRIDER_PLANE_BYTES*5)
 
 struct GfxBase *GfxBase;
 struct IntuitionBase *IntuitionBase;
@@ -41,6 +46,7 @@ static BOOL interruptsDisabled;
 static LONG lastCamera;
 static LONG frameCount;
 static BOOL exitedByMouse;
+static BOOL striderLoaded;
 
 static void move(UWORD reg,UWORD value)
 {
@@ -62,29 +68,62 @@ static void paint(struct BitMap *bm,BOOL rear)
     WORD x;
     InitRastPort(&rp); rp.BitMap=bm; SetRast(&rp,rear?1:0);
     if(rear) {
+        SetAPen(&rp,1); RectFill(&rp,0,0,BW-1,H-1);
         for(x=16;x<BW-80;x+=96) {
-            SetAPen(&rp,2+(x/96)%5);
-            RectFill(&rp,x,42+(x%58),x+72,218);
+            SetAPen(&rp,2+(x/96)%4);
+            RectFill(&rp,x,72+(x%42),x+72,218);
         }
     } else {
-        SetAPen(&rp,2); RectFill(&rp,0,220,BW-1,255);
+        SetAPen(&rp,2); RectFill(&rp,0,208,BW-1,255);
         for(x=96;x<BW-90;x+=150) {
-            /* Pens 8-15 prove that PF1's fourth bitplane is visible. */
-            SetAPen(&rp,8+(x/150)%8);
-            RectFill(&rp,x,150-(x%48),x+78,166-(x%48));
+            SetAPen(&rp,8+(x/150)%4);
+            RectFill(&rp,x,152-(x%48),x+94,167-(x%48));
         }
     }
     WaitBlit();
 }
 
+static BOOL placeStriderIdle(void)
+{
+    UBYTE *raw=(UBYTE *)AllocMem(STRIDER_RAW_BYTES,MEMF_PUBLIC);
+    BPTR file;
+    WORD x,y; UBYTE plane;
+    const WORD targetX=286,targetY=146;
+    if(!raw) return FALSE;
+    file=Open("PROGDIR:assets/runtime/renderbench-strider-idle.raw",
+              MODE_OLDFILE);
+    if(!file||Read(file,raw,STRIDER_RAW_BYTES)!=STRIDER_RAW_BYTES) {
+        if(file) Close(file);
+        FreeMem(raw,STRIDER_RAW_BYTES); return FALSE;
+    }
+    Close(file);
+    /* Static rb17 setup only: compose before display takeover. Production
+       gameplay remains on its synchronized packed Blitter pipeline. */
+    for(y=0;y<STRIDER_H;y++) for(x=0;x<STRIDER_W;x++) {
+        LONG sourceAt=(LONG)y*STRIDER_ROW_BYTES+(x>>3);
+        UBYTE bit=(UBYTE)(0x80>>(x&7));
+        LONG destAt=(LONG)(targetY+y)*frontBM->BytesPerRow+
+                    ((targetX+x)>>3);
+        UBYTE destBit=(UBYTE)(0x80>>((targetX+x)&7));
+        if(!(raw[STRIDER_PLANE_BYTES*4+sourceAt]&bit)) continue;
+        for(plane=0;plane<4;plane++) {
+            UBYTE *dest=frontBM->Planes[plane]+destAt;
+            if(raw[(LONG)plane*STRIDER_PLANE_BYTES+sourceAt]&bit)
+                *dest|=destBit;
+            else *dest&=(UBYTE)~destBit;
+        }
+    }
+    FreeMem(raw,STRIDER_RAW_BYTES); return TRUE;
+}
+
 static void buildCopper(void)
 {
     static const UWORD colors[32]={
-        /* PF1: transparent plus fifteen deliberately varied foreground pens. */
-        0x001,0x112,0x224,0x346,0x468,0x68a,0x8ac,0xace,
-        0x303,0x515,0x727,0x939,0xb5b,0xd7d,0xf9f,0xfdf,
-        /* PF2: offset to registers 16-23; remaining entries are diagnostics. */
-        0x002,0x013,0x125,0x247,0x449,0x65a,0x97b,0xcbd,
+        /* PF1: cool 15-colour Strider/Storm Ruins palette. */
+        0x001,0x101,0x222,0x235,0x347,0x458,0x47c,0x3ce,
+        0x526,0x739,0x94b,0xb6c,0x68b,0x9bd,0xdde,0xffc,
+        /* PF2: representative Storm Ruins rear palette at offset 16. */
+        0x001,0x013,0x125,0x247,0x449,0x65a,0x97b,0xcbd,
         0x100,0x210,0x320,0x430,0x540,0x650,0x760,0x870
     };
     WORD i;
@@ -179,6 +218,8 @@ static void writeLog(void)
         (LONG)BW,(LONG)H,(LONG)frontBM->BytesPerRow,(LONG)rearBM->BytesPerRow);
     FPrintf(file,"copper_words=%ld capacity=%ld overflow=%ld\n",
         (LONG)copPos,(LONG)COP_WORDS,(LONG)copperOverflow);
+    FPrintf(file,"strider_idle=aga15 loaded=%ld size=64x64\n",
+        (LONG)striderLoaded);
     FPrintf(file,"diwstrt=$2c81 diwstop=$2cc1 ddfstrt=$0030 ddfstop=$00d0\n");
     FPrintf(file,"fetch_words=21 fetch_bytes=%ld modulo=%ld/%ld old_dma=$%04lx\n",
         (LONG)FETCH_BYTES,(LONG)(frontBM->BytesPerRow-FETCH_BYTES),
@@ -242,7 +283,10 @@ int main(void)
     rearBM=AllocBitMap(BW,H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
     if(!frontBM||!rearBM||!cop) { restore(); return 10; }
-    paint(frontBM,FALSE); paint(rearBM,TRUE); buildCopper();
+    paint(frontBM,FALSE); paint(rearBM,TRUE);
+    striderLoaded=placeStriderIdle();
+    if(!striderLoaded) { restore(); return 12; }
+    buildCopper();
     if(copperOverflow) { restore(); return 15; }
     setScroll(0,0);
     Printf("Copper renderbench: row bytes %ld/%ld; click left mouse to exit.\n",
