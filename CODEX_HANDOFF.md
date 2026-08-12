@@ -1710,6 +1710,31 @@ ordinary `sparkpaw` game executable and production `renderer.c` remain the
 accepted 3+3 implementation. Run `make bench` and test `sparkpaw-renderbench`
 separately before migrating any gameplay renderer or assets.
 
+MrDig's first rb14 FS-UAE run reached an ExecLibrary `DEADEND` software failure:
+`Corrupt memory list detected in FreeMem`. The repository's existing
+`renderbench.log` was timestamped 4 August and identifies rb13, so it is stale;
+the bench writes its log only during normal cleanup and rb14 did not produce a
+new valid log. Root cause is deterministic: rb14 added a seventh pointer and 64
+AGA colour-register moves but retained rb13's 128-word Copper allocation, so
+`buildCopper()` wrote past it and damaged the neighbouring Exec allocation
+metadata. Rb15 raises `COP_WORDS` to 256, bounds-checks every ordinary/pointer/
+terminator emission, aborts before takeover if overflow is detected, and logs
+actual Copper words, capacity and overflow state. Do not use the old rb13 log
+as evidence for rb15; request the newly written `renderbench.log` after a clean
+rb15 exit.
+
+MrDig tested rb15 in FS-UAE and supplied `2026-08-12 18-47-44.mov` plus the
+new `renderbench.log`. The recording shows a stable full-height display,
+independent full-speed foreground and quarter-speed rear motion, foreground
+pens above seven, and a clean return to Workbench. The log identifies
+`2026-08-12-rb15-aga-4plus3-copper-bounds`, reports `result=clean-exit`,
+`depth=4+3`, `copper_words=192 capacity=256 overflow=0`, 457 frames and restored
+DMA/interrupt/view state. This is user-provided FS-UAE acceptance of the basic
+4+3 fetch, palette-offset, scrolling and restoration proof; it is not real
+hardware verification. The next isolated bench should use representative
+gameplay foreground/rear colours and one 15-colour Strider idle before any
+production renderer migration.
+
 #### Phase 6: levels and progression
 
 Once two enemy types, player damage and respawn are stable, move patrol/spawn

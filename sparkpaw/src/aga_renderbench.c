@@ -21,8 +21,8 @@
  * $30..$d0 therefore fetches 21 words, not 22.
  */
 #define FETCH_BYTES 42
-#define COP_WORDS 128
-#define BUILD_ID "2026-08-12-rb14-aga-4plus3"
+#define COP_WORDS 256
+#define BUILD_ID "2026-08-12-rb15-aga-4plus3-copper-bounds"
 
 struct GfxBase *GfxBase;
 struct IntuitionBase *IntuitionBase;
@@ -35,6 +35,7 @@ static UWORD ptrValue[7];
 static UWORD scrollValue;
 static UWORD oldDma;
 static UWORD oldIntena;
+static BOOL copperOverflow;
 static BOOL systemLocked;
 static BOOL interruptsDisabled;
 static LONG lastCamera;
@@ -43,12 +44,14 @@ static BOOL exitedByMouse;
 
 static void move(UWORD reg,UWORD value)
 {
+    if(copPos+2>COP_WORDS) { copperOverflow=TRUE; return; }
     cop[copPos++]=reg; cop[copPos++]=value;
 }
 
 static void pointer(UWORD reg,APTR value,UWORD plane)
 {
     ULONG p=(ULONG)value;
+    if(copPos+4>COP_WORDS) { copperOverflow=TRUE; return; }
     move(reg,(UWORD)(p>>16)); ptrValue[plane]=copPos-1;
     move(reg+2,(UWORD)p);
 }
@@ -118,7 +121,9 @@ static void buildCopper(void)
         for(pen=0;pen<16;pen++) move((UWORD)(0x180+pen*2),0);
     }
     move(0x106,0x1020);
-    cop[copPos++]=0xffff; cop[copPos++]=0xfffe;
+    if(copPos+2<=COP_WORDS) {
+        cop[copPos++]=0xffff; cop[copPos++]=0xfffe;
+    } else copperOverflow=TRUE;
 }
 
 static void setPlanePointer(UWORD plane,APTR base,LONG byteOffset)
@@ -172,6 +177,8 @@ static void writeLog(void)
         exitedByMouse?"left-mouse":"frame-limit",frameCount,lastCamera);
     FPrintf(file,"bitmap=%ldx%ld depth=4+3 rowbytes=%ld/%ld\n",
         (LONG)BW,(LONG)H,(LONG)frontBM->BytesPerRow,(LONG)rearBM->BytesPerRow);
+    FPrintf(file,"copper_words=%ld capacity=%ld overflow=%ld\n",
+        (LONG)copPos,(LONG)COP_WORDS,(LONG)copperOverflow);
     FPrintf(file,"diwstrt=$2c81 diwstop=$2cc1 ddfstrt=$0030 ddfstop=$00d0\n");
     FPrintf(file,"fetch_words=21 fetch_bytes=%ld modulo=%ld/%ld old_dma=$%04lx\n",
         (LONG)FETCH_BYTES,(LONG)(frontBM->BytesPerRow-FETCH_BYTES),
@@ -235,7 +242,9 @@ int main(void)
     rearBM=AllocBitMap(BW,H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
     if(!frontBM||!rearBM||!cop) { restore(); return 10; }
-    paint(frontBM,FALSE); paint(rearBM,TRUE); buildCopper(); setScroll(0,0);
+    paint(frontBM,FALSE); paint(rearBM,TRUE); buildCopper();
+    if(copperOverflow) { restore(); return 15; }
+    setScroll(0,0);
     Printf("Copper renderbench: row bytes %ld/%ld; click left mouse to exit.\n",
         (LONG)frontBM->BytesPerRow,(LONG)rearBM->BytesPerRow);
     oldView=GfxBase->ActiView;

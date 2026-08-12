@@ -1,7 +1,7 @@
 SPARKPAW AGA RENDER BENCHMARK
 =============================
 
-Experimental branch note (rb14)
+Experimental branch note (rb15)
 -------------------------------
 
 The `codex/sparkpaw-aga-4plus3-renderbench` branch changes only this isolated
@@ -12,7 +12,11 @@ platforms prove that PF1 bitplane four is fetched. Rear geometry must retain its
 independent quarter-speed scroll and separate blue palette.
 
 This is not the game executable and does not contain the player, Strider, HUD or
-gameplay. Test rb14 before any production renderer migration. The accepted
+gameplay. The first rb14 build overflowed its inherited 128-word Copper buffer
+after adding the seventh pointer and AGA palette passes; Exec reported corrupt
+memory during cleanup. Rb15 increases the allocation to 256 words, guards every
+Copper emission and records actual usage/capacity/overflow in `renderbench.log`.
+Test rb15 before any production renderer migration. The accepted
 3+3 game remains recoverable as commit `26b281a` on `main`.
 
 Run sparkpaw-renderbench from its directory. Click the left mouse button to
