@@ -55,6 +55,14 @@ FRONT8 = [
     (0, 0, 17), (17, 17, 17), (221, 68, 17), (255, 153, 34),
     (255, 238, 170), (34, 102, 204), (51, 204, 238), (153, 68, 204),
 ]
+# Production 4+3 migration palette. Pens 0..7 retain the accepted gameplay
+# mapping byte-for-byte; pens 8..15 add the proven rb18 steel/violet range.
+# Existing art therefore remains visually stable while four-plane Bobs and
+# world buffers can be exercised before any animation or gameplay art change.
+FRONT16 = FRONT8 + [
+    (55, 55, 65), (101, 98, 103), (163, 157, 158), (229, 225, 219),
+    (67, 29, 100), (112, 45, 157), (166, 77, 218), (224, 35, 104),
+]
 REAR8 = [
     (0, 0, 17), (0, 17, 51), (17, 34, 85), (34, 68, 119),
     (68, 68, 153), (102, 85, 170), (153, 119, 187), (204, 187, 221),
@@ -922,7 +930,7 @@ def main() -> None:
     save_spbm(RUNTIME / "sparkpaw-hud-diamonds.spbm",hud_diamonds,
               HUD_PALETTE,depth=3)
     save_spbm(RUNTIME / "sparkpaw-diamond.spbm",collectible_diamond,
-              FRONT8,depth=3,mask=collectible_diamond_mask)
+              FRONT16,depth=4,mask=collectible_diamond_mask)
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
     # renderer. The rear artwork repeats across the entire five-screen world.
@@ -933,16 +941,16 @@ def main() -> None:
     front_world = remap(fg, FG_PALETTE, FRONT8, transparent_zero=True)
     sprite_world = remap(sprites, FG_PALETTE, FRONT8, transparent_zero=True)
     sprite_mask = bitmap_mask(sprite_world)
-    save_spbm(RUNTIME / "storm-front.spbm", front_world, FRONT8, depth=3)
+    save_spbm(RUNTIME / "storm-front.spbm", front_world, FRONT16, depth=4)
     save_spbm(RUNTIME / "storm-rear.spbm", rear_world, REAR8, depth=3)
     save_spbm(RUNTIME / "sparkpaw-sprites3.spbm", sprite_world, FRONT8,
               depth=3, mask=sprite_mask)
     save_spbm(RUNTIME / "sparkpaw-sprites4.spbm", sprites, FG_PALETTE,
               depth=4, mask=mask)
-    save_spbm(RUNTIME / "clockwork-beetle.spbm", beetle, FRONT8,
-              depth=3, mask=beetle_mask)
-    save_spbm(RUNTIME / "clockwork-storm-strider.spbm", strider, FRONT8,
-              depth=3, mask=strider_mask)
+    save_spbm(RUNTIME / "clockwork-beetle.spbm", beetle, FRONT16,
+              depth=4, mask=beetle_mask)
+    save_spbm(RUNTIME / "clockwork-storm-strider.spbm", strider, FRONT16,
+              depth=4, mask=strider_mask)
     (RUNTIME / "energy-shot.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "energy-shot.raw").read_bytes())
     (RUNTIME / "player-hurt.raw").write_bytes(

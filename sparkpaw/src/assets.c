@@ -77,14 +77,14 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
 
 BOOL assetsLoadGameplay(void)
 {
-    return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,3)&&
+    return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,4)&&
            loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
                      &playerSprites,4)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
-                     &enemySprites,3)&&
+                     &enemySprites,4)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
-                     &striderSprites,3)&&
+                     &striderSprites,4)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
                      &hudBase,3)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-health.spbm",
@@ -94,7 +94,7 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-diamonds.spbm",
                      &hudDiamonds,3)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
-                     &collectibleDiamond,3);
+                     &collectibleDiamond,4);
 }
 
 BOOL assetsLoadTitle(void)

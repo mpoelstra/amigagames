@@ -2068,6 +2068,31 @@ ChipSnake or Futsal instead.
   allocate the 15 visible pens to navy shadows, neutral steel, storm violet,
   cyan/ice energy and one magenta warning accent. Validate this native-size
   pose before any 4-plane production migration or animation generation.
+  The renderer-only production migration is now in progress on the same
+  reversible branch. Its first test build changes the gameplay world from 3+3
+  to AGA 4+3: front clean/display assets and all synchronized restore/draw
+  pipelines use four planes, rear remains three, the seventh Copper pointer is
+  staged before gameplay, PF2 stays offset to pens 16-23, and the line-100 HUD
+  stage points the fourth PF1 plane at the existing blank plane. Existing
+  beetle/plasma/diamond pens 0-7, pool sizes, ordering, culling, collisions and
+  animations are intentionally unchanged. The production Copper allocation is
+  raised from 320 to 512 words and palette bank zero is explicitly restored
+  before loading the attached hardware-sprite palette. Do not call this
+  accepted until MrDig supplies FS-UAE results; no real-hardware test exists.
+  MrDig's first FS-UAE production screenshot showed stable gameplay/Bobs/HUD but
+  a substantially recoloured rear layer. This is not an acceptable inherent
+  4+3 side effect. Audit found that PF2OF=16 correctly selects entries 16-23,
+  while the Copper had mistakenly loaded rear colours into AGA bank 1 entries
+  32-47. It also left attached sprites sharing entries 16-31 with PF2. The
+  correction loads PF1/PF2 together into bank-zero entries 0-31, sets BPLCON4
+  to `$0022`, and loads Sparkpaw into bank-one entries 32-47. Retest background,
+  player colours and HUD in FS-UAE before accepting the migration.
+  MrDig's follow-up FS-UAE screenshot accepted that correction: the original
+  blue Storm Ruins rear palette, Sparkpaw hardware-sprite palette, HUD and
+  existing beetle/diamond/Bob gameplay all appeared correct while running the
+  4+3 production renderer. This accepts the renderer-only migration in FS-UAE;
+  no real-hardware verification has been performed. Keep it as a separate
+  checkpoint before introducing the rb18 Strider idle into production caches.
 - Phase 3C.2 invulnerability feedback uses safe whole-actor blinking: during
   accepted invulnerability, all six player Copper pointers periodically select
   the existing null sprite. Cached 48-row streams, attached-pair control words
