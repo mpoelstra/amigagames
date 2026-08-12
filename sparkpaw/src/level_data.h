@@ -21,8 +21,19 @@ struct EnemySpawnCandidate {
     UBYTE type,policy,required;
 };
 
+struct EnemyTraversalLink {
+    UBYTE spawnIndex;
+    BYTE launchDirection;
+    WORD launchLeft,launchRight;
+    struct EnemyPatrolSurface destination;
+    WORD landingLeft,landingRight;
+    LONG launchVX,launchVY;
+    WORD gravity;
+};
+
 #define MAX_LEVEL_ENEMY_SPAWNS 9
 
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
+const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count);
 
 #endif

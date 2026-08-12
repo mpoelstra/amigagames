@@ -28,7 +28,7 @@ TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
 BEETLE_FRAMES = 9
 STRIDER_W, STRIDER_H = 64, 64
-STRIDER_FRAMES = 18
+STRIDER_FRAMES = 24
 
 FG_PALETTE = [
     (0, 0, 0), (10, 8, 18), (29, 22, 39), (238, 242, 224),
@@ -698,18 +698,45 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
                              "clockwork-storm-strider-64x64-aga15-turn-v1.png").convert("RGBA")
     cells[8] = indexed_cell(turn_source)
 
+    # Phase 5D appends traversal art after the untouched 0..17 locomotion and
+    # combat-reservation contract. These deterministic poses retain the
+    # accepted silhouette and palette while making the cyan charge readable.
+    def compressed(source: Image.Image, height: int, glow: int) -> Image.Image:
+        resized = source.resize((STRIDER_W, height), Image.Resampling.NEAREST)
+        cell = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+        cell.paste(resized, (0, 62 - height))
+        pixels = cell.load()
+        for y in range(max(0, 58 - glow), 62):
+            for x in range(18, 46):
+                if pixels[x, y] and ((x + y) & 3) == 0:
+                    pixels[x, y] = 6
+        return cell
+
+    cells[18] = compressed(idle, 56, 2)
+    cells[19] = compressed(idle, 50, 5)
+    cells[20] = compressed(idle, 54, 3)
+    cells[21] = compressed(idle, 57, 2)
+    cells[22] = compressed(idle, 49, 4)
+    cells[23] = compressed(idle, 58, 1)
+
     sheet = indexed_image((STRIDER_W * 2, STRIDER_H * STRIDER_FRAMES),
                           FRONT16, 0)
     preview = indexed_image((STRIDER_W * 8, STRIDER_H), FRONT16, 0)
+    traversal_preview = indexed_image((STRIDER_W * 6, STRIDER_H), FRONT16, 0)
     for frame, cell in enumerate(cells):
         sheet.paste(cell, (0, frame * STRIDER_H))
         sheet.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
                     (STRIDER_W, frame * STRIDER_H))
         if frame < 8:
             preview.paste(cell, (frame * STRIDER_W, 0))
+        if 18 <= frame < 24:
+            traversal_preview.paste(cell, ((frame - 18) * STRIDER_W, 0))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "enemies" /
                  "clockwork-storm-strider-64x64-aga15-walk-preview-v1.png")
+    traversal_preview.info["transparency"] = 0
+    traversal_preview.save(ROOT / "assets" / "enemies" /
+                           "clockwork-storm-strider-64x64-aga15-traversal-preview-v1.png")
     return sheet, bitmap_mask(sheet)
 
 
@@ -993,12 +1020,13 @@ def main() -> None:
         },
         "clockwork_beetle": {
             "size": list(beetle.size), "frame": [BEETLE_W, BEETLE_H],
-            "frames": BEETLE_FRAMES, "depth": 3,
+            "frames": BEETLE_FRAMES, "depth": 4,
+            "visual_planes": 3,
             "layout": "left-facing column followed by mirrored right-facing column",
         },
         "clockwork_storm_strider": {
             "size": list(strider.size), "frame": [STRIDER_W, STRIDER_H],
-            "frames": STRIDER_FRAMES, "depth": 3,
+            "frames": STRIDER_FRAMES, "depth": 4,
             "layout": "right-facing column followed by mirrored left-facing column",
         },
     }

@@ -72,11 +72,13 @@ overlap an enemy or two beetles approach the same screen edge.
 Please look for sprite flicker, apparent size changes, foot sliding, tearing,
 collision errors, camera jumps and parallax glitches.
 
-Two non-interactive Clockwork Storm Striders are included as static render
-proofs: one on a raised platform and one on the floor. They do not patrol,
-damage Sparkpaw or absorb shots yet. Check their grounding and watch for stale
-64x64 pixels while moving them on/off screen, firing across them and restarting
-the level. Music and menus remain outside this milestone.
+Two non-interactive Clockwork Storm Striders patrol independently: one starts
+on a raised platform and one on the floor. The raised Strider pauses in two
+cyan compression stages at its right endpoint, jumps to the adjacent lower
+floor, lands and recovers before resuming patrol. They do not damage Sparkpaw
+or absorb shots yet. Check grounding, the complete jump and stale 64x64 pixels
+while moving them on/off screen and restarting the level. Music remains outside
+this milestone.
 """
 
 
@@ -151,7 +153,9 @@ def make_adf() -> Path:
     env["PYTHONPATH"] = str(amitools)
     command = [
         sys.executable, "-m", "amitools.tools.xdftool", "-f", str(adf),
-        "format", "SparkpawM2A", "DOS0", "+", "boot", "install",
+        # FFS is native to the target A1200 and recovers enough per-file data
+        # blocks for the appended 64x64 Phase 5D traversal frames.
+        "format", "SparkpawM2A", "DOS1", "+", "boot", "install",
     ]
     for directory in ("S", "assets", "assets/runtime"):
         command.extend(("+", "makedir", directory))

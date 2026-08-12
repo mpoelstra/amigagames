@@ -12,6 +12,22 @@
 #define STRIDER_WALK_PHASE_DISTANCE 768
 #define STRIDER_WALK_FRAMES 8
 #define STRIDER_TURN_FRAMES 6
+#define STRIDER_COMPRESS_START_FRAME 18
+#define STRIDER_COMPRESS_CHARGED_FRAME 19
+#define STRIDER_FLIGHT_FRAME 20
+#define STRIDER_DESCENT_FRAME 21
+#define STRIDER_LANDING_FRAME 22
+#define STRIDER_RECOVERY_FRAME 23
+#define STRIDER_TELEGRAPH_STAGE_FRAMES 6
+#define STRIDER_LANDING_HOLD_FRAMES 5
+#define STRIDER_RECOVERY_HOLD_FRAMES 7
+#define TRAVERSAL_NONE 0
+#define TRAVERSAL_COMPRESS_START 1
+#define TRAVERSAL_COMPRESS_CHARGED 2
+#define TRAVERSAL_FLIGHT 3
+#define TRAVERSAL_LANDING 4
+#define TRAVERSAL_RECOVERY 5
+#define INVALID_TRAVERSAL_LINK 255
 #define RESPAWN_MIN_FRAMES 250
 #define RESPAWN_FRAME_RANGE 251
 struct EnemySpawnState {
@@ -42,7 +58,7 @@ static UWORD randomBelow(UWORD limit)
 static BOOL spawnRuntimeReady(UBYTE spawnIndex,UBYTE type)
 {
     if(type==ENEMY_TYPE_CLOCKWORK_BEETLE) return TRUE;
-    /* Phase 5C.2 renders only the two required static proof placements. */
+    /* Keep the optional third Strider gated until its runtime load is tested. */
     return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&spawnIndex<8;
 }
 
@@ -75,8 +91,118 @@ static void initializeSpawnState(struct EnemySpawnState *state,
     enemy->active=TRUE;
     enemy->facingLeft=enemy->vx<0;
     enemy->spawnIndex=spawnIndex; enemy->type=spawn->type;
+    enemy->traversalLink=INVALID_TRAVERSAL_LINK;
     state->selected=preserveSelection?selected:TRUE;
     state->loadedSlot=INVALID_SPAWN;
+}
+
+static const struct EnemyTraversalLink *traversalLinkForEnemy(
+    const struct Enemy *enemy,UBYTE *linkIndex)
+{
+    const struct EnemyTraversalLink *links;
+    UWORD count,index;
+    links=levelEnemyTraversalLinks(&count);
+    for(index=0;index<count;index++)
+        if(links[index].spawnIndex==enemy->spawnIndex) {
+            *linkIndex=(UBYTE)index;
+            return &links[index];
+        }
+    return NULL;
+}
+
+static BOOL startTraversalIfReady(struct Enemy *enemy)
+{
+    const struct EnemyTraversalLink *link;
+    UBYTE linkIndex;
+    WORD x=(WORD)(enemy->x>>8);
+    link=traversalLinkForEnemy(enemy,&linkIndex);
+    if(!link||enemy->traversalLink!=INVALID_TRAVERSAL_LINK||
+       (link->launchDirection<0)!=(enemy->vx<0)||
+       x<link->launchLeft||x>link->launchRight) return FALSE;
+    enemy->resumeVX=enemy->vx;
+    enemy->vx=0; enemy->vy=0;
+    enemy->traversalLink=linkIndex;
+    enemy->traversalState=TRAVERSAL_COMPRESS_START;
+    enemy->traversalTimer=STRIDER_TELEGRAPH_STAGE_FRAMES;
+    enemy->animFrame=STRIDER_COMPRESS_START_FRAME;
+    return TRUE;
+}
+
+static void updateTraversal(struct Enemy *enemy)
+{
+    const struct EnemyTraversalLink *links,*link;
+    UWORD count;
+    WORD nextY,x;
+    links=levelEnemyTraversalLinks(&count);
+    if(enemy->traversalLink>=count) {
+        enemy->traversalState=TRAVERSAL_NONE;
+        enemy->traversalLink=INVALID_TRAVERSAL_LINK;
+        return;
+    }
+    link=&links[enemy->traversalLink];
+    if(enemy->traversalState==TRAVERSAL_COMPRESS_START) {
+        enemy->animFrame=STRIDER_COMPRESS_START_FRAME;
+        if(!--enemy->traversalTimer) {
+            enemy->traversalState=TRAVERSAL_COMPRESS_CHARGED;
+            enemy->traversalTimer=STRIDER_TELEGRAPH_STAGE_FRAMES;
+            enemy->animFrame=STRIDER_COMPRESS_CHARGED_FRAME;
+        }
+        return;
+    }
+    if(enemy->traversalState==TRAVERSAL_COMPRESS_CHARGED) {
+        enemy->animFrame=STRIDER_COMPRESS_CHARGED_FRAME;
+        if(!--enemy->traversalTimer) {
+            enemy->traversalState=TRAVERSAL_FLIGHT;
+            enemy->vx=link->launchVX; enemy->vy=link->launchVY;
+            enemy->jumpY=((LONG)enemy->y)<<8;
+            enemy->facingLeft=enemy->vx<0;
+            /* Keep the complete authored route eligible for camera parking
+               while the actor is between its source and destination. */
+            if(link->destination.left<enemy->patrolLeft)
+                enemy->patrolLeft=link->destination.left;
+            if(link->destination.right>enemy->patrolRight)
+                enemy->patrolRight=link->destination.right;
+        }
+        return;
+    }
+    if(enemy->traversalState==TRAVERSAL_FLIGHT) {
+        enemy->x+=enemy->vx;
+        enemy->vy+=link->gravity;
+        enemy->jumpY+=enemy->vy;
+        nextY=(WORD)(enemy->jumpY>>8);
+        enemy->y=nextY;
+        enemy->animFrame=enemy->vy<0?STRIDER_FLIGHT_FRAME:
+                                      STRIDER_DESCENT_FRAME;
+        x=(WORD)(enemy->x>>8);
+        if(enemy->vy>=0&&x>=link->landingLeft&&x<=link->landingRight&&
+           enemy->y>=link->destination.groundY-STRIDER_H) {
+            enemy->y=(WORD)(link->destination.groundY-STRIDER_H);
+            enemy->jumpY=((LONG)enemy->y)<<8;
+            enemy->vx=0; enemy->vy=0;
+            enemy->traversalState=TRAVERSAL_LANDING;
+            enemy->traversalTimer=STRIDER_LANDING_HOLD_FRAMES;
+            enemy->animFrame=STRIDER_LANDING_FRAME;
+        }
+        return;
+    }
+    if(enemy->traversalState==TRAVERSAL_LANDING) {
+        enemy->animFrame=STRIDER_LANDING_FRAME;
+        if(!--enemy->traversalTimer) {
+            enemy->traversalState=TRAVERSAL_RECOVERY;
+            enemy->traversalTimer=STRIDER_RECOVERY_HOLD_FRAMES;
+            enemy->animFrame=STRIDER_RECOVERY_FRAME;
+        }
+        return;
+    }
+    enemy->animFrame=STRIDER_RECOVERY_FRAME;
+    if(!--enemy->traversalTimer) {
+        enemy->patrolLeft=link->destination.left;
+        enemy->patrolRight=link->destination.right;
+        enemy->vx=enemy->resumeVX;
+        enemy->facingLeft=enemy->vx<0;
+        enemy->walkTick=0; enemy->animFrame=0;
+        enemy->traversalState=TRAVERSAL_NONE;
+    }
 }
 
 static void generateLevelEnemies(ULONG seed)
@@ -213,6 +339,10 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
     BOOL patrolEnd,blocked;
     UWORD phaseDistance=enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?
         STRIDER_WALK_PHASE_DISTANCE:WALK_PHASE_DISTANCE;
+    if(enemy->traversalState) {
+        updateTraversal(enemy);
+        return;
+    }
     if(enemy->dying) {
         enemy->animFrame=(UBYTE)(10+(20-enemy->deathTimer)/5);
         if(!--enemy->deathTimer) enemy->active=FALSE;
@@ -230,6 +360,8 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
         }
         return;
     }
+    if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&
+       startTraversalIfReady(enemy)) return;
     nextX=(WORD)((enemy->x+enemy->vx)>>8);
     front=nextX+(enemy->vx<0?footInset:width-1-footInset);
     patrolEnd=front<enemy->patrolLeft||front>=enemy->patrolRight;

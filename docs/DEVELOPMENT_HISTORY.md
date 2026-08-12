@@ -1616,6 +1616,82 @@ longer-level work in the same change. Phase 5E then broadens traversal across
 gaps/water; Phase 6 remains the agreed 2048px/eight-screen level experiment and
 greybox after the second enemy's current-world behaviour is complete.
 
+#### Phase 5D implementation checkpoint (13 August 2026)
+
+The first narrow traversal link is now implemented for the required raised-
+platform Strider. Level data owns the source spawn, right-facing launch zone,
+destination patrol surface, landing window and fixed 8.8 launch/gravity values.
+The enemy module consumes that record through explicit compression-start,
+compression-charged, flight, landing and recovery states. It does not search
+collision pixels for a destination or add generic pathfinding. On recovery the
+Strider adopts the authored lower-floor surface and resumes its original
+randomized grounded patrol speed.
+
+The packed Strider contract expands from 18 to 24 frames. Accepted walk slots
+0..7 and planted turn slot 8 are unchanged; combat-response reservations
+9..17 remain untouched. Appended slots 18..23 contain deterministic cyan-
+signalled compression, flight/descent and planted landing/recovery poses derived
+from the accepted palette and silhouette. The renderer still uses the same
+type-specific packed cache, camera culling, stored restore rectangle and line-
+253 synchronized restore/draw pass.
+
+`EnemySpawnState` already persists the complete runtime `Enemy` value. The new
+fixed-point vertical accumulator, velocity, resume speed, traversal phase,
+timer and link identity therefore survive runtime-slot parking with no renderer
+special case. During flight the stored patrol envelope temporarily covers both
+authored surfaces so activation/unloading uses the complete link extent.
+
+Host trajectory checks proved every integer launch origin in the authored
+360..364 window lands inside x=416..419 after 55-56 flight frames. The Bob top
+never rises above logical y=6, avoiding the existing world-bound cull. Native
+`make` succeeds. FS-UAE and real-hardware verification remain outstanding;
+Phase 5D is not accepted until MrDig supplies the runtime result.
+
+The first supplied Phase 5D FS-UAE screenshot/report showed that the jump itself
+appeared correct and the Strider resumed its lower-floor patrol, but that patrol
+then visibly crossed the low platform beginning at x=496. This was not a failed
+ballistic or Bob restore: grounded safety probes inspect the planted-foot region,
+so an overhead/torso-height solid does not block the current local patrol code.
+Keep generic full-body obstruction handling and alternate traversal choices in
+Phase 5E. For the Phase 5D proof, narrow only the authored destination surface
+from `{416,640,208}` to `{416,496,208}`. Its existing inset leading-foot probe
+then reverses before the 64px body overlaps the platform. The jump parameters,
+landing window, renderer and collision map remain unchanged. A focused FS-UAE
+regression is required before accepting the phase.
+
+The next FS-UAE report confirmed that the x=496 right turn now prevents the low-
+platform overlap. It also showed the consequence of retaining destination left
+bound 416: the inset left-foot probe reversed at the right edge of the original
+raised platform, even though its underside ends at y=143 and the floor Strider's
+logical top is y=144. The route should visibly continue beneath that valid
+clearance. Extend only the authored left bound to 300. With the 12px left-foot
+inset, the actor's left edge reaches x=288 and no farther, stopping at the solid
+column occupying x=256..287. The right bound remains 496. This gives a useful
+floor patrol beneath the start platform without generic body collision, new
+links or geometry changes; focused FS-UAE regression remains required.
+
+MrDig's final Phase 5D FS-UAE report accepted the corrected local result: after
+landing the Strider turns before the low platform, then continues left beneath
+its original raised platform. Phase 5D is therefore accepted in FS-UAE. No real-
+hardware verification has been supplied.
+
+The longer-term traversal target was clarified at acceptance. Striders should
+eventually seem to run and jump throughout a richer level in both directions,
+entering the viewport naturally from either side and continuing after Sparkpaw
+jumps over them. The camera must control only rendering/detail, never create or
+terminate the route. Full Bob rendering and expensive local collision may be
+skipped far offscreen, but a cheap world-space simulation must retain surface,
+link, position, direction and state; full simulation resumes before entry into
+the visible region. Phase 5E should express this as stable authored surface IDs
+and bidirectional links with offscreen, blocked and missed-landing rules—not
+camera-edge spawning or arbitrary pixel pathfinding.
+
+Appending six full 64x64 masked source frames exceeded the nearly full DOS0
+release disk during `make release`. The bootable ADF now uses DOS1/FFS, which is
+native to the A1200 target and stores file data more efficiently; its executable
+and runtime payload remain identical to the HD archives. The release tool still
+verifies the 901120-byte image, boot block, executable and startup sequence.
+
 Phase 5A and 5B were first implemented as an asset-only, reviewable step. The
 initial runtime contract used a 48x40 cell, eighteen frames and three HP. Frame
 order is alert idle, weight shift, four run phases, two compression phases,

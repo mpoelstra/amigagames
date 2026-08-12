@@ -9,15 +9,16 @@
 #define ENEMY_SOURCE_WORDS 3
 #define STRIDER_W 64
 #define STRIDER_H 64
-#define STRIDER_FRAMES 18
+#define STRIDER_FRAMES 24
 #define STRIDER_SOURCE_WORDS 5
 #define MAX_ENEMIES 4
 
 struct Enemy {
-    LONG x,vx;
+    LONG x,vx,vy,jumpY,resumeVX;
     WORD y,drawnX,drawnY,patrolLeft,patrolRight;
     UWORD walkTick;
     UBYTE animFrame,health,hitTimer,deathTimer,turnTimer,spawnIndex,type,drawnType;
+    UBYTE traversalState,traversalTimer,traversalLink;
     BOOL active,drawn,facingLeft,dying;
 };
 

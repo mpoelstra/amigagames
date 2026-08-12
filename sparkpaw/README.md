@@ -68,6 +68,22 @@ attacks, hurt and destruction are still reserved follow-up work. Their cool
 navy/violet/blue armour and cyan energy identity deliberately avoid the warm
 orange palette shared by Sparkpaw and the beetles.
 
+Phase 5D adds one deliberately authored traversal proof to the required raised-
+platform Strider. At the platform's right launch zone it stops for two cyan
+compression stages, follows one fixed ballistic arc to the adjacent lower
+floor, lands in a planted pose and recovers before adopting the destination
+patrol surface. That floor route stops at the next low-platform face so the
+64px body does not pass through it, while extending left beneath the clear
+underside of its original platform and stopping before the next column. The link
+and trajectory are test-level data, so later level art and geometry can replace
+them without redesigning the AI.
+Runtime slots 0..17
+retain their accepted/reserved meanings; traversal poses are appended in slots
+18..23. Complete jump state survives camera-slot parking. The first FS-UAE
+observation exposed a destination overlap; follow-up tests accepted the corrected
+jump, low-platform turn and patrol beneath the original platform. Real-hardware
+review remains open.
+
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
@@ -106,8 +122,8 @@ This regenerates planar runtime assets and builds the native executable
 - `dist/Sparkpaw-Milestone2A-A1200.adf`
 - `dist/Sparkpaw-Milestone2A-Source.zip`
 
-The ADF contains `S/startup-sequence` and boots directly into exactly the
-same executable and asset files as the HD release.
+The DOS1/FFS ADF contains `S/startup-sequence` and boots directly into exactly
+the same executable and asset files as the HD release.
 
 Run `make bench` to build the isolated `sparkpaw-renderbench`. This small
 program validates the dual-playfield foundation before it is allowed back
@@ -143,7 +159,9 @@ including on accelerated systems. Both screens share one 64-colour palette.
   containing safe position ranges, authored `{left,right,groundY}` patrol
   surfaces, initial direction and persistence policy; four beetle encounters
   are required and two are optional. Two required and one optional Strider
-  record share the same bounded runtime-slot activation model
+  record share the same bounded runtime-slot activation model. One explicit
+  Phase 5D traversal link records its launch zone, destination surface, landing
+  zone and fixed ballistic parameters separately from the enemy AI
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
   impact state and hit dispatch; packed plasma rendering remains with the
   renderer-sensitive code in `renderer.c`
@@ -168,8 +186,8 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `assets/concept/`: full-resolution concept art and AGA preview conversions
 - `assets/sprites/`: prototype animation art and named frame metadata
 - `assets/enemies/`: native-resolution enemy art, preview and frame metadata
-  (including the 64x64, eighteen-frame upright Clockwork Storm Strider palette
-  proof and preserved earlier concept/scale review sources)
+  (including the historical eighteen-frame upright Strider palette proof, the
+  current 24-frame runtime contract and preserved concept/scale review sources)
 - `assets/sfx/previews/`: WAV previews for later milestones
 - `sfx/raw/`: signed 8-bit mono Paula-ready samples; the current build uses the
   energy-shot, player-hurt, enemy-hit and jump samples and reserves the others
@@ -208,6 +226,17 @@ at an authored patrol endpoint—never between walk frames. Walk them on and off
 screen, trigger life-loss/right-edge resets and watch for stale 64x64 Bob
 pixels. They must not yet damage Sparkpaw or absorb shots. Beetle behaviour
 must remain unchanged.
+
+For Phase 5D, follow the raised-platform Strider until it reaches the right
+launch zone. Verify two distinct compression holds, a continuous cyan-signalled
+arc that remains wholly visible, an exact lower-floor landing, planted recovery
+and only then resumed grounded patrol. Confirm that it now turns before the low
+platform at x=496 instead of walking through it, then walks left beneath its
+original x=320..415 platform and turns before the x=288 column. Move the camera
+away during telegraph, flight and recovery, then return: each phase must resume
+rather than reset or turn into a walk frame. Recheck life-loss and right-edge
+level replay for stale 64x64 pixels. This phase still adds no Strider combat or
+generic navigation.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent

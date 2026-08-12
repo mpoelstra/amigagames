@@ -27,8 +27,26 @@ static const struct EnemySpawnCandidate enemySpawns[]={
                                             ENEMY_POLICY_RESPAWN,0 }
 };
 
+/* Phase 5D traversal proof. This is deliberately authored test-level data,
+   not permanent geometry: a later level layout may replace these coordinates
+   without changing the Strider state-machine contract. */
+static const struct EnemyTraversalLink enemyTraversalLinks[]={
+    /* The floor patrol runs beneath the clear x=320..415 start platform and
+       stays between the x=288 column face and x=496 low-platform face. Patrol
+       bounds describe the inset leading foot, so left=300 keeps the 64px body
+       at or right of the column. Broader body-aware navigation remains 5E. */
+    { 6,1,360,364,{300,496,208},416,428,256,-1408,64 }
+};
+
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count)
 {
     *count=(UWORD)(sizeof(enemySpawns)/sizeof(enemySpawns[0]));
     return enemySpawns;
+}
+
+
+const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count)
+{
+    *count=(UWORD)(sizeof(enemyTraversalLinks)/sizeof(enemyTraversalLinks[0]));
+    return enemyTraversalLinks;
 }

@@ -172,7 +172,7 @@ Clockwork beetles:
   and airborne shots pass over them.
 - Contact damage, hit/death effects and off-camera respawn are active.
 
-Clockwork Storm Striders (accepted Phase 5C.3):
+Clockwork Storm Striders (accepted through Phase 5D):
 
 - Upright 64x64, four-plane masked Bobs in the shared foreground `FRONT16` bank.
 - Two guaranteed encounters currently patrol a raised platform and a long floor
@@ -188,6 +188,19 @@ Clockwork Storm Striders (accepted Phase 5C.3):
 - Incidental solid/missing-support safety reversals must not select slot 8.
 - Slots 9..17 remain reserved placeholders for later attack/shooting, hurt/hit
   and death. Do not spend them on extra walk interpolation.
+- Slots 18..23 are appended Phase 5D traversal poses: two cyan compression
+  stages, flight, descent, planted landing and recovery. The original 0..17
+  contract is unchanged; the packed cache now contains 24 frames.
+- The required raised-platform Strider owns one explicit, one-way test-level
+  link from its current platform to the adjacent lower floor. Link geometry,
+  launch velocity and gravity live in level data rather than AI code.
+- Complete telegraph, fixed-point ballistic, landing and recovery state is
+  copied into persistent spawn state when a camera slot is parked. Grounded
+  patrol resumes on the authored destination only after recovery.
+- The destination patrol runs beneath the clear underside of its x=320..415
+  start platform and stays between the x=288 column face and x=496 low-platform
+  face. Inset-foot bounds prevent the 64px body crossing either solid without
+  adding the generic body-aware navigation reserved for Phase 5E.
 - Striders are currently non-interactive: they do not yet absorb shots, damage
   Sparkpaw or die/respawn through combat.
 - Logical collision cells remain at their authored Y. Drawing uses the accepted
@@ -195,7 +208,10 @@ Clockwork Storm Striders (accepted Phase 5C.3):
 
 The final Phase 5C.3 FS-UAE test confirmed stable gait, no mid-walk front-pose
 leak and correct endpoint turns for raised and floor Striders. No real-hardware
-test exists.
+test exists. Phase 5D was subsequently accepted from MrDig's supplied FS-UAE
+tests: the Strider performs the authored jump, turns before the low platform and
+then patrols beneath its original raised platform. No real-hardware result has
+been supplied for Phase 5D.
 
 ## Current roadmap
 
@@ -209,27 +225,28 @@ Completed and accepted:
 - Phase 5C.1: typed multi-enemy level data.
 - Phase 5C.2: packed 64x64 Strider Bob integration.
 - Phase 5C.3: raised/floor patrol, accepted eight-frame gait and endpoint turn.
+- Phase 5D: one authored raised-to-floor jump link with persistent traversal
+  state, accepted landing/recovery and safe destination patrol.
 
-### Next: Phase 5D — one authored Strider platform jump link
+### Next: Phase 5E — broader authored Strider traversal
 
-Start with a plan; do not build immediately. Keep the implementation narrow:
+Generalize the accepted 5D proof without turning it into arbitrary pathfinding:
 
-1. define one explicit launch zone and one explicit destination surface;
-2. stop and show a readable two-stage cyan compression telegraph;
-3. execute one fixed, proven ballistic arc;
-4. land at the authored destination and show a planted recovery;
-5. resume grounded patrol only after recovery;
-6. persist the complete jump state through camera-slot parking.
+1. give authored surfaces stable IDs and connect them with explicit links;
+2. support links and traversal in both world directions;
+3. add return links, low/high transitions, gaps and water;
+4. define missed/blocked landing and off-camera transition rules;
+5. keep cheap logical world-space simulation outside the camera and restore
+   complete physics/animation before a Strider enters the visible region;
+6. let Striders appear to roam the whole level from either side without camera-
+   edge spawning, resetting when jumped over or beginning unseen attacks.
 
-Do not combine Phase 5D with generic pathfinding, multiple links, random
-landing inference, gaps/water, combat animation, Strider damage, longer-level
-work or renderer changes. Jump/landing art may require an explicit cache/frame-
-contract expansion because slots 9..17 are reserved for combat responses.
+The camera controls rendering, not route ownership. Do not simulate four Bobs
+offscreen, but preserve route, position, direction and traversal state. Keep
+combat animation/damage and renderer changes separate from this navigation pass.
 
 ### Later phases
 
-- Phase 5E: broaden authored traversal with return links, low/high transitions,
-  gaps and water, including missed/blocked landing and off-camera rules.
 - Strider combat pass: projectile/contact hitboxes, attack/shooting telegraph,
   hurt/hit, death and safe respawn. Preserve reserved slots or deliberately
   expand the cache contract; do not silently alias jump and death frames.
@@ -254,6 +271,10 @@ local beetle-like decoration.
 - Music is pending; define Paula ownership before integration.
 - Game-over presentation and broader checkpoint/progression flow remain pending.
 - Stock 68020/2 MB Chip RAM performance and real-hardware timing remain unproven.
+- ADF-only compression, asset reconstruction and eventual multidisk options are
+  researched but deliberately unimplemented. Preserve the HD path and consult
+  `sparkpaw/docs/ADF_STORAGE_STRATEGY.md` before changing asset formats, release
+  layout, disk I/O or adding a trackloader.
 
 ## Asset and animation rules
 
