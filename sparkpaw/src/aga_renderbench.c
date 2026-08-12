@@ -1,4 +1,4 @@
-/* Sparkpaw bare-metal PAL Copper benchmark: 3+3 dual playfield. */
+/* Sparkpaw bare-metal PAL Copper benchmark: AGA 4+3 dual playfield. */
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <graphics/gfxbase.h>
@@ -22,7 +22,7 @@
  */
 #define FETCH_BYTES 42
 #define COP_WORDS 128
-#define BUILD_ID "2026-08-04-rb13"
+#define BUILD_ID "2026-08-12-rb14-aga-4plus3"
 
 struct GfxBase *GfxBase;
 struct IntuitionBase *IntuitionBase;
@@ -31,7 +31,7 @@ static struct BitMap *frontBM,*rearBM;
 static struct View *oldView;
 static UWORD *cop;
 static UWORD copPos;
-static UWORD ptrValue[6];
+static UWORD ptrValue[7];
 static UWORD scrollValue;
 static UWORD oldDma;
 static UWORD oldIntena;
@@ -66,7 +66,8 @@ static void paint(struct BitMap *bm,BOOL rear)
     } else {
         SetAPen(&rp,2); RectFill(&rp,0,220,BW-1,255);
         for(x=96;x<BW-90;x+=150) {
-            SetAPen(&rp,3+(x/150)%4);
+            /* Pens 8-15 prove that PF1's fourth bitplane is visible. */
+            SetAPen(&rp,8+(x/150)%8);
             RectFill(&rp,x,150-(x%48),x+78,166-(x%48));
         }
     }
@@ -75,18 +76,24 @@ static void paint(struct BitMap *bm,BOOL rear)
 
 static void buildCopper(void)
 {
-    static const UWORD colors[16]={0x001,0x113,0x225,0x447,0x779,0xaac,0xddf,0xfff,
-        0x012,0x124,0x236,0x348,0x45a,0x66b,0x99d,0xccf};
+    static const UWORD colors[32]={
+        /* PF1: transparent plus fifteen deliberately varied foreground pens. */
+        0x001,0x112,0x224,0x346,0x468,0x68a,0x8ac,0xace,
+        0x303,0x515,0x727,0x939,0xb5b,0xd7d,0xf9f,0xfdf,
+        /* PF2: offset to registers 16-23; remaining entries are diagnostics. */
+        0x002,0x013,0x125,0x247,0x449,0x65a,0x97b,0xcbd,
+        0x100,0x210,0x320,0x430,0x540,0x650,0x760,0x870
+    };
     WORD i;
     copPos=0;
     move(0x08e,0x2c81); /* DIWSTRT: PAL line 44, x=129 */
     move(0x090,0x2cc1); /* DIWSTOP: PAL line 300, x=449 */
     move(0x092,0x0030); /* one early word for smooth horizontal scroll */
     move(0x094,0x00d0);
-    move(0x100,0x6600); /* six planes, colour, dual playfield */
+    move(0x100,0x7600); /* seven planes: PF1=4, PF2=3, dual playfield */
     move(0x102,0x0000); scrollValue=copPos-1;
     move(0x104,0x0024);
-    move(0x106,0x0c00); /* AGA PF2 colour-table offset 8 */
+    move(0x106,0x1020); /* AGA border blank; PF2 colour-table offset 16 */
     move(0x108,frontBM->BytesPerRow-FETCH_BYTES);
     move(0x10a,rearBM->BytesPerRow-FETCH_BYTES);
     move(0x10c,0x0000);
@@ -97,7 +104,20 @@ static void buildCopper(void)
     pointer(0x0ec,rearBM->Planes[1],3);
     pointer(0x0f0,frontBM->Planes[2],4);
     pointer(0x0f4,rearBM->Planes[2],5);
-    for(i=0;i<16;i++) move(0x180+i*2,colors[i]);
+    pointer(0x0f8,frontBM->Planes[3],6);
+    /* Load AGA palette registers 0-31 in high- then low-nibble passes. */
+    for(i=0;i<2;i++) {
+        WORD pen;
+        move(0x106,(UWORD)(0x1020|(i<<13)));
+        for(pen=0;pen<16;pen++)
+            move((UWORD)(0x180+pen*2),colors[i*16+pen]);
+    }
+    for(i=0;i<2;i++) {
+        WORD pen;
+        move(0x106,(UWORD)(0x1220|(i<<13)));
+        for(pen=0;pen<16;pen++) move((UWORD)(0x180+pen*2),0);
+    }
+    move(0x106,0x1020);
     cop[copPos++]=0xffff; cop[copPos++]=0xfffe;
 }
 
@@ -120,6 +140,7 @@ static void setScroll(LONG foreground,LONG background)
     setPlanePointer(1,rearBM->Planes[0],bo);
     setPlanePointer(3,rearBM->Planes[1],bo);
     setPlanePointer(5,rearBM->Planes[2],bo);
+    setPlanePointer(6,frontBM->Planes[3],fo);
     cop[scrollValue]=(bf<<4)|ff;
 }
 
@@ -149,7 +170,7 @@ static void writeLog(void)
     FPrintf(file,"Sparkpaw AGA renderbench %s\n",BUILD_ID);
     FPrintf(file,"result=clean-exit exit=%s frames=%ld camera=%ld\n",
         exitedByMouse?"left-mouse":"frame-limit",frameCount,lastCamera);
-    FPrintf(file,"bitmap=%ldx%ld depth=3 rowbytes=%ld/%ld\n",
+    FPrintf(file,"bitmap=%ldx%ld depth=4+3 rowbytes=%ld/%ld\n",
         (LONG)BW,(LONG)H,(LONG)frontBM->BytesPerRow,(LONG)rearBM->BytesPerRow);
     FPrintf(file,"diwstrt=$2c81 diwstop=$2cc1 ddfstrt=$0030 ddfstop=$00d0\n");
     FPrintf(file,"fetch_words=21 fetch_bytes=%ld modulo=%ld/%ld old_dma=$%04lx\n",
@@ -210,7 +231,7 @@ int main(void)
     GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
     IntuitionBase=(struct IntuitionBase *)OpenLibrary("intuition.library",39);
     if(!GfxBase||!IntuitionBase) { restore(); return 5; }
-    frontBM=AllocBitMap(BW,H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    frontBM=AllocBitMap(BW,H,4,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     rearBM=AllocBitMap(BW,H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
     if(!frontBM||!rearBM||!cop) { restore(); return 10; }

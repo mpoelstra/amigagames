@@ -1,6 +1,20 @@
 SPARKPAW AGA RENDER BENCHMARK
 =============================
 
+Experimental branch note (rb14)
+-------------------------------
+
+The `codex/sparkpaw-aga-4plus3-renderbench` branch changes only this isolated
+benchmark from the accepted 3+3 layout to an AGA-native 4+3 dual playfield.
+PF1 uses four odd-numbered bitplanes and pens 0-15; PF2 uses three even-numbered
+bitplanes and AGA `PF2OF=16` so its pens live at 16-23. Bright magenta foreground
+platforms prove that PF1 bitplane four is fetched. Rear geometry must retain its
+independent quarter-speed scroll and separate blue palette.
+
+This is not the game executable and does not contain the player, Strider, HUD or
+gameplay. Test rb14 before any production renderer migration. The accepted
+3+3 game remains recoverable as commit `26b281a` on `main`.
+
 Run sparkpaw-renderbench from its directory. Click the left mouse button to
 exit, or wait approximately one minute.
 

@@ -1691,6 +1691,25 @@ still writes `clockwork-storm-strider-64x64-aga8.png`. This v5 colour/polish
 build awaits FS-UAE judgement specifically for silhouette readability against
 the dark level and perceived quality beside Sparkpaw.
 
+MrDig approved a reversible AGA 4+3 dual-playfield experiment after a focused
+research pass. Important correction: the earlier three-planes-per-playfield
+limit applies to OCS/ECS; AGA Lisa officially supports up to four planes per
+playfield and `BPLCON3.PF2OF` offsets the second playfield into a separate AGA
+palette range. Before experimentation, the complete working 3+3 Phase 5C.2
+state was committed and pushed to `main` as `26b281a` (`Add Sparkpaw static
+Strider render proof`). Recovery means switching back to `main`; no destructive
+rollback or ignored-backup manipulation is required.
+
+The experiment lives only on branch
+`codex/sparkpaw-aga-4plus3-renderbench`. Its first rb14 step changes only
+`src/aga_renderbench.c`: a 672x256 four-plane foreground plus three-plane rear,
+seven interleaved Copper pointers, `BPLCON0=$7600`, `PF2OF=16`, foreground pens
+0-15, rear pens 16-23 and unchanged independent 1:1/1:4 scrolling. Foreground
+test platforms deliberately use pens 8-15 to prove the seventh bitplane. The
+ordinary `sparkpaw` game executable and production `renderer.c` remain the
+accepted 3+3 implementation. Run `make bench` and test `sparkpaw-renderbench`
+separately before migrating any gameplay renderer or assets.
+
 #### Phase 6: levels and progression
 
 Once two enemy types, player damage and respawn are stable, move patrol/spawn
