@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game prototypes
 
-Last updated: 5 August 2026
+Last updated: 12 August 2026
 
 ## Purpose of this file
 
@@ -665,7 +665,9 @@ lens glass, brighter mechanical joints and richer destruction debris. Four
 fixed enemy instances reuse the same packed art cache at separate floor patrols
 across the five-screen test level. They have independent HP, hit and destruction
 state; only instances within the camera plus a 32-pixel margin are drawn.
-Respawning remains deliberately out of scope. Backup before this iteration:
+Individual respawning remains deliberately out of scope. The automatic
+whole-level reset after all four destruction sequences is a test replay
+convenience, not final respawn or level-completion behaviour. Backup before this iteration:
 `backups/Sparkpaw-pre-multi-beetle-polish-20260805.zip`.
 
 ### Agreed roadmap after the four-beetle milestone
@@ -1141,8 +1143,8 @@ impulse and the rule that crawl hurt never queues standing landing frames.
 
 #### Phase 3B: focused gameplay sound effects
 
-This is the recommended next session. Keep it separate from HUD, renderer,
-level-art and enemy-respawn work. First document and implement an explicit
+This phase was implemented separately from HUD, renderer, level-art and
+enemy-respawn work. Its original plan was to document and implement an explicit
 Paula channel/priority policy that preserves the existing rapid energy-shot
 sound and leaves a future music layout possible. Then generate host previews
 and integrate one event at a time in this review order:
@@ -1209,7 +1211,7 @@ The HUD is a dedicated three-plane Copper section rather than an overlay in
 the scrolling world. Its source is the ImageGen-derived
 `assets/concept/sparkpaw-hud-concept-v1.png`; the deterministic host converter
 creates the reviewed eight-colour 320x48 preview, one static 336x48 base,
-seven compact 80x32 health patches and three compact 32x24 lives patches.
+seven compact 80x32 health patches and nine compact 32x24 lives patches.
 `hud.c` owns two 336x48 presentation buffers and patches only stale dynamic
 regions with direct Blitter copies when state changes. Runtime code stages the
 selected buffer's six bitplane pointers during the established line-100
@@ -1244,8 +1246,9 @@ The HUD's `x3` life display is functional rather than decorative. `GameState`
 starts with three total attempts including the current one. Zero health
 decrements the display to `x2` and `x1` while using the established in-memory
 reset. Because `GAME_OVER` remains a separate later state, losing the third
-attempt temporarily begins a fresh `x3` test cycle; completing all four beetles
-also starts a new three-attempt test run. The rejected first asset-backed
+attempt temporarily begins a fresh `x3` test cycle. Completing all four beetles
+performs the temporary whole-level test replay while preserving the current
+lives and diamond count. The rejected first asset-backed
 implementation stored 21 complete HUD combinations and consumed 127,008
 bitmap bytes. The modular replacement uses about 13.4 KiB of loaded planar
 assets plus about 14 KiB for two presentation buffers and the blank companion
@@ -1259,12 +1262,12 @@ The HUD deliberately replaces the concept art's five-heart layout with the
 accepted three hearts per current life and omits the energy bar, weapon value,
 crystal value and gear value until their systems exist. Phase 3C.2 adds the
 safe whole-actor invulnerability blink; game-over remains a later state. The
-50-diamonds-for-one-life rule remains separate from the first collectible
-integration.
+50-diamonds-for-one-life rule is implemented by the completed collectible
+step below.
 
 #### Phase 3D.1: diamond collectibles and modular counter
 
-Twenty fixed 16x24 diamonds occupy a dedicated collectible pool; they do not
+Twenty fixed diamonds occupy a dedicated collectible pool; they do not
 consume any of the four enemy slots. Their 32-pixel padded three-plane source
 supports arbitrary word shifts without reading into the next row. Rendering
 uses the existing synchronized Blitter discipline with camera culling. Reverse
@@ -1275,21 +1278,53 @@ Pickup collision uses the accepted player contact bounds. An inactive but
 previously drawn diamond retains its restore rectangle until the next Bob
 pass. The modular HUD adds one 32x24 patch atlas containing only counter states
 00 through 49; health, lives and the static HUD are not duplicated. `GameState`
-owns the count, and the current test implementation caps it at 49. The proposed
-50-diamonds-for-one-life rule remains deferred. The pickup sound was initially
+owns the count. Collecting the fiftieth diamond changes `49` to `00` and
+increments the life stock; the compact life atlas supports `x1` through `x9`.
+At maximum `x9`, the counter remains at 49 so pickups are not silently consumed
+without a reward. The pickup sound was initially
 deferred until the first visual/collision review.
 
 The second FS-UAE collectible review requested richer concept fidelity,
 animated Superfrog-like readability and clustered placement, while remaining
 original. The pool now uses short trails and arcs above authored collision
 surfaces. The initial rotation was rejected after FS-UAE video showed its
-edge-on phases reading as sparks rather than diamonds. The replacement keeps
-the same complete tall silhouette in all four frames and moves only restrained
-facet highlights. Each item also follows an eight-step, two-pixel vertical
-hover with a per-item phase offset. A host validation checks every complete
-16x24 hover envelope against `storm-collision.bin`; the accepted set has zero
-solid overlaps. The packed source remains word-padded and every frame keeps
-the same Bob area.
+edge-on phases reading as sparks rather than diamonds. A subsequent four-frame
+facet shimmer was also rejected after another FS-UAE video: its changing
+internal planes still read as rotation and looked too thin beside the HUD icon.
+The accepted retest candidate now uses one fixed, broader 16x24 silhouette with
+the HUD's cream contour, bright cyan left face and deep-blue right/lower facets.
+Only an eight-step, two-pixel vertical hover remains, with a per-item phase
+offset. A host validation checks every complete
+hover envelope against `storm-collision.bin`; the accepted set has zero
+solid overlaps. The packed source remains word-padded.
+
+The next FS-UAE screenshot exposed two concrete defects in that candidate:
+foreground pen 7 is violet (not a cyan highlight), and shifted 16-pixel asset
+Bobs could leave cream fragments below the gem through row overread. The world
+diamond now uses only the actual foreground cream/cyan/blue pens 4/5/6 plus a
+dark outline; violet pen 7 is absent. All static collectible X positions are
+word-aligned while retaining their arcs, so the Blitter consumes exactly one
+source word per row with no shifted overread. The complete hover envelopes
+remain collision-free.
+
+That word-alignment restriction alone did not remove the repeated cream shape;
+MrDig supplied another FS-UAE screenshot showing it exactly one collectible
+height below every active gem. Offline SPBM inspection confirmed all padded
+second words were zero on all planes and mask rows, isolating the fault to the
+generic PlanarAsset Blitter path. That path is no longer used for collectibles.
+During renderer preparation the diamond is repacked once into the same exact
+one-word mask plus three one-word plane caches used by the proven plasma and
+beetle approach; gameplay calls `blitMaskedBob()` with sourceWords=1 and the
+exact collectible height. This makes reading past a source row impossible without altering the
+accepted world Bob ordering.
+
+After residue was fixed, MrDig confirmed the world gem still differed in
+orientation, geometry and scale from the HUD icon. The HUD icon is now the
+sole geometry master: the generator copies its exact connected 16x21 pixel
+component at preview coordinates `(207,14)-(223,35)` without scaling or
+redrawing, mapping only HUD pen roles into the gameplay foreground bank. The
+compact Bob cache and pickup height are therefore 21 rows. Full hover-envelope
+collision validation still reports zero solid overlaps.
 
 MrDig's first FS-UAE collectible review confirmed the hurt chirp and safe
 invulnerability blink, but found the counter baseline low, the first diamond
@@ -1301,14 +1336,40 @@ derived from its local platform/column surface. Picking up a diamond now plays
 the original `collect-spark` three-note arcade effect on Paula channel 1 at
 priority 5: it may replace jump but cannot interrupt enemy-hit or player-hurt.
 
-#### Phase 4: beetle respawn through spawn data
+The final Phase 3D.1 FS-UAE review confirmed that the exact HUD-derived
+diamond, gentle vertical hover, clustered placement, pickup sound and HUD
+counter work. A later replay test confirmed the reward boundary: the pickup
+after 49 displays 00 and changes x3 to x4, including across several temporary
+four-beetle level replays. This is user-provided FS-UAE verification; no
+real-hardware verification has been performed.
 
-Implement respawn as a generic enemy-spawn system rather than a beetle-only
-timer. Each level spawn record should identify enemy type, world position,
-patrol/configuration data and respawn policy. On death, deactivate the enemy;
-allow reactivation only after a cooldown and when the spawn point is safely
-outside the camera/player vicinity. The player must not see an enemy pop into
-existence or repeatedly farm one while standing on its spawn point.
+Lessons from this step:
+
+- use one canonical indexed component for repeated icon geometry; copying the
+  HUD diamond proved more reliable than redrawing an approximate world version;
+- a fixed silhouette plus positional hover reads more clearly than rotation or
+  facet animation at 16-pixel scale;
+- validate the complete hover envelope against collision;
+- repack small frequently drawn objects into exact mask/plane caches and pass
+  the exact height to the proven Blitter path; the generic padded path produced
+  a repeated fragment one object-height below the diamond;
+- state logic, generated atlases and release assets form one contract. The
+  first x4 C logic still shipped with the old three-frame, 900-byte lives atlas;
+  regeneration produced the required nine-frame, 2628-byte atlas;
+- keep the test replay isolated: it may preserve lives/diamonds for testing,
+  while future level-complete, checkpoint and new-game transitions define
+  their own persistence rules.
+
+#### Phase 4: generic spawn/level data foundation
+
+Move the four beetle placements into compact generic spawn records before
+adding the second enemy type. Each record should identify enemy type, world
+position, patrol/configuration data and persistence/respawn policy. Preserve
+the current permanent-until-test-replay behaviour first; optional respawn can
+then be added as a policy rather than a beetle-only timer. If enabled,
+reactivate only after a cooldown while the spawn point is safely outside the
+camera/player vicinity. The player must not see an enemy pop into existence or
+repeatedly farm one while standing on its spawn point.
 
 Retain a bounded fixed runtime pool and shared per-type art caches. Do not add
 dynamic allocation or asset loading to the 50-Hz gameplay loop. Make permanent
@@ -1329,6 +1390,12 @@ against dual playfields, player sprites, projectiles and other visible enemies;
 camera culling, shared frames and synchronized Blitter restore/draw remain
 mandatory. Introduce jumping or another major movement behaviour only after
 the basic actor, damage and rendering path is stable.
+
+This is the recommended content milestone after the small Phase 4 foundation.
+Start with a design brief and concept review only: role, silhouette,
+approximate dimensions, HP, contact damage, attack telegraph, collision
+rectangles and maximum simultaneous visibility. Do not combine its first art
+pass with changes to the dual-playfield renderer or HUD.
 
 #### Phase 6: levels and progression
 
@@ -1411,10 +1478,13 @@ per-pixel `setFrontPixel` or CPU byte-compositing hot paths.
   test with rapid fire and camera traversal. Preserve the proven player,
   dual-playfield and synchronized projectile/enemy Blitter paths while fixing
   any observed issue.
-- There are no additional enemy types, player damage loop, HUD, menus, music,
-  collectables or full level progression yet. This remains an engine milestone.
-- Keyboard controls are deferred until after the modularisation milestone;
-  current gameplay input is joystick port 2 only.
+- There is still only one enemy type and no final game-over, checkpoint,
+  music, menus or full level progression. Player damage, the modular HUD,
+  invulnerability feedback, keyboard test controls and diamond collectibles
+  are implemented and user-tested in FS-UAE.
+- The automatic reset after all four beetles is test-only. Replace it with an
+  explicit level-complete transition when real progression is introduced; do
+  not let it implicitly decide what a new level or new game preserves.
 - Fifty-fps smoothness is a hard design goal. Avoid full-frame CPU copying,
   per-pixel inner loops and redrawing static scenery.
 

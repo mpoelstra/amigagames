@@ -53,6 +53,7 @@ static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *enemyMask,*enemyBits;
+static UWORD *diamondMask,*diamondBits;
 
 static void cmove(UWORD reg,UWORD value) { cop[copPos++]=reg; cop[copPos++]=value; }
 
@@ -390,29 +391,25 @@ static void blitMaskedBob(UWORD *mask,UWORD *bits,WORD sourceWords,
     }
 }
 
-static void blitAssetBob(const struct PlanarAsset *asset,WORD sourceY,
-                         WORD width,WORD height,WORD x,WORD y)
+static BOOL buildDiamondPattern(void)
 {
-    UBYTE plane; UWORD shift=(UWORD)(x&15);
-    UWORD words=(UWORD)((width>>4)+(shift?1:0));
-    UWORD sourceWords=(UWORD)(asset->bitmap->BytesPerRow>>1);
-    LONG sourceAt=(LONG)sourceY*asset->bitmap->BytesPerRow;
-    LONG at=(LONG)y*frontDisplay->BytesPerRow+(x>>4)*2;
-    for(plane=0;plane<3;plane++) {
-        platformWaitBlit();
-        hw->bltcon0=(UWORD)((shift<<12)|0x0fca);
-        hw->bltcon1=(UWORD)(shift<<12);
-        hw->bltafwm=0xffff; hw->bltalwm=0xffff;
-        hw->bltamod=(UWORD)((sourceWords-words)*2);
-        hw->bltbmod=(UWORD)((sourceWords-words)*2);
-        hw->bltcmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
-        hw->bltdmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
-        hw->bltapt=asset->mask+sourceAt;
-        hw->bltbpt=asset->bitmap->Planes[plane]+sourceAt;
-        hw->bltcpt=frontDisplay->Planes[plane]+at;
-        hw->bltdpt=frontDisplay->Planes[plane]+at;
-        hw->bltsize=(UWORD)((height<<6)|words);
+    UBYTE plane; WORD x,y;
+    diamondMask=(UWORD *)AllocMem(COLLECTIBLE_H*2,MEMF_CHIP|MEMF_CLEAR);
+    diamondBits=(UWORD *)AllocMem(COLLECTIBLE_H*3L*2,
+                                  MEMF_CHIP|MEMF_CLEAR);
+    if(!diamondMask||!diamondBits) return FALSE;
+    for(y=0;y<COLLECTIBLE_H;y++) for(x=0;x<COLLECTIBLE_W;x++) {
+        UBYTE sourceMask=(UBYTE)(0x80>>(x&7));
+        LONG sourceAt=(LONG)y*diamondSprite->rowBytes+(x>>3);
+        UWORD bit=(UWORD)(0x8000U>>x);
+        UBYTE pen;
+        if(!(diamondSprite->mask[sourceAt]&sourceMask)) continue;
+        pen=pixel(diamondSprite->bitmap,x,y,3);
+        diamondMask[y]|=bit;
+        for(plane=0;plane<3;plane++) if(pen&(1<<plane))
+            diamondBits[(LONG)plane*COLLECTIBLE_H+y]|=bit;
     }
+    return TRUE;
 }
 
 static void restoreCollectibleBobs(void)
@@ -438,11 +435,9 @@ static void drawCollectibleBobs(void)
         item->drawnX=item->x;
         item->drawnY=(WORD)(item->y+
             hover[((game->frameCounter>>2)+index)&7]);
-        blitAssetBob(diamondSprite,
-                     (WORD)(((game->frameCounter>>3)+index)&
-                            (COLLECTIBLE_FRAMES-1))*COLLECTIBLE_H,
-                     COLLECTIBLE_W,COLLECTIBLE_H,
-                     item->drawnX,item->drawnY);
+        blitMaskedBob(diamondMask,diamondBits,1,
+                      COLLECTIBLE_W,COLLECTIBLE_H,
+                      item->drawnX,item->drawnY);
         item->drawn=TRUE;
     }
 }
@@ -530,7 +525,8 @@ BOOL rendererPrepareGameplay(void)
         return FALSE;
     for(p=0;p<3;p++) CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
-    if(!buildEnemyPatterns()||!buildPlasmaPatterns()) return FALSE;
+    if(!buildEnemyPatterns()||!buildPlasmaPatterns()||!buildDiamondPattern())
+        return FALSE;
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
@@ -552,6 +548,8 @@ void rendererCleanup(void)
                           ENEMY_SOURCE_WORDS*3*2);
     if(enemyMask) FreeMem(enemyMask,2L*ENEMY_FRAMES*ENEMY_H*
                           ENEMY_SOURCE_WORDS*2);
+    if(diamondBits) FreeMem(diamondBits,COLLECTIBLE_H*3L*2);
+    if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*2);
     if(frontDisplay) FreeBitMap(frontDisplay);
     assetsUnloadGameplay();
 }

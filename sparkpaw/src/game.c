@@ -59,7 +59,6 @@ void gameUpdate(void)
        system: wait until every destruction sequence has fully completed,
        then reuse the proven zero-health in-memory reset path. */
     if(enemiesAllDefeated()) {
-        game.lives=GAME_START_LIVES;
         resetLevelRuntime();
         audioUpdate();
         return;
@@ -83,7 +82,12 @@ void gameUpdate(void)
                                          playerRight,playerBottom);
         if(picked) {
             UWORD total=(UWORD)game.diamonds+picked;
-            game.diamonds=(UBYTE)(total<50?total:49);
+            while(total>=GAME_DIAMONDS_PER_LIFE&&game.lives<GAME_MAX_LIVES) {
+                total-=GAME_DIAMONDS_PER_LIFE;
+                game.lives++;
+            }
+            game.diamonds=(UBYTE)(total<GAME_DIAMONDS_PER_LIFE?
+                                  total:GAME_DIAMONDS_PER_LIFE-1);
             audioPlayCollect();
         }
     }

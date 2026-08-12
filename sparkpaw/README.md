@@ -39,14 +39,14 @@ grants one second of invulnerability. Dedicated standing and crawl-height
 hurt art is present; the eventual game-over presentation remains a focused
 later step. A full-width fixed HUD band across the bottom now shows the
 existing six health units as three full, half or empty hearts and reserves
-separate framed panels for the active life counter and later collectibles. Original
-player-hurt, enemy-hit and
-accepted-jump effects now share a prioritized Paula gameplay channel;
+separate framed panels for the active life counter and diamonds. Original
+player-hurt, enemy-hit and accepted-jump effects now share a prioritized Paula
+gameplay channel;
 the existing rapid plasma sound remains independently available. Beetles do
 not individually respawn during ordinary play. For rapid testing, reaching
 zero health or completing the fourth beetle's destruction sequence immediately
-resets the player, camera, projectiles and complete four-enemy pool in memory
-without reloading resident level assets. This completion reset is only a test
+resets the player, camera, projectiles, collectibles and complete four-enemy
+pool in memory without reloading resident level assets. This completion reset is only a test
 loop, not the later spawn-data respawn system. Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.
@@ -54,17 +54,20 @@ emulator to leave the current build.
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
-test cycle. Completing all four beetles also starts a fresh three-attempt run.
+test cycle. Completing all four beetles replays the test level while preserving
+the current life stock and diamond count; final level-completion persistence
+will be defined with real progression.
 The HUD is modular rather than a table of complete life/health combinations:
 one static base, compact health and lives patch atlases, and two presentation
 buffers keep updates tear-free. Only a stale dynamic panel is copied with the
 Blitter when its value changes; gameplay never CPU-composites displayed Chip
 RAM. Twenty fixed diamonds form short trails and original arcs across the
-five-screen test level. Four full-silhouette shimmer frames and a gentle
-two-pixel hover animate their camera-culled Bobs. Picking one up
-removes its Bob and increments the compact
-two-digit HUD counter. The counter currently stops at 49; awarding an extra
-life at 50 remains a separate gameplay step.
+five-screen test level. One fixed HUD-matched silhouette and a gentle
+two-pixel hover animate their camera-culled Bobs without rotation. Picking one
+up removes its Bob, plays a short arcade collect effect and increments the
+compact two-digit HUD counter. The fiftieth pickup changes `49` to `00` and
+awards one life. The display supports `x1` through `x9`; at `x9` the counter
+remains at 49 rather than silently consuming unrewarded pickups.
 
 ## Build
 

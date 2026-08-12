@@ -9,8 +9,8 @@ void collectiblesInit(void)
     /* Original arcs and short trails follow the authored collision surfaces.
        Keep screen-local concurrency bounded for later larger-enemy headroom. */
     static const WORD spawnX[MAX_COLLECTIBLES]={
-        140,165,190,215, 264,300, 335,365,395, 515,
-        555,595, 700,740, 860,900,940, 1016,1110,1160
+        144,160,192,208, 256,304, 336,368,400, 512,
+        560,592, 704,736, 864,896,944, 1008,1104,1168
     };
     static const WORD spawnY[MAX_COLLECTIBLES]={
         132,122,122,132, 148,178, 100,90,100, 148,

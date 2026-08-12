@@ -74,7 +74,8 @@ HUD_RUNTIME_PREVIEW = ROOT / "assets" / "concept" / "sparkpaw-hud-aga8-preview.p
 DIAMOND_RUNTIME_PREVIEW = (ROOT / "assets" / "concept" /
                            "sparkpaw-diamond-aga8-preview.png")
 HUD_HEIGHT = 48
-HUD_LIVES = 3
+HUD_LIVES = 9
+HUD_PREVIEW_LIVES = 3
 HUD_X_OFFSET = 2
 HUD_SEPARATOR_H = 2
 HUD_DIAMOND_STATES = 50
@@ -310,44 +311,26 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
 
     preview = base.copy()
     draw_health(preview, 6)
-    draw_lives(preview, HUD_LIVES)
+    draw_lives(preview, HUD_PREVIEW_LIVES)
     draw_diamonds(preview, 0)
     preview.crop((0, 0, 320, HUD_HEIGHT)).save(HUD_RUNTIME_PREVIEW)
     return base, health_atlas, lives_atlas, diamonds_atlas
 
 
 def make_collectible_diamond() -> tuple[Image.Image, bytes]:
-    """Create four full-silhouette concept-style diamond shimmer frames."""
-    # One padded source word supports arbitrary destination shifts without
-    # reading into the next packed row.
-    image=indexed_image((32,96),FRONT8,0)
-    for frame in range(4):
-        draw=ImageDraw.Draw(image); top=frame*24
-        # All frames retain the same unmistakable tall diamond silhouette.
-        draw.polygon(((8,top+1),(15,top+9),(9,top+23),
-                      (1,top+10)),fill=1)
-        draw.polygon(((7,top),(14,top+8),(7,top+22),(0,top+8)),fill=4)
-        draw.polygon(((7,top+2),(2,top+8),(7,top+8)),fill=7)
-        draw.polygon(((7,top+2),(12,top+8),(7,top+8)),fill=6)
-        draw.polygon(((2,top+9),(7,top+9),(7,top+19)),fill=6)
-        draw.polygon(((8,top+9),(12,top+9),(7,top+19)),fill=5)
-        # A restrained four-frame shimmer moves across stable facets.
-        if frame==0:
-            draw.line((3,top+7,7,top+2),fill=4)
-            draw.point((3,top+8),fill=4)
-        elif frame==1:
-            draw.line((5,top+4,8,top+4),fill=4)
-            draw.point((4,top+6),fill=4)
-        elif frame==2:
-            draw.line((7,top+3,7,top+16),fill=7)
-            draw.point((6,top+5),fill=4)
-        else:
-            draw.line((9,top+5,11,top+8),fill=7)
-            draw.point((10,top+6),fill=4)
-    preview=indexed_image((64,24),FRONT8,0)
-    for frame in range(4):
-        preview.paste(image.crop((0,frame*24,16,frame*24+24)),(frame*16,0))
-    preview.save(DIAMOND_RUNTIME_PREVIEW)
+    """Copy the exact 16x21 HUD diamond pixels into the gameplay bank."""
+    hud = Image.open(HUD_RUNTIME_PREVIEW)
+    # This is the connected diamond component in the generated HUD preview.
+    source = hud.crop((207,14,223,35))
+    image=indexed_image((32,21),FRONT8,0)
+    src,dst=source.load(),image.load()
+    # HUD 0/2/4/7 = black/shadow/cream/cyan. Map them directly to the
+    # corresponding gameplay-bank roles; no scaling or geometry redraw.
+    mapping={0:0,2:1,4:4,7:6}
+    for y in range(21):
+        for x in range(16):
+            dst[x,y]=mapping.get(int(src[x,y]),0)
+    image.crop((0,0,16,21)).save(DIAMOND_RUNTIME_PREVIEW)
     return image,bitmap_mask(image)
 
 

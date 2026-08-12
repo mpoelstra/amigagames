@@ -92,7 +92,7 @@ BOOL hudPrepare(void)
        livesAtlas->depth!=HUD_PLANES||diamondsAtlas->depth!=HUD_PLANES||
        base->width!=HUD_W||base->height!=HUD_H||
        healthAtlas->width!=HEALTH_W||healthAtlas->height!=HEALTH_H*HEALTH_STATES||
-       livesAtlas->width!=LIVES_W||livesAtlas->height!=LIVES_H*GAME_START_LIVES||
+       livesAtlas->width!=LIVES_W||livesAtlas->height!=LIVES_H*GAME_MAX_LIVES||
        diamondsAtlas->width!=DIAMONDS_W||
        diamondsAtlas->height!=DIAMONDS_H*DIAMOND_STATES)
         return FALSE;
@@ -127,7 +127,7 @@ void hudSetState(UBYTE health,UBYTE lives,UBYTE diamonds)
 {
     UBYTE next=(UBYTE)(current^1);
     if(health>PLAYER_MAX_HEALTH) health=PLAYER_MAX_HEALTH;
-    if(lives<1||lives>GAME_START_LIVES) lives=GAME_START_LIVES;
+    if(lives<1||lives>GAME_MAX_LIVES) lives=GAME_START_LIVES;
     if(diamonds>=DIAMOND_STATES) diamonds=DIAMOND_STATES-1;
     if(bufferHealth[current]==health&&bufferLives[current]==lives&&
        bufferDiamonds[current]==diamonds) return;

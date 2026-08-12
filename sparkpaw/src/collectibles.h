@@ -4,8 +4,7 @@
 #include <exec/types.h>
 
 #define COLLECTIBLE_W 16
-#define COLLECTIBLE_H 24
-#define COLLECTIBLE_FRAMES 4
+#define COLLECTIBLE_H 21
 #define MAX_COLLECTIBLES 20
 
 struct Collectible {
