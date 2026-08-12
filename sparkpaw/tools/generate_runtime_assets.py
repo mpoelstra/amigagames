@@ -665,46 +665,26 @@ def make_clockwork_beetle() -> tuple[Image.Image, bytes]:
 
 
 def make_clockwork_strider() -> tuple[Image.Image, bytes]:
+    # Production-idle proof only: preserve the accepted rb18 native 64x64
+    # silhouette and remap its RGB colours into the shared FRONT16 bank. Repeat
+    # that one pose across all existing frame slots so cache dimensions and the
+    # 18-frame animation/collision contract remain unchanged until animation is
+    # separately authored and accepted.
     source = Image.open(ROOT / "assets" / "enemies" /
-                        "clockwork-storm-strider-biped-production-v5-transparent.png").convert("RGBA")
-    poses = []
-    for frame in range(STRIDER_FRAMES):
-        cell = grid_cell(source, 6, 3, frame)
-        bounds = cell.getchannel("A").getbbox()
-        if not bounds:
-            raise ValueError(f"empty Strider source cell {frame}")
-        poses.append(cell.crop(bounds))
-
-    # Frames 0-13 share one anatomical scale. The 64-pixel cell lets the tall
-    # upright idle remain larger than Sparkpaw even though compression/launch
-    # poses extend farther vertically. Destruction may only shrink as needed.
-    locomotion_scale = family_scale(poses[:14], 62, 62)
-    cells = []
-    for frame, pose in enumerate(poses):
-        scale = locomotion_scale
-        if frame >= 14:
-            scale = min(scale, 62 / pose.width, 62 / pose.height)
-        width = max(1, round(pose.width * scale))
-        height = max(1, round(pose.height * scale))
-        reduced = pose.resize((width, height), Image.Resampling.LANCZOS)
-        canvas = Image.new("RGBA", (STRIDER_W, STRIDER_H), (0, 0, 0, 0))
-        # Launch/flight/descent retain airborne clearance; every other pose is
-        # grounded against the same opaque-pixel foot baseline.
-        top = (STRIDER_H - height) // 2 if 8 <= frame <= 10 else STRIDER_H - height
-        canvas.alpha_composite(reduced, ((STRIDER_W - width) // 2, top))
-        indexed = indexed_image((STRIDER_W, STRIDER_H), FRONT8, 0)
-        source_pixels, target_pixels = canvas.load(), indexed.load()
-        for y in range(STRIDER_H):
-            for x in range(STRIDER_W):
-                red, green, blue, alpha = source_pixels[x, y]
-                if alpha >= 96:
-                    target_pixels[x, y] = nearest_index(
-                        (red, green, blue), FRONT8, avoid_zero=True)
-        cells.append(indexed)
+                        "clockwork-storm-strider-64x64-aga15-idle-v3.png").convert("RGBA")
+    indexed = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+    source_pixels, target_pixels = source.load(), indexed.load()
+    for y in range(STRIDER_H):
+        for x in range(STRIDER_W):
+            red, green, blue, alpha = source_pixels[x, y]
+            if alpha >= 96:
+                target_pixels[x, y] = nearest_index(
+                    (red, green, blue), FRONT16, avoid_zero=True)
+    cells = [indexed.copy() for _ in range(STRIDER_FRAMES)]
 
     sheet = indexed_image((STRIDER_W * 2, STRIDER_H * STRIDER_FRAMES),
-                          FRONT8, 0)
-    preview = indexed_image((STRIDER_W * STRIDER_FRAMES, STRIDER_H), FRONT8, 0)
+                          FRONT16, 0)
+    preview = indexed_image((STRIDER_W * STRIDER_FRAMES, STRIDER_H), FRONT16, 0)
     for frame, cell in enumerate(cells):
         sheet.paste(cell, (0, frame * STRIDER_H))
         sheet.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
@@ -712,7 +692,7 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
         preview.paste(cell, (frame * STRIDER_W, 0))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "enemies" /
-                 "clockwork-storm-strider-64x64-aga8.png")
+                 "clockwork-storm-strider-64x64-aga15-production-idle.png")
     return sheet, bitmap_mask(sheet)
 
 

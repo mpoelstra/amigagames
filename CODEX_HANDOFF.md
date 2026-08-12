@@ -2093,6 +2093,29 @@ ChipSnake or Futsal instead.
   4+3 production renderer. This accepts the renderer-only migration in FS-UAE;
   no real-hardware verification has been performed. Keep it as a separate
   checkpoint before introducing the rb18 Strider idle into production caches.
+  After fast-forwarding and pushing the accepted renderer to `main` at
+  `c6abb82`, continue the rb18 production-idle proof on
+  `codex/sparkpaw-rb18-strider-production-idle`. It replaces only the visual
+  contents of the existing 18-frame, two-facing 64x64 packed Strider sheet:
+  every slot repeats the accepted rb18 idle remapped into shared FRONT16.
+  Frame count, cache dimensions, static AI, placements, culling, restore/draw
+  order and collision remain unchanged. Do not author animation in this step.
+  In the first production-idle FS-UAE movie, MrDig reported possible glitches
+  during close Sparkpaw/Strider overlap and visible hovering. Frame inspection
+  found no persistent Bob rectangles and confirmed BPLCON2 `$0024` already
+  places all six player sprite channels ahead of PF1/PF2, so do not change the
+  stable priority register on that evidence. The hover is measurable: rb18's
+  last opaque row is 61 while rows 62-63 are transparent inside the retained
+  64px collision cell. Draw Striders at logical y+2 only; restore uses stored
+  drawnY, while physics, placements and collision remain at logical y.
+  The follow-up movie/stills made the first-approach corruption reproducible:
+  a fragment at the Strider's upper-left appears after initialization/reload,
+  disappears after unload/revisit, and returns after the next reload. Root cause
+  is runtime-slot handoff in `activateVisibleSpawns()`: it preserved the prior
+  Bob's drawn flag/X/Y across slot assignment but lost `drawnType`, so a pending
+  64x64 Strider restore could use the replacement spawn's default 32x24 beetle
+  cache. Preserve old `drawnType` alongside X/Y exactly as the level-reset path
+  already does. This keeps restore dimensions tied to what was actually drawn.
 - Phase 3C.2 invulnerability feedback uses safe whole-actor blinking: during
   accepted invulnerability, all six player Copper pointers periodically select
   the existing null sprite. Cached 48-row streams, attached-pair control words

@@ -142,6 +142,7 @@ static void activateVisibleSpawns(WORD cameraX,BOOL allowRestoreSlots)
         LONG bestPriority=0x7fffffffL;
         BOOL wasDrawn=enemies[slot].drawn;
         WORD oldX=enemies[slot].drawnX,oldY=enemies[slot].drawnY;
+        UBYTE oldType=enemies[slot].drawnType;
         if(enemies[slot].active||(!allowRestoreSlots&&wasDrawn)||
            enemies[slot].spawnIndex!=INVALID_SPAWN) continue;
         for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
@@ -160,6 +161,7 @@ static void activateVisibleSpawns(WORD cameraX,BOOL allowRestoreSlots)
         enemies[slot]=spawnStates[bestSpawn].enemy;
         enemies[slot].drawn=wasDrawn;
         enemies[slot].drawnX=oldX; enemies[slot].drawnY=oldY;
+        enemies[slot].drawnType=oldType;
         spawnStates[bestSpawn].loadedSlot=slot;
     }
 }

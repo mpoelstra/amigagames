@@ -542,7 +542,13 @@ static void drawEnemyBob(void)
         struct EnemyBobCache *cache;
         if(!enemy->active||enemy->type>=ENEMY_TYPE_COUNT) continue;
         cache=&enemyCaches[enemy->type];
-        enemy->drawnX=(WORD)(enemy->x>>8); enemy->drawnY=enemy->y;
+        enemy->drawnX=(WORD)(enemy->x>>8);
+        /* The accepted rb18 Strider has transparent source rows 62-63. Its
+           logical 64px collision cell remains grounded at enemy->y+64, while
+           the Bob needs a two-pixel visual offset for row 61 to meet the last
+           free row above that surface. Beetle geometry remains unchanged. */
+        enemy->drawnY=(WORD)(enemy->y+
+            (enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?2:0));
           if(enemy->drawnX+cache->width<(WORD)game->cameraX-32||
               enemy->drawnX>(WORD)game->cameraX+SCREEN_W+32||
            enemy->drawnX<0||enemy->drawnX+cache->width>WORLD_W||
