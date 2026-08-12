@@ -11,6 +11,8 @@
 #define WALK_PHASE_DISTANCE 384
 #define RESPAWN_MIN_FRAMES 250
 #define RESPAWN_FRAME_RANGE 251
+#define STRIDER_W 48
+#define STRIDER_H 40
 
 struct EnemySpawnState {
     struct Enemy enemy;
@@ -37,6 +39,21 @@ static UWORD randomBelow(UWORD limit)
     return limit?(UWORD)(nextRandom()%limit):0;
 }
 
+static BOOL typeRuntimeReady(UBYTE type)
+{
+    return type==ENEMY_TYPE_CLOCKWORK_BEETLE;
+}
+
+static WORD enemyWidthForType(UBYTE type)
+{
+    return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?STRIDER_W:ENEMY_W;
+}
+
+static WORD enemyHeightForType(UBYTE type)
+{
+    return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?STRIDER_H:ENEMY_H;
+}
+
 static void initializeSpawnState(struct EnemySpawnState *state,
                                  const struct EnemySpawnCandidate *spawn,
                                  UBYTE spawnIndex,BOOL preserveSelection)
@@ -48,11 +65,12 @@ static void initializeSpawnState(struct EnemySpawnState *state,
     memset(state,0,sizeof(*state));
     enemy->x=(LONG)(spawn->minX+randomBelow(
         (UWORD)(spawn->maxX-spawn->minX+1)))<<8;
-    enemy->y=spawn->y;
+    enemy->y=(WORD)(spawn->surface.groundY-enemyHeightForType(spawn->type));
     enemy->vx=spawn->initialDirection<0?-speed:speed;
-    enemy->patrolLeft=spawn->patrolLeft;
-    enemy->patrolRight=spawn->patrolRight;
-    enemy->health=2; enemy->active=TRUE;
+    enemy->patrolLeft=spawn->surface.left;
+    enemy->patrolRight=spawn->surface.right;
+    enemy->health=spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?3:2;
+    enemy->active=TRUE;
     enemy->facingLeft=enemy->vx<0;
     enemy->spawnIndex=spawnIndex; enemy->type=spawn->type;
     state->selected=preserveSelection?selected:TRUE;
@@ -62,8 +80,8 @@ static void initializeSpawnState(struct EnemySpawnState *state,
 static void generateLevelEnemies(ULONG seed)
 {
     const struct EnemySpawnCandidate *spawns;
-    UWORD candidateCount,index,optionalCount=0,optionalWanted,optionalPick=0;
-    UWORD optionalIndex=0;
+    UWORD candidateCount,index;
+    UBYTE type;
     randomState=seed?seed:0x53504157UL;
     memset(spawnStates,0,sizeof(spawnStates));
     spawns=levelEnemySpawnCandidates(&candidateCount);
@@ -71,19 +89,28 @@ static void generateLevelEnemies(ULONG seed)
         candidateCount=MAX_LEVEL_ENEMY_SPAWNS;
     spawnCount=(UBYTE)candidateCount;
     for(index=0;index<candidateCount;index++)
-        if(!spawns[index].required) optionalCount++;
-    optionalWanted=randomBelow((UWORD)(optionalCount+1));
-    if(optionalWanted==1) optionalPick=randomBelow(optionalCount);
-    for(index=0;index<candidateCount;index++) {
-        BOOL selected=spawns[index].required;
-        if(!spawns[index].required) {
-            if(optionalWanted==optionalCount||
-               (optionalWanted==1&&optionalIndex==optionalPick)) selected=TRUE;
-            optionalIndex++;
+        spawnStates[index].loadedSlot=INVALID_SPAWN;
+    for(type=0;type<ENEMY_TYPE_COUNT;type++) {
+        UWORD optionalCount=0,optionalWanted,optionalPick=0,optionalIndex=0;
+        for(index=0;index<candidateCount;index++)
+            if(spawns[index].type==type&&!spawns[index].required)
+                optionalCount++;
+        optionalWanted=randomBelow((UWORD)(optionalCount+1));
+        if(optionalWanted&&optionalWanted<optionalCount)
+            optionalPick=randomBelow(optionalCount);
+        for(index=0;index<candidateCount;index++) {
+            BOOL selected;
+            if(spawns[index].type!=type) continue;
+            selected=spawns[index].required;
+            if(!spawns[index].required) {
+                if(optionalWanted==optionalCount||optionalIndex==optionalPick)
+                    selected=optionalWanted!=0;
+                optionalIndex++;
+            }
+            if(selected)
+                initializeSpawnState(&spawnStates[index],&spawns[index],
+                                     (UBYTE)index,FALSE);
         }
-        if(selected) initializeSpawnState(&spawnStates[index],&spawns[index],
-                                          (UBYTE)index,FALSE);
-        else spawnStates[index].loadedSlot=INVALID_SPAWN;
     }
 }
 
@@ -93,25 +120,48 @@ static BOOL spawnNearCamera(const struct Enemy *enemy,WORD cameraX)
            enemy->patrolLeft<=cameraX+SCREEN_W+ACTIVATE_MARGIN;
 }
 
+static LONG spawnPriority(const struct Enemy *enemy,WORD cameraX)
+{
+    WORD center=(WORD)((enemy->patrolLeft+enemy->patrolRight)>>1);
+    WORD screenRight=(WORD)(cameraX+SCREEN_W);
+    LONG distance;
+    if(enemy->patrolRight>=cameraX&&enemy->patrolLeft<=screenRight)
+        return (LONG)(center-cameraX);
+    if(enemy->patrolLeft>screenRight) {
+        distance=(LONG)enemy->patrolLeft-screenRight;
+        return 0x10000L+distance;
+    }
+    distance=(LONG)cameraX-enemy->patrolRight;
+    return 0x20000L+distance;
+}
+
 static void activateVisibleSpawns(WORD cameraX,BOOL allowRestoreSlots)
 {
-    UBYTE spawnIndex,slot;
-    for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
-        struct EnemySpawnState *state=&spawnStates[spawnIndex];
-        if(!state->selected||state->respawnPending||state->exhausted||
-           state->loadedSlot!=INVALID_SPAWN||
-           !spawnNearCamera(&state->enemy,cameraX)) continue;
-        for(slot=0;slot<MAX_ENEMIES;slot++) {
-            BOOL wasDrawn=enemies[slot].drawn;
-            WORD oldX=enemies[slot].drawnX,oldY=enemies[slot].drawnY;
-            if(enemies[slot].active||(!allowRestoreSlots&&wasDrawn)||
-               enemies[slot].spawnIndex!=INVALID_SPAWN) continue;
-            enemies[slot]=state->enemy;
-            enemies[slot].drawn=wasDrawn;
-            enemies[slot].drawnX=oldX; enemies[slot].drawnY=oldY;
-            state->loadedSlot=slot;
-            break;
+    UBYTE slot;
+    for(slot=0;slot<MAX_ENEMIES;slot++) {
+        UBYTE spawnIndex,bestSpawn=INVALID_SPAWN;
+        LONG bestPriority=0x7fffffffL;
+        BOOL wasDrawn=enemies[slot].drawn;
+        WORD oldX=enemies[slot].drawnX,oldY=enemies[slot].drawnY;
+        if(enemies[slot].active||(!allowRestoreSlots&&wasDrawn)||
+           enemies[slot].spawnIndex!=INVALID_SPAWN) continue;
+        for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
+            struct EnemySpawnState *state=&spawnStates[spawnIndex];
+            LONG priority;
+            if(!state->selected||state->respawnPending||state->exhausted||
+               state->loadedSlot!=INVALID_SPAWN||
+               !typeRuntimeReady(state->enemy.type)||
+               !spawnNearCamera(&state->enemy,cameraX)) continue;
+            priority=spawnPriority(&state->enemy,cameraX);
+            if(priority<bestPriority) {
+                bestPriority=priority; bestSpawn=spawnIndex;
+            }
         }
+        if(bestSpawn==INVALID_SPAWN) continue;
+        enemies[slot]=spawnStates[bestSpawn].enemy;
+        enemies[slot].drawn=wasDrawn;
+        enemies[slot].drawnX=oldX; enemies[slot].drawnY=oldY;
+        spawnStates[bestSpawn].loadedSlot=slot;
     }
 }
 
@@ -150,7 +200,8 @@ void enemiesResetPreservingDrawn(ULONG seed)
 
 static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
 {
-    WORD nextX,front,speed;
+    WORD nextX,front,speed,width=enemyWidthForType(enemy->type);
+    WORD height=enemyHeightForType(enemy->type);
     if(enemy->dying) {
         enemy->animFrame=(UBYTE)(5+(20-enemy->deathTimer)/5);
         if(!--enemy->deathTimer) enemy->active=FALSE;
@@ -160,11 +211,11 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
         enemy->hitTimer--; enemy->animFrame=4; return;
     }
     nextX=(WORD)((enemy->x+enemy->vx)>>8);
-    front=nextX+(enemy->vx<0?1:ENEMY_W-2);
+    front=nextX+(enemy->vx<0?1:width-2);
     if(enemy->animFrame>3) enemy->animFrame=0;
-    if(nextX<enemy->patrolLeft||nextX>enemy->patrolRight-ENEMY_W||
-       solidAt(front,enemy->y+ENEMY_H-8)||
-       !solidAt(front,enemy->y+ENEMY_H)) {
+    if(nextX<enemy->patrolLeft||nextX>enemy->patrolRight-width||
+       solidAt(front,enemy->y+height-8)||
+       !solidAt(front,enemy->y+height)) {
         enemy->vx=-enemy->vx;
     } else {
         enemy->x+=enemy->vx;
@@ -216,8 +267,8 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt)
         if(!state->selected||!state->respawnPending) continue;
         if(state->respawnTimer) state->respawnTimer--;
         if(!state->respawnTimer&&
-           (spawns[spawnIndex].patrolRight<cameraX-ACTIVATE_MARGIN||
-            spawns[spawnIndex].patrolLeft>
+           (spawns[spawnIndex].surface.right<cameraX-ACTIVATE_MARGIN||
+            spawns[spawnIndex].surface.left>
                 cameraX+SCREEN_W+ACTIVATE_MARGIN)) {
             initializeSpawnState(state,&spawns[spawnIndex],spawnIndex,TRUE);
         }

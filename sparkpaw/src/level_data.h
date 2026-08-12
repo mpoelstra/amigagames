@@ -4,18 +4,24 @@
 #include <exec/types.h>
 
 #define ENEMY_TYPE_CLOCKWORK_BEETLE 0
+#define ENEMY_TYPE_CLOCKWORK_STORM_STRIDER 1
+#define ENEMY_TYPE_COUNT 2
 
 #define ENEMY_POLICY_PERMANENT 0
 #define ENEMY_POLICY_RESPAWN 1
 
+struct EnemyPatrolSurface {
+    WORD left,right,groundY;
+};
+
 struct EnemySpawnCandidate {
-    WORD minX,maxX,y;
-    WORD patrolLeft,patrolRight;
+    WORD minX,maxX;
+    struct EnemyPatrolSurface surface;
     BYTE initialDirection;
     UBYTE type,policy,required;
 };
 
-#define MAX_LEVEL_ENEMY_SPAWNS 6
+#define MAX_LEVEL_ENEMY_SPAWNS 9
 
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
 

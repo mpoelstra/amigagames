@@ -3,18 +3,28 @@
 static const struct EnemySpawnCandidate enemySpawns[]={
     /* Four required encounters plus two optional floor-safe variations.
        Ranges stay clear of the authored columns at x=256, 640 and 1008. */
-    { 300, 344,184, 286, 392,  1, ENEMY_TYPE_CLOCKWORK_BEETLE,
-                                      ENEMY_POLICY_RESPAWN,1 },
-    { 420, 452,184, 416, 492, -1, ENEMY_TYPE_CLOCKWORK_BEETLE,
-                                      ENEMY_POLICY_RESPAWN,0 },
-    { 535, 592,184, 500, 640, -1, ENEMY_TYPE_CLOCKWORK_BEETLE,
-                                      ENEMY_POLICY_RESPAWN,1 },
-    { 790, 856,184, 752, 900,  1, ENEMY_TYPE_CLOCKWORK_BEETLE,
-                                      ENEMY_POLICY_RESPAWN,1 },
-    { 920, 960,184, 912,1000,  1, ENEMY_TYPE_CLOCKWORK_BEETLE,
-                                      ENEMY_POLICY_RESPAWN,0 },
-    {1080,1152,184,1035,1195, -1, ENEMY_TYPE_CLOCKWORK_BEETLE,
-                                      ENEMY_POLICY_RESPAWN,1 }
+    { 300, 344,{ 286, 392,208},  1, ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    { 420, 452,{ 416, 492,208}, -1, ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,0 },
+    { 535, 592,{ 500, 640,208}, -1, ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    { 790, 856,{ 752, 900,208},  1, ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    { 920, 960,{ 912,1000,208},  1, ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,0 },
+    {1080,1152,{1035,1195,208}, -1, ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+
+    /* Phase 5 authored Strider surfaces. These two required and one optional
+       encounter are persistent level data, but remain runtime-disabled until
+       the type-specific packed Bob consumer is introduced in Phase 5C.2. */
+    { 336, 360,{ 328, 408,128},  1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    { 700, 728,{ 688, 768,144}, -1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    {1090,1136,{1072,1200,160},  1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
+                                            ENEMY_POLICY_RESPAWN,0 }
 };
 
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count)

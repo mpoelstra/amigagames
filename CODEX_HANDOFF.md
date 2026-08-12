@@ -1591,9 +1591,29 @@ cells and maps into the existing eight-colour foreground palette. Review the
 native palette proof in
 `assets/enemies/clockwork-storm-strider-48x40-aga8.png`; the generated packed
 proof is `assets/runtime/clockwork-storm-strider.spbm` (96x720, two directional
-columns, 3 bitplanes plus mask). There is deliberately no runtime consumer,
-spawn record, AI, collision or renderer dispatch for it yet. Phase 5C.1 is the
-next implementation step and must therefore remain a data-model change only.
+columns, 3 bitplanes plus mask). At the end of 5B there was deliberately no
+runtime consumer, spawn record, AI, collision or renderer dispatch for it.
+
+Phase 5C.1 is implemented as a data-model-only step. Level capacity is now nine
+persistent typed encounters: the accepted four required plus two optional
+beetles, followed by two required plus one optional Strider. Optional counts
+are randomized independently per enemy type, yielding 4-6 beetles and 2-3
+Striders without changing the established beetle RNG sequence. Every record
+owns an explicit authored `{left,right,groundY}` patrol surface; runtime Bob-top
+Y is derived from the type height, so raised-platform placement no longer
+depends on beetle dimensions. The Strider records use the real platform tops at
+Y=128, Y=144 and Y=160. Empty active slots choose eligible visible encounters
+first, then encounters ahead of the camera, then those behind it, independent
+of enemy type. Existing off-screen unloading still prevents a visible actor
+from being parked.
+
+Only `ENEMY_TYPE_CLOCKWORK_BEETLE` is marked runtime-ready. The selected
+Strider states therefore remain persistent level data but can never enter an
+active slot in this build; no Strider asset is loaded or drawn, and beetle
+rendering, collision and animation remain unchanged. Phase 5C.2 must remove
+that gate only after type-specific packed-cache preparation and renderer
+dispatch exist, then prove one static ground Strider and one static raised
+platform Strider before AI is enabled.
 
 #### Phase 6: levels and progression
 

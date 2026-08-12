@@ -127,8 +127,11 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
   and damage state; runtime slots retain an explicit link to their spawn record
 - `src/level_data.c` / `src/level_data.h`: compact typed enemy spawn records
-  containing safe position ranges, patrol configuration, initial direction and
-  persistence policy; four encounters are required and two are optional
+  containing safe position ranges, authored `{left,right,groundY}` patrol
+  surfaces, initial direction and persistence policy; four beetle encounters
+  are required and two are optional. Two required and one optional Strider
+  record are prepared but deliberately runtime-disabled until its Bob consumer
+  exists
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
   impact state and hit dispatch; packed plasma rendering remains with the
   renderer-sensitive code in `renderer.c`
