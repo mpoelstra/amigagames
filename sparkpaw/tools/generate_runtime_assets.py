@@ -665,34 +665,51 @@ def make_clockwork_beetle() -> tuple[Image.Image, bytes]:
 
 
 def make_clockwork_strider() -> tuple[Image.Image, bytes]:
-    # Production-idle proof only: preserve the accepted rb18 native 64x64
-    # silhouette and remap its RGB colours into the shared FRONT16 bank. Repeat
-    # that one pose across all existing frame slots so cache dimensions and the
-    # 18-frame animation/collision contract remain unchanged until animation is
-    # separately authored and accepted.
-    source = Image.open(ROOT / "assets" / "enemies" /
-                        "clockwork-storm-strider-64x64-aga15-idle-v3.png").convert("RGBA")
-    indexed = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
-    source_pixels, target_pixels = source.load(), indexed.load()
-    for y in range(STRIDER_H):
-        for x in range(STRIDER_W):
-            red, green, blue, alpha = source_pixels[x, y]
-            if alpha >= 96:
-                target_pixels[x, y] = nearest_index(
-                    (red, green, blue), FRONT16, avoid_zero=True)
-    cells = [indexed.copy() for _ in range(STRIDER_FRAMES)]
+    # Slots 0..7 hold the reviewed rigid mechanical walk and slot 8 the planted
+    # frontal turn. Slots 9..17 deliberately stay idle placeholders so later
+    # attack/shooting, hit/hurt and death retain their reserved budget.
+    def indexed_cell(source: Image.Image) -> Image.Image:
+        bounds = source.getchannel("A").getbbox()
+        opaque_bottom = bounds[3] if bounds else source.height
+        canvas = Image.new("RGBA", (STRIDER_W, STRIDER_H), (0, 0, 0, 0))
+        canvas.alpha_composite(source, ((STRIDER_W - source.width) // 2,
+                                        62 - opaque_bottom))
+        indexed = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+        source_pixels, target_pixels = canvas.load(), indexed.load()
+        for y in range(STRIDER_H):
+            for x in range(STRIDER_W):
+                red, green, blue, alpha = source_pixels[x, y]
+                if alpha >= 96:
+                    target_pixels[x, y] = nearest_index(
+                        (red, green, blue), FRONT16, avoid_zero=True)
+        return indexed
+
+    idle_source = Image.open(ROOT / "assets" / "enemies" /
+                             "clockwork-storm-strider-64x64-aga15-idle-v3.png").convert("RGBA")
+    idle = indexed_cell(idle_source)
+    cells = [idle.copy() for _ in range(STRIDER_FRAMES)]
+    walk_source = Image.open(ROOT / "assets" / "enemies" /
+                             "clockwork-storm-strider-64x64-aga15-walk-rig-v1.png").convert("RGBA")
+    for frame in range(8):
+        cells[frame] = indexed_cell(
+            walk_source.crop((frame * STRIDER_W, 0,
+                              (frame + 1) * STRIDER_W, STRIDER_H)))
+    turn_source = Image.open(ROOT / "assets" / "enemies" /
+                             "clockwork-storm-strider-64x64-aga15-turn-v1.png").convert("RGBA")
+    cells[8] = indexed_cell(turn_source)
 
     sheet = indexed_image((STRIDER_W * 2, STRIDER_H * STRIDER_FRAMES),
                           FRONT16, 0)
-    preview = indexed_image((STRIDER_W * STRIDER_FRAMES, STRIDER_H), FRONT16, 0)
+    preview = indexed_image((STRIDER_W * 8, STRIDER_H), FRONT16, 0)
     for frame, cell in enumerate(cells):
         sheet.paste(cell, (0, frame * STRIDER_H))
         sheet.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
                     (STRIDER_W, frame * STRIDER_H))
-        preview.paste(cell, (frame * STRIDER_W, 0))
+        if frame < 8:
+            preview.paste(cell, (frame * STRIDER_W, 0))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "enemies" /
-                 "clockwork-storm-strider-64x64-aga15-production-idle.png")
+                 "clockwork-storm-strider-64x64-aga15-walk-preview-v1.png")
     return sheet, bitmap_mask(sheet)
 
 

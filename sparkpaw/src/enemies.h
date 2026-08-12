@@ -17,7 +17,7 @@ struct Enemy {
     LONG x,vx;
     WORD y,drawnX,drawnY,patrolLeft,patrolRight;
     UWORD walkTick;
-    UBYTE animFrame,health,hitTimer,deathTimer,spawnIndex,type,drawnType;
+    UBYTE animFrame,health,hitTimer,deathTimer,turnTimer,spawnIndex,type,drawnType;
     BOOL active,drawn,facingLeft,dying;
 };
 

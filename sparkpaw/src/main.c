@@ -83,9 +83,13 @@ int main(void)
            well after that read and well before the next wrap, independent of
            how long the post-display Bob pass takes. */
         rendererUpdateGameplay();
-        while(platformRasterLine()<300) { }
+        /* The Copper switches from frontDisplay to the separate HUD bitmap at
+           hardware line 252 (44+HUD_TOP). Start the synchronized Bob pass on
+           the next line, using the complete remaining PAL blank/HUD window
+           instead of squeezing large 64x64 four-plane Bobs into lines 300..311. */
+        while(platformRasterLine()<253) { }
         rendererDrawGameplayBobs();
-        while(platformRasterLine()>=300) { }
+        while(platformRasterLine()>=253) { }
     }
     return 0;
 }

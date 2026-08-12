@@ -9,6 +9,9 @@
 #define ACTIVATE_MARGIN 96
 #define UNLOAD_MARGIN 32
 #define WALK_PHASE_DISTANCE 384
+#define STRIDER_WALK_PHASE_DISTANCE 768
+#define STRIDER_WALK_FRAMES 8
+#define STRIDER_TURN_FRAMES 6
 #define RESPAWN_MIN_FRAMES 250
 #define RESPAWN_FRAME_RANGE 251
 struct EnemySpawnState {
@@ -206,35 +209,61 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
 {
     WORD nextX,front,speed,width=enemyWidthForType(enemy->type);
     WORD height=enemyHeightForType(enemy->type);
-    if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
-        enemy->vx=0; enemy->animFrame=0; enemy->facingLeft=FALSE;
-        return;
-    }
+    WORD footInset=enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?12:1;
+    BOOL patrolEnd,blocked;
+    UWORD phaseDistance=enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?
+        STRIDER_WALK_PHASE_DISTANCE:WALK_PHASE_DISTANCE;
     if(enemy->dying) {
-        enemy->animFrame=(UBYTE)(5+(20-enemy->deathTimer)/5);
+        enemy->animFrame=(UBYTE)(10+(20-enemy->deathTimer)/5);
         if(!--enemy->deathTimer) enemy->active=FALSE;
         return;
     }
     if(enemy->hitTimer) {
-        enemy->hitTimer--; enemy->animFrame=4; return;
+        enemy->hitTimer--; enemy->animFrame=9; return;
+    }
+    if(enemy->turnTimer) {
+        enemy->animFrame=8;
+        if(!--enemy->turnTimer) {
+            enemy->facingLeft=enemy->vx<0;
+            enemy->animFrame=0;
+            enemy->walkTick=0;
+        }
+        return;
     }
     nextX=(WORD)((enemy->x+enemy->vx)>>8);
-    front=nextX+(enemy->vx<0?1:width-2);
-    if(enemy->animFrame>3) enemy->animFrame=0;
-    if(nextX<enemy->patrolLeft||nextX>enemy->patrolRight-width||
-       solidAt(front,enemy->y+height-8)||
-       !solidAt(front,enemy->y+height)) {
+    front=nextX+(enemy->vx<0?footInset:width-1-footInset);
+    patrolEnd=front<enemy->patrolLeft||front>=enemy->patrolRight;
+    blocked=solidAt(front,enemy->y+height-8)||
+            !solidAt(front,enemy->y+height);
+    if(enemy->animFrame>=(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?
+                          STRIDER_WALK_FRAMES:4))
+        enemy->animFrame=0;
+    if(patrolEnd||blocked) {
         enemy->vx=-enemy->vx;
+        /* Only authored patrol extrema own the visible planted turn. A solid
+           or missing-support safety probe may still reverse movement, but it
+           must not flash slot 8 at an incidental point inside the route. */
+        if(patrolEnd&&
+           enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
+            enemy->turnTimer=STRIDER_TURN_FRAMES;
+            enemy->animFrame=8;
+        }
     } else {
         enemy->x+=enemy->vx;
         speed=(WORD)(enemy->vx<0?-enemy->vx:enemy->vx);
         enemy->walkTick=(UWORD)(enemy->walkTick+speed);
-        if(enemy->walkTick>=WALK_PHASE_DISTANCE) {
-            enemy->walkTick=(UWORD)(enemy->walkTick-WALK_PHASE_DISTANCE);
-            enemy->animFrame=(UBYTE)((enemy->animFrame+1)&3);
+        if(enemy->walkTick>=phaseDistance) {
+            enemy->walkTick=(UWORD)(enemy->walkTick-phaseDistance);
+            if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER)
+                /* Wrap inside the walk family immediately. Letting 7 become
+                   8 exposed the reserved front-turn pose for one game frame
+                   before the next update corrected it back to zero. */
+                enemy->animFrame=(UBYTE)((enemy->animFrame+1)&7);
+            else
+                enemy->animFrame=(UBYTE)((enemy->animFrame+1)&3);
         }
     }
-    enemy->facingLeft=enemy->vx<0;
+    if(!enemy->turnTimer) enemy->facingLeft=enemy->vx<0;
 }
 
 void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt)

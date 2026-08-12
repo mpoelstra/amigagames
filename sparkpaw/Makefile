@@ -64,6 +64,8 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/sprites/sparkpaw-run-compact-v3-transparent.png \
 	assets/sprites/sparkpaw-jump-refinement-v5-transparent.png \
 	assets/enemies/clockwork-storm-strider-64x64-aga15-idle-v3.png \
+	assets/enemies/clockwork-storm-strider-64x64-aga15-walk-rig-v1.png \
+	assets/enemies/clockwork-storm-strider-64x64-aga15-turn-v1.png \
 	assets/sprites/sparkpaw-motion-refinement-v3-transparent.png \
 	assets/sprites/sparkpaw-turn-refinement-v4-transparent.png \
 	assets/sprites/sparkpaw-idle-refinement-v3-transparent.png \

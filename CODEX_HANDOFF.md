@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game prototypes
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 
 ## Purpose of this file
 
@@ -1578,6 +1578,29 @@ guarantees. The renderer remains capped at four active enemy slots. The first
 Phase 5 implementation includes only the Strider; do not also implement the
 Sentinel or change gameplay colour depth, dual-playfield timing or HUD.
 
+Phase 5C.3 is accepted in FS-UAE as of 13 August 2026. Two guaranteed Striders
+patrol an authored raised platform and a long floor route, with one optional
+third encounter retained in level data. Runtime slots 0..7 contain the accepted
+eight-frame rigid mechanical gait; slot 8 is the planted premium front turn,
+shown for six frames only at an authored patrol extremum. The decisive final
+fix wraps walk advancement directly from frame 7 to frame 0 (`&7`), preventing
+the reserved turn frame from leaking into normal locomotion. MrDig confirmed
+that both walking and endpoint turns are now correct. The synchronized Bob pass
+begins at hardware line 253 after the existing line-252 HUD switch; this timing
+fix eliminated the earlier first-approach/reload corruption without changing
+the line-100 Copper staging or restore/draw order. No real-hardware validation
+has been supplied. Slots 9..17 remain reserved placeholders: later work still
+needs explicit Strider shooting/attack, hurt/hit and death animation/behaviour.
+
+The next implementation step is **Phase 5D**, one authored platform jump link.
+Keep it narrow: add an explicit launch trigger and destination surface, a clear
+two-stage compression telegraph, one fixed ballistic arc, a planted landing and
+recovery before patrol resumes. Persist that state through camera parking. Do
+not add generic pathfinding, multiple links, gaps/water, combat animations or
+longer-level work in the same change. Phase 5E then broadens traversal across
+gaps/water; Phase 6 remains the agreed 2048px/eight-screen level experiment and
+greybox after the second enemy's current-world behaviour is complete.
+
 Phase 5A and 5B were first implemented as an asset-only, reviewable step. The
 initial runtime contract used a 48x40 cell, eighteen frames and three HP. Frame
 order is alert idle, weight shift, four run phases, two compression phases,
@@ -2132,11 +2155,192 @@ ChipSnake or Futsal instead.
   Amiga level 1. This is a world-space AI/path decision, not a camera-bound
   animation trigger. Preserve simulation outside the visible 320px viewport;
   camera culling may skip Bob drawing but must not itself stop or reverse AI.
+- Level 1 must eventually contain real discontinuities in the ground: open gaps
+  and/or visible water hazards rather than one continuous safe floor. Those
+  hazards must be represented in collision/level data, not faked as decoration.
+  Sparkpaw must traverse them through authored platforming, while Strider AI
+  must detect an unsafe leading edge and later choose a valid jump trajectory;
+  neither actor may walk invisibly across water or unsupported empty space.
 - Do not implement that complete navigation in the first animation step. First
   author and accept a four-frame grounded walk cycle on the existing raised
   platform, with stable foot baseline and animation distance coupled to actual
   velocity. Then allow continuous patrol through the viewport without automatic
   defeat. Add edge/gap sensing and authored jump arcs as a separate later phase.
+- The first four-frame production walk candidate is now wired into Strider
+  frame slots 0..3. All four poses use one family scale and opaque-row baseline;
+  frames 4..17 deliberately retain the accepted idle until their own art pass.
+  The old static-AI return is removed, so the existing fixed-point patrol code
+  supplies randomized speed, distance-coupled animation and safe reversal at
+  current platform edges. This is only the grounded animation/patrol proof:
+  it does not yet implement persistent offscreen traversal or jumping gaps and
+  water. Require an FS-UAE animation/grounding regression before acceptance.
+  The first FS-UAE movies showed a disconnected fragment beside the hand in
+  the generated walk source and an over-busy cadence at the fastest randomized
+  velocity. Clean each chroma-keyed pose to its principal connected silhouette
+  and use a Strider-specific 768-subpixel frame distance (beetles retain 384).
+  This changes neither Strider velocity nor the renderer/cache contract.
+  The corrected movie confirmed that cleanup and slower cadence, but also made
+  the underlying four-pose gait defect clear: one leg repeatedly led while the
+  other merely joined it. Replace slots 0..3 with a complete eight-frame
+  alternating cycle in slots 0..7: right contact/down/pass/toe-off followed by
+  left contact/down/pass/toe-off. Feet and knees must visibly cross during both
+  passing phases. Slots 8..17 retain idle and the packed 18-frame contract.
+  The next FS-UAE movie accepted the gait improvement but exposed two proof-data
+  limitations. The authored patrol ranges were only 80px and 88px wide for a
+  64px actor, leaving merely 16px/24px of travel. Expand the first raised route
+  to its complete platform and the second to the long safe continuous floor,
+  while using inset planted-foot probes instead of the full transparent 64px
+  cell edge. Turning must no longer mirror an airborne walk pose instantly:
+  reserve frame 8 for a centered, both-feet-planted pivot and pause there for
+  eight game frames before resuming the opposite-facing walk. This is still
+  local safe-surface patrol; persistent traversal and gap/water jumps remain a
+  separate later navigation phase.
+  MrDig accepted the longer routes and planted pivot directionally, but the
+  fast floor Strider exposed a second gait-art issue: the eight frames still
+  held the hips low and both knees deeply flexed, producing a stiff crouched
+  shuffle despite correct leg alternation. Do not add interpolation frames to
+  that flawed motion. Replace the eight-frame source with a taller athletic
+  walk: longer heel-to-toe stride, near-straight support leg, visibly high
+  passing foot, subtle acceptance dip and toe-off rise, opposing arm swing and
+  stable head mass. Preserve slots, baseline, cadence, turn frame and AI.
+  The next FS-UAE movie improved posture but retained an obvious motion jerk.
+  Native-frame measurement showed identical row-61 baselines and only 0.5px
+  horizontal centre variation, excluding generator alignment and Bob restore.
+  The discontinuity is pose timing, most visible at frame 7 wrapping to 0.
+  Upgrade the closed gait to twelve frames (six phases per leg), adding
+  mid-stance and pre-contact transitions so frame 11 flows into frame 0 and
+  frame 5 into frame 6. Move the already accepted planted pivot unchanged to
+  slot 12; keep the total packed cache at 18 frames and leave AI/routes intact.
+  MrDig's two follow-up FS-UAE movies rejected that twelve-frame candidate: it
+  was less natural and introduced another mid-cycle jerk. Root cause is not
+  frame count or Bob alignment but inconsistent whole-pose generation. Unlike
+  Sparkpaw's coherent eight-frame run family, independently generated Strider
+  poses subtly change joint geometry and mass. Reject/remove the twelve-frame
+  source and restore the better upright eight-frame v3 candidate, retaining the
+  accepted pivot, patrol routes and foot probes. Two further full-sheet ImageGen
+  attempts were rejected before integration (one introduced chromakey-conflict
+  green details and identity drift; the other reverted to shuffling and failed
+  opposite-half symmetry). Do not keep iterating whole AI-generated sheets.
+  The next art step must use fixed-part/rig-based sprite authoring or deliberate
+  native-pixel edits with a local looping preview before game integration.
+  IMG_2762 confirms the restored eight-frame v3 source still has a mid-cycle
+  silhouette glitch and anatomically reads as a dance. Inspection found that
+  some limbs are disconnected in source cells and `keep_main_component()` then
+  correctly—but undesirably—removes them as residue. Fixing cleanup alone does
+  not fix the inconsistent anatomy. A first separate native 64x64 rig audition
+  locks the accepted torso and uses exact opposite-half leg coordinates; it
+  proves deterministic symmetry/no missing parts but its newly drawn legs are
+  too schematic for production and must not enter runtime. Until detailed limb
+  art exists, repeat accepted idle in walk slots 0..7 while keeping movement,
+  longer routes, planted pivot slot 8 and foot probes. This intentionally glides
+  rather than presenting the rejected dance as finished animation.
+  IMG_2763 showed that idle-only sliding made the otherwise accepted isolated
+  front pivot read as a one-frame glitch: side-idle abruptly became frontal and
+  back while no surrounding gait supported that motion. Remove the pivot from
+  this temporary baseline as well and repeat the accepted side-idle across all
+  18 runtime slots. Keep movement/routes/foot probes, but present no unfinished
+  animation. The separate schematic rig preview confused review and is not a
+  deliverable; remove it and its helper before continuing. Future walk and turn
+  must be reviewed together as one polished local loop before reintegration.
+  The static-baseline retest still showed first-approach/reload corruption only
+  on the first raised Strider; the later floor Strider remained stable. With
+  every runtime frame now byte-identical, this excludes animation art. Preserve
+  old drawnType/X/Y restore as before, and additionally mark every newly
+  initialized or slot-assigned enemy `needsPrime`. During the existing Blitter
+  restore phase, after old enemy/collectible restores and before any Bob draws,
+  copy that new actor's complete destination rectangle from `frontClean` once.
+  This is a synchronized Blitter restore, not CPU RMW. Clear the flag afterward;
+  normal per-frame restore/draw ordering remains unchanged. Require the exact
+  first approach, revisit and level-reload FS-UAE regression again.
+  IMG_2769 rejects that prime-restore experiment: raised Strider corruption is
+  substantially worse, sometimes losing half the upper body, while the later
+  floor Strider remains stable. Remove `needsPrime` and the extra restore call
+  immediately. Do not retain this experiment. The stronger failure is evidence
+  that added 64x64 Blitter work aggravates the underlying timing/bandwidth issue
+  rather than cleaning stale destination pixels. Audit post-line-300 workload
+  and the scene-specific number/height of simultaneous Bobs before another fix.
+  That audit found the concrete timing error: the Copper stops reading
+  `frontDisplay` at its existing HUD switch on hardware line 252
+  (`44+HUD_TOP`), but the CPU withheld every Bob restore/draw until line 300.
+  This left only about twelve PAL raster lines before wrap, formerly adequate
+  for small beetles/projectiles but not reliable for moving 64x64 four-plane
+  Striders. Begin the unchanged synchronized Bob pass at line 253 and wait for
+  wrap with the same threshold. This recovers roughly 47 safe lines without
+  changing the line-100 Copper staging, line-252 HUD switch, buffers, cache
+  format, Blitter ordering or gameplay. Retest raised/floor Striders under the
+  static all-idle baseline before restoring any animation.
+  MrDig completed that FS-UAE regression: first raised-Strider approach, later
+  return and level reload no longer show corruption; the floor Strider remains
+  stable. Accept line 253 as the corrected Bob-pass start. No real-hardware
+  verification exists. The reason corruption seemed to appear during animation
+  work is that shifted 64px Bobs can require five destination words per row and
+  the heavier scene crossed the old line-300 budget intermittently; changing
+  silhouettes made missing background bands resemble bad animation frames.
+  The all-idle baseline exposed the renderer fault unambiguously. Preserve this
+  accepted timing checkpoint before any new locomotion art is integrated.
+  The next offline high-resolution leg-rig audition uses the existing 1254px
+  premium idle source, never newly generated whole poses. It locks the complete
+  upper body and rotates cropped thigh/shin/foot pieces around fixed joints,
+  deriving the second half from the same geometry. The first resulting native
+  sheet preserves original detail and has no missing pieces, but its stride is
+  too small and pelvis overlap seams remain visually unsettled. Keep it offline
+  under `build/strider-leg-rig-audition`; do not integrate or ask MrDig to test
+  it yet. Refine masks and four master phases locally, then add arms/turn only
+  after the leg-only loop reads naturally.
+  Reserve the current 18-frame Strider budget explicitly: at most slots 0..7
+  walk, slot 8 planted turn, and slots 9..17 for hit/hurt and death. Do not
+  consume those combat slots with extra walk interpolation. Jump/landing art
+  will likely require a deliberate later cache-contract expansion rather than
+  aliasing death frames. The offline rig must use connected hip-knee-ankle
+  target chains; independently rotating pieces around their original fixed
+  coordinates recreates the small-stride overlap problem.
+  The chained-segment/cap attempt closed gaps but became too noisy at 64x64.
+  Prefer a rigid mechanical-leg audition: retain each complete premium leg as
+  one uninterrupted detailed source piece, rotate it modestly at the hip, and
+  derive the opposite half-cycle symmetrically. Add only subtle complete-arm
+  swing beneath locked shoulder/torso pixels. Quantify adjacent alpha-silhouette
+  deltas, including the wrap, and tune the two half-cycles toward comparable
+  changes. Remove all soft green-key fringe before judging native pixels. This
+  remains offline and does not alter the reserved 9 combat/death slots.
+  The first testable replacement is now `walk-rig-v1`: eight symmetric rigid-
+  leg poses authored from the accepted premium source, quantized through the
+  exact production `FRONT16` bank before review. Passing poses remain slightly
+  asymmetric instead of collapsing both legs into one neutral silhouette, and
+  adjacent alpha deltas are substantially more even. Runtime slots 0..7 use
+  this loop; slot 8 stays the accepted side idle until a planted turn is ready;
+  slots 9..17 remain untouched idle placeholders reserved for later shooting,
+  hurt/hit and death work. This is an asset-only locomotion test: renderer,
+  line-253 synchronized Bob pass, gameplay routes and collisions are unchanged.
+  MrDig accepted `walk-rig-v1` as consistent and worth continuing: it reads as
+  a deliberately stiff, heavy mechanical gait rather than a human walk. Add a
+  six-frame stationary turnaround at patrol edges/walls. Runtime slot 8 uses a
+  planted premium front pose at the same 56px actor height and line-62 foot
+  baseline; retain the old facing while it is displayed, then flip facing,
+  reset the walk phase and launch from frame 0. Slots 9..17 remain reserved for
+  later shooting, hurt/hit and death animation. This small enemy-state change
+  does not modify the synchronized renderer or its accepted line-253 timing.
+  Follow-up movies plus the broad slot-8 control build show those apparent
+  glitches were brief front-pose appearances, not corrupt walk/cache frames:
+  replacing slot 8 with a side pose removed the effect while all eight walk
+  frames remained stable. Restore the premium planted front pose, but enforce
+  one selection contract: only the exact velocity-sign reversal caused by a
+  patrol edge, wall or missing next foot support may enter slot 8. Ordinary
+  walking selects slots 0..7 exclusively; retain old facing throughout the
+  six-frame hold, expose new facing only on expiry, reset walk phase and leave.
+  A frame-by-frame FS-UAE check then proved slot 8 could still appear around
+  the visual middle of a route: the code grouped authored patrol extrema with
+  incidental solid/missing-support probes, so every safety reversal received
+  the same visible turn. Split those causes. Only `front < patrolLeft` or
+  `front >= patrolRight` may enter slot 8; a wall/support safety reversal stays
+  in the 0..7 side loop. The authored patrol extrema already match the visible
+  platform ends, so the premium front pose is now reserved for those ends.
+  The definitive remaining one-frame leak was simpler and independent of turn
+  detection: Strider walk advancement used `animFrame+1`, so walk frame 7
+  became reserved frame 8 for one update; only the following update's guard
+  reset it to zero. Wrap the increment immediately with `&7`. The explicit
+  turn state is consequently the sole writer of frame 8. This explains the
+  repeatable mid-route flash on both raised and floor Striders while their real
+  endpoint turns remained correct.
 - The supplied YouTube URL could only be inspected through a short browser
   preview in this session, not downloaded or measured frame-by-frame. Treat
   MrDig's stated behaviour above as the authoritative design target; do not

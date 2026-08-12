@@ -56,13 +56,17 @@ Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.
 
-Phase 5C.2 also places two non-interactive Clockwork Storm Strider render
-proofs: one frozen in idle on a raised platform and one frozen on the floor.
-They deliberately have no patrol, projectile hitbox or contact damage yet.
-This isolates validation of their 64x64 packed Bob cache, type-specific
-culling and background restoration from the later AI/collision step. Their
-cool navy/violet/blue armour and cyan energy identity deliberately avoid the
-warm orange palette shared by Sparkpaw and the beetles.
+Phase 5C.3 places two guaranteed Clockwork Storm Striders—one on a raised
+platform and one on the floor—with one optional third encounter in the level
+data. They patrol independently at randomized speeds using an eight-frame
+rigid mechanical gait. At each authored patrol extremum they stop briefly in a
+planted frontal turn pose, then resume from walk frame zero in the opposite
+direction. Their 64x64 four-plane Bobs share one packed cache and retain the
+accepted camera culling and synchronized background restore/draw pipeline.
+They remain non-interactive in this step: projectile hitboxes, contact damage,
+attacks, hurt and destruction are still reserved follow-up work. Their cool
+navy/violet/blue armour and cyan energy identity deliberately avoid the warm
+orange palette shared by Sparkpaw and the beetles.
 
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
@@ -132,14 +136,14 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `src/platform_amiga.c` / `src/platform_amiga.h`: graphics-library lifetime,
   custom-chip takeover/restore, raster reads and the required Blitter wait;
   Copper construction and concrete rendering commands remain in `renderer.c`
-- `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
-  and damage state; runtime slots retain an explicit link to their spawn record
+- `src/enemies.c` / `src/enemies.h`: fixed enemy pool, typed patrol AI, Strider
+  walk/turn state, hit detection and damage state; runtime slots retain an
+  explicit link to their spawn record
 - `src/level_data.c` / `src/level_data.h`: compact typed enemy spawn records
   containing safe position ranges, authored `{left,right,groundY}` patrol
   surfaces, initial direction and persistence policy; four beetle encounters
   are required and two are optional. Two required and one optional Strider
-  record are prepared but deliberately runtime-disabled until its Bob consumer
-  exists
+  record share the same bounded runtime-slot activation model
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
   impact state and hit dispatch; packed plasma rendering remains with the
   renderer-sensitive code in `renderer.c`
@@ -196,12 +200,14 @@ Crouching changes posture without enlarging
 the character. More in-between poses can be added without changing the DMA
 renderer.
 
-For the Phase 5C.2 proof, verify that exactly two static Striders appear: a
-raised-platform instance in the early level and a floor instance farther
-right. Walk both on and off screen repeatedly, fire plasma across them and
-trigger a life-loss or right-edge reset. They must remain visually anchored,
-must not damage Sparkpaw or absorb shots yet, and must leave no stale 64x64 Bob
-pixels. Beetle behaviour should remain unchanged.
+For Phase 5C.3, verify a raised-platform Strider early in the level and a long-
+route floor Strider farther right; a third authored Strider is optional per
+level selection. Their eight-frame gait should remain mechanical and stable at
+all randomized speeds. The frontal pose may appear only when direction changes
+at an authored patrol endpoint—never between walk frames. Walk them on and off
+screen, trigger life-loss/right-edge resets and watch for stale 64x64 Bob
+pixels. They must not yet damage Sparkpaw or absorb shots. Beetle behaviour
+must remain unchanged.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent
