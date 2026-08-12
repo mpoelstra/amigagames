@@ -2116,6 +2116,31 @@ ChipSnake or Futsal instead.
   64x64 Strider restore could use the replacement spawn's default 32x24 beetle
   cache. Preserve old `drawnType` alongside X/Y exactly as the level-reset path
   already does. This keeps restore dimensions tied to what was actually drawn.
+  MrDig confirmed the corrected first pass, unload/revisit and level-reload
+  cases in FS-UAE. Commit `26a2510` (`Integrate premium Strider production
+  idle`) is merged and pushed on `main`; no real-hardware verification exists.
+
+### Strider traversal target (ThunderCats level-1 reference)
+
+- The intended large-enemy behaviour is not beetle-style local decoration.
+  A Strider is a persistent traversal threat: once engaged it may walk through
+  the complete visible viewport and continue beyond either edge. Simply jumping
+  over it must not kill, despawn, freeze or reset it. The player may defeat it
+  or use level geometry/platforms to pass it while it continues its route.
+- Later navigation should let Striders jump over gaps/water and between valid
+  surfaces in the spirit of the larger enemies in the referenced ThunderCats
+  Amiga level 1. This is a world-space AI/path decision, not a camera-bound
+  animation trigger. Preserve simulation outside the visible 320px viewport;
+  camera culling may skip Bob drawing but must not itself stop or reverse AI.
+- Do not implement that complete navigation in the first animation step. First
+  author and accept a four-frame grounded walk cycle on the existing raised
+  platform, with stable foot baseline and animation distance coupled to actual
+  velocity. Then allow continuous patrol through the viewport without automatic
+  defeat. Add edge/gap sensing and authored jump arcs as a separate later phase.
+- The supplied YouTube URL could only be inspected through a short browser
+  preview in this session, not downloaded or measured frame-by-frame. Treat
+  MrDig's stated behaviour above as the authoritative design target; do not
+  invent exact ThunderCats timings or distances without better source evidence.
 - Phase 3C.2 invulnerability feedback uses safe whole-actor blinking: during
   accepted invulnerability, all six player Copper pointers periodically select
   the existing null sprite. Cached 48-row streams, attached-pair control words
