@@ -5,17 +5,17 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "assets/enemies/clockwork-storm-strider-premium-idle-source.png"
+SOURCE = ROOT / "assets/enemies/clockwork-storm-strider-premium-color-idle-source-v2.png"
 OUTPUT = ROOT / "assets/runtime/renderbench-strider-idle.raw"
-PREVIEW = ROOT / "assets/enemies/clockwork-storm-strider-64x64-aga15-idle-v2.png"
+PREVIEW = ROOT / "assets/enemies/clockwork-storm-strider-64x64-aga15-idle-v3.png"
 W = H = 64
 
 # Must match rb16's PF1 colours exactly. Pen zero is transparent.
 PALETTE = [
-    (0, 0, 17), (10, 8, 18), (25, 25, 48), (37, 43, 82),
-    (49, 61, 119), (58, 81, 164), (62, 112, 204), (51, 204, 238),
-    (77, 35, 105), (105, 48, 145), (137, 66, 178), (176, 91, 205),
-    (93, 130, 190), (151, 178, 218), (221, 225, 232), (255, 244, 198),
+    (0, 0, 17), (9, 10, 24), (18, 27, 54), (32, 47, 86),
+    (55, 55, 65), (101, 98, 103), (163, 157, 158), (229, 225, 219),
+    (67, 29, 100), (112, 45, 157), (166, 77, 218), (210, 139, 246),
+    (0, 112, 170), (0, 207, 239), (201, 246, 255), (224, 35, 104),
 ]
 
 

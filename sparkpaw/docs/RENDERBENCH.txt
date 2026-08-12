@@ -43,6 +43,11 @@ Rb17c removes three disconnected source clusters on row 62 beneath the two
 otherwise continuous soles. Row 61 is now the deliberate final opaque row and
 the pose moves to y=146 so that row, not the discarded fragments, meets ground.
 
+Rb18 keeps that accepted silhouette/baseline and tests the final colour
+direction: fewer near-duplicate blues, separate neutral-steel and violet armour
+ramps, restrained cyan energy pens and one magenta warning pen. This remains a
+single static art proof and does not begin the production renderer migration.
+
 Run sparkpaw-renderbench from its directory. Click the left mouse button to
 exit, or wait approximately one minute.
 

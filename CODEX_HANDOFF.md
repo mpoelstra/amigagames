@@ -2062,6 +2062,12 @@ ChipSnake or Futsal instead.
   A closer rb17b screenshot revealed three remaining disconnected clusters on
   source row 62 beneath the continuous soles on row 61. Rb17c clears rows
   62-63 and places the proof at y=146, making row 61 the explicit contact row.
+  Rb17c was accepted from a user-supplied FS-UAE screenshot. Commit `25daed8`
+  on `codex/sparkpaw-aga-4plus3-renderbench` is the pushed recovery checkpoint.
+  Rb18 is the final idle colour-direction proof: retain the rb17c geometry but
+  allocate the 15 visible pens to navy shadows, neutral steel, storm violet,
+  cyan/ice energy and one magenta warning accent. Validate this native-size
+  pose before any 4-plane production migration or animation generation.
 - Phase 3C.2 invulnerability feedback uses safe whole-actor blinking: during
   accepted invulnerability, all six player Copper pointers periodically select
   the existing null sprite. Cached 48-row streams, attached-pair control words
