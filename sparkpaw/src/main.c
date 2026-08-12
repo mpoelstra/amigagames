@@ -32,6 +32,8 @@ static BOOL loadLevelFiles(void)
 int main(void)
 {
     enum AppState state=APP_BOOT;
+    struct DateStamp levelTime;
+    ULONG enemySeed;
     BOOL loadingShown;
     BOOL platformReady=platformOpen();
     state=APP_TITLE_LOADING;
@@ -51,7 +53,10 @@ int main(void)
         cleanup(); return 10;
     }
     titleWaitFrames(225);
-    gameInit();
+    DateStamp(&levelTime);
+    enemySeed=(ULONG)levelTime.ds_Days*86400UL+
+              (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
+    gameInit(enemySeed^0x53504157UL);
     state=APP_LEVEL_LOADING;
     loadingShown=titleShowLevelLoading();
     if(!loadingShown||!loadLevelFiles()||!titleShowLevelCharging()||

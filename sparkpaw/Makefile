@@ -10,10 +10,10 @@ CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 BENCH_TARGET = sparkpaw-renderbench
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c \
-	src/enemies.c src/game.c src/platform_amiga.c src/player.c src/projectiles.c \
+	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
 HEADERS = src/assets.h src/audio.h src/collision.h src/collectibles.h src/enemies.h src/game.h src/hud.h \
-	src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h
+	src/level_data.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \

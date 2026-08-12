@@ -12,16 +12,16 @@
 struct Enemy {
     LONG x,vx;
     WORD y,drawnX,drawnY,patrolLeft,patrolRight;
-    UBYTE animFrame,health,hitTimer,deathTimer;
+    UWORD walkTick;
+    UBYTE animFrame,health,hitTimer,deathTimer,spawnIndex,type;
     BOOL active,drawn,facingLeft,dying;
 };
 
 typedef BOOL (*EnemySolidAt)(WORD x,WORD y);
 
-void enemiesInit(void);
-void enemiesResetPreservingDrawn(void);
-void enemiesUpdate(LONG frameCounter,EnemySolidAt solidAt);
-BOOL enemiesAllDefeated(void);
+void enemiesInit(ULONG seed);
+void enemiesResetPreservingDrawn(ULONG seed);
+void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt);
 BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot);
 BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
                           WORD *enemyCenterX);

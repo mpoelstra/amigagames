@@ -39,12 +39,14 @@ Controls
 Joystick port 2: left/right to run, up to jump and fire to shoot. Every fire
 press launches a fast blue/cyan plasma pulse; rapid tapping supports several
 pulses in flight. Hold down to crouch; combine down with left/right to
-crouch-walk, and press fire to shoot from a dedicated low pose. Four low
-clockwork beetles patrol separate parts of the test level. Only crouch-shots
+crouch-walk, and press fire to shoot from a dedicated low pose. Four guaranteed
+and up to two optional low clockwork beetles patrol separate parts of the test
+level with bounded position and speed variation. Only crouch-shots
 can hit them; fire twice to destroy each one. Beetle contact removes one of
 six internal half-heart health units, applies knockback and plays a short hurt
-effect. After the fourth beetle's complete destruction sequence, the current
-test level resets in memory so it can be replayed without rebooting.
+effect. Destroyed beetles can return indefinitely after a cooldown once their
+patrol zone is safely off-screen. Reaching the far-right world edge resets the
+current test level in memory so it can be replayed without rebooting.
 A fixed full-width HUD band at the bottom shows the six health units as three
 full, half or empty hearts. The Sparkpaw-head counter starts at x3, decreases on
 each zero-health reset and temporarily cycles to x3 after the third loss until
@@ -70,9 +72,9 @@ overlap an enemy or two beetles approach the same screen edge.
 Please look for sprite flicker, apparent size changes, foot sliding, tearing,
 collision errors, camera jumps and parallax glitches.
 
-This milestone intentionally contains no random enemy spawning, music or
-menus. It validates one complete enemy
-vertical slice and the first focused gameplay sound-effect integration.
+This milestone intentionally contains no second enemy type, music or menus.
+It validates bounded randomized beetle encounters, unlimited safe off-screen
+respawn and the first focused gameplay sound-effect integration.
 """
 
 

@@ -311,6 +311,14 @@ void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom)
     *top=y+(player.crouching?20:7); *bottom=y+38;
 }
 
+BOOL playerReachedWorldRight(WORD worldRight)
+{
+    WORD x=(WORD)(player.x>>FIX_SHIFT);
+    /* Use the proven solid collision edge. The narrower contact-damage box
+       stops two pixels short and can therefore never reach the world wall. */
+    return x+HIT_RIGHT>=worldRight;
+}
+
 static BOOL playerShowsLowPose(void)
 {
     UBYTE frame=player.animFrame;

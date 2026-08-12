@@ -4,11 +4,11 @@ Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
 This is a deliberately small but real engine test. It validates the risky
-parts before broader enemy variety, player damage, music and level progression
-are added: a native AGA dual-playfield display, two independently
+parts before broader enemy variety, music and level progression are added: a
+native AGA dual-playfield display, two independently
 hardware-scrolled five-screen world layers, a fluid 15-colour hardware-sprite
 player, joystick input, solid platform collision, plasma projectiles and a
-four-instance clockwork-beetle vertical slice.
+bounded clockwork-beetle vertical slice.
 
 ## Target
 
@@ -30,8 +30,11 @@ four-instance clockwork-beetle vertical slice.
 
 Each separate fire press launches a fast blue/cyan plasma pulse from
 Sparkpaw's right-hand gauntlet. Up to six pulses can remain in flight, so the
-weapon responds to rapid tapping. Four low clockwork beetles patrol separate
-sections of the test level. Standing and airborne shots deliberately pass over
+weapon responds to rapid tapping. Four guaranteed and up to two optional low
+clockwork beetles patrol safe authored zones; their exact X positions and
+48/96/192 movement speeds vary on each complete test replay. Their independent
+walk cadence follows the selected speed. Standing and
+airborne shots deliberately pass over
 them: crouch and fire twice to destroy each one through a hit reaction and
 four-stage destruction sequence. Contact with an active beetle now removes one
 of six internal half-heart health units, applies brief knockback/input lock and
@@ -42,21 +45,23 @@ existing six health units as three full, half or empty hearts and reserves
 separate framed panels for the active life counter and diamonds. Original
 player-hurt, enemy-hit and accepted-jump effects now share a prioritized Paula
 gameplay channel;
-the existing rapid plasma sound remains independently available. Beetles do
-not individually respawn during ordinary play. For rapid testing, reaching
-zero health or completing the fourth beetle's destruction sequence immediately
-resets the player, camera, projectiles, collectibles and complete four-enemy
-pool in memory without reloading resident level assets. This completion reset is only a test
-loop, not the later spawn-data respawn system. Mouse exit is disabled because clean Workbench
+the existing rapid plasma sound remains independently available. Destroyed
+beetles receive a five-to-ten-second cooldown and can respawn indefinitely only
+after their complete patrol zone is safely outside the camera. Returning through
+earlier level areas therefore creates fresh encounters. Reaching the far-right
+world edge temporarily resets the player, camera, projectiles, collectibles and
+enemy encounter state in memory without reloading resident level assets. This
+right-edge replay stands in for the later `LEVEL_COMPLETE -> next level` flow.
+Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.
 
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
-test cycle. Completing all four beetles replays the test level while preserving
-the current life stock and diamond count; final level-completion persistence
-will be defined with real progression.
+test cycle. Reaching the right edge replays the test level while preserving the
+current life stock and diamond count; final level-completion persistence will
+be defined with real progression.
 The HUD is modular rather than a table of complete life/health combinations:
 one static base, compact health and lives patch atlases, and two presentation
 buffers keep updates tear-free. Only a stale dynamic panel is copied with the
@@ -118,18 +123,21 @@ including on accelerated systems. Both screens share one 64-colour palette.
   frame progression and camera state
 - `src/platform_amiga.c` / `src/platform_amiga.h`: graphics-library lifetime,
   custom-chip takeover/restore, raster reads and the required Blitter wait;
-  Copper construction and concrete rendering commands remain in `sparkpaw.c`
+  Copper construction and concrete rendering commands remain in `renderer.c`
 - `src/enemies.c` / `src/enemies.h`: fixed enemy pool, patrol AI, hit detection
-  and damage state; this is the first incremental modularisation boundary
+  and damage state; runtime slots retain an explicit link to their spawn record
+- `src/level_data.c` / `src/level_data.h`: compact typed enemy spawn records
+  containing safe position ranges, patrol configuration, initial direction and
+  persistence policy; four encounters are required and two are optional
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
   impact state and hit dispatch; packed plasma rendering remains with the
-  renderer-sensitive code in `sparkpaw.c`
+  renderer-sensitive code in `renderer.c`
 - `src/collision.c` / `src/collision.h`: collision-map loading and solid-point,
   horizontal-span and vertical-span tile queries shared by gameplay modules
 - `src/player.c` / `src/player.h`: player state, joystick input, shooting,
   movement/physics, the accepted 50-frame baseline and eight appended standing
   and crouched hurt poses; hardware
-  sprite preparation and Copper updates remain in `sparkpaw.c`
+  sprite preparation and Copper updates remain in `renderer.c`
 - `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
   lifetime and cleanup plus a separate early-title lifetime; packed
   hardware-sprite and Bob cache preparation remains in `renderer.c`
@@ -176,14 +184,15 @@ the character. More in-between poses can be added without changing the DMA
 renderer.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
-Four fixed instances share one packed art cache, retain independent HP and
-animation state, and are drawn only near the camera. Their fixed height keeps
+Four to six level instances share one packed art cache and retain independent
+HP and animation state. A bounded four-slot runtime pool activates them near
+the camera and parks their state when safely distant. Their fixed height keeps
 ordinary standing and airborne shots above them, while the domed steel/violet
 shell, round cyan lens and jointed legs follow the
 gameplay concept at native AGA resolution. Enemy and plasma restore/draw passes
 use synchronized Blitter DMA with standard-copy and cookie-cut minterms; the
 68020 no longer composites their planar rows byte by byte in Chip RAM. Verify
-that all four walk smoothly between their fixed patrol limits, mirror cleanly
+that all selected beetles walk smoothly between their patrol limits, mirror cleanly
 when turning, remain grounded, ignore standing and airborne fire, react to the
 first crouch-shot and play all four destruction stages after the second.
 Stress the renderer with several simultaneous plasma pulses and visible

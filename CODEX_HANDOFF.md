@@ -532,13 +532,18 @@ copying their characters, levels, art or music.
   landing, idle posing and momentum-based direction changes.
 - Joystick port 2: left/right run, up jumps, fire shoots.
 - Up to six blue/cyan plasma pulses with animated round impacts.
-- Four low two-hit clockwork beetles share one art cache and patrol independent
-  sections of the test level for combat and performance testing.
+- Four guaranteed and up to two optional low two-hit clockwork-beetle
+  encounters share one art cache and a bounded four-slot runtime pool. Authored
+  zones randomize safe X positions and slow/normal/fast movement; destroyed
+  encounters respawn indefinitely after an off-screen cooldown.
 
 Main files:
 
-- `src/sparkpaw.c`: current renderer, copper, sprites, physics, animation,
-  input, plasma Bobs and shot audio.
+- `src/main.c`: startup, application states and raster-phased gameplay loop.
+- `src/renderer.c`: Copper, dual playfields, hardware sprites and packed Bobs.
+- `src/game.c`, `src/player.c`, `src/enemies.c`, `src/projectiles.c`: gameplay
+  orchestration and bounded runtime actors.
+- `src/level_data.c`: typed authored enemy encounter candidates and policies.
 - `src/aga_renderbench.c`: isolated dual-playfield renderer experiment.
 - `tools/generate_runtime_assets.py`: palettes, playfields, collision and
   48x48 sprite conversion.
@@ -1376,6 +1381,95 @@ dynamic allocation or asset loading to the 50-Hz gameplay loop. Make permanent
 versus respawning encounters a per-spawn choice so future level design is not
 locked to one global rule.
 
+Phase 4A/4B is implemented host-side. The four former parallel placement
+arrays are now compact typed records in `level_data.c`, including exact world
+position, patrol limits, initial velocity and persistence policy. Each bounded
+runtime enemy slot records the spawn index and enemy type from which it was
+initialized. All four records use the permanent policy, so destruction and the
+existing complete test replay behave as before; policy-driven cooldown and
+off-camera reactivation remain the separate Phase 4C step. Renderer ownership,
+Bob caches, culling and restore/draw ordering are unchanged.
+
+Phase 4C.1/4C.2 now adds deterministic bounded encounter variation without
+adding respawn yet. Four authored candidates are required and two are optional,
+so a complete load or test replay selects four to six beetles. Every selected
+spawn chooses an X position inside its collision-safe authored range and one
+of the tested fixed-point speeds 80, 96 or 112 while retaining its authored
+initial direction. `GameState.enemySeed` records the explicit generation seed,
+initialized from the OS-maintained time at level load; the next full replay
+derives a reproducible new seed from it and the completed run length.
+Six persistent spawn states feed the unchanged four-slot active pool. Slots are
+activated near the camera and safely parked when their patrol is far outside
+it, while permanent defeat remains attached to the spawn rather than the slot.
+Level completion therefore checks all selected spawns, not merely the currently
+loaded slots. Individual cooldown respawn remains the separate Phase 4C.3 step.
+The renderer still loops over four slots and retains its exact packed-cache,
+culling and restore/draw pipeline.
+
+MrDig's first Phase 4C.1/4C.2 FS-UAE test confirmed that complete runs contain
+four to six beetles and that defeating every selected beetle triggers the
+expected in-memory level replay. Individual respawn is correctly absent at
+this checkpoint. The configured movement speeds are selected correctly in C,
+but their current 80/96/112 spread was not visibly distinguishable in this
+test. Walk animation also still uses the global `(frameCounter >> 2) & 3`
+cadence for every beetle, independent of velocity. Review both the speed spread
+and velocity-linked walk cadence as a focused tuning step before adding
+Phase 4C.3 respawn; do not infer a runtime defect merely from the intentionally
+small current fixed-point differences.
+
+That focused tuning step is now implemented host-side. The three fixed-point
+speeds are widened to 64, 96 and 128 (12.5, 18.75 and 25 pixels/second at PAL
+50 Hz). Each runtime enemy carries its own `walkTick`; accumulated absolute
+movement advances a walk frame every 384 fixed-point units. The resulting
+cadences are one pose per six, four or three PAL frames, so feet cycle in
+proportion to movement and beetles no longer share a globally synchronized
+walk phase. Hit and destruction timing, patrol collision, spawn persistence,
+four-slot renderer ownership and all Bob contracts remain unchanged. This
+tuning requires FS-UAE review before Phase 4C.3 respawn proceeds.
+
+MrDig's first review requested a much stronger classic-arcade distinction,
+with clearly very slow, normal and very fast small enemies. The tuning candidate
+therefore uses 48, 96 and 192 fixed-point units: 9.375, 18.75 and 37.5
+pixels/second. With the same distance accumulator these advance a walk pose
+every eight, four and two PAL frames respectively. Even the fastest profile
+moves only 0.75 pixel per frame, so it cannot skip a 16-pixel collision tile or
+require a different patrol query. This stronger spread awaits FS-UAE review.
+
+Phase 4C.3 changes the temporary test objective to match the intended game.
+Enemy destruction is no longer a level-completion condition and
+`enemiesAllDefeated()` has been removed. Reaching the exact far-right collision
+edge now invokes the existing in-memory replay path; this is explicitly a
+temporary stand-in for the later `LEVEL_COMPLETE -> next level` transition.
+All six selected encounter candidates use repeat policy. After a complete
+destruction sequence a spawn receives a random 250-500-frame cooldown, then
+rerolls its safe authored X position and 48/96/192 speed only while its entire
+patrol lies beyond the camera safety margin. It remains ready there until the
+player approaches and a slot is free. Respawn is unlimited, so repeatedly
+walking almost to the right edge and back left continues to generate fresh
+encounters without requiring level completion. The four active runtime slots,
+packed shared cache, camera culling and synchronized Bob ordering remain
+unchanged. Right-edge replay continues to preserve the current lives and
+diamond total as the earlier test replay did.
+
+The first FS-UAE exit test exposed that Sparkpaw could visibly reach the right
+wall without triggering replay. The temporary exit compared world pixel 1279
+against the deliberately narrower contact-damage box (`x + 25`), while solid
+tile physics correctly stops the player using `HIT_RIGHT` (`x + 27`). The exit
+now queries `playerReachedWorldRight()` and therefore uses the same accepted
+solid edge as horizontal collision. Zero health continues to consume one life
+and restart the complete level in memory; this is accepted as the provisional
+death/restart model, distinct from simply taking one half-heart of damage.
+
+MrDig's final Phase 4 FS-UAE regression on 12 August 2026 accepted the complete
+result: four to six encounters, clearly differentiated slow/normal/fast beetle
+movement with matching animation cadence, unlimited off-screen respawn during
+repeated left/right traversal, right-edge-only level replay, and zero-health
+life loss with level restart all behaved correctly. Diamonds remain persistent
+across both right-edge replay and life-loss restart while world collectibles
+are repopulated. This is user-provided FS-UAE verification; real-A1200 testing
+remains open. Phase 4 is complete and Phase 5 may begin with the larger-enemy
+design brief before art or runtime implementation.
+
 #### Phase 5: first larger enemy
 
 Create concept art before implementation. Establish silhouette, gameplay role,
@@ -1413,6 +1507,30 @@ but do not copy their maps, characters, enemy designs, art or timing. The
 visual target remains the project concept: violet storm mountains and clouds
 in the far parallax, pine forest/waterfalls/broken energy towers in the rear
 layer, and mossy stone-machine ruins with cyan conduits in the foreground.
+
+The agreed length reference is the first level in the supplied Thundercats
+Amiga video, which runs from about 3:32 to 4:10 in that recording: roughly 38
+seconds including one player death. This is a pacing reference only; do not
+copy its map, encounters, art or timing. Target Sparkpaw's first level at about
+35-50 seconds for a practiced run and roughly one to two minutes for a first
+careful playthrough. Begin by measuring and greyboxing an eight-screen,
+2048-pixel world rather than the previously discussed 12-15 screens. Eight
+screens are 60 percent longer than the current five-screen/1280-pixel test
+world and are expected to add roughly 221 KiB of Chip RAM across the resident
+foreground source, foreground display buffer and rear bitmap; verify actual
+free and largest Chip blocks before accepting that layout.
+
+Implement the longer level only after Phase 4 spawn/respawn is stable and the
+Phase 5 second enemy works in the current world. Split Phase 6 into reviewable
+steps: first a technical 2048-pixel resident-world/memory experiment using
+repeated existing graphics, then an eight-screen collision and pacing greybox,
+then checkpoint/progression state, encounter placement and finally unique
+foreground/rear art. Prefer the fully resident world if measurements leave a
+safe 2 MiB Chip-RAM margin; do not introduce seamless disk streaming unless
+the resident experiment proves unsuitable. The intended pacing is: safe start,
+first beetle, platform/diamond route, second-enemy introduction, brief
+breathing space or checkpoint, mixed traversal, stronger encounter and a short
+level finale.
 
 Before doubling the current 1280-pixel, five-screen world, build one complete
 vertical slice inside it: safe start, beetle contact, one gap, one water jump,
@@ -1474,17 +1592,18 @@ per-pixel `setFrontPixel` or CPU byte-compositing hot paths.
   rise/apex/fall verification remains open.
 - Crouch-fire frames 46-49 are accepted. Preserve their established scale,
   baseline, hitbox and muzzle origin.
-- The four-instance polished beetle pool still needs a focused final stress
-  test with rapid fire and camera traversal. Preserve the proven player,
-  dual-playfield and synchronized projectile/enemy Blitter paths while fixing
-  any observed issue.
+- The four-slot polished beetle runtime pool now feeds four to six persistent
+  level encounters with unlimited safe off-screen respawn. Its Phase 4 FS-UAE
+  regression is accepted; preserve the proven player, dual-playfield and
+  synchronized projectile/enemy Blitter paths during later enemy work.
 - There is still only one enemy type and no final game-over, checkpoint,
   music, menus or full level progression. Player damage, the modular HUD,
   invulnerability feedback, keyboard test controls and diamond collectibles
   are implemented and user-tested in FS-UAE.
-- The automatic reset after all four beetles is test-only. Replace it with an
-  explicit level-complete transition when real progression is introduced; do
-  not let it implicitly decide what a new level or new game preserves.
+- The temporary exact-right-edge replay stands in for level completion. Replace
+  it with an explicit `LEVEL_COMPLETE -> next level` transition when real
+  progression is introduced; do not let the replay path implicitly decide what
+  a new level or new game preserves.
 - Fifty-fps smoothness is a hard design goal. Avoid full-frame CPU copying,
   per-pixel inner loops and redrawing static scenery.
 

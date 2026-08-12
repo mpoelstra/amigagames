@@ -9,14 +9,15 @@
 
 #define SCREEN_W 320
 #define WORLD_W 1280
-
 static struct GameState game;
 
 static void resetLevelRuntime(void)
 {
     /* Assets and packed caches stay resident. Preserve only prior Bob restore
        rectangles so the next line-300 pass erases the old runtime state. */
-    enemiesResetPreservingDrawn();
+    game.enemySeed=game.enemySeed*1664525UL+
+                   (ULONG)game.frameCounter+1013904223UL;
+    enemiesResetPreservingDrawn(game.enemySeed);
     collectiblesResetPreservingDrawn();
     projectilesResetPreservingDrawn();
     playerInit();
@@ -36,12 +37,13 @@ static void updateCamera(void)
     else game.cameraX=wanted;
 }
 
-void gameInit(void)
+void gameInit(ULONG enemySeed)
 {
     game.cameraX=0; game.frameCounter=0;
     game.lives=GAME_START_LIVES;
     game.diamonds=0;
-    playerInit(); enemiesInit(); collectiblesInit(); projectilesInit();
+    game.enemySeed=enemySeed?enemySeed:0x53504157UL;
+    playerInit(); enemiesInit(game.enemySeed); collectiblesInit(); projectilesInit();
 }
 
 void gameUpdate(void)
@@ -54,16 +56,15 @@ void gameUpdate(void)
     playerStartShot(fire,audioPlayShot);
     if(playerUpdatePhysics(left,right,down,jump)) audioPlayJump();
     playerUpdateShot();
-    enemiesUpdate(game.frameCounter,collisionSolidAt);
-    /* Test-loop convenience, distinct from the later spawn-data respawn
-       system: wait until every destruction sequence has fully completed,
-       then reuse the proven zero-health in-memory reset path. */
-    if(enemiesAllDefeated()) {
+    enemiesUpdate((WORD)game.cameraX,collisionSolidAt);
+    playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+    /* Temporary level exit: reaching the authored right edge reuses the
+       in-memory replay path until LEVEL_COMPLETE can select a next level. */
+    if(playerReachedWorldRight(WORLD_W-1)) {
         resetLevelRuntime();
         audioUpdate();
         return;
     }
-    playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
     if(enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                             &enemyCenterX)) {
         if(playerTakeEnemyHit(enemyCenterX)) {
