@@ -240,7 +240,69 @@ opaque pixels deterministically to the fixed eight-colour foreground palette,
 and creates exact mirrored cells. Destruction stages may only shrink when
 their spreading parts exceed the 46x38 opaque envelope. The review preview is
 `clockwork-storm-strider-48x40-aga8.png`; the packed asset has no gameplay
-consumer yet.
+consumer yet. This quadruped v2 source is preserved as review history but was
+superseded after the first in-game scale review.
+
+## Clockwork Storm Strider biped concept v2
+
+Use case: stylized-concept. Redesign the Strider as a permanently upright
+bipedal agile enemy. It may retain canine/jackal cues in its swept sensor head,
+ear-like vanes and stabilizer tail, but must never stand, run, compress or jump
+on four legs. Show exactly four isolated right-facing poses in one row: tall
+alert idle, fast bipedal run contact, deep two-legged jump compression and an
+upright forward leap with both legs tucked. Preserve one anatomy, scale and
+ground baseline. It should stand about ten percent taller than Sparkpaw and be
+unmistakably larger than the beetle. Use long reverse-jointed piston legs, a
+narrow substantial torso, two short balance arms, dark steel, restrained aged
+brass and one cyan visor/core. Flat `#ff00ff` background. No quadruped pose,
+hands on ground, robot-dog gait, humanoid knight, text, floor or scenery.
+
+The accepted built-in ImageGen result is
+`clockwork-storm-strider-biped-concept-v2-chroma.png`; its keyed review source
+is `clockwork-storm-strider-biped-concept-v2-transparent.png`.
+
+## Clockwork Storm Strider biped production v4
+
+Use the accepted biped concept as locked anatomy. Create exactly eighteen
+isolated right-facing poses in a strict 6x3 sheet: alert idle, weight shift;
+four upright run phases; two two-legged compression phases; upright launch,
+compact tucked flight and descent; two-foot landing and recovery; hit recoil;
+core fracture, mechanical collapse, cyan burst and debris. Preserve one body
+scale across frames 1-14 and one grounded foot baseline. The tall idle should
+define the perceived height; tuck tail, arms and legs during motion so no wide
+pose shrinks the family. Hands never touch the floor. Crisp early-1990s AGA
+pixel clusters on flat `#ff00ff`; no text, grid, scenery, shadow, projectile,
+shield, quadruped anatomy or licensed resemblance.
+
+The accepted sources are
+`clockwork-storm-strider-biped-production-v4-chroma.png` and
+`clockwork-storm-strider-biped-production-v4-transparent.png`. Deterministic
+generation maps them to the fixed eight-colour foreground palette in a 64x64
+cell with a shared scale and mirrored direction. The native proof is
+`clockwork-storm-strider-64x64-aga8.png`. An unused quadruped production-v3
+experiment is preserved only as rejected scale-review history.
+
+## Clockwork Storm Strider palette/polish v5
+
+Edit the complete bipedal v4 sheet without changing its exact 6x3 layout,
+eighteen poses, pose order, anatomy, scale, baselines or action meanings. The
+in-game v4 review shows that shared aged-brass colours make Sparkpaw, beetles
+and Strider all read orange. Repaint the Strider with dominant deep navy/black
+steel, large coherent muted-violet armour panels, restrained royal-blue plates
+and bright cyan only for visor, core and clean conduits. Use tiny cool-cream
+highlights only when essential; use no orange, gold, brass, copper, amber, red
+or warm brown.
+
+Improve the native-size craftsmanship with slightly thicker legs and forearms,
+stronger chest/hip masses, fewer tiny mechanical marks, larger intentional
+pixel clusters, a clean dark outline and consistent top-left lighting. Preserve
+the permanent bipedal motion and destruction sequence. Flat `#ff00ff` chroma;
+no text, grid, scenery, shadow, blur, quadruped anatomy, shield or projectile.
+
+The built-in ImageGen result is preserved as
+`clockwork-storm-strider-biped-production-v5-chroma.png`; the keyed source is
+`clockwork-storm-strider-biped-production-v5-transparent.png`. It supersedes v4
+as the generator input without changing the accepted 64x64 runtime contract.
 
 ## Player hurt refinement v10
 

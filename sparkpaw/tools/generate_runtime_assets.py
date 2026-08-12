@@ -27,7 +27,7 @@ PARALLAX_W = 640
 TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
 BEETLE_FRAMES = 9
-STRIDER_W, STRIDER_H = 48, 40
+STRIDER_W, STRIDER_H = 64, 64
 STRIDER_FRAMES = 18
 
 FG_PALETTE = [
@@ -658,7 +658,7 @@ def make_clockwork_beetle() -> tuple[Image.Image, bytes]:
 
 def make_clockwork_strider() -> tuple[Image.Image, bytes]:
     source = Image.open(ROOT / "assets" / "enemies" /
-                        "clockwork-storm-strider-production-v2-transparent.png").convert("RGBA")
+                        "clockwork-storm-strider-biped-production-v5-transparent.png").convert("RGBA")
     poses = []
     for frame in range(STRIDER_FRAMES):
         cell = grid_cell(source, 6, 3, frame)
@@ -667,14 +667,15 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
             raise ValueError(f"empty Strider source cell {frame}")
         poses.append(cell.crop(bounds))
 
-    # Frames 0-13 share one anatomical scale. The four destruction stages may
-    # only shrink when their spreading parts exceed the same 46x38 envelope.
-    locomotion_scale = family_scale(poses[:14], 46, 38)
+    # Frames 0-13 share one anatomical scale. The 64-pixel cell lets the tall
+    # upright idle remain larger than Sparkpaw even though compression/launch
+    # poses extend farther vertically. Destruction may only shrink as needed.
+    locomotion_scale = family_scale(poses[:14], 62, 62)
     cells = []
     for frame, pose in enumerate(poses):
         scale = locomotion_scale
         if frame >= 14:
-            scale = min(scale, 46 / pose.width, 38 / pose.height)
+            scale = min(scale, 62 / pose.width, 62 / pose.height)
         width = max(1, round(pose.width * scale))
         height = max(1, round(pose.height * scale))
         reduced = pose.resize((width, height), Image.Resampling.LANCZOS)
@@ -703,7 +704,7 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
         preview.paste(cell, (frame * STRIDER_W, 0))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "enemies" /
-                 "clockwork-storm-strider-48x40-aga8.png")
+                 "clockwork-storm-strider-64x64-aga8.png")
     return sheet, bitmap_mask(sheet)
 
 

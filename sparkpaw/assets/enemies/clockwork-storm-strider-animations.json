@@ -1,6 +1,6 @@
 {
-  "cell_width": 48,
-  "cell_height": 40,
+  "cell_width": 64,
+  "cell_height": 64,
   "frames": [
     "alert-idle",
     "alert-weight-shift",
@@ -22,5 +22,5 @@
     "destruction-debris"
   ],
   "hit_points": 3,
-  "prototype_note": "Production-oriented right-facing source. Runtime generation applies one scale to frames 0-13 and mirrors exact indexed cells for left-facing animation. No runtime consumer exists yet."
+  "prototype_note": "Accepted upright bipedal right-facing v5 source with a cool indigo/violet/cyan identity. Runtime generation applies one scale to frames 0-13 and mirrors exact indexed cells for left-facing animation. The two Phase 5C.2 instances remain static and non-interactive."
 }

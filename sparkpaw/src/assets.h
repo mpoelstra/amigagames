@@ -27,6 +27,7 @@ const struct PlanarAsset *assetsFrontClean(void);
 const struct PlanarAsset *assetsRearWorld(void);
 const struct PlanarAsset *assetsPlayerSprites(void);
 const struct PlanarAsset *assetsEnemySprites(void);
+const struct PlanarAsset *assetsStriderSprites(void);
 const struct PlanarAsset *assetsHudBase(void);
 const struct PlanarAsset *assetsHudHealth(void);
 const struct PlanarAsset *assetsHudLives(void);

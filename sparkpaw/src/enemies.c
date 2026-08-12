@@ -7,13 +7,10 @@
 #define INVALID_SPAWN 255
 #define SCREEN_W 320
 #define ACTIVATE_MARGIN 96
-#define UNLOAD_MARGIN 160
+#define UNLOAD_MARGIN 32
 #define WALK_PHASE_DISTANCE 384
 #define RESPAWN_MIN_FRAMES 250
 #define RESPAWN_FRAME_RANGE 251
-#define STRIDER_W 48
-#define STRIDER_H 40
-
 struct EnemySpawnState {
     struct Enemy enemy;
     UWORD respawnTimer;
@@ -39,9 +36,11 @@ static UWORD randomBelow(UWORD limit)
     return limit?(UWORD)(nextRandom()%limit):0;
 }
 
-static BOOL typeRuntimeReady(UBYTE type)
+static BOOL spawnRuntimeReady(UBYTE spawnIndex,UBYTE type)
 {
-    return type==ENEMY_TYPE_CLOCKWORK_BEETLE;
+    if(type==ENEMY_TYPE_CLOCKWORK_BEETLE) return TRUE;
+    /* Phase 5C.2 renders only the two required static proof placements. */
+    return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&spawnIndex<8;
 }
 
 static WORD enemyWidthForType(UBYTE type)
@@ -150,7 +149,7 @@ static void activateVisibleSpawns(WORD cameraX,BOOL allowRestoreSlots)
             LONG priority;
             if(!state->selected||state->respawnPending||state->exhausted||
                state->loadedSlot!=INVALID_SPAWN||
-               !typeRuntimeReady(state->enemy.type)||
+               !spawnRuntimeReady(spawnIndex,state->enemy.type)||
                !spawnNearCamera(&state->enemy,cameraX)) continue;
             priority=spawnPriority(&state->enemy,cameraX);
             if(priority<bestPriority) {
@@ -183,16 +182,19 @@ void enemiesResetPreservingDrawn(ULONG seed)
 {
     BOOL wasDrawn[MAX_ENEMIES];
     WORD oldX[MAX_ENEMIES],oldY[MAX_ENEMIES];
+    UBYTE oldType[MAX_ENEMIES];
     UBYTE slot;
     for(slot=0;slot<MAX_ENEMIES;slot++) {
         wasDrawn[slot]=enemies[slot].drawn;
         oldX[slot]=enemies[slot].drawnX;
         oldY[slot]=enemies[slot].drawnY;
+        oldType[slot]=enemies[slot].drawnType;
     }
     clearRuntimeSlots();
     for(slot=0;slot<MAX_ENEMIES;slot++) {
         enemies[slot].drawn=wasDrawn[slot];
         enemies[slot].drawnX=oldX[slot]; enemies[slot].drawnY=oldY[slot];
+        enemies[slot].drawnType=oldType[slot];
     }
     generateLevelEnemies(seed);
     activateVisibleSpawns(0,TRUE);
@@ -202,6 +204,10 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
 {
     WORD nextX,front,speed,width=enemyWidthForType(enemy->type);
     WORD height=enemyHeightForType(enemy->type);
+    if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
+        enemy->vx=0; enemy->animFrame=0; enemy->facingLeft=FALSE;
+        return;
+    }
     if(enemy->dying) {
         enemy->animFrame=(UBYTE)(5+(20-enemy->deathTimer)/5);
         if(!--enemy->deathTimer) enemy->active=FALSE;
@@ -281,7 +287,8 @@ BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
     WORD index;
     for(index=0;index<MAX_ENEMIES;index++) {
         struct Enemy *enemy=&enemies[index];
-        if(lowShot&&enemy->active&&!enemy->dying&&
+        if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE&&lowShot&&
+           enemy->active&&!enemy->dying&&
            x>=(WORD)(enemy->x>>8)+2&&x<=(WORD)(enemy->x>>8)+ENEMY_W-3&&
            y>=enemy->y+7&&y<=enemy->y+ENEMY_H-1) {
             if(!--enemy->health) {
@@ -303,7 +310,8 @@ BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
     for(index=0;index<MAX_ENEMIES;index++) {
         struct Enemy *enemy=&enemies[index];
         WORD enemyLeft,enemyRight,enemyTop,enemyBottom;
-        if(!enemy->active||enemy->dying) continue;
+        if(enemy->type!=ENEMY_TYPE_CLOCKWORK_BEETLE||
+           !enemy->active||enemy->dying) continue;
         enemyLeft=(WORD)(enemy->x>>8)+2;
         enemyRight=(WORD)(enemy->x>>8)+ENEMY_W-3;
         enemyTop=enemy->y+7; enemyBottom=enemy->y+ENEMY_H-1;

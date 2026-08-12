@@ -19,6 +19,7 @@
 #include "enemies.h"
 #include "game.h"
 #include "hud.h"
+#include "level_data.h"
 #include "platform_amiga.h"
 #include "player.h"
 #include "projectiles.h"
@@ -42,7 +43,7 @@
 #define PLASMA_SOURCE_WORDS 2
 
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
-static const struct PlanarAsset *frontClean,*rearWorld,*sprites,*enemySprites;
+static const struct PlanarAsset *frontClean,*rearWorld,*sprites;
 static const struct PlanarAsset *hudBase;
 static const struct PlanarAsset *diamondSprite;
 static struct BitMap *frontDisplay;
@@ -52,8 +53,16 @@ static UWORD hudPtrValue[6];
 static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
-static UWORD *enemyMask,*enemyBits;
 static UWORD *diamondMask,*diamondBits;
+
+struct EnemyBobCache {
+    const struct PlanarAsset *source;
+    UWORD *mask,*bits;
+    UWORD width,height,frames,sourceWords;
+    BOOL sourceLeftFirst;
+};
+
+static struct EnemyBobCache enemyCaches[ENEMY_TYPE_COUNT];
 
 static void cmove(UWORD reg,UWORD value) { cop[copPos++]=reg; cop[copPos++]=value; }
 
@@ -179,44 +188,70 @@ static UBYTE spritePen(WORD x,WORD y)
     return pixel(sprites->bitmap,x,y,4);
 }
 
-static UBYTE enemyPen(WORD x,WORD y)
+static UBYTE enemyPen(const struct EnemyBobCache *cache,WORD x,WORD y)
 {
     UBYTE mask=(UBYTE)(0x80>>(x&7));
-    if(!(enemySprites->mask[(LONG)y*enemySprites->rowBytes+(x>>3)]&mask)) return 0;
-    return pixel(enemySprites->bitmap,x,y,3);
+    if(!(cache->source->mask[(LONG)y*cache->source->rowBytes+(x>>3)]&mask))
+        return 0;
+    return pixel(cache->source->bitmap,x,y,3);
 }
 
-static UWORD *enemyMaskRow(UBYTE facing,UBYTE frame,WORD row)
+static UWORD *enemyMaskRow(struct EnemyBobCache *cache,UBYTE facing,
+                           UBYTE frame,WORD row)
 {
-    LONG index=((LONG)facing*ENEMY_FRAMES+frame)*ENEMY_H+row;
-    return enemyMask+index*ENEMY_SOURCE_WORDS;
+    LONG index=((LONG)facing*cache->frames+frame)*cache->height+row;
+    return cache->mask+index*cache->sourceWords;
 }
 
-static UWORD *enemyBitsRow(UBYTE facing,UBYTE frame,UBYTE plane,WORD row)
+static UWORD *enemyBitsRow(struct EnemyBobCache *cache,UBYTE facing,
+                           UBYTE frame,UBYTE plane,WORD row)
 {
-    LONG pattern=(LONG)facing*ENEMY_FRAMES+frame;
-    LONG index=(pattern*3+plane)*ENEMY_H+row;
-    return enemyBits+index*ENEMY_SOURCE_WORDS;
+    LONG pattern=(LONG)facing*cache->frames+frame;
+    LONG index=(pattern*3+plane)*cache->height+row;
+    return cache->bits+index*cache->sourceWords;
 }
 
-static BOOL buildEnemyPatterns(void)
+static BOOL buildEnemyPatterns(struct EnemyBobCache *cache)
 {
-    LONG maskWords=2L*ENEMY_FRAMES*ENEMY_H*ENEMY_SOURCE_WORDS;
+    LONG maskWords=2L*cache->frames*cache->height*cache->sourceWords;
     LONG bitsWords=maskWords*3;
     UBYTE facing,frame,plane; WORD x,y;
-    enemyMask=(UWORD *)AllocMem(maskWords*2,MEMF_CHIP|MEMF_CLEAR);
-    enemyBits=(UWORD *)AllocMem(bitsWords*2,MEMF_CHIP|MEMF_CLEAR);
-    if(!enemyMask||!enemyBits) return FALSE;
-    for(facing=0;facing<2;facing++) for(frame=0;frame<ENEMY_FRAMES;frame++)
-        for(y=0;y<ENEMY_H;y++) for(x=0;x<ENEMY_W;x++) {
-            UBYTE pen=enemyPen(facing*ENEMY_W+x,frame*ENEMY_H+y);
+    if(!cache->source||!cache->source->mask||
+       cache->source->width!=cache->width*2||
+       cache->source->height!=cache->height*cache->frames) return FALSE;
+    cache->mask=(UWORD *)AllocMem(maskWords*2,MEMF_CHIP|MEMF_CLEAR);
+    cache->bits=(UWORD *)AllocMem(bitsWords*2,MEMF_CHIP|MEMF_CLEAR);
+    if(!cache->mask||!cache->bits) return FALSE;
+    for(facing=0;facing<2;facing++) for(frame=0;frame<cache->frames;frame++)
+        for(y=0;y<cache->height;y++) for(x=0;x<cache->width;x++) {
+            UBYTE sourceFacing=cache->sourceLeftFirst?facing:(UBYTE)(1-facing);
+            UBYTE pen=enemyPen(cache,(WORD)(sourceFacing*cache->width+x),
+                               (WORD)(frame*cache->height+y));
             UBYTE at=(UBYTE)(x>>4); UWORD bit=(UWORD)(0x8000U>>(x&15));
             if(!pen) continue;
-            enemyMaskRow(facing,frame,y)[at]|=bit;
+            enemyMaskRow(cache,facing,frame,y)[at]|=bit;
             for(plane=0;plane<3;plane++)
-                if(pen&(1<<plane)) enemyBitsRow(facing,frame,plane,y)[at]|=bit;
+                if(pen&(1<<plane))
+                    enemyBitsRow(cache,facing,frame,plane,y)[at]|=bit;
         }
     return TRUE;
+}
+
+static void configureEnemyCaches(void)
+{
+    struct EnemyBobCache *beetle=&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE];
+    struct EnemyBobCache *strider=
+        &enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER];
+    memset(enemyCaches,0,sizeof(enemyCaches));
+    beetle->source=assetsEnemySprites();
+    beetle->width=ENEMY_W; beetle->height=ENEMY_H;
+    beetle->frames=ENEMY_FRAMES; beetle->sourceWords=ENEMY_SOURCE_WORDS;
+    beetle->sourceLeftFirst=TRUE;
+    strider->source=assetsStriderSprites();
+    strider->width=STRIDER_W; strider->height=STRIDER_H;
+    strider->frames=STRIDER_FRAMES;
+    strider->sourceWords=STRIDER_SOURCE_WORDS;
+    strider->sourceLeftFirst=FALSE;
 }
 
 static BOOL buildHardwareSprites(void)
@@ -478,8 +513,12 @@ static void restoreEnemyBob(void)
     WORD i;
     for(i=0;i<MAX_ENEMIES;i++) {
         struct Enemy *enemy=enemyAt(i);
+        struct EnemyBobCache *cache;
         if(!enemy->drawn) continue;
-        blitRestoreRect(enemy->drawnX,enemy->drawnY,ENEMY_W,ENEMY_H);
+        cache=&enemyCaches[enemy->drawnType<ENEMY_TYPE_COUNT?
+                           enemy->drawnType:ENEMY_TYPE_CLOCKWORK_BEETLE];
+        blitRestoreRect(enemy->drawnX,enemy->drawnY,
+                        cache->width,cache->height);
         enemy->drawn=FALSE;
     }
 }
@@ -489,18 +528,22 @@ static void drawEnemyBob(void)
     WORD i;
     for(i=0;i<MAX_ENEMIES;i++) {
         struct Enemy *enemy=enemyAt(i); UBYTE facing;
-        if(!enemy->active) continue;
+        struct EnemyBobCache *cache;
+        if(!enemy->active||enemy->type>=ENEMY_TYPE_COUNT) continue;
+        cache=&enemyCaches[enemy->type];
         enemy->drawnX=(WORD)(enemy->x>>8); enemy->drawnY=enemy->y;
-          if(enemy->drawnX+ENEMY_W<(WORD)game->cameraX-32||
+          if(enemy->drawnX+cache->width<(WORD)game->cameraX-32||
               enemy->drawnX>(WORD)game->cameraX+SCREEN_W+32||
-           enemy->drawnX<0||enemy->drawnX+ENEMY_W>WORLD_W||
-           enemy->drawnY<0||enemy->drawnY+ENEMY_H>WORLD_H) continue;
-        /* The authored column faces left; the second is its exact mirror. */
+           enemy->drawnX<0||enemy->drawnX+cache->width>WORLD_W||
+           enemy->drawnY<0||enemy->drawnY+cache->height>WORLD_H||
+           enemy->animFrame>=cache->frames) continue;
+        /* Caches normalize each source sheet to logical left/right columns. */
         facing=enemy->facingLeft?0:1;
-        blitMaskedBob(enemyMaskRow(facing,enemy->animFrame,0),
-                      enemyBitsRow(facing,enemy->animFrame,0,0),
-                      ENEMY_SOURCE_WORDS,ENEMY_W,ENEMY_H,
+        blitMaskedBob(enemyMaskRow(cache,facing,enemy->animFrame,0),
+                      enemyBitsRow(cache,facing,enemy->animFrame,0,0),
+                      cache->sourceWords,cache->width,cache->height,
                       enemy->drawnX,enemy->drawnY);
+        enemy->drawnType=enemy->type;
         enemy->drawn=TRUE;
     }
 }
@@ -509,7 +552,7 @@ BOOL rendererLoadGameplay(void)
 {
     if(!assetsLoadGameplay()) return FALSE;
     frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
-    sprites=assetsPlayerSprites(); enemySprites=assetsEnemySprites();
+    sprites=assetsPlayerSprites(); configureEnemyCaches();
     hudBase=assetsHudBase();
     diamondSprite=assetsCollectibleDiamond();
     return TRUE;
@@ -525,14 +568,16 @@ BOOL rendererPrepareGameplay(void)
         return FALSE;
     for(p=0;p<3;p++) CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
-    if(!buildEnemyPatterns()||!buildPlasmaPatterns()||!buildDiamondPattern())
+    if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE])||
+       !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER])||
+       !buildPlasmaPatterns()||!buildDiamondPattern())
         return FALSE;
     buildCopper(); setScroll(0,0); return TRUE;
 }
 
 void rendererCleanup(void)
 {
-    WORD facing,frame,channel;
+    WORD facing,frame,channel,type;
     if(cop) FreeMem(cop,COP_WORDS*2);
     for(facing=0;facing<2;facing++) for(frame=0;frame<ANIM_FRAMES;frame++)
         for(channel=0;channel<SPRITE_CHANNELS;channel++)
@@ -544,10 +589,12 @@ void rendererCleanup(void)
                            PLASMA_SOURCE_WORDS*3*2);
     if(plasmaMask) FreeMem(plasmaMask,PLASMA_PATTERNS*2L*PROJECTILE_H*
                            PLASMA_SOURCE_WORDS*2);
-    if(enemyBits) FreeMem(enemyBits,2L*ENEMY_FRAMES*ENEMY_H*
-                          ENEMY_SOURCE_WORDS*3*2);
-    if(enemyMask) FreeMem(enemyMask,2L*ENEMY_FRAMES*ENEMY_H*
-                          ENEMY_SOURCE_WORDS*2);
+    for(type=0;type<ENEMY_TYPE_COUNT;type++) {
+        struct EnemyBobCache *cache=&enemyCaches[type];
+        LONG maskWords=2L*cache->frames*cache->height*cache->sourceWords;
+        if(cache->bits) FreeMem(cache->bits,maskWords*3*2);
+        if(cache->mask) FreeMem(cache->mask,maskWords*2);
+    }
     if(diamondBits) FreeMem(diamondBits,COLLECTIBLE_H*3L*2);
     if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*2);
     if(frontDisplay) FreeBitMap(frontDisplay);

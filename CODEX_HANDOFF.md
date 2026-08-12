@@ -1530,7 +1530,8 @@ charge state, not create permanent frontal immunity.
 
 The accepted incremental Strider plan is:
 
-1. **Phase 5A — lock the runtime design contract.** Target approximately 48x40
+1. **Phase 5A — lock the runtime design contract.** The original target was
+   approximately 48x40; the accepted upright revision is 64x64
    pixels and three HP. Standing, crouched and airborne Sparkpaw shots all
    damage it whenever their projectile path intersects its state-specific
    hitbox; there is no shield, reflection or required firing posture. Contact
@@ -1577,8 +1578,8 @@ guarantees. The renderer remains capped at four active enemy slots. The first
 Phase 5 implementation includes only the Strider; do not also implement the
 Sentinel or change gameplay colour depth, dual-playfield timing or HUD.
 
-Phase 5A and 5B are now implemented as an asset-only, reviewable step. The
-runtime contract is fixed at a 48x40 cell, eighteen frames and three HP. Frame
+Phase 5A and 5B were first implemented as an asset-only, reviewable step. The
+initial runtime contract used a 48x40 cell, eighteen frames and three HP. Frame
 order is alert idle, weight shift, four run phases, two compression phases,
 launch/flight/descent, landing/recovery, hit recoil and four destruction
 stages. The right-facing production source is
@@ -1591,7 +1592,8 @@ cells and maps into the existing eight-colour foreground palette. Review the
 native palette proof in
 `assets/enemies/clockwork-storm-strider-48x40-aga8.png`; the generated packed
 proof is `assets/runtime/clockwork-storm-strider.spbm` (96x720, two directional
-columns, 3 bitplanes plus mask). At the end of 5B there was deliberately no
+columns, 3 bitplanes plus mask). These v2 files remain preserved as the rejected
+small quadruped review baseline. At the end of 5B there was deliberately no
 runtime consumer, spawn record, AI, collision or renderer dispatch for it.
 
 Phase 5C.1 is implemented as a data-model-only step. Level capacity is now nine
@@ -1601,19 +1603,93 @@ are randomized independently per enemy type, yielding 4-6 beetles and 2-3
 Striders without changing the established beetle RNG sequence. Every record
 owns an explicit authored `{left,right,groundY}` patrol surface; runtime Bob-top
 Y is derived from the type height, so raised-platform placement no longer
-depends on beetle dimensions. The Strider records use the real platform tops at
-Y=128, Y=144 and Y=160. Empty active slots choose eligible visible encounters
+depends on beetle dimensions. The Strider records use authored ground lines at
+Y=128 (raised), Y=208 (floor) and Y=160 (raised). Empty active slots choose eligible visible encounters
 first, then encounters ahead of the camera, then those behind it, independent
 of enemy type. Existing off-screen unloading still prevents a visible actor
 from being parked.
 
-Only `ENEMY_TYPE_CLOCKWORK_BEETLE` is marked runtime-ready. The selected
-Strider states therefore remain persistent level data but can never enter an
-active slot in this build; no Strider asset is loaded or drawn, and beetle
-rendering, collision and animation remain unchanged. Phase 5C.2 must remove
-that gate only after type-specific packed-cache preparation and renderer
-dispatch exist, then prove one static ground Strider and one static raised
-platform Strider before AI is enabled.
+In the accepted 5C.1 build, only `ENEMY_TYPE_CLOCKWORK_BEETLE` was marked
+runtime-ready. The selected Strider states remained persistent level data but
+could not enter an active slot; no Strider asset was loaded or drawn, and
+beetle rendering, collision and animation remained unchanged.
+
+Phase 5C.2 is implemented and awaits MrDig's FS-UAE review. Gameplay loading
+now includes `clockwork-storm-strider.spbm`, and the HD/ZIP/LHA/ADF packaging
+includes the same asset. The renderer owns a compact per-type Bob-cache
+descriptor for source asset, dimensions, frames, source words and authored
+direction order. Beetles retain 32x24, nine frames and three source words;
+the first 5C.2 proof used a 48x40 Strider and four source words, while the
+corrected upright proof uses 64x64 and five. Both types are converted once into
+shared Chip-RAM mask/plane patterns. Strider's right-first source is normalized
+to the same logical left/right cache order as beetle's left-first source.
+
+The synchronized Bob pipeline remains reverse restore then forward draw, with
+the accepted `0x0fca` masked minterm and no CPU compositing into displayed Chip
+RAM. Each slot records `drawnType` independently from its current actor type,
+so life-loss/right-edge resets restore the exact old type-specific rectangle
+before slot reuse. Culling, bounds and restore dimensions dispatch through the
+same type descriptor.
+
+Only the two required Strider encounters may enter runtime slots in this proof.
+The first is static idle on the raised platform at groundY=128; the second is
+static idle on the floor at groundY=208. The optional third remains gated.
+`updateEnemy()` freezes Striders at frame zero, and projectile/contact dispatch
+continues to accept beetles only. Therefore the two proofs are intentionally
+non-interactive and isolate loading, rendering, culling, grounding, overlap and
+reset restoration. Phase 5C.3 must add Strider patrol cadence, all-posture
+projectile collision, three-HP hit/death handling, contact damage and unlimited
+safe respawn only after this static render proof is accepted.
+
+MrDig's FS-UAE recording `2026-08-12 17-58-10.mov` rejected two aspects of the
+first 5C.2 proof. The second Strider appeared after it had already entered the
+viewport, together with a newly activated beetle, because four slots could
+remain owned by older encounters until their patrol surfaces were 160 pixels
+off screen. More importantly, the 48x40 quadruped source used only roughly
+25-30 visible pixels in idle because its long flight pose dictated the shared
+scale. It read as a small mechanical dog, smaller than Sparkpaw, rather than a
+larger second enemy.
+
+The accepted redesign is permanently upright and bipedal. Canine/jackal cues
+are limited to its swept sensor head and stabilizer tail; it runs, compresses,
+jumps and lands on two reverse-jointed piston legs, with short balance arms
+never touching the floor. The accepted concept sources are
+`clockwork-storm-strider-biped-concept-v2-{chroma,transparent}.png`; the new
+eighteen-pose production sources are
+`clockwork-storm-strider-biped-production-v4-{chroma,transparent}.png`. The
+runtime cell is now 64x64, with about 48-50 visible idle pixels so it reads at
+least as tall as Sparkpaw and far larger than a beetle. Its five-word packed
+row supports a shifted 64-pixel Bob; the eight-colour proof is
+`clockwork-storm-strider-64x64-aga8.png`.
+
+The late-placement correction reduces invisible slot retention from 160 to 32
+pixels and moves the floor proof from x=700 to x=870. The raised proof remains
+on groundY=128 with its spawn range tightened so the wider Bob stays within the
+authored surface; the floor proof remains on groundY=208. A prior quadruped v3
+scale experiment is preserved as rejected review history and is not consumed.
+This corrected 5C.2 build still freezes both Striders at idle and keeps them
+non-interactive; it requires a new FS-UAE review before 5C.3.
+
+MrDig's next FS-UAE screenshot accepted the corrected scale, grounding and
+activation timing: the upright Strider is now clearly larger, fully visible
+and the second proof has no observed pop-in. The remaining rejection concerned
+art direction. Sparkpaw, beetles and Strider all appeared orange because the
+v4 aged-brass source mapped into the same warm foreground pens; the thin,
+high-frequency mechanical detail also remained below Sparkpaw's perceived art
+quality.
+
+The v5 production repaint preserves all eighteen bipedal poses and the 64x64
+contract but gives the Strider a separate cool identity: deep navy/black steel,
+large violet armour panels, royal-blue secondary plates and cyan visor/core/
+conduits, with no warm metal. It also thickens limbs and armour masses and
+consolidates highlights into more deliberate pixel clusters. This uses only the
+existing foreground palette's dark, blue, violet, cyan and rare cream pens, so
+it requires no Copper, colour-depth or playfield changes. The generator now
+consumes `clockwork-storm-strider-biped-production-v5-transparent.png`; v4 is
+preserved as the accepted anatomy/scale baseline. The updated native proof
+still writes `clockwork-storm-strider-64x64-aga8.png`. This v5 colour/polish
+build awaits FS-UAE judgement specifically for silhouette readability against
+the dark level and perceived quality beside Sparkpaw.
 
 #### Phase 6: levels and progression
 

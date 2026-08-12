@@ -19,9 +19,9 @@ static const struct EnemySpawnCandidate enemySpawns[]={
     /* Phase 5 authored Strider surfaces. These two required and one optional
        encounter are persistent level data, but remain runtime-disabled until
        the type-specific packed Bob consumer is introduced in Phase 5C.2. */
-    { 336, 360,{ 328, 408,128},  1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
+    { 336, 344,{ 328, 408,128},  1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
                                             ENEMY_POLICY_RESPAWN,1 },
-    { 700, 728,{ 688, 768,144}, -1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
+    { 870, 884,{ 864, 952,208}, -1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
                                             ENEMY_POLICY_RESPAWN,1 },
     {1090,1136,{1072,1200,160},  1, ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
                                             ENEMY_POLICY_RESPAWN,0 }

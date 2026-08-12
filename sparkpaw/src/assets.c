@@ -8,7 +8,7 @@
 #include <string.h>
 
 static struct PlanarAsset title,levelLoading,levelCharging,frontClean,rearWorld;
-static struct PlanarAsset playerSprites,enemySprites;
+static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
 static struct PlanarAsset collectibleDiamond;
 
@@ -83,6 +83,8 @@ BOOL assetsLoadGameplay(void)
                      &playerSprites,4)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
                      &enemySprites,3)&&
+           loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
+                     &striderSprites,3)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
                      &hudBase,3)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-health.spbm",
@@ -131,7 +133,8 @@ void assetsUnloadGameplay(void)
 {
     freeAsset(&collectibleDiamond); freeAsset(&hudDiamonds);
     freeAsset(&hudLives); freeAsset(&hudHealth); freeAsset(&hudBase);
-    freeAsset(&enemySprites); freeAsset(&playerSprites);
+    freeAsset(&striderSprites); freeAsset(&enemySprites);
+    freeAsset(&playerSprites);
     freeAsset(&rearWorld); freeAsset(&frontClean);
 }
 
@@ -142,6 +145,7 @@ const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }
 const struct PlanarAsset *assetsEnemySprites(void) { return &enemySprites; }
+const struct PlanarAsset *assetsStriderSprites(void) { return &striderSprites; }
 const struct PlanarAsset *assetsHudBase(void) { return &hudBase; }
 const struct PlanarAsset *assetsHudHealth(void) { return &hudHealth; }
 const struct PlanarAsset *assetsHudLives(void) { return &hudLives; }

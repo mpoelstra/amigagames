@@ -7,13 +7,17 @@
 #define ENEMY_H 24
 #define ENEMY_FRAMES 9
 #define ENEMY_SOURCE_WORDS 3
+#define STRIDER_W 64
+#define STRIDER_H 64
+#define STRIDER_FRAMES 18
+#define STRIDER_SOURCE_WORDS 5
 #define MAX_ENEMIES 4
 
 struct Enemy {
     LONG x,vx;
     WORD y,drawnX,drawnY,patrolLeft,patrolRight;
     UWORD walkTick;
-    UBYTE animFrame,health,hitTimer,deathTimer,spawnIndex,type;
+    UBYTE animFrame,health,hitTimer,deathTimer,spawnIndex,type,drawnType;
     BOOL active,drawn,facingLeft,dying;
 };
 

@@ -56,6 +56,14 @@ Mouse exit is disabled because clean Workbench
 restoration remains a separate technical milestone; reset the Amiga or
 emulator to leave the current build.
 
+Phase 5C.2 also places two non-interactive Clockwork Storm Strider render
+proofs: one frozen in idle on a raised platform and one frozen on the floor.
+They deliberately have no patrol, projectile hitbox or contact damage yet.
+This isolates validation of their 64x64 packed Bob cache, type-specific
+culling and background restoration from the later AI/collision step. Their
+cool navy/violet/blue armour and cyan energy identity deliberately avoid the
+warm orange palette shared by Sparkpaw and the beetles.
+
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
@@ -156,8 +164,8 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `assets/concept/`: full-resolution concept art and AGA preview conversions
 - `assets/sprites/`: prototype animation art and named frame metadata
 - `assets/enemies/`: native-resolution enemy art, preview and frame metadata
-  (including the asset-only 48x40, eighteen-frame Clockwork Storm Strider
-  palette proof; it is not instantiated by gameplay yet)
+  (including the 64x64, eighteen-frame upright Clockwork Storm Strider palette
+  proof and preserved earlier concept/scale review sources)
 - `assets/sfx/previews/`: WAV previews for later milestones
 - `sfx/raw/`: signed 8-bit mono Paula-ready samples; the current build uses the
   energy-shot, player-hurt, enemy-hit and jump samples and reserves the others
@@ -187,6 +195,13 @@ contact recoil respects the low crouch clearance beneath a platform.
 Crouching changes posture without enlarging
 the character. More in-between poses can be added without changing the DMA
 renderer.
+
+For the Phase 5C.2 proof, verify that exactly two static Striders appear: a
+raised-platform instance in the early level and a floor instance farther
+right. Walk both on and off screen repeatedly, fire plasma across them and
+trigger a life-loss or right-edge reset. They must remain visually anchored,
+must not damage Sparkpaw or absorb shots yet, and must leave no stale 64x64 Bob
+pixels. Beetle behaviour should remain unchanged.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent

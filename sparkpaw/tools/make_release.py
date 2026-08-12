@@ -72,9 +72,11 @@ overlap an enemy or two beetles approach the same screen edge.
 Please look for sprite flicker, apparent size changes, foot sliding, tearing,
 collision errors, camera jumps and parallax glitches.
 
-This milestone intentionally contains no second enemy type, music or menus.
-It validates bounded randomized beetle encounters, unlimited safe off-screen
-respawn and the first focused gameplay sound-effect integration.
+Two non-interactive Clockwork Storm Striders are included as static render
+proofs: one on a raised platform and one on the floor. They do not patrol,
+damage Sparkpaw or absorb shots yet. Check their grounding and watch for stale
+64x64 pixels while moving them on/off screen, firing across them and restarting
+the level. Music and menus remain outside this milestone.
 """
 
 
@@ -119,6 +121,7 @@ def copy_runtime() -> None:
         "storm-front.spbm", "storm-rear.spbm",
         "storm-collision.bin", "sparkpaw-sprites4.spbm",
         "clockwork-beetle.spbm",
+        "clockwork-storm-strider.spbm",
         "energy-shot.raw",
         "player-hurt.raw",
         "enemy-hit.raw",
