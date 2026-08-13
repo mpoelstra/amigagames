@@ -227,8 +227,11 @@ Completed and accepted:
 - Phase 5C.3: raised/floor patrol, accepted eight-frame gait and endpoint turn.
 - Phase 5D: one authored raised-to-floor jump link with persistent traversal
   state, accepted landing/recovery and safe destination patrol.
+- Phase 5E: stable surface/link data, bidirectional low/high traversal,
+  offscreen logical persistence, blocked/missed-flight recovery and a repeated
+  gap-crossing loop for Strider 2.
 
-### Current: Phase 5E — broader authored Strider traversal
+### Completed: Phase 5E — broader authored Strider traversal
 
 Generalize the accepted 5D proof without turning it into arbitrary pathfinding:
 
@@ -238,8 +241,9 @@ Generalize the accepted 5D proof without turning it into arbitrary pathfinding:
 2. **5E.2 accepted in FS-UAE/HD:** one explicit left-travelling
    return link climbs from the safe floor route to the original raised surface,
    proving that the same Strider can traverse links in both world directions;
-3. add return links, low/high transitions, gaps and water;
-4. define missed/blocked landing and off-camera transition rules;
+3. return links, low/high transitions and an explicit open-air gap proof are
+   accepted; real water/death-hazard semantics remain later level work;
+4. missed/blocked landing and off-camera transition rules are implemented;
 5. **5E.3 accepted in FS-UAE:** persistent Striders keep
    one logical world-space update per frame while their runtime/Bob slot is
    camera-parked, then restore the complete state when they approach the camera;
@@ -251,15 +255,31 @@ Generalize the accepted 5D proof without turning it into arbitrary pathfinding:
    failure now requires passing the window in the travel direction. MrDig's
    corrected-loop retest restored the complete down, lower-floor patrol and
    return behaviour;
-7. let Striders appear to roam the whole level from either side without camera-
-   edge spawning, resetting when jumped over or beginning unseen attacks.
+7. persistent authored routes now continue independently of the camera without
+   camera-edge spawning or reset; unseen attacks remain excluded until combat.
 
 The camera controls rendering, not route ownership. Do not simulate four Bobs
 offscreen, but preserve route, position, direction and traversal state. Keep
 combat animation/damage and renderer changes separate from this navigation pass.
 
-Next after 5E.4 acceptance: add one explicit gap/water traversal proof as a
-separate level-data/collision step.
+**Phase 5E.5 accepted in FS-UAE/HD:** Strider 2 starts on the
+existing x=848..991 high platform and crosses the adjacent 80px gap rightward
+to the x=1072..1199 lower platform, then returns left. The first reviewed layout
+used the remote left edge; its slowest randomized patrol took almost seven
+seconds to reach the link and looked stuck in the supplied six-second recording.
+The revised links are in the same camera scene as Sparkpaw's approach. This is
+deliberately level data only: the continuous player floor, collision asset,
+foreground art, renderer and combat remain unchanged. MrDig's supplied recording
+confirms both crossings, planted landings and stable patrol recovery without
+fallback, floor contact or platform intersection. ADF-specific and real-hardware
+verification remain open.
+
+### Next: Phase 5F.1 — Strider contact damage
+
+Add only a body-aware Strider contact hitbox and reuse the accepted player-damage,
+knockback, invulnerability, life-loss and reset path. Keep traversal and turn
+states valid during contact. Do not add shooting, enemy hurt/death art, renderer
+changes or consume reserved animation slots in this step.
 
 ### Later phases
 
@@ -281,9 +301,12 @@ local beetle-like decoration.
 ## Known limitations and backlog
 
 - No clean Workbench exit; reset the Amiga/emulator to leave gameplay.
-- Current world has continuous floor and no implemented water/gap hazard yet.
+- Current world retains its continuous player floor and has no water/death
+  hazard yet; 5E.5 only proves Strider traversal across the visible gap between
+  two existing raised platforms.
 - Far-right reload is temporary; real level completion/progression is pending.
-- Strider jump/navigation and all Strider combat are pending.
+- Broader route graphs and real water/death-hazard semantics remain future
+  level work. Strider combat is pending, beginning with Phase 5F.1 contact.
 - Music is pending; define Paula ownership before integration.
 - Game-over presentation and broader checkpoint/progression flow remain pending.
 - Stock 68020/2 MB Chip RAM performance and real-hardware timing remain unproven.

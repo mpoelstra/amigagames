@@ -1814,6 +1814,51 @@ sidecar. MrDig's corrected HD/FS-UAE retest then confirmed that the complete
 down, lower-floor patrol and return loop works again, accepting Phase 5E.4. No
 ADF-specific or real-hardware result was supplied.
 
+#### Phase 5E.5 raised-platform gap proof (13 August 2026)
+
+The second required Strider now owns an authored route rather than only pacing
+the long floor. The first implementation crossed the 80px gap left of its
+x=848..991 high platform. MrDig's six-second HD/FS-UAE recording showed the
+Strider turning and moving slowly near the opposite edge but never reaching the
+link. This was not a frozen traversal state: at the slowest existing randomized
+8.8 speed (`48`), walking roughly 65 pixels to that remote zone takes almost
+seven seconds before telegraph and flight. The encounter therefore looked stuck
+and its intended action was outside the camera scene being judged. The evidence
+is retained locally as
+`testresults/Phase 5E.5-apparent-stall-before-gap-route.mov` with its sidecar.
+
+The revised proof uses the adjacent gap right of that platform. Stable source
+bounds remain x=860..980 at ground y=112; the lower x=1072..1199 platform uses
+leading-foot bounds x=1084..1188 at ground y=160. Moving right through actor
+x=928..932 launches at `vx=1024`, `vy=-832`, gravity `64` and lands at
+x=1072..1080. The return moves left through x=1072..1076 with `vx=-1024`,
+`vy=-1472`, gravity `64` and lands at x=928..936. These repeatable crossings
+stay together in the same camera view and use the accepted bidirectional-link
+machinery, not a new navigation system. Existing foreground and collision
+geometry are reused: the continuous player floor and safe route remain intact,
+and no water/death hazard is implied.
+No generated asset, renderer, cache, Bob ordering, combat or animation contract
+changes. Native `make` and `make release` succeed, including bootable DOS1/FFS
+ADF validation. Focused FS-UAE regression remains required.
+
+MrDig's 13.43-second follow-up HD/FS-UAE recording shows the revised route
+completing in both directions: rightward telegraph, gap crossing, planted lower
+landing and patrol, followed by the higher leftward return and stable recovery
+on the source platform. No premature fallback, floor contact, platform-edge
+intersection or apparent stalled state is visible. This accepts Phase 5E.5 for
+HD/FS-UAE; ADF-specific and real-hardware verification remain open. Evidence is
+retained locally as
+`testresults/Phase 5E.5-accepted-bidirectional-gap-loop.mov` with its sidecar.
+
+This closes the scoped Phase 5E traversal pass. The accepted contract now covers
+stable surface/link ownership, bidirectional low/high links, logical offscreen
+persistence, blocked/missed-flight recovery and a repeated raised-platform gap
+loop. Real water/death-hazard semantics belong to later level work rather than
+this safe continuous-floor proof. The next isolated implementation step is
+Phase 5F.1: Strider body contact through the existing player damage, knockback,
+invulnerability, life-loss and reset path. Shooting and Strider hurt/death art
+remain separate later steps, and slots 9..17 stay reserved.
+
 Appending six full 64x64 masked source frames exceeded the nearly full DOS0
 release disk during `make release`. The bootable ADF now uses DOS1/FFS, which is
 native to the A1200 target and stores file data more efficiently; its executable

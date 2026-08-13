@@ -127,6 +127,19 @@ the independent 96-frame cap remains. MrDig's corrected HD/FS-UAE retest
 accepted the restored down, lower-floor patrol and return loop. No ADF-specific
 or real-hardware result was supplied.
 
+Phase 5E.5 gives Strider 2 its first authored traversal. It starts on the
+existing high platform at x=848..991, approaches right, telegraphs and jumps
+across the adjacent 80px open-air gap to the lower x=1072..1199 platform, then
+returns left. The rejected first layout put the link at the remote left edge;
+the slowest existing randomized patrol needed almost seven seconds to reach it
+and looked stuck in a six-second recording. The revised loop stays in the same
+camera scene as Sparkpaw's approach. It changes only stable surfaces, spawn
+ownership and link data; the continuous player floor, foreground art, collision
+asset, renderer and combat remain unchanged. MrDig's follow-up HD/FS-UAE
+recording accepted the complete repeated loop in
+both directions, including both landings and patrol recovery. No ADF-specific
+or real-hardware result was supplied.
+
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
@@ -304,6 +317,13 @@ identical. Current geometry intentionally does not trigger failure. Regression
 must show no refusal to launch, teleport or extra turn at either valid link.
 Blocked/missed branches are host-contract coverage until a later authored test
 surface deliberately exercises them.
+
+For Phase 5E.5, approach Strider 2 around the later pair of raised platforms.
+It should approach the right edge of the high platform, show the same two-stage
+compression, clear the visible gap and land planted on the lower right platform.
+After that patrol it should telegraph and jump left across the same gap, repeating
+the loop. It must not snap back, touch the floor, intersect either platform edge
+or disturb Strider 1's accepted loop.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent

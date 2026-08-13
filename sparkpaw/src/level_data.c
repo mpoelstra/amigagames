@@ -3,8 +3,8 @@
 static const struct EnemyPatrolSurface enemySurfaces[ENEMY_SURFACE_COUNT]={
     { 286, 392,208}, { 416, 492,208}, { 500, 640,208},
     { 752, 900,208}, { 912,1000,208}, {1035,1195,208},
-    { 320, 416,128}, { 672,1008,208}, {1072,1200,160},
-    { 300, 496,208}
+    { 320, 416,128}, { 672,1008,208}, {1084,1188,160},
+    { 300, 496,208}, { 860, 980,112}
 };
 
 static const struct EnemySpawnCandidate enemySpawns[]={
@@ -28,7 +28,7 @@ static const struct EnemySpawnCandidate enemySpawns[]={
     { 336, 344, 1,SURFACE_STRIDER_RAISED_START,
                          ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
                                             ENEMY_POLICY_RESPAWN,1 },
-    { 870, 884,-1,SURFACE_STRIDER_LONG_FLOOR,
+    { 870, 884, 1,SURFACE_STRIDER_GAP_HIGH,
                          ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
                                             ENEMY_POLICY_RESPAWN,1 },
     {1090,1136, 1,SURFACE_STRIDER_OPTIONAL_RAISED,
@@ -50,7 +50,17 @@ static const struct EnemyTraversalLink enemyTraversalLinks[]={
        steeper arc clears the raised platform's right face before moving above
        it, then lands well inside the original authored surface. */
     { SURFACE_STRIDER_JUMP_FLOOR,SURFACE_STRIDER_RAISED_START,
-     -1,440,444,376,392,-512,-2656,128 }
+     -1,440,444,376,392,-512,-2656,128 },
+    /* Phase 5E.5 gap proof for Strider 2. The high platform ends at x=992 and
+       the lower platform starts at x=1072, leaving 80px of visible open air.
+       This right-edge route stays in the same camera view as Sparkpaw's normal
+       approach, unlike the rejected remote-left-edge proof. */
+    { SURFACE_STRIDER_GAP_HIGH,SURFACE_STRIDER_OPTIONAL_RAISED,
+      1,928,932,1072,1080,1024,-832,64 },
+    /* Repeat across the same gap so offscreen persistence cannot consume the
+       only observable proof before the camera arrives. */
+    { SURFACE_STRIDER_OPTIONAL_RAISED,SURFACE_STRIDER_GAP_HIGH,
+     -1,1072,1076,928,936,-1024,-1472,64 }
 };
 
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count)
