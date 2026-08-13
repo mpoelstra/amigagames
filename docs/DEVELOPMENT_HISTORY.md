@@ -1686,6 +1686,134 @@ the visible region. Phase 5E should express this as stable authored surface IDs
 and bidirectional links with offscreen, blocked and missed-landing rules—not
 camera-edge spawning or arbitrary pixel pathfinding.
 
+#### Phase 5E.1 stable surface identities (13 August 2026)
+
+The first 5E step is a narrow data/AI refactor with no new visible behaviour.
+All ten currently authored patrol surfaces now have explicit stable IDs in one
+level table. Spawn candidates retain randomized X ranges, direction, type and
+policy but reference only a starting surface ID. Traversal links no longer bind
+to a spawn index or embed a copied destination rectangle; they connect a source
+surface ID to a destination surface ID and retain only launch/landing/ballistic
+parameters.
+
+The runtime link selector scans every record matching the actor's current
+surface and chooses one whose direction and launch zone are currently valid. It
+does not stop at the first source-surface match, so later authored branches from
+one surface remain representable without changing the AI lookup contract.
+
+Persistent `Enemy` state now includes its current surface ID. Initialization
+resolves the spawn's surface, the accepted 5D link is selected by current source
+surface, and landing recovery changes the actor to the destination surface ID.
+The cached patrol bounds remain in runtime state so activation priority, camera
+parking and grounded movement remain byte-for-byte in the established path.
+Respawn deliberately resolves the spawn's starting surface rather than the
+actor's last traversal surface, preserving complete level-replay semantics.
+
+This establishes the data contract needed for a separately authored return link
+without adding that link yet. Native `make` and `make release` succeed, including
+bootable DOS1/FFS ADF validation. MrDig then confirmed in FS-UAE that all
+accepted 5D behaviour remained correct after this refactor, accepting Phase
+5E.1. No real-hardware result exists.
+
+#### Phase 5E.2 one authored return link (13 August 2026)
+
+The stable surface graph now contains one reverse traversal record from
+`SURFACE_STRIDER_JUMP_FLOOR` to `SURFACE_STRIDER_RAISED_START`. It triggers only
+while the Strider travels left in the authored x=440..444 zone after turning at
+the low platform. It reuses the accepted compression, flight, descent, landing
+and recovery frames; no cache or renderer change is involved.
+
+A direct mirror of the downward trajectory was rejected during host planning
+because a 64px actor would cross the platform's right face while still below its
+top. The chosen 8.8 arc uses vx=-512, vy=-2656 and gravity=128. Across every
+integer launch origin x=440..444, the actor crosses left of x=416 only after its
+logical top reaches y=54 or higher clearance, then lands after 30 frames within
+x=380..384 on the y=128 raised surface. Its logical top never rises above y=41,
+so existing world-bound culling remains valid.
+
+After recovery the persistent current surface becomes the raised surface and the
+saved leftward speed resumes. It must reach the left extremum, turn right and may
+then encounter the original downward link again, producing a fully authored
+two-way loop. Offscreen abstraction, additional links, gaps/water, failure rules,
+combat and renderer work remain outside 5E.2. Native `make` and `make release`
+succeed, including bootable DOS1/FFS ADF validation. FS-UAE review is required
+before acceptance; no real-hardware result exists.
+
+MrDig's first 5E.2 FS-UAE test showed the accepted downward jump but no return:
+the Strider stayed on its floor patrol. The cause was deterministic state, not
+the return zone or trajectory. Phase 5D recovery cleared `traversalState` but
+left `traversalLink` holding completed link index 0. With only one one-way link
+this stale ownership had no visible effect; the general link-start guard then
+correctly—but permanently—rejected 5E.2 because a link still appeared owned.
+Successful recovery now also restores `traversalLink` to
+`INVALID_TRAVERSAL_LINK`. The current destination surface ID, patrol bounds,
+direction and speed remain intact, allowing the separately authored reverse
+link to become eligible. Rebuild and focused FS-UAE regression are required.
+
+MrDig supplied `sparkpaw/testresults/Phase 5E.2-return-loop.mov`, a 10.08-second
+60 fps FS-UAE recording of the HD build. It visibly completes the authored loop:
+raised platform to floor, safe floor patrol, return arc, raised landing/recovery
+and another cycle. Sampled frames show no obvious platform intersection,
+incorrect surface reset or persistent Bob residue. Phase 5E.2 is accepted in
+FS-UAE/HD. The adjacent ignored `.txt` records metadata and review scope. ADF
+parity and real-A1200 verification remain open.
+
+#### Phase 5E.3 parked world-space simulation (13 August 2026)
+
+Previously, camera parking copied complete enemy state into `EnemySpawnState`
+but stopped updating it until the route approached the camera again. This froze
+offscreen Striders and contradicted the accepted persistent traversal target.
+The persistent spawn pass now advances every selected, active, non-respawning
+Strider whose runtime slot is parked exactly once at the start of each game
+frame. Loaded slots continue through the existing runtime loop, so no Strider
+receives two updates on an unload or activation boundary. Beetles deliberately
+retain their accepted Phase 4 parking behaviour.
+
+The parked path calls the same deterministic world-space state update used by a
+loaded enemy, preserving patrol probes, animation distance, link selection,
+telegraph, fixed-point flight, landing and recovery. It allocates no Bob slot and
+performs no renderer, cache, restore/draw or displayed Chip-RAM work. Current
+patrol/link envelopes still decide when an encounter becomes eligible for one of
+the four runtime slots. Native build/release and focused FS-UAE regression are
+required before 5E.3 acceptance; no ADF or real-hardware result exists.
+
+MrDig's follow-up FS-UAE test reported that the parked traversal behaviour looks
+good, accepting Phase 5E.3. No ADF-specific or real-hardware result was supplied.
+
+#### Phase 5E.4 blocked and missed traversal rules (13 August 2026)
+
+Traversal now validates both extreme authored landing origins before claiming a
+link. The direction-specific planted-foot inset must have solid support at the
+destination ground Y and clear space eight pixels above it. If either probe is
+blocked or unsupported, the Strider remains on its current surface and reverses
+away; it does not infer another surface or begin a doomed telegraph.
+
+Each launch stores its source X and starts a bounded flight counter. A descending
+actor that reaches destination height outside its landing window, or any flight
+that reaches 96 frames, fails deterministically. It returns to the stored source
+position and current source-surface bounds, shows the existing planted recovery,
+releases the completed link and resumes in the opposite direction. Destination
+surface ownership changes only after a successful landing/recovery.
+
+Host collision-map checks confirm both extremes of both accepted links have
+support and clearance: downward foot probes x=467/479 at y=208 and upward probes
+x=388/404 at y=128. Their visible trajectories therefore remain unchanged. No
+new gap, water, surface, animation, renderer or combat behaviour is included.
+Native `make` and `make release` succeed, including bootable DOS1/FFS ADF
+validation. Focused FS-UAE regression remains open.
+
+The first focused HD/FS-UAE recording exposed one premature fallback in the
+accepted downward arc. The actor reaches destination height one update before
+entering the landing window, but the initial 5E.4 rule treated every
+out-of-window height crossing as a miss. A miss is now declared only after the
+actor has passed the window in its travel direction; approaching it remains
+valid, while the independent 96-frame limit still bounds malformed flights.
+Evidence is retained locally as
+`testresults/Phase 5E.4-premature-fallback-regression.mov` with its analysis
+sidecar. MrDig's corrected HD/FS-UAE retest then confirmed that the complete
+down, lower-floor patrol and return loop works again, accepting Phase 5E.4. No
+ADF-specific or real-hardware result was supplied.
+
 Appending six full 64x64 masked source frames exceeded the nearly full DOS0
 release disk during `make release`. The bootable ADF now uses DOS1/FFS, which is
 native to the A1200 target and stores file data more efficiently; its executable

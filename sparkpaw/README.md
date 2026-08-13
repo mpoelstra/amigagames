@@ -84,6 +84,49 @@ observation exposed a destination overlap; follow-up tests accepted the correcte
 jump, low-platform turn and patrol beneath the original platform. Real-hardware
 review remains open.
 
+Phase 5E.1 replaces coordinate ownership with stable authored surface IDs while
+preserving the accepted 5D behaviour. Enemy spawns now reference only their
+starting surface; traversal links connect source and destination surface IDs,
+and a Strider persists its current surface through camera-slot parking. Runtime
+patrol bounds remain cached on the actor for unchanged movement and culling.
+This data/AI refactor added no return jump, new route, art or renderer work and
+was accepted in focused FS-UAE regression.
+
+Phase 5E.2 adds exactly one explicit return link. After the floor Strider turns
+left before the low platform, it reaches a second two-stage compression zone,
+uses a steeper fixed arc around the raised platform's right face, lands back on
+top and recovers before resuming its raised patrol. The existing traversal poses
+are reused. This proves links in both world directions without offscreen
+simulation, general pathfinding, new geometry or renderer changes. The first run
+exposed that the completed downward link ID
+was not cleared at recovery, which blocked all subsequent links; recovery now
+releases that ID while preserving the destination surface and patrol state.
+The corrected two-way loop was accepted from MrDig's supplied FS-UAE HD video;
+ADF parity and real-hardware verification remain open.
+
+Phase 5E.3 keeps persistent Striders moving logically while camera parking has
+released their bounded runtime/Bob slot. Each parked encounter receives exactly
+one ordinary world-space AI/physics update per game frame, but performs no Bob,
+restore, cache or displayed Chip-RAM work. When its current route approaches the
+camera, the active pool restores that complete position, surface, direction and
+traversal phase. Beetle parking remains unchanged. This adds no spawn-at-camera
+shortcut. MrDig's follow-up FS-UAE test accepted this behaviour.
+
+Phase 5E.4 adds narrow failure rules without changing geometry: both extreme
+landing-foot probes must
+have authored support and body clearance before telegraph begins. A blocked
+destination reverses the Strider on its source surface. A missed landing or
+96-frame flight timeout restores the stored launch position/source surface,
+shows planted recovery and resumes away from the failed link. Successful links
+retain the accepted visual path.
+
+The first 5E.4 HD/FS-UAE review found that the downward arc crosses destination
+height one update just before its landing window. Failure detection now waits
+until the Strider has actually passed that window in its direction of travel;
+the independent 96-frame cap remains. MrDig's corrected HD/FS-UAE retest
+accepted the restored down, lower-floor patrol and return loop. No ADF-specific
+or real-hardware result was supplied.
+
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
@@ -156,12 +199,12 @@ including on accelerated systems. Both screens share one 64-colour palette.
   walk/turn state, hit detection and damage state; runtime slots retain an
   explicit link to their spawn record
 - `src/level_data.c` / `src/level_data.h`: compact typed enemy spawn records
-  containing safe position ranges, authored `{left,right,groundY}` patrol
-  surfaces, initial direction and persistence policy; four beetle encounters
+  containing safe position ranges, stable authored patrol-surface IDs, initial
+  direction and persistence policy; four beetle encounters
   are required and two are optional. Two required and one optional Strider
   record share the same bounded runtime-slot activation model. One explicit
-  Phase 5D traversal link records its launch zone, destination surface, landing
-  zone and fixed ballistic parameters separately from the enemy AI
+  Phase 5D traversal link records its launch zone, source/destination surface
+  IDs, landing zone and fixed ballistic parameters separately from the enemy AI
 - `src/projectiles.c` / `src/projectiles.h`: projectile pool, spawn, movement,
   impact state and hit dispatch; packed plasma rendering remains with the
   renderer-sensitive code in `renderer.c`
@@ -237,6 +280,30 @@ away during telegraph, flight and recovery, then return: each phase must resume
 rather than reset or turn into a walk frame. Recheck life-loss and right-edge
 level replay for stale 64x64 pixels. This phase still adds no Strider combat or
 generic navigation.
+
+For the Phase 5E.1 regression, repeat that complete accepted route and a life-
+loss/right-edge reset. Behaviour must be identical: one downward jump only,
+then the same safe floor patrol. Also revisit both required Striders after they
+leave the camera; neither may reset to a wrong surface or trigger the jump twice.
+
+For Phase 5E.2, remain near the first Strider after its downward jump. It must
+turn at the low platform, travel left, telegraph again at x=440..444, clear the
+right side of its original platform, land on top and recover. It should then
+patrol left, turn, and eventually repeat the downward link. Watch especially for
+platform intersection, a duplicated jump trigger, stale Bobs and incorrect
+surface state after moving the camera away and returning.
+
+For Phase 5E.3, leave the first Strider behind during each of these states:
+ground patrol, compression, flight and recovery. Wait several seconds, return,
+and verify it continued rather than freezing or restarting. Approach the route
+from both sides and watch for natural entry, stale Bobs, double-speed movement
+at the park/unpark boundary and a hidden actor inside the visible viewport.
+
+For Phase 5E.4, first confirm several ordinary down/up loops remain visually
+identical. Current geometry intentionally does not trigger failure. Regression
+must show no refusal to launch, teleport or extra turn at either valid link.
+Blocked/missed branches are host-contract coverage until a later authored test
+surface deliberately exercises them.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent

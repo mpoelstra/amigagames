@@ -228,22 +228,38 @@ Completed and accepted:
 - Phase 5D: one authored raised-to-floor jump link with persistent traversal
   state, accepted landing/recovery and safe destination patrol.
 
-### Next: Phase 5E — broader authored Strider traversal
+### Current: Phase 5E — broader authored Strider traversal
 
 Generalize the accepted 5D proof without turning it into arbitrary pathfinding:
 
-1. give authored surfaces stable IDs and connect them with explicit links;
-2. support links and traversal in both world directions;
+1. **5E.1 accepted in FS-UAE:** authored patrol surfaces have stable IDs;
+   spawns reference a starting surface and traversal links connect source and
+   destination surface IDs. The accepted 5D route remained unchanged;
+2. **5E.2 accepted in FS-UAE/HD:** one explicit left-travelling
+   return link climbs from the safe floor route to the original raised surface,
+   proving that the same Strider can traverse links in both world directions;
 3. add return links, low/high transitions, gaps and water;
 4. define missed/blocked landing and off-camera transition rules;
-5. keep cheap logical world-space simulation outside the camera and restore
-   complete physics/animation before a Strider enters the visible region;
-6. let Striders appear to roam the whole level from either side without camera-
+5. **5E.3 accepted in FS-UAE:** persistent Striders keep
+   one logical world-space update per frame while their runtime/Bob slot is
+   camera-parked, then restore the complete state when they approach the camera;
+6. **5E.4 accepted in FS-UAE/HD:** launch checks require authored
+   landing-foot support and clearance; blocked links reverse on the source
+   surface, while missed/timed-out flights recover at their stored launch point
+   and move away without changing destination ownership. The first HD recording
+   exposed a premature fallback one update before the downward landing window;
+   failure now requires passing the window in the travel direction. MrDig's
+   corrected-loop retest restored the complete down, lower-floor patrol and
+   return behaviour;
+7. let Striders appear to roam the whole level from either side without camera-
    edge spawning, resetting when jumped over or beginning unseen attacks.
 
 The camera controls rendering, not route ownership. Do not simulate four Bobs
 offscreen, but preserve route, position, direction and traversal state. Keep
 combat animation/damage and renderer changes separate from this navigation pass.
+
+Next after 5E.4 acceptance: add one explicit gap/water traversal proof as a
+separate level-data/collision step.
 
 ### Later phases
 

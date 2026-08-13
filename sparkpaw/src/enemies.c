@@ -21,6 +21,7 @@
 #define STRIDER_TELEGRAPH_STAGE_FRAMES 6
 #define STRIDER_LANDING_HOLD_FRAMES 5
 #define STRIDER_RECOVERY_HOLD_FRAMES 7
+#define STRIDER_MAX_FLIGHT_FRAMES 96
 #define TRAVERSAL_NONE 0
 #define TRAVERSAL_COMPRESS_START 1
 #define TRAVERSAL_COMPRESS_CHARGED 2
@@ -78,59 +79,106 @@ static void initializeSpawnState(struct EnemySpawnState *state,
 {
     static const WORD speeds[3]={48,96,192};
     struct Enemy *enemy=&state->enemy;
+    const struct EnemyPatrolSurface *surface=
+        levelEnemyPatrolSurface(spawn->surfaceId);
     WORD speed=speeds[randomBelow(3)];
     BOOL selected=state->selected;
+    if(!surface) return;
     memset(state,0,sizeof(*state));
     enemy->x=(LONG)(spawn->minX+randomBelow(
         (UWORD)(spawn->maxX-spawn->minX+1)))<<8;
-    enemy->y=(WORD)(spawn->surface.groundY-enemyHeightForType(spawn->type));
+    enemy->y=(WORD)(surface->groundY-enemyHeightForType(spawn->type));
     enemy->vx=spawn->initialDirection<0?-speed:speed;
-    enemy->patrolLeft=spawn->surface.left;
-    enemy->patrolRight=spawn->surface.right;
+    enemy->patrolLeft=surface->left;
+    enemy->patrolRight=surface->right;
     enemy->health=spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?3:2;
     enemy->active=TRUE;
     enemy->facingLeft=enemy->vx<0;
     enemy->spawnIndex=spawnIndex; enemy->type=spawn->type;
+    enemy->surfaceId=spawn->surfaceId;
     enemy->traversalLink=INVALID_TRAVERSAL_LINK;
     state->selected=preserveSelection?selected:TRUE;
     state->loadedSlot=INVALID_SPAWN;
 }
 
-static const struct EnemyTraversalLink *traversalLinkForEnemy(
+static const struct EnemyTraversalLink *readyTraversalLinkForEnemy(
     const struct Enemy *enemy,UBYTE *linkIndex)
 {
     const struct EnemyTraversalLink *links;
     UWORD count,index;
+    WORD x=(WORD)(enemy->x>>8);
     links=levelEnemyTraversalLinks(&count);
     for(index=0;index<count;index++)
-        if(links[index].spawnIndex==enemy->spawnIndex) {
+        if(links[index].sourceSurfaceId==enemy->surfaceId&&
+           (links[index].launchDirection<0)==(enemy->vx<0)&&
+           x>=links[index].launchLeft&&x<=links[index].launchRight) {
             *linkIndex=(UBYTE)index;
             return &links[index];
         }
     return NULL;
 }
 
-static BOOL startTraversalIfReady(struct Enemy *enemy)
+static BOOL traversalLandingAvailable(const struct EnemyTraversalLink *link,
+                                      EnemySolidAt solidAt)
+{
+    const struct EnemyPatrolSurface *destination=
+        levelEnemyPatrolSurface(link->destinationSurfaceId);
+    WORD inset=link->launchDirection<0?12:STRIDER_W-1-12;
+    WORD first=(WORD)(link->landingLeft+inset);
+    WORD last=(WORD)(link->landingRight+inset);
+    if(!destination) return FALSE;
+    return solidAt(first,destination->groundY)&&
+           solidAt(last,destination->groundY)&&
+           !solidAt(first,destination->groundY-8)&&
+           !solidAt(last,destination->groundY-8);
+}
+
+static BOOL startTraversalIfReady(struct Enemy *enemy,EnemySolidAt solidAt)
 {
     const struct EnemyTraversalLink *link;
     UBYTE linkIndex;
-    WORD x=(WORD)(enemy->x>>8);
-    link=traversalLinkForEnemy(enemy,&linkIndex);
-    if(!link||enemy->traversalLink!=INVALID_TRAVERSAL_LINK||
-       (link->launchDirection<0)!=(enemy->vx<0)||
-       x<link->launchLeft||x>link->launchRight) return FALSE;
+    link=readyTraversalLinkForEnemy(enemy,&linkIndex);
+    if(!link||enemy->traversalLink!=INVALID_TRAVERSAL_LINK) return FALSE;
+    if(!traversalLandingAvailable(link,solidAt)) {
+        /* A blocked authored destination is not inferred or forced. Turn away
+           on the source surface and reconsider only after a later approach. */
+        enemy->vx=-enemy->vx;
+        enemy->facingLeft=enemy->vx<0;
+        return TRUE;
+    }
     enemy->resumeVX=enemy->vx;
     enemy->vx=0; enemy->vy=0;
     enemy->traversalLink=linkIndex;
     enemy->traversalState=TRAVERSAL_COMPRESS_START;
     enemy->traversalTimer=STRIDER_TELEGRAPH_STAGE_FRAMES;
+    enemy->traversalStartX=(WORD)(enemy->x>>8);
+    enemy->traversalFailed=FALSE;
     enemy->animFrame=STRIDER_COMPRESS_START_FRAME;
     return TRUE;
+}
+
+static void failTraversal(struct Enemy *enemy)
+{
+    const struct EnemyPatrolSurface *source=
+        levelEnemyPatrolSurface(enemy->surfaceId);
+    if(source) {
+        enemy->x=((LONG)enemy->traversalStartX)<<8;
+        enemy->y=(WORD)(source->groundY-STRIDER_H);
+        enemy->patrolLeft=source->left;
+        enemy->patrolRight=source->right;
+    }
+    enemy->jumpY=((LONG)enemy->y)<<8;
+    enemy->vx=0; enemy->vy=0;
+    enemy->traversalFailed=TRUE;
+    enemy->traversalState=TRAVERSAL_RECOVERY;
+    enemy->traversalTimer=STRIDER_RECOVERY_HOLD_FRAMES;
+    enemy->animFrame=STRIDER_RECOVERY_FRAME;
 }
 
 static void updateTraversal(struct Enemy *enemy)
 {
     const struct EnemyTraversalLink *links,*link;
+    const struct EnemyPatrolSurface *destination;
     UWORD count;
     WORD nextY,x;
     links=levelEnemyTraversalLinks(&count);
@@ -140,6 +188,12 @@ static void updateTraversal(struct Enemy *enemy)
         return;
     }
     link=&links[enemy->traversalLink];
+    destination=levelEnemyPatrolSurface(link->destinationSurfaceId);
+    if(!destination) {
+        enemy->traversalState=TRAVERSAL_NONE;
+        enemy->traversalLink=INVALID_TRAVERSAL_LINK;
+        return;
+    }
     if(enemy->traversalState==TRAVERSAL_COMPRESS_START) {
         enemy->animFrame=STRIDER_COMPRESS_START_FRAME;
         if(!--enemy->traversalTimer) {
@@ -154,18 +208,20 @@ static void updateTraversal(struct Enemy *enemy)
         if(!--enemy->traversalTimer) {
             enemy->traversalState=TRAVERSAL_FLIGHT;
             enemy->vx=link->launchVX; enemy->vy=link->launchVY;
+            enemy->traversalTimer=0;
             enemy->jumpY=((LONG)enemy->y)<<8;
             enemy->facingLeft=enemy->vx<0;
             /* Keep the complete authored route eligible for camera parking
                while the actor is between its source and destination. */
-            if(link->destination.left<enemy->patrolLeft)
-                enemy->patrolLeft=link->destination.left;
-            if(link->destination.right>enemy->patrolRight)
-                enemy->patrolRight=link->destination.right;
+            if(destination->left<enemy->patrolLeft)
+                enemy->patrolLeft=destination->left;
+            if(destination->right>enemy->patrolRight)
+                enemy->patrolRight=destination->right;
         }
         return;
     }
     if(enemy->traversalState==TRAVERSAL_FLIGHT) {
+        enemy->traversalTimer++;
         enemy->x+=enemy->vx;
         enemy->vy+=link->gravity;
         enemy->jumpY+=enemy->vy;
@@ -175,13 +231,19 @@ static void updateTraversal(struct Enemy *enemy)
                                       STRIDER_DESCENT_FRAME;
         x=(WORD)(enemy->x>>8);
         if(enemy->vy>=0&&x>=link->landingLeft&&x<=link->landingRight&&
-           enemy->y>=link->destination.groundY-STRIDER_H) {
-            enemy->y=(WORD)(link->destination.groundY-STRIDER_H);
+           enemy->y>=destination->groundY-STRIDER_H) {
+            enemy->y=(WORD)(destination->groundY-STRIDER_H);
             enemy->jumpY=((LONG)enemy->y)<<8;
             enemy->vx=0; enemy->vy=0;
             enemy->traversalState=TRAVERSAL_LANDING;
             enemy->traversalTimer=STRIDER_LANDING_HOLD_FRAMES;
             enemy->animFrame=STRIDER_LANDING_FRAME;
+        } else if(enemy->traversalTimer>=STRIDER_MAX_FLIGHT_FRAMES||
+                  (enemy->vy>=0&&
+                   enemy->y>=destination->groundY-STRIDER_H&&
+                   ((enemy->vx>=0&&x>link->landingRight)||
+                    (enemy->vx<0&&x<link->landingLeft)))) {
+            failTraversal(enemy);
         }
         return;
     }
@@ -196,12 +258,19 @@ static void updateTraversal(struct Enemy *enemy)
     }
     enemy->animFrame=STRIDER_RECOVERY_FRAME;
     if(!--enemy->traversalTimer) {
-        enemy->patrolLeft=link->destination.left;
-        enemy->patrolRight=link->destination.right;
-        enemy->vx=enemy->resumeVX;
+        if(!enemy->traversalFailed) {
+            enemy->surfaceId=link->destinationSurfaceId;
+            enemy->patrolLeft=destination->left;
+            enemy->patrolRight=destination->right;
+            enemy->vx=enemy->resumeVX;
+        } else {
+            enemy->vx=-enemy->resumeVX;
+            enemy->traversalFailed=FALSE;
+        }
         enemy->facingLeft=enemy->vx<0;
         enemy->walkTick=0; enemy->animFrame=0;
         enemy->traversalState=TRAVERSAL_NONE;
+        enemy->traversalLink=INVALID_TRAVERSAL_LINK;
     }
 }
 
@@ -361,7 +430,7 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
         return;
     }
     if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&
-       startTraversalIfReady(enemy)) return;
+       startTraversalIfReady(enemy,solidAt)) return;
     nextX=(WORD)((enemy->x+enemy->vx)>>8);
     front=nextX+(enemy->vx<0?footInset:width-1-footInset);
     patrolEnd=front<enemy->patrolLeft||front>=enemy->patrolRight;
@@ -404,6 +473,18 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt)
     UWORD candidateCount;
     UBYTE slot,spawnIndex;
     spawns=levelEnemySpawnCandidates(&candidateCount);
+    /* Camera parking removes only the bounded runtime/Bob slot. Keep each
+       persistent encounter's world-space route alive exactly once per frame so
+       it may approach and re-enter from either side without a camera-edge
+       reset. No rendering or Chip-RAM work occurs on this parked path. */
+    for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
+        struct EnemySpawnState *state=&spawnStates[spawnIndex];
+        if(state->selected&&
+           state->enemy.type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&
+           state->loadedSlot==INVALID_SPAWN&&
+           state->enemy.active&&!state->respawnPending&&!state->exhausted)
+            updateEnemy(&state->enemy,solidAt);
+    }
     for(slot=0;slot<MAX_ENEMIES;slot++) {
         struct Enemy *enemy=&enemies[slot];
         struct EnemySpawnState *state;
@@ -433,11 +514,13 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt)
     }
     for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
         struct EnemySpawnState *state=&spawnStates[spawnIndex];
+        const struct EnemyPatrolSurface *surface=
+            levelEnemyPatrolSurface(spawns[spawnIndex].surfaceId);
         if(!state->selected||!state->respawnPending) continue;
         if(state->respawnTimer) state->respawnTimer--;
-        if(!state->respawnTimer&&
-           (spawns[spawnIndex].surface.right<cameraX-ACTIVATE_MARGIN||
-            spawns[spawnIndex].surface.left>
+        if(surface&&!state->respawnTimer&&
+           (surface->right<cameraX-ACTIVATE_MARGIN||
+            surface->left>
                 cameraX+SCREEN_W+ACTIVATE_MARGIN)) {
             initializeSpawnState(state,&spawns[spawnIndex],spawnIndex,TRUE);
         }

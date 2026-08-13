@@ -15,10 +15,10 @@
 
 struct Enemy {
     LONG x,vx,vy,jumpY,resumeVX;
-    WORD y,drawnX,drawnY,patrolLeft,patrolRight;
+    WORD y,drawnX,drawnY,patrolLeft,patrolRight,traversalStartX;
     UWORD walkTick;
     UBYTE animFrame,health,hitTimer,deathTimer,turnTimer,spawnIndex,type,drawnType;
-    UBYTE traversalState,traversalTimer,traversalLink;
+    UBYTE traversalState,traversalTimer,traversalLink,surfaceId,traversalFailed;
     BOOL active,drawn,facingLeft,dying;
 };
 
