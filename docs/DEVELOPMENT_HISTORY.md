@@ -1859,6 +1859,156 @@ Phase 5F.1: Strider body contact through the existing player damage, knockback,
 invulnerability, life-loss and reset path. Shooting and Strider hurt/death art
 remain separate later steps, and slots 9..17 stay reserved.
 
+#### Phase 5F.1 Strider contact implementation (13 August 2026)
+
+The generic enemy-contact query now accepts active Striders as well as beetles.
+A fixed logical Strider box uses x offsets 11..52 and y offsets 7..61 inside the
+64x64 cell. This deliberately excludes the broad transparent side margins and
+the accepted transparent source rows 62..63 while retaining torso, legs and the
+compressed traversal poses. The returned knockback origin is the 64px logical
+centre rather than the beetle's 32px centre.
+
+No new damage system is introduced. `gameUpdate()` still performs one contact
+query after player/enemy physics and passes the centre to the unchanged
+`playerTakeEnemyHit()`, preserving half-heart damage, crouched hurt selection,
+directional knockback, invulnerability, sound, life loss and reset. Enemy walk,
+turn and traversal state are not changed by contact. Slots 9..17, shooting,
+Strider hurt/death, renderer/cache/Bob timing and displayed Chip RAM remain
+untouched. Native `make` and `make release` succeed, including bootable DOS1/FFS
+ADF validation. Focused FS-UAE review remains required.
+
+MrDig then exercised contact broadly in the HD build under FS-UAE: low/lying
+approaches, normal walking contact and jumping contact all caused the expected
+Sparkpaw damage. This accepts Phase 5F.1. No ADF-specific or real-hardware
+result was supplied. The next isolated step is Phase 5F.2, a camera-aware and
+clearly telegraphed Strider ranged attack. Its projectile ownership, visibility
+rules and any Paula priority must be explicit; Strider hurt/death remains later.
+
+#### Phase 5F.2 ranged attack implementation (13 August 2026)
+
+The projectile pool now has explicit ownership: indices 0..5 remain Sparkpaw's
+accepted rapid plasma capacity and indices 6..7 are hostile-only. Both families
+reuse the existing 16x9 packed plasma patterns, background restore, collision
+query and synchronized line-253 Bob pass. Hostile pulses move at 1150 in 8.8
+units, live for at most 100 frames, cannot hit enemies, and are consumed into
+the existing five-frame impact on player overlap. Damage then uses the same
+central `playerTakeEnemyHit()` path as body contact. The reset path preserves
+prior draw rectangles for both added slots.
+
+A Strider may enter the attack only while grounded, fully inside the viewport,
+not turning/traversing/hit/dying, facing Sparkpaw, within 48..208px horizontally
+and within 44px vertically. It stores its patrol velocity, stops for a 24-frame
+telegraph, selects slot 9 for charge and slot 10 for the six-frame release, then
+restores the exact prior direction and begins a 150-frame cooldown. Initial
+cooldown is staggered per persistent spawn. Offscreen logical updates may reduce
+cooldown but never start an attack; if a charging actor is parked, its pending
+shot is discarded rather than materializing on return.
+
+Runtime generation assigns only combat-reserved slots 9 and 10 to cyan-enhanced
+charge/release poses and emits an indexed two-frame preview. Slots 11..17 remain
+untouched for later hurt/death. No new sample is added: Paula channel allocation
+and priorities remain exactly as accepted. Renderer timing, cache layout,
+traversal frames 18..23 and displayed Chip RAM composition are unchanged.
+Native `make` and `make release` succeed, including bootable DOS1/FFS ADF
+validation. Focused FS-UAE review remains required.
+
+MrDig's 25.12-second HD/FS-UAE recording then showed repeated attacks, slower
+hostile pulses, Sparkpaw damage/invulnerability and continued Strider routes,
+accepting the Phase 5F.2 functional core. The same review correctly identified
+three presentation gaps: hostile fire reuses Sparkpaw's cyan pulse, intentionally
+has no sound, and the derived slots 9/10 do not show a clearly readable weapon.
+The current actor has an arm/claw near the spawn point, not an authored gun,
+cannon or gauntlet. Evidence is retained locally as
+`testresults/Phase 5F.2-accepted-ranged-core-needs-weapon-polish.mov` with its
+sidecar.
+
+Treat the next step as Phase 5F.2A presentation polish, not a new combat system:
+author a small integrated storm gauntlet or arm cannon only in slots 9/10, add a
+distinct hostile projectile colour treatment, and add one short original shot
+sample on Paula channel 1 with an explicit priority below player hurt. Preserve
+slots 11..17, projectile ownership, damage rules and synchronized line-253 Bob
+timing. ADF-specific and real-hardware verification remain open.
+
+Phase 5F.2A implements that presentation pass without altering attack timing or
+pool ownership. Only slots 9/10 receive a small tapered violet arm housing with
+a bright muzzle; the complete cell is still mirrored by the existing generator,
+and left/right projectile origins were aligned to those endpoints. The 16x9
+hostile mask and impact frames remain structurally identical, but their player
+blue/cyan pens are remapped to existing foreground violet/magenta pens 13/14
+with the neutral bright core retained. This doubles only the tiny generated
+plasma pattern cache, not the projectile Bob dimensions or pass order.
+
+An original 0.16-second low electrical thump is generated as
+`strider-shot.raw` and loaded with the resident effects. It uses prioritized
+Paula channel 1 at priority 7 and a 12-frame cooldown: player hurt priority 9
+may always interrupt it, while enemy-hit priority 6 and lower effects cannot
+replace it mid-sample. Paula channel 0 stays dedicated to Sparkpaw plasma and
+channels 2/3 remain free for later music. Focused FS-UAE presentation review,
+ADF-specific testing and real-hardware verification remain open. Native `make`
+and `make release` succeed; the latter validates the bootable DOS1/FFS ADF with
+the new 1,764-byte sample and reports 886,272 bytes total data/filesystem use.
+
+MrDig's next HD/FS-UAE recording rejected the procedural gauntlet: despite the
+functional shot and sound, its solid overlay appeared to emerge from the belly
+rather than connect convincingly to an arm. The same recording called out a
+small violet dash that was already present at its start and remained after level
+reload. Frame comparison shows no projectile flight/impact evolution; it matches
+the authored distant parallax storm-light language. The reset/restore path did
+not leave a projectile alive, but the new violet hostile palette made background
+decoration plausibly read as residue. Evidence is retained locally as
+`testresults/Phase 5F.2A-rejected-overlay-and-parallax-light-confusion.mov` with
+its sidecar.
+
+The overlay is removed rather than refined. Using the accepted 1254px premium
+idle source as the authoritative edit target, built-in image generation created
+one replacement source that preserves the full head, torso, blade arm, tail,
+legs and stance while replacing only the forward claw/forearm with a connected
+storm arm cannon. Chroma-key removal produced a project-local transparent source;
+the runtime generator fits that complete actor once and derives both slots 9/10
+from identical anatomy. The exact prompt is recorded in `docs/IMAGEGEN_PROMPTS.md`.
+The hostile pixel mapping moves from violet/magenta to existing hot orange/red
+pens 2/3 with the white core retained, eliminating the parallax-light ambiguity.
+Focused FS-UAE review remains required.
+
+MrDig's 3.68-second HD/FS-UAE follow-up accepted the newly authored integrated
+arm cannon, mirrored white muzzle and orange/red hostile pulse. The functional
+attack remains accepted. The first 0.16-second sound triggered correctly but
+was judged too light: its 185 Hz square-wave/tick emphasis read as a small retro
+bleep rather than a heavy mechanical discharge. Evidence is retained locally as
+`testresults/Phase 5F.2A-accepted-arm-cannon-visual-sound-too-light.mov` with its
+sidecar.
+
+Only the deterministic source synthesis changes for the retest. The replacement
+is 0.20 seconds and layers a 92 Hz falling body thump, short 184 Hz metallic
+crack, low-pass impact noise and brief descending electrical tail. Runtime
+volume rises from 60 to 64. Paula channel 1, priority 7, cooldown and attack
+timing remain unchanged; player hurt priority 9 still preempts it.
+Native `make` and `make release` succeed. The bootable DOS1/FFS ADF validates
+with the 2,206-byte replacement raw sample and reports 886,784 bytes total
+data/filesystem use. Focused HD/FS-UAE sound review remains open.
+
+The next HD screenshot showed a stationary orange projectile, proving a second
+case was real Bob residue rather than the authored violet parallax light. The
+cause was a pool-size mismatch introduced with hostile ownership: reset saved
+`drawn/drawnX/drawnY` for only slots 0..5, cleared the pool, then restored all
+eight entries from the partially uninitialized stack arrays. Hostile slots 6..7
+could therefore inherit arbitrary restore state after death or level reload.
+The snapshot and restore loops now both cover all eight entries. During the
+same boundary audit, Sparkpaw's spawn loop was corrected from all eight entries
+to its reserved slots 0..5. The synchronized line-253 erase/draw ordering and
+Bob implementation are unchanged. Native `make` and `make release` pass; the
+bootable DOS1/FFS ADF remains 886,784 bytes at 97.46% data use. HD/FS-UAE review
+should force a reset with a hostile pulse visible and hold player fire to cover
+both corrected bounds.
+
+MrDig completed that focused HD/FS-UAE review: the heavier Strider discharge
+was accepted and no loose orange hostile shots remained after the reset/pool
+boundary correction. Phase 5F.2A is therefore accepted. No real-hardware result
+exists. The next recommended isolated step is Phase 5F.3: give the Strider a
+clear hurt/hit reaction and HP contract using slots 11..17, preserving slots
+18..23 for accepted traversal; implement death and safe respawn in a subsequent
+reviewable step rather than combining it with the hit reaction.
+
 Appending six full 64x64 masked source frames exceeded the nearly full DOS0
 release disk during `make release`. The bootable ADF now uses DOS1/FFS, which is
 native to the A1200 target and stores file data more efficiently; its executable

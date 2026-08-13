@@ -127,6 +127,7 @@ def copy_runtime() -> None:
         "energy-shot.raw",
         "player-hurt.raw",
         "enemy-hit.raw",
+        "strider-shot.raw",
         "jump.raw",
         "collect-spark.raw",
     ):

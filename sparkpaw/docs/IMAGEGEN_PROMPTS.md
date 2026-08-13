@@ -350,3 +350,24 @@ and crawl recovery. The selected built-in ImageGen source is preserved as
 `sparkpaw-crouch-hurt-v13-transparent.png`. Frames 54-57 remain unchanged, and
 their deterministic conversion caps the complete family at 24 opaque pixels.
 The v11 sources remain preserved as review history.
+# Phase 5F.2A Strider storm-gauntlet source
+
+Built-in image generation edit, using
+`clockwork-storm-strider-premium-idle-source.png` as the authoritative edit
+target and character/style reference:
+
+> Preserve the Clockwork Storm Strider exactly, but replace only the
+> forward/right claw hand and lower forearm with a compact integrated
+> storm-energy gauntlet/short arm cannon aimed horizontally right. Match the
+> premium pixel-art scale, outline, metallic shading and indigo/violet/black/
+> cyan palette. Keep the exact full-body pose, proportions and green chroma-key
+> canvas. The tapered weapon should have roughly the mass of the original claw
+> plus forearm, a small circular white-cyan muzzle and subtle violet conduits.
+> Preserve head, visor, crest, torso, shoulder, left blade arm, hips, legs,
+> feet, tail and lighting. No projectile, muzzle flash, extra limb, detached
+> weapon, belly mount, oversized rectangle, text or watermark.
+
+The generated chroma source and locally keyed transparent source are retained
+as `clockwork-storm-strider-premium-shoot-source-v1-{chroma,transparent}.png`.
+Runtime generation fits the complete transparent actor once and derives slots
+9/10 from the same anatomy.

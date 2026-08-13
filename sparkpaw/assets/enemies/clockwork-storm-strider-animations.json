@@ -11,8 +11,8 @@
     "jump-compress-start",
     "jump-compress-charged",
     "jump-launch",
-    "jump-flight",
-    "jump-descent",
+    "shoot-charge-runtime",
+    "shoot-release-runtime",
     "landing-impact",
     "landing-recovery",
     "hit-recoil",
@@ -28,6 +28,6 @@
     "landing-recovery-runtime"
   ],
   "hit_points": 3,
-  "runtime_contract": "Slots 0..7 are the accepted walk, slot 8 is the endpoint turn, slots 9..17 remain reserved for combat responses, and Phase 5D appends traversal slots 18..23. Runtime generation mirrors exact indexed cells for left-facing animation.",
+  "runtime_contract": "Slots 0..7 are the accepted walk, slot 8 is the endpoint turn, slots 9 and 10 are the Phase 5F.2 shoot charge/release, slots 11..17 remain reserved for later hurt/death responses, and Phase 5D appends traversal slots 18..23. Runtime generation mirrors exact indexed cells for left-facing animation.",
   "prototype_note": "Accepted upright bipedal Strider with a cool indigo/violet/cyan identity. Current instances remain non-interactive in combat."
 }

@@ -719,9 +719,36 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
     cells[22] = compressed(idle, 49, 4)
     cells[23] = compressed(idle, 58, 1)
 
+    # Phase 5F.2A replaces the rejected procedural belly-level overlay with one
+    # coherent premium attack source. Fit the full actor once, then derive both
+    # runtime cells from identical anatomy; only the muzzle energy differs.
+    attack_source = Image.open(ROOT / "assets" / "enemies" /
+        "clockwork-storm-strider-premium-shoot-source-v1-transparent.png").convert("RGBA")
+    attack_bounds = attack_source.getchannel("A").getbbox()
+    if not attack_bounds:
+        raise ValueError("empty Strider shoot source")
+    attack_source = attack_source.crop(attack_bounds)
+    attack_scale = min(62 / attack_source.width, 60 / attack_source.height)
+    attack_source = attack_source.resize(
+        (max(1, round(attack_source.width * attack_scale)),
+         max(1, round(attack_source.height * attack_scale))),
+        Image.Resampling.LANCZOS)
+    attack = indexed_cell(attack_source)
+    cells[9] = attack.copy()
+    cells[10] = attack.copy()
+    muzzle_bounds = cells[9].getbbox()
+    if muzzle_bounds:
+        muzzle_x = muzzle_bounds[2] - 1
+        muzzle_y = 30
+        charge = ImageDraw.Draw(cells[9])
+        charge.point((muzzle_x, muzzle_y - 1), fill=14)
+        charge.point((muzzle_x, muzzle_y), fill=4)
+        charge.point((muzzle_x, muzzle_y + 1), fill=14)
+
     sheet = indexed_image((STRIDER_W * 2, STRIDER_H * STRIDER_FRAMES),
                           FRONT16, 0)
     preview = indexed_image((STRIDER_W * 8, STRIDER_H), FRONT16, 0)
+    attack_preview = indexed_image((STRIDER_W * 2, STRIDER_H), FRONT16, 0)
     traversal_preview = indexed_image((STRIDER_W * 6, STRIDER_H), FRONT16, 0)
     for frame, cell in enumerate(cells):
         sheet.paste(cell, (0, frame * STRIDER_H))
@@ -729,11 +756,16 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
                     (STRIDER_W, frame * STRIDER_H))
         if frame < 8:
             preview.paste(cell, (frame * STRIDER_W, 0))
+        if 9 <= frame <= 10:
+            attack_preview.paste(cell, ((frame - 9) * STRIDER_W, 0))
         if 18 <= frame < 24:
             traversal_preview.paste(cell, ((frame - 18) * STRIDER_W, 0))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "enemies" /
                  "clockwork-storm-strider-64x64-aga15-walk-preview-v1.png")
+    attack_preview.info["transparency"] = 0
+    attack_preview.save(ROOT / "assets" / "enemies" /
+                        "clockwork-storm-strider-64x64-aga15-shoot-preview-v1.png")
     traversal_preview.info["transparency"] = 0
     traversal_preview.save(ROOT / "assets" / "enemies" /
                            "clockwork-storm-strider-64x64-aga15-traversal-preview-v1.png")
@@ -981,6 +1013,8 @@ def main() -> None:
         (ROOT / "sfx" / "raw" / "player-hurt.raw").read_bytes())
     (RUNTIME / "enemy-hit.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "enemy-hit.raw").read_bytes())
+    (RUNTIME / "strider-shot.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "strider-shot.raw").read_bytes())
     (RUNTIME / "jump.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "jump.raw").read_bytes())
     (RUNTIME / "collect-spark.raw").write_bytes(

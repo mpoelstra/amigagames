@@ -39,6 +39,12 @@ def jump(): return jump_soft_whoosh()
 def land(): return mix(noise(.13,1200,18,.22),tone(.12,85,20,-120))
 def energy_shot(): return mix(tone(.17,950,11,-2200,True),tone(.13,1700,15,-500))
 def charged_shot(): return mix(tone(.34,430,6,1800,True),noise(.24,68020,12,.6),delay(tone(.22,1200,10,-1600),.05))
+def strider_shot():
+    # Heavy mechanical discharge: bass body, metal crack, short electric tail.
+    return mix(gain(tone(.20,92,11,-70),.92),
+               gain(tone(.13,184,19,-430,True),.52),
+               gain(noise(.11,68520,23,.14),.64),
+               gain(delay(tone(.11,620,21,-2400),.022),.34))
 def enemy_hit(): return plasma_hit_energy_pop()
 
 def player_hurt():
@@ -196,6 +202,7 @@ def menu(): return tone(.07,780,18,2100)
 EFFECTS=[
     ("jump",jump,58,4,4),("land",land,48,2,4),
     ("energy-shot",energy_shot,60,5,3),("charged-shot",charged_shot,64,8,8),
+    ("strider-shot",strider_shot,60,7,12),
     ("enemy-hit",enemy_hit,60,6,4),("player-hurt",player_hurt,64,9,16),
     ("collect-spark",collect,52,4,3),("checkpoint",checkpoint,60,7,15),
     ("stormstone",stormstone,64,10,30),("menu-select",menu,48,1,3),

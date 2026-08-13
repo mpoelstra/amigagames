@@ -39,7 +39,8 @@
 #define SPRITE_WORDS (2+SPRITE_H*2+2)
 #define HUD_TOP 208
 #define HUD_H (SCREEN_H-HUD_TOP)
-#define PLASMA_PATTERNS 5
+#define PLAYER_PLASMA_PATTERNS 5
+#define PLASMA_PATTERNS (PLAYER_PLASMA_PATTERNS*2)
 #define PLASMA_SOURCE_WORDS 2
 #define FRONT_PLANES 4
 #define REAR_PLANES 3
@@ -338,7 +339,7 @@ static void setHardwareSprite(void)
     }
 }
 
-static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
+static UBYTE playerPlasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
 {
     WORD lx=left?PROJECTILE_W-1-x:x;
     if(pattern>=2) {
@@ -363,6 +364,20 @@ static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
         if(((lx+pattern)&1)==0) return 5;
     }
     return 0;
+}
+
+static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
+{
+    BOOL hostile=pattern>=PLAYER_PLASMA_PATTERNS;
+    UBYTE pen=playerPlasmaPatternPen(
+        hostile?(UBYTE)(pattern-PLAYER_PLASMA_PATTERNS):pattern,left,x,y);
+    if(!hostile) return pen;
+    /* Retain the accepted compact mask but give hostile fire an unmistakable
+       hot orange/red identity with the same bright neutral core. This also
+       avoids aliasing the authored violet parallax storm lights. */
+    if(pen==6) return 3;
+    if(pen==5) return 2;
+    return pen;
 }
 
 static UWORD *plasmaMaskRow(UBYTE pattern,BOOL left,WORD row)
@@ -512,6 +527,7 @@ static void drawProjectileBobs(void)
         left=p->vx<0;
         pattern=p->impactTimer?(p->impactTimer>=4?2:(p->impactTimer>=2?3:4)):
                                 (UBYTE)((game->frameCounter>>1)&1);
+        if(p->hostile) pattern+=PLAYER_PLASMA_PATTERNS;
         blitMaskedBob(plasmaMaskRow(pattern,left,0),
                       plasmaBitsRow(pattern,left,0,0),PLASMA_SOURCE_WORDS,
                       PROJECTILE_W,PROJECTILE_H,p->drawnX,p->drawnY);

@@ -30,6 +30,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/energy-shot.raw \
 	assets/runtime/player-hurt.raw \
 	assets/runtime/enemy-hit.raw \
+	assets/runtime/strider-shot.raw \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
 	assets/runtime/clockwork-beetle.spbm \
@@ -66,6 +67,7 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/enemies/clockwork-storm-strider-64x64-aga15-idle-v3.png \
 	assets/enemies/clockwork-storm-strider-64x64-aga15-walk-rig-v1.png \
 	assets/enemies/clockwork-storm-strider-64x64-aga15-turn-v1.png \
+	assets/enemies/clockwork-storm-strider-premium-shoot-source-v1-transparent.png \
 	assets/sprites/sparkpaw-motion-refinement-v3-transparent.png \
 	assets/sprites/sparkpaw-turn-refinement-v4-transparent.png \
 	assets/sprites/sparkpaw-idle-refinement-v3-transparent.png \
@@ -80,10 +82,11 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	sfx/raw/energy-shot.raw \
 	sfx/raw/player-hurt.raw \
 	sfx/raw/enemy-hit.raw \
+	sfx/raw/strider-shot.raw \
 	sfx/raw/jump.raw
 	$(PYTHON) tools/generate_runtime_assets.py
 
-sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw \
+sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/strider-shot.raw \
 	sfx/raw/jump.raw sfx/raw/collect-spark.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py

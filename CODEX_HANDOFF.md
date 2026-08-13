@@ -274,18 +274,64 @@ confirms both crossings, planted landings and stable patrol recovery without
 fallback, floor contact or platform intersection. ADF-specific and real-hardware
 verification remain open.
 
-### Next: Phase 5F.1 — Strider contact damage
+### Completed: Phase 5F.1 — Strider contact damage
 
-Add only a body-aware Strider contact hitbox and reuse the accepted player-damage,
-knockback, invulnerability, life-loss and reset path. Keep traversal and turn
-states valid during contact. Do not add shooting, enemy hurt/death art, renderer
-changes or consume reserved animation slots in this step.
+Accepted in FS-UAE/HD: active Striders contribute a fixed
+body-aware contact box at logical offsets x+11..52 and y+7..61. It excludes
+transparent 64px-cell margins and rows 62..63, then reuses the accepted player
+damage, knockback, invulnerability, life-loss and reset path. Traversal and turn
+state continue independently during contact. MrDig confirmed damage during low
+posture, walking and jumping approaches. No shooting, enemy hurt/death art,
+renderer changes or reserved animation slots are included.
+
+### Accepted: Phase 5F.2A — ranged presentation polish
+
+The Phase 5F.2 functional core is accepted in FS-UAE/HD: a grounded, fully
+visible Strider may stop and use slot 9 for a 24-frame charge and slot 10 for
+release when Sparkpaw is
+48..208px ahead and within 44px vertically. It never begins while turning or
+traversing. Six player projectile slots and two hostile slots have separate
+ownership but share the accepted line-253 restore/draw pass and packed plasma
+patterns. The slower hostile pulse damages Sparkpaw through the accepted damage
+path and is consumed on contact. Offscreen cooldown may advance, but an unseen
+attack never starts and a pending shot is discarded if parked. Slots 11..17
+remain reserved for hurt/death. No new sound or Paula ownership change is made.
+MrDig's supplied recording confirmed repeated shots, damage/invulnerability and
+continued routes. Presentation remains deliberately open: the hostile pulse is
+still Sparkpaw-cyan, no shot sound exists, and slots 9/10 do not yet show an
+unmistakable weapon. The first 5F.2A procedural violet overlay was rejected in
+FS-UAE because it appeared to emerge from the belly. It is removed. A new
+premium attack source preserves the full accepted anatomy and replaces only the
+forward claw/forearm with an integrated storm arm cannon; slots 9/10 derive from
+that single source and the spawn point follows its mirrored white muzzle. Hostile
+masks retain the same size but now map to hot orange/red with a white core. This
+also distinguishes them from an authored violet parallax storm light that was
+mistaken for persistent projectile residue in the supplied recording; it showed
+no flight/impact animation and correctly survived runtime reset as level art.
+A new original 0.16-second electrical thump uses Paula channel 1 at priority 7,
+below player hurt (9) and
+above ordinary enemy hit (6). Slots 11..17 and the accepted line-253 projectile/
+Bob timing remain unchanged.
+MrDig accepted the newly authored arm-cannon visual, mirrored muzzle and
+orange/red projectile in FS-UAE/HD. The first shot sound worked but was judged
+too light. Its source synthesis is replaced for review by a 0.20-second heavy
+bass-body discharge with metallic crack and electrical tail; Paula 1 priority 7
+and all gameplay timing remain unchanged.
+An HD screenshot then exposed genuine orange hostile-shot residue after a
+runtime reset. The reset snapshot loop covered only player slots 0..5 while its
+restore loop consumed all eight entries, leaving hostile slots 6..7 with
+undefined Bob restore state. Both loops now cover all eight slots. The adjacent
+player spawn loop is also constrained to 0..5, so it cannot borrow hostile
+slots. MrDig's focused HD/FS-UAE retest accepted the heavier discharge and
+confirmed that no loose hostile shots remain after this correction. Native
+`make` and `make release` pass. No real-hardware verification exists.
 
 ### Later phases
 
-- Strider combat pass: projectile/contact hitboxes, attack/shooting telegraph,
-  hurt/hit, death and safe respawn. Preserve reserved slots or deliberately
-  expand the cache contract; do not silently alias jump and death frames.
+- Next recommended step: Phase 5F.3, add Strider hurt/hit reaction and HP using
+  reserved slots 11..17, then death and safe respawn as a separate reviewable
+  follow-up. Preserve accepted traversal, contact/ranged combat and renderer
+  contracts; do not silently alias slots 18..23 used by traversal.
 - Phase 6: level/progression work. First measure a resident 2048px/eight-screen
   repeated-art memory experiment, then build an eight-screen collision/pacing
   greybox, checkpoint/progression state, encounters and finally unique art.
@@ -306,7 +352,8 @@ local beetle-like decoration.
   two existing raised platforms.
 - Far-right reload is temporary; real level completion/progression is pending.
 - Broader route graphs and real water/death-hazard semantics remain future
-  level work. Strider combat is pending, beginning with Phase 5F.1 contact.
+  level work. Strider contact and ranged combat are accepted; hurt and death
+  remain pending.
 - Music is pending; define Paula ownership before integration.
 - Game-over presentation and broader checkpoint/progression flow remain pending.
 - Stock 68020/2 MB Chip RAM performance and real-hardware timing remain unproven.

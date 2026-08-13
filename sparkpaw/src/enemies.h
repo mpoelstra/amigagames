@@ -14,19 +14,22 @@
 #define MAX_ENEMIES 4
 
 struct Enemy {
-    LONG x,vx,vy,jumpY,resumeVX;
+    LONG x,vx,vy,jumpY,resumeVX,attackVX;
     WORD y,drawnX,drawnY,patrolLeft,patrolRight,traversalStartX;
     UWORD walkTick;
     UBYTE animFrame,health,hitTimer,deathTimer,turnTimer,spawnIndex,type,drawnType;
     UBYTE traversalState,traversalTimer,traversalLink,surfaceId,traversalFailed;
-    BOOL active,drawn,facingLeft,dying;
+    UBYTE shootTimer,shootCooldown;
+    BOOL active,drawn,facingLeft,dying,shotPending;
 };
 
 typedef BOOL (*EnemySolidAt)(WORD x,WORD y);
+typedef BOOL (*EnemySpawnProjectile)(WORD x,WORD y,BOOL facingLeft);
 
 void enemiesInit(ULONG seed);
 void enemiesResetPreservingDrawn(ULONG seed);
-void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt);
+void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
+                   WORD playerCenterY,EnemySpawnProjectile spawnProjectile);
 BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot);
 BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
                           WORD *enemyCenterX);

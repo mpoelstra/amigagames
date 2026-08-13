@@ -4,6 +4,7 @@
 
 #define SCREEN_W 320
 #define PROJECTILE_SPEED 2300
+#define ENEMY_PROJECTILE_SPEED 1150
 
 static struct Projectile projectiles[MAX_PROJECTILES];
 
@@ -33,7 +34,7 @@ void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
                       ProjectilePlaySound playSound)
 {
     WORD index;
-    for(index=0;index<MAX_PROJECTILES;index++) {
+    for(index=0;index<MAX_PLAYER_PROJECTILES;index++) {
         struct Projectile *projectile=&projectiles[index];
         if(projectile->active||projectile->drawn) continue;
         /* Frame 40's cyan muzzle is at cell (45,28); crouch-fire frame 48's
@@ -43,9 +44,27 @@ void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
         projectile->y=(LONG)(playerY+(crouching?29:15))<<8;
         projectile->vx=facingLeft?-PROJECTILE_SPEED:PROJECTILE_SPEED;
         projectile->life=80; projectile->impactTimer=0;
-        projectile->lowShot=crouching; projectile->active=TRUE;
+        projectile->lowShot=crouching; projectile->hostile=FALSE;
+        projectile->active=TRUE;
         playSound(); return;
     }
+}
+
+BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft)
+{
+    WORD index;
+    for(index=MAX_PLAYER_PROJECTILES;index<MAX_PROJECTILES;index++) {
+        struct Projectile *projectile=&projectiles[index];
+        if(projectile->active||projectile->drawn) continue;
+        projectile->x=(LONG)x<<8; projectile->y=(LONG)y<<8;
+        projectile->vx=facingLeft?-ENEMY_PROJECTILE_SPEED:
+                                  ENEMY_PROJECTILE_SPEED;
+        projectile->life=100; projectile->impactTimer=0;
+        projectile->lowShot=FALSE; projectile->hostile=TRUE;
+        projectile->active=TRUE;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
@@ -64,7 +83,8 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         projectile->x+=projectile->vx;
         x=(WORD)(projectile->x>>8)+(projectile->vx>0?PROJECTILE_W-1:0);
         y=(WORD)(projectile->y>>8)+(PROJECTILE_H>>1);
-        enemyWasHit=hitEnemy(x,y,projectile->lowShot);
+        enemyWasHit=!projectile->hostile&&
+                    hitEnemy(x,y,projectile->lowShot);
         if(enemyWasHit) playEnemyHitSound();
         if(enemyWasHit||solidAt(x,y)||!--projectile->life) {
             screenHit=x-cameraX;
@@ -77,6 +97,26 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
             }
         }
     }
+}
+
+BOOL projectilesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
+                              WORD *projectileCenterX)
+{
+    WORD index;
+    for(index=MAX_PLAYER_PROJECTILES;index<MAX_PROJECTILES;index++) {
+        struct Projectile *projectile=&projectiles[index];
+        WORD x,y;
+        if(!projectile->active||projectile->impactTimer||!projectile->hostile)
+            continue;
+        x=(WORD)(projectile->x>>8); y=(WORD)(projectile->y>>8);
+        if(right>=x+2&&left<=x+PROJECTILE_W-3&&
+           bottom>=y+1&&top<=y+PROJECTILE_H-2) {
+            projectile->vx=0; projectile->impactTimer=5;
+            *projectileCenterX=(WORD)(x+(PROJECTILE_W>>1));
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 struct Projectile *projectileAt(WORD index)

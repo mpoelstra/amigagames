@@ -22,6 +22,15 @@
 #define STRIDER_LANDING_HOLD_FRAMES 5
 #define STRIDER_RECOVERY_HOLD_FRAMES 7
 #define STRIDER_MAX_FLIGHT_FRAMES 96
+#define STRIDER_CONTACT_LEFT 11
+#define STRIDER_CONTACT_RIGHT 52
+#define STRIDER_CONTACT_TOP 7
+#define STRIDER_CONTACT_BOTTOM 61
+#define STRIDER_SHOOT_TELEGRAPH_FRAMES 24
+#define STRIDER_SHOOT_FIRE_FRAMES 6
+#define STRIDER_SHOOT_COOLDOWN_FRAMES 150
+#define STRIDER_SHOOT_MIN_DISTANCE 48
+#define STRIDER_SHOOT_MAX_DISTANCE 208
 #define TRAVERSAL_NONE 0
 #define TRAVERSAL_COMPRESS_START 1
 #define TRAVERSAL_COMPRESS_CHARGED 2
@@ -97,6 +106,8 @@ static void initializeSpawnState(struct EnemySpawnState *state,
     enemy->spawnIndex=spawnIndex; enemy->type=spawn->type;
     enemy->surfaceId=spawn->surfaceId;
     enemy->traversalLink=INVALID_TRAVERSAL_LINK;
+    if(spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER)
+        enemy->shootCooldown=(UBYTE)(75+randomBelow(100));
     state->selected=preserveSelection?selected:TRUE;
     state->loadedSlot=INVALID_SPAWN;
 }
@@ -408,8 +419,22 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
     BOOL patrolEnd,blocked;
     UWORD phaseDistance=enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?
         STRIDER_WALK_PHASE_DISTANCE:WALK_PHASE_DISTANCE;
+    if(enemy->shootCooldown) enemy->shootCooldown--;
     if(enemy->traversalState) {
         updateTraversal(enemy);
+        return;
+    }
+    if(enemy->shootTimer) {
+        enemy->shootTimer--;
+        enemy->animFrame=enemy->shootTimer>=STRIDER_SHOOT_FIRE_FRAMES?9:10;
+        if(enemy->shootTimer==STRIDER_SHOOT_FIRE_FRAMES)
+            enemy->shotPending=TRUE;
+        if(!enemy->shootTimer) {
+            enemy->vx=enemy->attackVX;
+            enemy->facingLeft=enemy->vx<0;
+            enemy->walkTick=0; enemy->animFrame=0;
+            enemy->shootCooldown=STRIDER_SHOOT_COOLDOWN_FRAMES;
+        }
         return;
     }
     if(enemy->dying) {
@@ -467,7 +492,35 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
     if(!enemy->turnTimer) enemy->facingLeft=enemy->vx<0;
 }
 
-void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt)
+static BOOL enemyFullyVisible(const struct Enemy *enemy,WORD cameraX)
+{
+    WORD x=(WORD)(enemy->x>>8);
+    return x>=cameraX+8&&x+STRIDER_W<=cameraX+SCREEN_W-8;
+}
+
+static void tryStartStriderShot(struct Enemy *enemy,WORD cameraX,
+                                WORD playerCenterX,WORD playerCenterY)
+{
+    WORD centerX,centerY,dx,dy;
+    if(enemy->type!=ENEMY_TYPE_CLOCKWORK_STORM_STRIDER||
+       enemy->shootCooldown||enemy->shootTimer||enemy->traversalState||
+       enemy->turnTimer||enemy->dying||enemy->hitTimer||
+       !enemyFullyVisible(enemy,cameraX)) return;
+    centerX=(WORD)(enemy->x>>8)+(STRIDER_W>>1);
+    centerY=(WORD)(enemy->y+(STRIDER_H>>1));
+    dx=(WORD)(playerCenterX-centerX);
+    dy=(WORD)(playerCenterY-centerY); if(dy<0) dy=-dy;
+    if(dy>44||
+       (dx<0?-dx:dx)<STRIDER_SHOOT_MIN_DISTANCE||
+       (dx<0?-dx:dx)>STRIDER_SHOOT_MAX_DISTANCE||
+       (enemy->facingLeft?dx>=0:dx<=0)) return;
+    enemy->attackVX=enemy->vx; enemy->vx=0;
+    enemy->shootTimer=STRIDER_SHOOT_TELEGRAPH_FRAMES;
+    enemy->animFrame=9; enemy->walkTick=0;
+}
+
+void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
+                   WORD playerCenterY,EnemySpawnProjectile spawnProjectile)
 {
     const struct EnemySpawnCandidate *spawns;
     UWORD candidateCount;
@@ -484,13 +537,26 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt)
            state->loadedSlot==INVALID_SPAWN&&
            state->enemy.active&&!state->respawnPending&&!state->exhausted)
             updateEnemy(&state->enemy,solidAt);
+        /* A telegraph may finish after its runtime slot was parked. Preserve
+           cooldown/recovery, but never materialize that unseen shot later. */
+        if(state->loadedSlot==INVALID_SPAWN) state->enemy.shotPending=FALSE;
     }
     for(slot=0;slot<MAX_ENEMIES;slot++) {
         struct Enemy *enemy=&enemies[slot];
         struct EnemySpawnState *state;
         if(enemy->spawnIndex==INVALID_SPAWN) continue;
         state=&spawnStates[enemy->spawnIndex];
-        if(enemy->active) updateEnemy(enemy,solidAt);
+        if(enemy->active) {
+            updateEnemy(enemy,solidAt);
+            if(enemy->shotPending) {
+                if(enemyFullyVisible(enemy,cameraX)&&spawnProjectile)
+                    spawnProjectile((WORD)((enemy->x>>8)+
+                        (enemy->facingLeft?-6:STRIDER_W-10)),
+                        (WORD)(enemy->y+27),enemy->facingLeft);
+                enemy->shotPending=FALSE;
+            }
+            tryStartStriderShot(enemy,cameraX,playerCenterX,playerCenterY);
+        }
         state->enemy=*enemy; state->enemy.drawn=FALSE;
         if(!enemy->active&&!state->respawnPending&&!state->exhausted) {
             if(spawns[enemy->spawnIndex].policy==ENEMY_POLICY_RESPAWN) {
@@ -556,14 +622,25 @@ BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
     for(index=0;index<MAX_ENEMIES;index++) {
         struct Enemy *enemy=&enemies[index];
         WORD enemyLeft,enemyRight,enemyTop,enemyBottom;
-        if(enemy->type!=ENEMY_TYPE_CLOCKWORK_BEETLE||
-           !enemy->active||enemy->dying) continue;
-        enemyLeft=(WORD)(enemy->x>>8)+2;
-        enemyRight=(WORD)(enemy->x>>8)+ENEMY_W-3;
-        enemyTop=enemy->y+7; enemyBottom=enemy->y+ENEMY_H-1;
+        WORD x=(WORD)(enemy->x>>8),width;
+        if(!enemy->active||enemy->dying) continue;
+        if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
+            /* Keep contact inside the accepted mechanical body across walk,
+               turn and traversal poses. Transparent cell margins and source
+               rows 62-63 never deal invisible damage. */
+            enemyLeft=x+STRIDER_CONTACT_LEFT;
+            enemyRight=x+STRIDER_CONTACT_RIGHT;
+            enemyTop=enemy->y+STRIDER_CONTACT_TOP;
+            enemyBottom=enemy->y+STRIDER_CONTACT_BOTTOM;
+            width=STRIDER_W;
+        } else if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE) {
+            enemyLeft=x+2; enemyRight=x+ENEMY_W-3;
+            enemyTop=enemy->y+7; enemyBottom=enemy->y+ENEMY_H-1;
+            width=ENEMY_W;
+        } else continue;
         if(right>=enemyLeft&&left<=enemyRight&&
            bottom>=enemyTop&&top<=enemyBottom) {
-            *enemyCenterX=(WORD)(enemy->x>>8)+(ENEMY_W>>1);
+            *enemyCenterX=x+(width>>1);
             return TRUE;
         }
     }

@@ -140,6 +140,59 @@ recording accepted the complete repeated loop in
 both directions, including both landings and patrol recovery. No ADF-specific
 or real-hardware result was supplied.
 
+Phase 5F.1 adds Strider body contact without adding an attack state. Its fixed
+logical contact box covers x+11..52 and y+7..61 inside the 64px cell, excluding
+transparent side margins and bottom rows. Overlap reuses Sparkpaw's accepted
+half-heart damage, directional knockback, low-ceiling hurt selection,
+invulnerability blink, life-loss and level-reset path. Strider walk, endpoint
+turn and traversal state continue normally; shooting, Strider hurt/death,
+renderer work and reserved slots 9..17 remain untouched. MrDig's broad
+HD/FS-UAE contact test accepted 5F.1: low/lying approaches,
+ordinary walking contact and jumping contact all damage Sparkpaw correctly.
+No ADF-specific or real-hardware result was supplied.
+
+Phase 5F.2 adds one camera-aware Strider ranged attack. A grounded Strider that
+is fully visible, not turning/traversing and facing Sparkpaw at a horizontal
+distance of 48..208px may stop for a 24-frame cyan charge in runtime slot 9,
+show slot 10 for release and fire a slower hostile plasma pulse. Six player
+projectile slots and two hostile slots are separately reserved, so enemy fire
+cannot steal Sparkpaw's rapid-fire capacity. Both use the existing packed
+patterns and synchronized line-253 Bob pass. Hostile contact is consumed and
+reuses Sparkpaw's accepted damage path. No attack starts offscreen; a pending
+shot is discarded if camera parking occurs. Slots 11..17 remain reserved and
+no new sound/Paula ownership is added. MrDig's HD/FS-UAE recording accepted the
+functional ranged core: repeated shots,
+damage/invulnerability and continued routes work. The presentation is not final.
+The hostile pulse still shares Sparkpaw's cyan identity, it has no sound, and
+the derived attack poses lack a clearly readable gun or gauntlet. Phase 5F.2A
+will polish only slots 9/10 with an integrated storm gauntlet/muzzle, give the
+pulse a distinct hostile colour identity and add one short original shot sound
+with explicit Paula priority. No ADF-specific or real-hardware result exists.
+
+The first 5F.2A procedural violet overlay was rejected because it appeared to
+come from the Strider's belly. It has been replaced by a genuine premium attack
+source: the accepted body is preserved and only the forward claw/forearm becomes
+an integrated storm arm cannon. Slots 9/10 derive from that one source; mirrored
+cells and projectile origins use its white muzzle. Hostile plasma keeps the
+accepted 16x9 mask/impact animation but now maps to hot orange/red with a white
+core. This avoids confusion with an existing violet parallax light that the
+supplied recording made look like persistent shot residue; the mark showed no
+projectile animation and correctly remained after reload because it is level
+art. The original 0.16-second electrical thump plays on
+Paula channel 1 at priority 7: player hurt at 9 can interrupt it, while it can
+replace ordinary effects at priority 6 or below. Gameplay timing is unchanged.
+MrDig accepted the authored cannon, muzzle and orange/red projectile in the HD
+FS-UAE review. The first sound was functional but too light; its source is now a
+0.20-second heavier bass-body thump with a metallic crack and short electrical
+tail. Paula ownership, priority 7 and attack timing are unchanged.
+The subsequent review exposed genuine orange shot residue after a runtime
+reset. Projectile reset now snapshots and restores Bob rectangles for all eight
+pool entries, including hostile slots 6..7; player fire is explicitly limited
+to slots 0..5. This lifecycle fix does not alter the line-253 pass or draw order.
+MrDig's focused HD/FS-UAE retest accepted the heavier discharge and confirmed
+that loose hostile shots no longer remain. Phase 5F.2A is accepted; no
+real-hardware verification exists.
+
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
@@ -324,6 +377,29 @@ compression, clear the visible gap and land planted on the lower right platform.
 After that patrol it should telegraph and jump left across the same gap, repeating
 the loop. It must not snap back, touch the floor, intersect either platform edge
 or disturb Strider 1's accepted loop.
+
+For Phase 5F.1, touch each Strider during ordinary patrol, an endpoint turn and
+both sides of a landing/recovery. Each accepted contact removes one half-heart,
+plays the existing hurt sound, knocks Sparkpaw away from the Strider centre and
+starts the accepted blink; continued overlap during blinking must not deal more
+damage. Confirm crouched contact stays low under clearance and that losing all
+health follows the existing life/reset flow. Neither Strider may freeze, reset
+its route or select slots 9..17 after contact.
+
+For Phase 5F.2, stand 48..208px in front of a grounded, fully visible Strider.
+It should stop, hold a clearly readable cyan charge, release one slower plasma
+pulse and resume its prior patrol direction after a cooldown. Verify the pulse
+hits walls, damages Sparkpaw once, respects blinking and cannot reduce the six
+player-shot capacity. Approach from behind, leave the camera during charge and
+watch traversal/turn states: no unseen shot, mid-flight attack, stale projectile
+or route reset may occur.
+
+For the 5F.2A polish retest, also confirm that the arm cannon reads as integrated
+at native resolution, the orange/red pulse differs from Sparkpaw's cyan shot
+and from the static violet parallax lights, both facings emit from the white
+muzzle, and the short electrical thump is
+audible without masking or interrupting player hurt.
+This checklist passed in HD/FS-UAE, including the later reset-residue retest.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent

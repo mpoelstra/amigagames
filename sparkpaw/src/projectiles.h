@@ -5,12 +5,14 @@
 
 #define PROJECTILE_W 16
 #define PROJECTILE_H 9
-#define MAX_PROJECTILES 6
+#define MAX_PLAYER_PROJECTILES 6
+#define MAX_ENEMY_PROJECTILES 2
+#define MAX_PROJECTILES (MAX_PLAYER_PROJECTILES+MAX_ENEMY_PROJECTILES)
 
 struct Projectile {
     LONG x,y,vx;
     UBYTE life,impactTimer;
-    BOOL active,drawn,lowShot;
+    BOOL active,drawn,lowShot,hostile;
     WORD drawnX,drawnY;
 };
 
@@ -22,9 +24,12 @@ void projectilesInit(void);
 void projectilesResetPreservingDrawn(void);
 void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
                       ProjectilePlaySound playSound);
+BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft);
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
                        ProjectileEnemyHit hitEnemy,
                        ProjectilePlaySound playEnemyHitSound);
+BOOL projectilesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
+                              WORD *projectileCenterX);
 struct Projectile *projectileAt(WORD index);
 
 #endif

@@ -24,6 +24,25 @@ static void resetLevelRuntime(void)
     game.cameraX=0; game.frameCounter=0;
 }
 
+static BOOL applyEnemyDamage(WORD sourceCenterX)
+{
+    if(!playerTakeEnemyHit(sourceCenterX)) return FALSE;
+    audioPlayPlayerHurt();
+    if(playerState()->health) return FALSE;
+    if(game.lives>1) game.lives--;
+    else game.lives=GAME_START_LIVES;
+    resetLevelRuntime();
+    audioUpdate();
+    return TRUE;
+}
+
+static BOOL spawnEnemyProjectile(WORD x,WORD y,BOOL facingLeft)
+{
+    if(!projectilesSpawnEnemy(x,y,facingLeft)) return FALSE;
+    audioPlayStriderShot();
+    return TRUE;
+}
+
 static void updateCamera(void)
 {
     const struct PlayerState *player=playerState();
@@ -56,8 +75,11 @@ void gameUpdate(void)
     playerStartShot(fire,audioPlayShot);
     if(playerUpdatePhysics(left,right,down,jump)) audioPlayJump();
     playerUpdateShot();
-    enemiesUpdate((WORD)game.cameraX,collisionSolidAt);
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+    enemiesUpdate((WORD)game.cameraX,collisionSolidAt,
+                  (WORD)((playerLeft+playerRight)>>1),
+                  (WORD)((playerTop+playerBottom)>>1),
+                  spawnEnemyProjectile);
     /* Temporary level exit: reaching the authored right edge reuses the
        in-memory replay path until LEVEL_COMPLETE can select a next level. */
     if(playerReachedWorldRight(WORLD_W-1)) {
@@ -67,16 +89,7 @@ void gameUpdate(void)
     }
     if(enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                             &enemyCenterX)) {
-        if(playerTakeEnemyHit(enemyCenterX)) {
-            audioPlayPlayerHurt();
-            if(!playerState()->health) {
-                if(game.lives>1) game.lives--;
-                else game.lives=GAME_START_LIVES;
-                resetLevelRuntime();
-                audioUpdate();
-                return;
-            }
-        }
+        if(applyEnemyDamage(enemyCenterX)) return;
     }
     {
         UBYTE picked=collectiblesCollect(playerLeft,playerTop,
@@ -94,6 +107,9 @@ void gameUpdate(void)
     }
     projectilesUpdate((WORD)game.cameraX,collisionSolidAt,enemiesHitProjectile,
                       audioPlayEnemyHit);
+    if(projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
+                                &enemyCenterX)&&
+       applyEnemyDamage(enemyCenterX)) return;
     audioUpdate(); updateCamera();
     playerAnimate(!wasGrounded&&player->grounded,game.frameCounter);
     game.frameCounter++;
