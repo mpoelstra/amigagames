@@ -1,5 +1,7 @@
 #include <dos/dos.h>
+#include <exec/memory.h>
 #include <proto/dos.h>
+#include <proto/exec.h>
 
 #include "audio.h"
 #include "collision.h"
@@ -7,6 +9,7 @@
 #include "platform_amiga.h"
 #include "renderer.h"
 #include "title.h"
+#include "world_config.h"
 
 enum AppState {
     APP_BOOT,
@@ -29,11 +32,38 @@ static BOOL loadLevelFiles(void)
     return rendererLoadGameplay()&&collisionLoad()&&audioLoad();
 }
 
+#ifdef PHASE6_MEMORY_TEST
+static void writePhase6MemoryLog(ULONG beforeFree,ULONG beforeLargest)
+{
+    BPTR file=Open("PROGDIR:phase6-memory.log",MODE_NEWFILE);
+    if(!file) return;
+    FPrintf(file,"phase=6A world_width=%ld\n",(LONG)SPARKPAW_WORLD_W);
+    FPrintf(file,"before_gameplay_free=%ld before_gameplay_largest=%ld\n",
+            (LONG)beforeFree,(LONG)beforeLargest);
+    FPrintf(file,"peak_chip_free=%ld peak_chip_largest=%ld\n",
+            (LONG)rendererPhase6PeakChipFree(),
+            (LONG)rendererPhase6PeakChipLargest());
+    FPrintf(file,"peak_fast_free=%ld peak_fast_largest=%ld\n",
+            (LONG)rendererPhase6PeakFastFree(),
+            (LONG)rendererPhase6PeakFastLargest());
+    FPrintf(file,"prepared_chip_free=%ld prepared_chip_largest=%ld\n",
+            (LONG)AvailMem(MEMF_CHIP),
+            (LONG)AvailMem(MEMF_CHIP|MEMF_LARGEST));
+    FPrintf(file,"prepared_fast_free=%ld prepared_fast_largest=%ld\n",
+            (LONG)AvailMem(MEMF_FAST),
+            (LONG)AvailMem(MEMF_FAST|MEMF_LARGEST));
+    Close(file);
+}
+#endif
+
 int main(void)
 {
     enum AppState state=APP_BOOT;
     struct DateStamp levelTime;
     ULONG enemySeed;
+#ifdef PHASE6_MEMORY_TEST
+    ULONG phase6BeforeFree,phase6BeforeLargest;
+#endif
     BOOL loadingShown;
     BOOL platformReady=platformOpen();
     state=APP_TITLE_LOADING;
@@ -59,6 +89,10 @@ int main(void)
     gameInit(enemySeed^0x53504157UL);
     state=APP_LEVEL_LOADING;
     loadingShown=titleShowLevelLoading();
+#ifdef PHASE6_MEMORY_TEST
+    phase6BeforeFree=AvailMem(MEMF_CHIP);
+    phase6BeforeLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
+#endif
     if(!loadingShown||!loadLevelFiles()||!titleShowLevelCharging()||
        !rendererPrepareGameplay()) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
@@ -67,6 +101,9 @@ int main(void)
         }
         cleanup(); return 10;
     }
+#ifdef PHASE6_MEMORY_TEST
+    writePhase6MemoryLog(phase6BeforeFree,phase6BeforeLargest);
+#endif
     /* Keep the second status readable even when preparation finishes quickly
        on Fast RAM systems or accelerated/emulated CPUs. */
     titleWaitLevelCharging(100);

@@ -2430,6 +2430,78 @@ world and are expected to add roughly 221 KiB of Chip RAM across the resident
 foreground source, foreground display buffer and rear bitmap; verify actual
 free and largest Chip blocks before accepting that layout.
 
+Phase 6A replaces that rough estimate with an isolated measurable build. A
+shared compile-time world-width constant defaults production to 1280; only
+`make phase6-memory` compiles 2048 and packages repeated copies of the current
+foreground, rear and collision data under ignored
+`build/test/Sparkpaw-Phase6A-2048/`. It
+does not alter the production level, routes, renderer timing or release files.
+The test writes `phase6-memory.log` before hardware takeover after gameplay
+assets, display bitmap, HUD, sprites, Bob caches and Copper have prepared.
+
+The exact host allocation delta is 98,304 bytes for `frontClean`, 73,728 for
+`rearWorld`, 98,304 for `frontDisplay` and 672 collision bytes. The three bitmap
+allocations therefore add 270,336 bytes, not the earlier rough 221 KiB. Host
+asset dimensions and package generation pass. Phase 6A remains in review until
+MrDig supplies the log from exactly 2 MB Chip/no Fast and confirms the repeated
+2048px route reaches its right edge without allocation failure or corruption.
+
+MrDig ran the directly mounted HD drawer in FS-UAE with exactly 2 MB Chip and
+no Fast RAM, reached the repeated-art right edge and reset after gameplay. The
+generated log records 1,491,656 bytes free (largest 1,424,488) before gameplay
+assets, then only 88,136 bytes free with an 86,816-byte largest block after
+complete preparation. At that peak the charging bitmap and two title Copper
+lists are still live; their later release returns approximately 61,440 plus
+1,360 bytes, implying only about 150 KiB steady free and not proving a suitably
+large contiguous block. The experiment therefore succeeds technically and
+establishes a useful 2 MB/no-Fast stress baseline. Disk compression cannot
+change these final bitmap allocations. MrDig subsequently clarified that 2 MB
+Chip plus 8 MB Fast is an acceptable production minimum, while explicitly
+requiring continued optimization rather than treating Fast capacity as license
+for waste. Any rejection or architecture choice is deferred pending a complete
+Chip/Fast audit. Initial source inspection found approximately 325 KiB of
+player, beetle, Strider and collectible source sheets retained in Chip after
+their definitive DMA caches are built, making the earlier steady estimate
+knowingly pessimistic. A newly instrumented build must measure peak and
+post-conversion Chip/Fast free and largest blocks before resident versus
+segmented design is decided. No real-hardware result is claimed.
+
+Phase 6A.2 begins that audit with a lifecycle-only change. The renderer builds
+the accepted six-channel player streams and packed Bob caches in the same order
+and in Chip memory, then finishes the Copper list while the player palette is
+still available. It subsequently releases the CPU-read conversion sheets:
+172,800 bytes for the player, 8,640 for the beetle, 143,360 for the Strider and
+420 for the diamond, exactly 325,220 bytes total. No display bitmap, gameplay
+Blitter source, Copper list, Paula sample, route or gameplay contract changed.
+The Phase 6 log now captures Chip and Fast free/largest at the pre-release peak
+and after preparation. Host builds and both release variants pass; supplied
+FS-UAE retesting remains required.
+
+MrDig then supplied the 2 MB Chip plus 8 MB Fast FS-UAE result: the Phase 6A.2
+test build runs correctly and reaches the repeated-art right edge. Its log
+records an unchanged pre-release conversion peak of 88,136 bytes Chip free and
+an 86,976-byte largest block, with 6,674,368 bytes Fast free. After source
+release it records 413,696 bytes Chip free and a 281,600-byte largest block,
+recovering 325,560 bytes including allocator/bitmap bookkeeping; Fast remains
+6,674,296 bytes free. The resident 2048px world is therefore accepted as a
+viable Phase 6 greybox basis, but not as a fixed final level length. The narrow
+conversion peak remains the next memory-hygiene target before significant new
+animation or music is added. No real-hardware result is claimed.
+
+The first Fast attempt removed `BMF_DISPLAYABLE`, which improved the next
+supplied successful test to 271,272 bytes Chip free at the conversion peak and
+531,464 steady, but the delta showed that only the approximately 65 KiB masks
+had moved: native planar `AllocBitMap` still selected Chip for the planes.
+Phase 6A.2 therefore introduced an explicit CPU-only bitmap representation:
+the descriptor, planes and masks use `MEMF_ANY`, while every display, Copper,
+hardware-sprite, Paula and gameplay-Blitter allocation remains Chip. The final
+supplied 2 MB Chip plus 8 MB Fast test runs correctly and reaches the right
+edge. It records 531,464 bytes Chip free and a 530,408-byte largest block both
+before and after conversion-source release, proving the Chip loading spike is
+gone. Fast rises from 6,349,280 to 6,674,416 bytes, returning 325,136 bytes.
+Phase 6A is complete; 2048px is accepted as the Phase 6B greybox basis without
+fixing the eventual level duration or width. No real-hardware result is claimed.
+
 MrDig later superseded the fixed 35-50-second target: level 1 should feel much
 longer than the current test and should use the supplied ThunderCats level for
 forward pacing/progression inspiration. The 2048px/eight-screen build remains

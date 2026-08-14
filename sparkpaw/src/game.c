@@ -6,9 +6,9 @@
 #include "enemies.h"
 #include "player.h"
 #include "projectiles.h"
+#include "world_config.h"
 
 #define SCREEN_W 320
-#define WORLD_W 1280
 static struct GameState game;
 
 static void resetLevelRuntime(void)

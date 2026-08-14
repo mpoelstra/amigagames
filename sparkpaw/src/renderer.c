@@ -24,10 +24,10 @@
 #include "player.h"
 #include "projectiles.h"
 #include "renderer.h"
+#include "world_config.h"
 
 #define SCREEN_W 320
 #define SCREEN_H 256
-#define WORLD_W 1280
 #define WORLD_H 256
 #define FETCH_BYTES 42
 #define COP_WORDS 512
@@ -58,6 +58,11 @@ static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *diamondMask,*diamondBits;
+
+#ifdef PHASE6_MEMORY_TEST
+static ULONG phase6PeakChipFree,phase6PeakChipLargest;
+static ULONG phase6PeakFastFree,phase6PeakFastLargest;
+#endif
 
 struct EnemyBobCache {
     const struct PlanarAsset *source;
@@ -605,7 +610,20 @@ BOOL rendererPrepareGameplay(void)
        !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER])||
        !buildPlasmaPatterns()||!buildDiamondPattern())
         return FALSE;
-    buildCopper(); setScroll(0,0); return TRUE;
+#ifdef PHASE6_MEMORY_TEST
+    phase6PeakChipFree=AvailMem(MEMF_CHIP);
+    phase6PeakChipLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
+    phase6PeakFastFree=AvailMem(MEMF_FAST);
+    phase6PeakFastLargest=AvailMem(MEMF_FAST|MEMF_LARGEST);
+#endif
+    /* buildCopper still consumes the player palette from the conversion
+       source; finish that final read before releasing the source sheets. */
+    buildCopper();
+    assetsUnloadGameplayConversionSources();
+    sprites=NULL; diamondSprite=NULL;
+    enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE].source=NULL;
+    enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER].source=NULL;
+    setScroll(0,0); return TRUE;
 }
 
 void rendererCleanup(void)
@@ -651,3 +669,10 @@ void rendererDrawGameplayBobs(void)
     drawCollectibleBobs(); drawEnemyBob(); drawProjectileBobs();
     platformWaitBlit();
 }
+
+#ifdef PHASE6_MEMORY_TEST
+ULONG rendererPhase6PeakChipFree(void) { return phase6PeakChipFree; }
+ULONG rendererPhase6PeakChipLargest(void) { return phase6PeakChipLargest; }
+ULONG rendererPhase6PeakFastFree(void) { return phase6PeakFastFree; }
+ULONG rendererPhase6PeakFastLargest(void) { return phase6PeakFastLargest; }
+#endif

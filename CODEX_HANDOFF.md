@@ -75,7 +75,10 @@ make release
 make bench       # isolated renderer bench only when relevant
 ```
 
-The target is PAL A1200/68020 with 2 MB Chip RAM; Fast RAM is recommended.
+The target is PAL A1200/68020 with 2 MB Chip RAM and 8 MB Fast RAM as the
+accepted production minimum. Extra capacity is not permission for waste:
+minimize Chip residency, prefer Fast for CPU-only data/code, release temporary
+conversion data promptly and measure both memory and frame-time effects.
 The workspace-local VBCC/NDK toolchain lives under ignored `.toolchain/`.
 
 ## How to handle supplied test evidence
@@ -399,9 +402,54 @@ FS-UAE or real-hardware result is claimed.
   free. MrDig reported this ADF works correctly as well, accepting the packed
   Strider cache. The ADF optimization is therefore at a safe checkpoint before
   generalizing the container or packing another family.
-- Phase 6: level/progression work. First measure a resident 2048px/eight-screen
-  repeated-art memory experiment, then build an eight-screen collision/pacing
-  greybox, checkpoint/progression state, encounters and finally unique art.
+- Phase 6: level/progression work. The resident 2048px/eight-screen repeated-art
+  memory experiment is accepted; next build the collision/pacing greybox, then
+  checkpoint/progression state, encounters and finally unique art.
+
+### Measured: Phase 6A — 2048px resident-memory experiment
+
+`make phase6-memory` builds an isolated, directly runnable HD drawer under
+`build/test/Sparkpaw-Phase6A-2048/` using repeated existing art and collision
+across 2048px. Production remains 1280px. Only the experiment
+defines `SPARKPAW_WORLD_W=2048`; it writes `phase6-memory.log` after complete
+gameplay preparation with before/final free Chip RAM and largest-block values.
+The exact host bitmap delta is 270,336 bytes (front source 98,304, rear 73,728,
+front display 98,304), plus 672 collision bytes. This corrects the older rough
+221 KiB estimate. MrDig ran the unpacked HD test on exactly 2 MB Chip/no Fast,
+reached the repeated-art right edge and supplied the generated log. Immediately
+after full gameplay preparation it reports 88,136 bytes free and an 86,816-byte
+largest block. Releasing the still-visible charging bitmap and two title Copper
+lists later returns about 62.8 KiB. This establishes the 2 MB/no-Fast stress
+baseline but does not reject the resident design: MrDig subsequently accepted
+2 MB Chip plus 8 MB Fast as the minimum and requested a complete optimization
+audit before choosing an architecture. Initial inspection identifies roughly
+325 KiB of converted player/enemy/collectible source sheets that remain in Chip
+after their DMA caches are built. No real-hardware result exists. Do not turn
+this build into the greybox, mistake disk compression for resident savings or
+choose segmentation before the audit and a newly instrumented test.
+
+Phase 6A.2 implements the first isolated memory-hygiene step without changing
+rendering or gameplay: after the final hardware-sprite, beetle, Strider, plasma
+and collectible caches and Copper palette are built, the 325,220-byte player/
+enemy/collectible conversion sources are released. The 2048px log records Chip
+and Fast free/largest values immediately before this release and after complete
+preparation. Retest on 2 MB Chip plus 8 MB Fast is required before extrapolating
+a longer resident width.
+
+MrDig supplied successful repeated gameplay/right-edge/reset tests on 2 MB Chip
+plus 8 MB Fast. Native non-displayable `AllocBitMap` still placed source planes
+in Chip, so Phase 6A.2 now allocates CPU-only planar sources explicitly with
+`MEMF_ANY`; their masks and planes use Fast when present and fall back to Chip
+when it is absent. The final log measures 531,464 bytes Chip free with a
+530,408-byte largest block both at the conversion peak and after source release:
+there is no longer a narrow Chip loading peak. Fast rises from 6,349,280 during
+conversion to 6,674,416 afterward, returning 325,136 bytes. Phase 6A is complete
+and accepts 2048px resident as the Phase 6B greybox basis, not as a fixed final
+level length. Continue measuring and do not spend the recovered margin loosely.
+
+Next: Phase 6B.1 builds an eight-screen collision/pacing greybox without final
+art, extra enemy requirements or renderer changes. Establish route beats and
+play feel before deciding whether the finished level stays exactly 2048px.
 
 Level 1 target: an original Storm Ruins route materially longer than the current
 five-screen test and the earlier 35-50-second proposal. Treat the first

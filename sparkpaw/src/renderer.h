@@ -10,4 +10,11 @@ UWORD *rendererCopperList(void);
 void rendererUpdateGameplay(void);
 void rendererDrawGameplayBobs(void);
 
+#ifdef PHASE6_MEMORY_TEST
+ULONG rendererPhase6PeakChipFree(void);
+ULONG rendererPhase6PeakChipLargest(void);
+ULONG rendererPhase6PeakFastFree(void);
+ULONG rendererPhase6PeakFastLargest(void);
+#endif
+
 #endif

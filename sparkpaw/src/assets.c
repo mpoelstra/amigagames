@@ -106,13 +106,46 @@ static BOOL packedClose(struct PackedReader *reader,BOOL complete)
 
 static void freeAsset(struct PlanarAsset *asset)
 {
+    UBYTE plane;
     if(asset->mask) {
         FreeMem(asset->mask,(LONG)asset->rowBytes*asset->height);
         asset->mask=NULL;
     }
     if(asset->bitmap) {
-        FreeBitMap(asset->bitmap); asset->bitmap=NULL;
+        if(asset->cpuOnlyBitmap) {
+            LONG planeBytes=(LONG)asset->bitmap->BytesPerRow*asset->height;
+            for(plane=0;plane<asset->depth;plane++)
+                if(asset->bitmap->Planes[plane])
+                    FreeMem(asset->bitmap->Planes[plane],planeBytes);
+            FreeMem(asset->bitmap,sizeof(*asset->bitmap));
+        } else FreeBitMap(asset->bitmap);
+        asset->bitmap=NULL; asset->cpuOnlyBitmap=FALSE;
     }
+}
+
+static BOOL allocateAssetBitmap(struct PlanarAsset *asset,BOOL dmaSource)
+{
+    UBYTE plane;
+    LONG planeBytes;
+    if(dmaSource) {
+        asset->bitmap=AllocBitMap(asset->width,asset->height,asset->depth,
+                                  BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+        return asset->bitmap!=NULL;
+    }
+    asset->bitmap=(struct BitMap *)AllocMem(sizeof(*asset->bitmap),
+                                            MEMF_ANY|MEMF_CLEAR);
+    if(!asset->bitmap) return FALSE;
+    asset->cpuOnlyBitmap=TRUE;
+    InitBitMap(asset->bitmap,asset->depth,asset->width,asset->height);
+    planeBytes=(LONG)asset->bitmap->BytesPerRow*asset->height;
+    for(plane=0;plane<asset->depth;plane++) {
+        asset->bitmap->Planes[plane]=(PLANEPTR)AllocMem(planeBytes,
+                                                       MEMF_ANY|MEMF_CLEAR);
+        if(!asset->bitmap->Planes[plane]) {
+            freeAsset(asset); return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 static BOOL readRows(BPTR file,PLANEPTR plane,UWORD fileRow,UWORD memoryRow,
@@ -127,7 +160,7 @@ static BOOL readRows(BPTR file,PLANEPTR plane,UWORD fileRow,UWORD memoryRow,
 }
 
 static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
-                      UBYTE wantedDepth)
+                      UBYTE wantedDepth,BOOL dmaSource)
 {
     BPTR file; UBYTE header[12],plane; LONG size;
     memset(asset,0,sizeof(*asset));
@@ -144,9 +177,7 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
        (LONG)(1<<asset->depth)*3) {
         Close(file); return FALSE;
     }
-    asset->bitmap=AllocBitMap(asset->width,asset->height,asset->depth,
-                              BMF_CLEAR|BMF_DISPLAYABLE,NULL);
-    if(!asset->bitmap) { Close(file); return FALSE; }
+    if(!allocateAssetBitmap(asset,dmaSource)) { Close(file); return FALSE; }
     for(plane=0;plane<asset->depth;plane++)
         if(!readRows(file,asset->bitmap->Planes[plane],asset->rowBytes,
                      asset->bitmap->BytesPerRow,asset->height)) {
@@ -154,7 +185,7 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
         }
     if(asset->hasMask) {
         size=(LONG)asset->rowBytes*asset->height;
-        asset->mask=(UBYTE *)AllocMem(size,MEMF_CHIP);
+        asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_ANY);
         if(!asset->mask||Read(file,asset->mask,size)!=size) {
             Close(file); freeAsset(asset); return FALSE;
         }
@@ -175,7 +206,7 @@ static BOOL readPackedRows(struct PackedReader *reader,PLANEPTR plane,
 }
 
 static BOOL loadPackedAsset(const char *name,struct PlanarAsset *asset,
-                            UBYTE wantedDepth)
+                            UBYTE wantedDepth,BOOL dmaSource)
 {
     struct PackedReader reader;
     UBYTE header[12],plane; LONG size; BOOL complete=FALSE;
@@ -189,15 +220,13 @@ static BOOL loadPackedAsset(const char *name,struct PlanarAsset *asset,
     if(asset->depth!=wantedDepth||
        !packedRead(&reader,(UBYTE *)asset->palette,(LONG)(1<<asset->depth)*3))
         goto done;
-    asset->bitmap=AllocBitMap(asset->width,asset->height,asset->depth,
-                              BMF_CLEAR|BMF_DISPLAYABLE,NULL);
-    if(!asset->bitmap) goto done;
+    if(!allocateAssetBitmap(asset,dmaSource)) goto done;
     for(plane=0;plane<asset->depth;plane++)
         if(!readPackedRows(&reader,asset->bitmap->Planes[plane],asset->rowBytes,
                            asset->bitmap->BytesPerRow,asset->height)) goto done;
     if(asset->hasMask) {
         size=(LONG)asset->rowBytes*asset->height;
-        asset->mask=(UBYTE *)AllocMem(size,MEMF_CHIP);
+        asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_ANY);
         if(!asset->mask||!packedRead(&reader,asset->mask,size)) goto done;
     }
     complete=TRUE;
@@ -212,41 +241,52 @@ BOOL assetsLoadGameplay(void)
 {
 #ifdef ADF_PACKED_ASSETS
     return loadPackedAsset("PROGDIR:assets/runtime/storm-front.spr1",
-                           &frontClean,4)&&
+                           &frontClean,4,TRUE)&&
            loadPackedAsset("PROGDIR:assets/runtime/storm-rear.spr1",
-                           &rearWorld,3)&&
+                           &rearWorld,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
-                     &playerSprites,4)&&
+                     &playerSprites,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
-                     &enemySprites,4)&&
+                     &enemySprites,4,FALSE)&&
            loadPackedAsset(
                "PROGDIR:assets/runtime/clockwork-storm-strider.spr1",
-               &striderSprites,4)&&
+               &striderSprites,4,FALSE)&&
 #else
-    return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,4)&&
-           loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3)&&
+    return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,4,TRUE)&&
+           loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
-                     &playerSprites,4)&&
+                     &playerSprites,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
-                     &enemySprites,4)&&
+                     &enemySprites,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
-                     &striderSprites,4)&&
+                     &striderSprites,4,FALSE)&&
 #endif
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
-                     &hudBase,3)&&
+                     &hudBase,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-health.spbm",
-                     &hudHealth,3)&&
+                     &hudHealth,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-lives.spbm",
-                     &hudLives,3)&&
+                     &hudLives,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-diamonds.spbm",
-                     &hudDiamonds,3)&&
+                     &hudDiamonds,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
-                     &collectibleDiamond,4);
+                     &collectibleDiamond,4,FALSE);
 }
 
 BOOL assetsLoadTitle(void)
 {
-    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,6);
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,6,TRUE);
+}
+
+void assetsUnloadGameplayConversionSources(void)
+{
+    /* These sheets are CPU-read only while rendererPrepareGameplay() converts
+       them into the final hardware-sprite and Blitter cache layouts.  Keeping
+       both representations in Chip RAM after conversion wastes 325,220 bytes. */
+    freeAsset(&collectibleDiamond);
+    freeAsset(&striderSprites);
+    freeAsset(&enemySprites);
+    freeAsset(&playerSprites);
 }
 
 void assetsUnloadTitle(void)
@@ -257,7 +297,7 @@ void assetsUnloadTitle(void)
 BOOL assetsLoadLevelLoading(void)
 {
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-loading.spbm",
-                     &levelLoading,6);
+                     &levelLoading,6,TRUE);
 }
 
 void assetsUnloadLevelLoading(void)
@@ -268,7 +308,7 @@ void assetsUnloadLevelLoading(void)
 BOOL assetsLoadLevelCharging(void)
 {
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-charging.spbm",
-                     &levelCharging,6);
+                     &levelCharging,6,TRUE);
 }
 
 void assetsUnloadLevelCharging(void)
@@ -278,7 +318,7 @@ void assetsUnloadLevelCharging(void)
 
 void assetsUnloadGameplay(void)
 {
-    freeAsset(&collectibleDiamond); freeAsset(&hudDiamonds);
+    assetsUnloadGameplayConversionSources(); freeAsset(&hudDiamonds);
     freeAsset(&hudLives); freeAsset(&hudHealth); freeAsset(&hudBase);
     freeAsset(&striderSprites); freeAsset(&enemySprites);
     freeAsset(&playerSprites);

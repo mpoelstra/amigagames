@@ -1,0 +1,10 @@
+#ifndef SPARKPAW_WORLD_CONFIG_H
+#define SPARKPAW_WORLD_CONFIG_H
+
+#ifndef SPARKPAW_WORLD_W
+#define SPARKPAW_WORLD_W 1280
+#endif
+
+#define WORLD_W SPARKPAW_WORLD_W
+
+#endif

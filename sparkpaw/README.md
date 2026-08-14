@@ -3,8 +3,9 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.5.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 with
-ADF optimization Stage B in progress; Phase 6 has not started.
+Current release: `0.5.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 and
+ADF optimization Stage B; Phase 6A memory validation is complete and Phase
+6B.1 is next.
 
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a
@@ -17,7 +18,7 @@ bounded clockwork-beetle vertical slice.
 
 - Commodore Amiga 1200 or compatible AGA Amiga
 - Motorola 68020
-- 2 MB Chip RAM; Fast RAM recommended
+- 2 MB Chip RAM plus 8 MB Fast RAM minimum
 - PAL 320x256 at a fixed 50 Hz
 - Two stable 8-colour AGA playfields with true quarter-speed rear parallax
 - 48x48 Sparkpaw poses made from three attached sprite pairs, with 24-bit AGA colour
@@ -278,6 +279,25 @@ Run `make bench` to build the isolated `sparkpaw-renderbench`. This small
 program validates the dual-playfield foundation before it is allowed back
 into the game; see `docs/RENDERBENCH.txt`.
 
+Run `make phase6-memory` for the isolated 2048px Phase 6A resident-memory
+experiment. It writes a directly runnable HD test drawer under
+`build/test/Sparkpaw-Phase6A-2048/`, repeats existing world/collision data without changing
+the production level, and compiles only the test executable with
+`SPARKPAW_WORLD_W=2048`. Once gameplay prepares successfully it writes
+`phase6-memory.log` beside that executable with Chip RAM free/largest values.
+This target is a capacity test, not the Phase 6 greybox or production renderer.
+Phase 6A.2 releases the exact 325,220-byte player, enemy and collectible
+conversion sources after their final DMA caches and the Copper palette have
+been built. Its log records Chip and Fast free/largest values both immediately
+before that release and after complete preparation.
+MrDig's supplied 2 MB Chip plus 8 MB Fast tests ran correctly through the
+repeated-art right edge. Explicit `MEMF_ANY` CPU-only planar allocations remove
+the former Chip conversion peak: the final log measures 531,464 bytes Chip free
+and a 530,408-byte largest block both during and after conversion. Fast rises
+from 6,349,280 to 6,674,416 bytes when the 325,136-byte temporary representation
+is released. Phase 6A is complete and 2048px is the Phase 6B greybox basis,
+while final level length remains a later pacing decision.
+
 ## Source layout
 
 - `src/main.c`: startup, cleanup, explicit application states and the
@@ -492,3 +512,19 @@ On each beetle's second hit and each Strider's third hit, confirm the ordinary
 hit-pop is replaced by one short heavier death cue. Test grounded and traversal
 Strider deaths, rapid fire and simultaneous player damage; player hurt must win
 priority and no death cue may repeat during the destruction frames or respawn.
+
+For Phase 6A, boot an A1200 configuration with exactly 2 MB Chip RAM and no Fast
+RAM, run `build/test/Sparkpaw-Phase6A-2048/Sparkpaw`, wait until gameplay
+appears, then reset and return `phase6-memory.log`. Also confirm scrolling reaches
+the repeated-art right edge without allocation failure or corruption. The host
+projection is 270,336 extra bitmap bytes plus 672 collision bytes; acceptance
+requires the measured prepared free Chip total and largest contiguous block.
+MrDig completed this supplied FS-UAE test: the 2048px route ran to its right
+edge, but the log reported only 88,136 bytes free and an 86,816-byte largest
+block at the preparation peak. Even after the temporary charging presentation
+is released, the estimated steady margin is only about 150 KiB. The fully
+resident 2048px result is therefore a successful 2 MB/no-Fast stress
+measurement, not a rejection of that layout. With 2 MB Chip plus 8 MB Fast now
+accepted as the minimum, a complete efficiency audit and newly instrumented
+test must precede the resident-versus-segmented decision. Additional capacity
+must not justify duplicate or unnecessarily Chip-resident data.

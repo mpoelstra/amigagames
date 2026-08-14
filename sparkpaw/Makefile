@@ -9,6 +9,7 @@ PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
+PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 ADF_FRONT_ASSET = build/adf-assets/storm-front.spr1
 ADF_REAR_ASSET = build/adf-assets/storm-rear.spr1
 ADF_STRIDER_ASSET = build/adf-assets/clockwork-storm-strider.spr1
@@ -19,7 +20,8 @@ SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/colli
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
 HEADERS = src/assets.h src/audio.h src/collision.h src/collectibles.h src/enemies.h src/game.h src/hud.h \
-	src/level_data.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h
+	src/level_data.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
+	src/world_config.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \
@@ -45,7 +47,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean assets release bench adf-report
+.PHONY: all clean assets release bench adf-report phase6-memory
 
 all: assets $(TARGET)
 
@@ -106,6 +108,11 @@ $(ADF_TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DADF_PACKED_ASSETS -o $@ $(SOURCES)
 
+$(PHASE6_MEMORY_TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_WORLD_W=2048 -DPHASE6_MEMORY_TEST \
+		-o $@ $(SOURCES)
+
 $(ADF_FRONT_ASSET): assets/runtime/storm-front.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
@@ -120,6 +127,9 @@ release: all $(ADF_TARGET) $(ADF_ASSETS)
 
 adf-report: all
 	$(PYTHON) tools/report_adf_storage.py
+
+phase6-memory: all $(PHASE6_MEMORY_TARGET)
+	$(PYTHON) tools/build_phase6_memory_test.py
 
 clean:
 	$(RM) $(TARGET) $(BENCH_TARGET) src/*.o

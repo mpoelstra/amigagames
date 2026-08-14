@@ -1,12 +1,12 @@
 #include "collision.h"
+#include "world_config.h"
 
 #include <dos/dos.h>
 #include <proto/dos.h>
 
-#define WORLD_W 1280
 #define GAME_H 224
 #define TILE_SIZE 16
-#define MAP_COLS 80
+#define MAP_COLS (WORLD_W/TILE_SIZE)
 #define MAP_ROWS 14
 
 static UBYTE collision[MAP_COLS*MAP_ROWS];
