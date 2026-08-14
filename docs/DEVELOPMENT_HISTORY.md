@@ -15,7 +15,7 @@ Audit and update the compact repository-root `CODEX_HANDOFF.md` at the same
 time, but keep chronological detail here rather than allowing that handoff to
 become a diary again.
 
-Last updated: 13 August 2026
+Last updated: 14 August 2026
 
 ## Purpose of this file
 
@@ -2008,6 +2008,135 @@ exists. The next recommended isolated step is Phase 5F.3: give the Strider a
 clear hurt/hit reaction and HP contract using slots 11..17, preserving slots
 18..23 for accepted traversal; implement death and safe respawn in a subsequent
 reviewable step rather than combining it with the hit reaction.
+
+Phase 5F.3 implementation gives each Strider its existing authored three-HP
+contract at runtime and routes player plasma through the accepted body-aware
+box. A successful damage event stops ground movement for a deterministic
+14-frame mechanical recoil across reserved slots 11..17, holding each pose for
+two ticks. Shots
+that overlap during the reaction are consumed but do not stack damage or reset
+the reaction. Grounded ranged charge/release can be interrupted cleanly and
+enters the existing cooldown; traversal remains dominant and is not
+hit-interruptible. HP clamps at one, so this phase cannot enter teardown,
+death or respawn. Slots 18..23, route data, contact damage, projectile pool
+ownership and the renderer remain unchanged. Native build and release results
+are recorded with the implementation checkpoint; FS-UAE and real-hardware
+review remain open.
+
+MrDig's first supplied Phase 5F.3 FS-UAE recording confirmed that grounded
+plasma hits trigger the new recoil and allow the Strider to resume. It also
+exposed two defects. Traversal was excluded wholesale from projectile overlap,
+making slots 18..23 invulnerable rather than merely non-interruptible. Hits may
+now reduce HP during traversal and set one persistent pending reaction; the
+accepted route completes first, then slots 11..17 play after recovery. Further
+overlaps while either reaction is pending remain consumed without stacked
+damage.
+
+Two supplied screenshots also proved that the Phase 5F.2A shoot cells did not
+actually preserve the accepted anatomy. Although they shared the 64x64 cell and
+FRONT16 palette, independently fitting and quantizing the complete premium
+source produced a 49x60 opaque actor versus roughly 39-42x55-56 for walk, with
+a visibly different pen distribution. Slots 9/10 now start from the exact
+accepted idle cell and replace only the forward forearm/claw with the existing
+premium cannon fragment. The corrected cell is 45x56, keeps the original
+head/body/legs/grounding, remains close to the accepted palette balance and
+retains the existing charge/release timing and mirrored packed layout. Renderer,
+projectile ownership and authored routes remain unchanged. Focused FS-UAE
+review of both corrections is pending; no real-hardware result exists.
+
+MrDig's next two FS-UAE recordings showed that the pending traversal reaction
+was technically preserved but visually wrong: the Strider completed its jump,
+landed, and only then performed recoil for an old hit. Traversal hits now retain
+immediate HP loss, projectile impact and hit sound but schedule no later body
+reaction; grounded hits still own slots 11..17. The same recordings exposed a
+shoot-cell cutout rather than renderer residue. The cannon transplant cleared
+from y=18 and copied extra upper fragment pixels, temporarily removing lower
+head/neck pixels and leaving a loose-looking mark around the gun. The edit is
+now restricted to x>=33, y=24..44 and copies only the matching cannon band;
+head, neck and upper torso remain byte-identical to the accepted idle cell.
+Renderer restore/draw code remains unchanged. Focused FS-UAE review is pending.
+
+MrDig's 09:06 FS-UAE recording then showed the hostile pulse leaving above the
+corrected cannon. Pixel inspection found the real white muzzle at local rows
+35..37, while the inherited charge marks remained detached at rows 29..31 and
+the 9-pixel projectile was spawned with its centre near row 31.5. The cannon
+itself is not moved: charge now centres on row 36 and hostile projectile top Y
+moves from `enemyY+27` to `enemyY+32`, placing its centre at row 36.5. Attack
+timing, speed, collision, ownership and renderer ordering remain unchanged.
+
+MrDig accepted the corrected Phase 5F.3 behaviour as sufficient to continue.
+This supplied FS-UAE acceptance covers grounded hit recoil, traversal damage
+without delayed recoil, stable shoot anatomy and the corrected row-36 muzzle/
+projectile alignment. No real-hardware result exists.
+
+Phase 5F.4 adds Strider death and safe respawn without consuming any accepted
+slot. The complete 0..23 contract stays fixed; four destruction cells append at
+24..27. A third grounded hit stops motion, pending fire and contact, then holds
+core fracture, collapse, burst and debris for five ticks each. The existing
+generic respawn lifecycle supplies the 250–500-frame cooldown and authored
+off-camera starting-surface gate, reinitializing the Strider with three HP.
+The first isolated implementation kept traversal at one HP non-lethal to avoid
+introducing a midair death/route contract before it had been reviewed.
+
+MrDig rejected the first Phase 5F.4 visual: procedurally compressing the idle
+looked less deliberate than the beetle death, and the third traversal hit was
+still non-lethal. Inspection confirmed that the preserved 64x56 production
+proof contains four genuine authored destruction cells, whereas the later
+64x64 production-idle sheet has placeholders in those positions. Runtime slots
+24..27 now crop those four proof cells, re-quantize them through current
+FRONT16, ground them on the row-62 baseline and mirror the final indexed result.
+A third hit is lethal in every state; during traversal it clears the active
+link/state and velocity, then starts the burst at the current world position.
+Authored link data and renderer code are unchanged.
+
+MrDig's supplied 10:00 FS-UAE recording accepted the stronger destruction
+silhouettes but exposed a second kind of palette inconsistency: `FRONT16` is a
+shared bank, not a per-character identity palette. Generic nearest-colour
+conversion mapped the warm legacy explosion source to Sparkpaw-orange pens 2
+and 3. Death used `{1:982, 2:291, 3:117, 4:33, 5:81, 6:76, 7:76}` while accepted
+walk uses no pens 2/3. The destruction conversion now explicitly remaps pen 2
+to dark violet 12, pen 3 to bright violet 14 and pen 4 to white 11. More
+importantly, runtime generation asserts that no Strider cell in any family may
+contain shared-bank orange pens 2 or 3. This turns visual identity from an
+assumption into a build-time contract; shape, timing and renderer remain
+unchanged. Focused FS-UAE colour review remains pending.
+
+MrDig correctly rejected the remapped follow-up as still too purple compared
+with walk and asked for one consistent creation basis. The deeper correction is
+to stop treating a shared palette bank as an art-family contract. The accepted
+indexed idle/walk cell is now the Strider visual master. A new high-resolution
+four-beat concept was generated from the accepted walk reference to establish
+fracture, cyan rupture, controlled breakup and debris, but it was deliberately
+not used as runtime anatomy because it reinterpreted proportions. Runtime death
+instead copies and spatially separates the exact accepted idle pixels; only
+existing Strider pen 6/11/14 sparks are added.
+
+The resulting walk frames measure roughly 75-77% neutral steel/charcoal,
+18-20% violet and 5-6% cyan. Death frames retain approximately 75% neutral,
+18-23% violet and 2-7% cyan as the debris thins. Generation now enforces both
+no orange pens 2/3 and `violet <= neutral` for every Strider cell, including
+future shoot, hurt, traversal and death work. The project-bound concept source
+is preserved as
+`assets/enemies/clockwork-storm-strider-death-master-concept-v1-chroma.png`;
+the final runtime remains deterministic indexed art from the accepted master.
+Focused FS-UAE review is pending.
+
+MrDig accepted the final walk-master visual basis on 14 August 2026 and asked
+to checkpoint Phase 5F.3/5F.4 before starting the ADF optimization sidestep.
+This acceptance covers the final generated preview and deterministic indexed
+art contract. The supplied 10:00 FS-UAE recording verifies the death lifecycle
+and improved silhouettes but predates the final colour correction, so no
+final-colour FS-UAE or real-hardware verification is claimed.
+
+The initial attempt to keep 24 total cells by shortening accepted hurt and
+reusing 14..17 was rejected before review: MrDig explicitly prioritized the
+best append-only content contract over current ADF capacity. Native `make`
+passes with 28 frames. As expected, `make release` reaches the DOS1/FFS image
+and fails with `No Free Blocks` while writing `storm-rear.spbm`; no successful
+new ADF is claimed. The next engineering step after gameplay acceptance is
+Stage A from `docs/ADF_STORAGE_STRATEGY.md`, preserving normal HD assets while
+measuring packed sizes, CRCs and projected FFS blocks before any ADF loader is
+implemented.
 
 Appending six full 64x64 masked source frames exceeded the nearly full DOS0
 release disk during `make release`. The bootable ADF now uses DOS1/FFS, which is

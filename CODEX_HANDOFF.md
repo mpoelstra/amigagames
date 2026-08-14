@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 13 August 2026
+Last updated: 14 August 2026
 
 ## Purpose and source of truth
 
@@ -201,8 +201,9 @@ Clockwork Storm Striders (accepted through Phase 5D):
   start platform and stays between the x=288 column face and x=496 low-platform
   face. Inset-foot bounds prevent the 64px body crossing either solid without
   adding the generic body-aware navigation reserved for Phase 5E.
-- Striders are currently non-interactive: they do not yet absorb shots, damage
-  Sparkpaw or die/respawn through combat.
+- Striders deal accepted contact and ranged damage. Phase 5F.3 gives them three
+  HP and a non-lethal projectile-hit reaction in slots 11..17; test combat
+  clamps at one HP until death and safe respawn are implemented separately.
 - Logical collision cells remain at their authored Y. Drawing uses the accepted
   two-pixel visual offset because source rows 62-63 are transparent.
 
@@ -295,7 +296,8 @@ ownership but share the accepted line-253 restore/draw pass and packed plasma
 patterns. The slower hostile pulse damages Sparkpaw through the accepted damage
 path and is consumed on contact. Offscreen cooldown may advance, but an unseen
 attack never starts and a pending shot is discarded if parked. Slots 11..17
-remain reserved for hurt/death. No new sound or Paula ownership change is made.
+were still reserved at this checkpoint. No new sound or Paula ownership change
+is made.
 MrDig's supplied recording confirmed repeated shots, damage/invulnerability and
 continued routes. Presentation remains deliberately open: the hostile pulse is
 still Sparkpaw-cyan, no shot sound exists, and slots 9/10 do not yet show an
@@ -326,12 +328,60 @@ slots. MrDig's focused HD/FS-UAE retest accepted the heavier discharge and
 confirmed that no loose hostile shots remain after this correction. Native
 `make` and `make release` pass. No real-hardware verification exists.
 
+### Accepted: Phase 5F.3 — Strider HP and hit reaction
+
+Striders now absorb player plasma through their accepted body-aware box and
+start with three HP. Slots 11..17 form a separately testable stationary
+14-frame recoil sequence with two ticks per pose. A hit may interrupt a
+grounded ranged charge. Traversal remains dominant and cannot be interrupted;
+hits during slots 18..23 remove HP and use the immediate plasma impact/sound
+without scheduling a visually late ground recoil. Repeated shots
+during the reaction are consumed without stacking damage. At one HP the
+Strider remains alive and continues its accepted route, contact and ranged
+behaviour; death, teardown and safe respawn remain deliberately deferred.
+Slots 18..23 and the renderer are unchanged. Native `make` and `make release`
+pass. MrDig's supplied FS-UAE recordings confirmed grounded damage and
+traversal-hit registration, then exposed an unnatural delayed recoil plus a
+shoot-fragment cutout affecting head/neck pixels. Both are corrected for
+focused review. A subsequent supplied recording exposed the inherited charge
+and hostile-shot origin five pixels above the corrected muzzle; both now centre
+on local row 36 without moving the gun or changing attack timing. No
+real-hardware result has been supplied. MrDig accepted the corrected result as
+good enough to continue on 14 August 2026.
+
+### Accepted: Phase 5F.4 — Strider death and safe respawn
+
+A third grounded plasma hit now starts four appended destruction frames in
+slots 24..27. This preserves the complete accepted 0..23 contract: hit remains
+11..17 and traversal remains 18..23. After the 20-frame destruction, the
+generic encounter lifecycle applies its existing 250–500-frame cooldown and
+only rebuilds the Strider at its authored starting surface while that complete
+surface is outside the camera. Contact and ranged behaviour stop while dying.
+The third hit is also lethal during traversal: it cancels the active link and
+starts the burst at the current world position. Renderer, authored routes and
+Bob ordering are unchanged.
+Native `make` passes. The raw append grows the Strider SPBM beyond the current
+single-ADF capacity, so `make release` now fails with `No Free Blocks`; this is
+an accepted temporary packaging limitation pending the separately planned
+ADF-only optimization in `sparkpaw/docs/ADF_STORAGE_STRATEGY.md`. Two death-art
+attempts were rejected: procedural idle compression had weak silhouettes, and
+requantizing a legacy production burst first selected shared-bank orange, then
+overcorrected toward violet. Slots 24..27 are now rebuilt only from exact
+accepted idle/walk indexed pixels, using a generated master concept solely for
+the four breakup beats. Walk is the canonical visual master; no foreign RGB
+enters runtime death. Generation rejects orange pens 2/3 and any Strider frame
+whose violet pixels exceed its steel/charcoal pixels. Death now matches walk's
+measured material balance rather than merely sharing `FRONT16`.
+MrDig accepted this walk-master visual basis on 14 August 2026. The supplied
+10:00 FS-UAE recording verifies the death lifecycle and stronger destruction
+silhouettes, but predates the final indexed colour correction; no final-colour
+FS-UAE or real-hardware result is claimed.
+
 ### Later phases
 
-- Next recommended step: Phase 5F.3, add Strider hurt/hit reaction and HP using
-  reserved slots 11..17, then death and safe respawn as a separate reviewable
-  follow-up. Preserve accepted traversal, contact/ranged combat and renderer
-  contracts; do not silently alias slots 18..23 used by traversal.
+- Next, implement Stage A of the ADF
+  storage strategy: a host-only raw/packed/CRC/projected-FFS measurement report.
+  Do not couple the later ADF loader/container to gameplay or renderer code.
 - Phase 6: level/progression work. First measure a resident 2048px/eight-screen
   repeated-art memory experiment, then build an eight-screen collision/pacing
   greybox, checkpoint/progression state, encounters and finally unique art.

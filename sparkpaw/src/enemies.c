@@ -31,6 +31,15 @@
 #define STRIDER_SHOOT_COOLDOWN_FRAMES 150
 #define STRIDER_SHOOT_MIN_DISTANCE 48
 #define STRIDER_SHOOT_MAX_DISTANCE 208
+#define STRIDER_HIT_FIRST_FRAME 11
+#define STRIDER_HIT_LAST_FRAME 17
+#define STRIDER_HIT_FRAME_HOLD 2
+#define STRIDER_HIT_FRAMES ((STRIDER_HIT_LAST_FRAME-STRIDER_HIT_FIRST_FRAME)+1)
+#define STRIDER_HIT_TOTAL_FRAMES (STRIDER_HIT_FRAMES*STRIDER_HIT_FRAME_HOLD)
+#define STRIDER_DEATH_FIRST_FRAME 24
+#define STRIDER_DEATH_FRAME_HOLD 5
+#define STRIDER_DEATH_FRAMES 4
+#define STRIDER_DEATH_TOTAL_FRAMES (STRIDER_DEATH_FRAMES*STRIDER_DEATH_FRAME_HOLD)
 #define TRAVERSAL_NONE 0
 #define TRAVERSAL_COMPRESS_START 1
 #define TRAVERSAL_COMPRESS_CHARGED 2
@@ -438,12 +447,29 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
         return;
     }
     if(enemy->dying) {
-        enemy->animFrame=(UBYTE)(10+(20-enemy->deathTimer)/5);
+        enemy->animFrame=enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?
+            (UBYTE)(STRIDER_DEATH_FIRST_FRAME+
+                (STRIDER_DEATH_TOTAL_FRAMES-enemy->deathTimer)/
+                STRIDER_DEATH_FRAME_HOLD):
+            (UBYTE)(10+(20-enemy->deathTimer)/5);
         if(!--enemy->deathTimer) enemy->active=FALSE;
         return;
     }
     if(enemy->hitTimer) {
-        enemy->hitTimer--; enemy->animFrame=9; return;
+        if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
+            enemy->animFrame=(UBYTE)(STRIDER_HIT_FIRST_FRAME+
+                (STRIDER_HIT_TOTAL_FRAMES-enemy->hitTimer)/
+                STRIDER_HIT_FRAME_HOLD);
+            enemy->hitTimer--;
+            if(!enemy->hitTimer) {
+                enemy->vx=enemy->attackVX;
+                enemy->facingLeft=enemy->vx<0;
+                enemy->walkTick=0;
+            }
+        } else {
+            enemy->hitTimer--; enemy->animFrame=4;
+        }
+        return;
     }
     if(enemy->turnTimer) {
         enemy->animFrame=8;
@@ -552,7 +578,7 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
                 if(enemyFullyVisible(enemy,cameraX)&&spawnProjectile)
                     spawnProjectile((WORD)((enemy->x>>8)+
                         (enemy->facingLeft?-6:STRIDER_W-10)),
-                        (WORD)(enemy->y+27),enemy->facingLeft);
+                        (WORD)(enemy->y+32),enemy->facingLeft);
                 enemy->shotPending=FALSE;
             }
             tryStartStriderShot(enemy,cameraX,playerCenterX,playerCenterY);
@@ -599,6 +625,47 @@ BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
     WORD index;
     for(index=0;index<MAX_ENEMIES;index++) {
         struct Enemy *enemy=&enemies[index];
+        if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&
+           enemy->active&&!enemy->dying&&
+           x>=(WORD)(enemy->x>>8)+STRIDER_CONTACT_LEFT&&
+           x<=(WORD)(enemy->x>>8)+STRIDER_CONTACT_RIGHT&&
+           y>=enemy->y+STRIDER_CONTACT_TOP&&
+           y<=enemy->y+STRIDER_CONTACT_BOTTOM) {
+            /* Phase 5F.3 owns non-lethal recoil; Phase 5F.4 appends death and
+               reuses the generic safe off-camera respawn lifecycle. */
+            if(!enemy->hitTimer) {
+                if(enemy->health==1) {
+                    enemy->health=0;
+                    enemy->dying=TRUE;
+                    enemy->deathTimer=STRIDER_DEATH_TOTAL_FRAMES;
+                    enemy->shootTimer=0; enemy->shotPending=FALSE;
+                    enemy->turnTimer=0;
+                    enemy->traversalState=TRAVERSAL_NONE;
+                    enemy->traversalLink=INVALID_TRAVERSAL_LINK;
+                    enemy->traversalFailed=FALSE;
+                    enemy->vx=0; enemy->vy=0;
+                    enemy->animFrame=STRIDER_DEATH_FIRST_FRAME;
+                    enemy->walkTick=0;
+                } else if(enemy->health>1) enemy->health--;
+                if(enemy->traversalState) {
+                    /* Route frames 18..23 remain authoritative. The plasma
+                       impact and sound provide immediate feedback; never play
+                       a delayed ground recoil after landing. */
+                } else if(!enemy->dying) {
+                    if(enemy->shootTimer) {
+                        enemy->shootTimer=0; enemy->shotPending=FALSE;
+                        enemy->vx=enemy->attackVX;
+                        enemy->shootCooldown=STRIDER_SHOOT_COOLDOWN_FRAMES;
+                    }
+                    enemy->attackVX=enemy->vx;
+                    enemy->vx=0;
+                    enemy->hitTimer=STRIDER_HIT_TOTAL_FRAMES;
+                    enemy->animFrame=STRIDER_HIT_FIRST_FRAME;
+                    enemy->walkTick=0;
+                }
+            }
+            return TRUE;
+        }
         if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE&&lowShot&&
            enemy->active&&!enemy->dying&&
            x>=(WORD)(enemy->x>>8)+2&&x<=(WORD)(enemy->x>>8)+ENEMY_W-3&&

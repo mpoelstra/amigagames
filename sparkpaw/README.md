@@ -159,8 +159,9 @@ projectile slots and two hostile slots are separately reserved, so enemy fire
 cannot steal Sparkpaw's rapid-fire capacity. Both use the existing packed
 patterns and synchronized line-253 Bob pass. Hostile contact is consumed and
 reuses Sparkpaw's accepted damage path. No attack starts offscreen; a pending
-shot is discarded if camera parking occurs. Slots 11..17 remain reserved and
-no new sound/Paula ownership is added. MrDig's HD/FS-UAE recording accepted the
+shot is discarded if camera parking occurs. Slots 11..17 were still reserved
+at this checkpoint and no new sound/Paula ownership was added. MrDig's
+HD/FS-UAE recording accepted the
 functional ranged core: repeated shots,
 damage/invulnerability and continued routes work. The presentation is not final.
 The hostile pulse still shares Sparkpaw's cyan identity, it has no sound, and
@@ -400,6 +401,38 @@ and from the static violet parallax lights, both facings emit from the white
 muzzle, and the short electrical thump is
 audible without masking or interrupting player hurt.
 This checklist passed in HD/FS-UAE, including the later reset-residue retest.
+
+For Phase 5F.3, hit either grounded Strider with standing, airborne and crouched
+plasma. Each accepted hit should consume the shot and show the complete
+slots-11..17 mechanical recoil for 14 frames; rapid shots during that reaction
+must not stack damage or restart it. After two damaging hits the three-HP
+Strider remains alive at one HP and resumes the same patrol/turn or ranged
+behaviour. A hit during a grounded charge may cancel that charge. Shots during
+slots 18..23 traversal must consume the shot and remove HP without interrupting
+or renumbering the accepted route. The projectile impact/sound is the immediate
+feedback; no delayed slots-11..17 recoil may play after landing. Also compare
+slots 9/10 directly with walk and hurt:
+head, torso, legs, grounding and colour balance must remain identical, with
+only the forward forearm replaced by the arm cannon. Death, teardown and
+respawn are deliberately absent in this test.
+
+For the muzzle-alignment retest, slot 9's charge, slot 10's white muzzle and the
+first hostile-pulse frame must share local row 36 in both facings. The pulse
+must not appear above the cannon; speed, cadence and collision remain unchanged.
+
+For Phase 5F.4, deliver the third damaging shot while the Strider is grounded.
+It should stop contact/ranged behaviour and play appended slots 24..27: core
+fracture, collapse, burst and sparse grounded debris. After the debris clears,
+leave the complete authored starting surface outside the camera for roughly
+five to ten seconds, then return and verify a fresh three-HP Strider follows its
+route without stale pixels. Also deliver the third hit during compression and
+flight: traversal must stop immediately and the burst must begin at the current
+world position. Recheck both required Striders and beetle respawn. The HD
+build is testable; the unoptimized single ADF is temporarily over capacity.
+All Strider frames, including destruction, must retain the indigo/violet/cyan/
+white identity. The accepted walk/idle indexed pixels are the visual master;
+death fragments reuse those exact material pixels. Sparkpaw-orange pens 2 and
+3 are forbidden, and violet may never outnumber steel/charcoal in any frame.
 
 The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent

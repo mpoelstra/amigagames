@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import math
 import struct
+from collections import Counter
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageOps
@@ -28,7 +29,10 @@ TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
 BEETLE_FRAMES = 9
 STRIDER_W, STRIDER_H = 64, 64
-STRIDER_FRAMES = 24
+STRIDER_FRAMES = 28
+STRIDER_FORBIDDEN_PENS = {2, 3}  # Sparkpaw orange, never Strider identity
+STRIDER_NEUTRAL_PENS = {1, 8, 9, 10, 11}
+STRIDER_VIOLET_PENS = {7, 12, 13, 14, 15}
 
 FG_PALETTE = [
     (0, 0, 0), (10, 8, 18), (29, 22, 39), (238, 242, 224),
@@ -666,8 +670,9 @@ def make_clockwork_beetle() -> tuple[Image.Image, bytes]:
 
 def make_clockwork_strider() -> tuple[Image.Image, bytes]:
     # Slots 0..7 hold the reviewed rigid mechanical walk and slot 8 the planted
-    # frontal turn. Slots 9..17 deliberately stay idle placeholders so later
-    # attack/shooting, hit/hurt and death retain their reserved budget.
+    # frontal turn. Slots 9/10 are ranged attack, 11..17 are the Phase 5F.3
+    # non-lethal hit reaction, 18..23 remain traversal-only, and Phase 5F.4
+    # appends destruction frames 24..27 without renumbering either contract.
     def indexed_cell(source: Image.Image) -> Image.Image:
         bounds = source.getchannel("A").getbbox()
         opaque_bottom = bounds[3] if bounds else source.height
@@ -733,23 +738,148 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
         (max(1, round(attack_source.width * attack_scale)),
          max(1, round(attack_source.height * attack_scale))),
         Image.Resampling.LANCZOS)
-    attack = indexed_cell(attack_source)
+    premium_attack = indexed_cell(attack_source)
+    # Preserve the exact accepted idle anatomy, grounding and palette balance.
+    # Only replace the forward forearm/claw with the premium cannon fragment;
+    # its separate source was four pixels taller and substantially wider when
+    # scaled as a complete actor. Shift the fragment down to the idle shoulder.
+    attack = idle.copy()
+    attack_pixels = attack.load()
+    premium_pixels = premium_attack.load()
+    for y in range(24, 45):
+        for x in range(33, STRIDER_W):
+            attack_pixels[x, y] = 0
+    for source_y in range(20, 41):
+        target_y = source_y + 4
+        for x in range(33, STRIDER_W):
+            pen = premium_pixels[x, source_y]
+            if pen:
+                attack_pixels[x, target_y] = pen
     cells[9] = attack.copy()
     cells[10] = attack.copy()
     muzzle_bounds = cells[9].getbbox()
     if muzzle_bounds:
         muzzle_x = muzzle_bounds[2] - 1
-        muzzle_y = 30
+        muzzle_y = 36
         charge = ImageDraw.Draw(cells[9])
         charge.point((muzzle_x, muzzle_y - 1), fill=14)
         charge.point((muzzle_x, muzzle_y), fill=4)
         charge.point((muzzle_x, muzzle_y + 1), fill=14)
 
+    # A seven-stage mechanical recoil uses the accepted idle anatomy and foot
+    # anchor. The right-facing source recoils left, then settles; the packed
+    # mirror supplies the exact opposite reaction without a second code path.
+    recoil_offsets = ((-2, 0), (-5, 0), (-8, 0), (-9, 0),
+                      (-6, 0), (-3, 0), (0, 0))
+    for index, (offset_x, offset_y) in enumerate(recoil_offsets):
+        recoil = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+        recoil.paste(idle, (offset_x, offset_y))
+        spark = ImageDraw.Draw(recoil)
+        spark_x = 49 + offset_x
+        spark_y = 19 + offset_y
+        if index < 5:
+            spark.line((spark_x - 2, spark_y, spark_x + 2, spark_y), fill=14)
+            spark.line((spark_x, spark_y - 2, spark_x, spark_y + 2), fill=6)
+            spark.point((spark_x - 4 - index, spark_y - 3), fill=14)
+            if index < 3:
+                spark.line((spark_x - 7, spark_y + 5,
+                            spark_x - 5, spark_y + 3), fill=4)
+        cells[11 + index] = recoil
+
+    # Phase 5F.4 is append-only and uses the accepted indexed idle itself as
+    # the sole anatomy/material source. The generated high-resolution concept
+    # defines only the four beats; no foreign RGB pixels enter runtime art.
+    def paste_nonzero(target: Image.Image, source: Image.Image,
+                      box: tuple[int, int, int, int],
+                      destination: tuple[int, int]) -> None:
+        target_pixels, source_pixels = target.load(), source.load()
+        left, top, right, bottom = box
+        dest_x, dest_y = destination
+        for source_y in range(top, bottom):
+            for source_x in range(left, right):
+                pen = source_pixels[source_x, source_y]
+                x = dest_x + source_x - left
+                y = dest_y + source_y - top
+                if pen and 0 <= x < STRIDER_W and 0 <= y < STRIDER_H:
+                    target_pixels[x, y] = pen
+
+    fracture = idle.copy()
+    fracture_pixels = fracture.load()
+    for x, y in ((30, 20), (31, 21), (31, 22), (32, 23), (31, 24),
+                 (32, 25), (33, 26), (32, 27), (31, 28), (32, 29),
+                 (31, 30), (30, 31), (31, 32), (30, 33), (29, 34),
+                 (30, 35), (29, 36), (28, 37), (29, 38), (28, 39)):
+        if fracture_pixels[x, y]:
+            fracture_pixels[x, y] = 6 if ((x + y) & 1) else 11
+    cells[24] = fracture
+
+    rupture = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+    rupture_pixels, idle_pixels = rupture.load(), idle.load()
+    for y in range(STRIDER_H):
+        for x in range(STRIDER_W):
+            pen = idle_pixels[x, y]
+            if not pen:
+                continue
+            if y < 20:
+                target_x, target_y = x + 2, y - 2
+            elif x < 27 and y < 45:
+                target_x, target_y = x - 3, y + 1
+            elif x > 35 and y < 46:
+                target_x, target_y = x + 4, y + 1
+            else:
+                target_x, target_y = x, y
+            if 0 <= target_x < STRIDER_W and 0 <= target_y < STRIDER_H:
+                rupture_pixels[target_x, target_y] = pen
+    rupture_draw = ImageDraw.Draw(rupture)
+    rupture_draw.line((30, 21, 34, 37), fill=6)
+    rupture_draw.line((34, 27, 39, 31), fill=11)
+    rupture_draw.point((25, 29), fill=14)
+    rupture_draw.point((42, 25), fill=6)
+    cells[25] = rupture
+
+    burst = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+    paste_nonzero(burst, idle, (19, 6, 47, 20), (23, 1))
+    paste_nonzero(burst, idle, (10, 20, 27, 43), (3, 25))
+    paste_nonzero(burst, idle, (35, 20, 53, 45), (43, 24))
+    paste_nonzero(burst, idle, (18, 38, 32, 62), (15, 39))
+    paste_nonzero(burst, idle, (31, 38, 46, 62), (35, 39))
+    burst_draw = ImageDraw.Draw(burst)
+    burst_draw.line((27, 25, 36, 36), fill=6)
+    burst_draw.line((35, 25, 27, 37), fill=11)
+    burst_draw.point((20, 20), fill=14)
+    burst_draw.point((45, 18), fill=6)
+    cells[26] = burst
+
+    debris = indexed_image((STRIDER_W, STRIDER_H), FRONT16, 0)
+    paste_nonzero(debris, idle, (24, 8, 39, 17), (37, 49))
+    paste_nonzero(debris, idle, (15, 50, 29, 62), (12, 50))
+    paste_nonzero(debris, idle, (33, 50, 48, 62), (31, 50))
+    debris_draw = ImageDraw.Draw(debris)
+    debris_draw.point((25, 47), fill=6)
+    debris_draw.point((31, 43), fill=11)
+    debris_draw.point((47, 46), fill=14)
+    debris_draw.point((52, 53), fill=6)
+    cells[27] = debris
+
+    for frame, cell in enumerate(cells):
+        pen_counts = Counter(cell.getdata())
+        forbidden = set(pen_counts) & STRIDER_FORBIDDEN_PENS
+        if forbidden:
+            raise ValueError(
+                f"Strider frame {frame} uses forbidden identity pens {sorted(forbidden)}")
+        neutral_count = sum(pen_counts[pen] for pen in STRIDER_NEUTRAL_PENS)
+        violet_count = sum(pen_counts[pen] for pen in STRIDER_VIOLET_PENS)
+        if violet_count > neutral_count:
+            raise ValueError(
+                f"Strider frame {frame} violet material exceeds steel/charcoal balance")
+
     sheet = indexed_image((STRIDER_W * 2, STRIDER_H * STRIDER_FRAMES),
                           FRONT16, 0)
     preview = indexed_image((STRIDER_W * 8, STRIDER_H), FRONT16, 0)
     attack_preview = indexed_image((STRIDER_W * 2, STRIDER_H), FRONT16, 0)
+    hit_preview = indexed_image((STRIDER_W * 7, STRIDER_H), FRONT16, 0)
     traversal_preview = indexed_image((STRIDER_W * 6, STRIDER_H), FRONT16, 0)
+    death_preview = indexed_image((STRIDER_W * 4, STRIDER_H), FRONT16, 0)
     for frame, cell in enumerate(cells):
         sheet.paste(cell, (0, frame * STRIDER_H))
         sheet.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
@@ -758,17 +888,27 @@ def make_clockwork_strider() -> tuple[Image.Image, bytes]:
             preview.paste(cell, (frame * STRIDER_W, 0))
         if 9 <= frame <= 10:
             attack_preview.paste(cell, ((frame - 9) * STRIDER_W, 0))
+        if 11 <= frame <= 17:
+            hit_preview.paste(cell, ((frame - 11) * STRIDER_W, 0))
         if 18 <= frame < 24:
             traversal_preview.paste(cell, ((frame - 18) * STRIDER_W, 0))
+        if 24 <= frame < 28:
+            death_preview.paste(cell, ((frame - 24) * STRIDER_W, 0))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "enemies" /
                  "clockwork-storm-strider-64x64-aga15-walk-preview-v1.png")
     attack_preview.info["transparency"] = 0
     attack_preview.save(ROOT / "assets" / "enemies" /
                         "clockwork-storm-strider-64x64-aga15-shoot-preview-v1.png")
+    hit_preview.info["transparency"] = 0
+    hit_preview.save(ROOT / "assets" / "enemies" /
+                     "clockwork-storm-strider-64x64-aga15-hit-preview-v1.png")
     traversal_preview.info["transparency"] = 0
     traversal_preview.save(ROOT / "assets" / "enemies" /
                            "clockwork-storm-strider-64x64-aga15-traversal-preview-v1.png")
+    death_preview.info["transparency"] = 0
+    death_preview.save(ROOT / "assets" / "enemies" /
+                       "clockwork-storm-strider-64x64-aga15-death-preview-v1.png")
     return sheet, bitmap_mask(sheet)
 
 
