@@ -5,7 +5,8 @@ MrDig Productions.
 
 Current release: `0.5.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 and
 ADF optimization Stage B; Phase 6A memory validation is complete and Phase
-6B.1 is next.
+6B.1 eight-screen pacing greybox is accepted; Phase 6B.2 water mechanics are
+next.
 
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a
@@ -297,6 +298,18 @@ and a 530,408-byte largest block both during and after conversion. Fast rises
 from 6,349,280 to 6,674,416 bytes when the 325,136-byte temporary representation
 is released. Phase 6A is complete and 2048px is the Phase 6B greybox basis,
 while final level length remains a later pacing decision.
+
+Phase 6B.1 makes 2048px the production greybox width. It preserves the original
+five-screen route, then adds five platform sections, four authored beetle
+candidates and twelve diamonds across screens six through eight. The active
+enemy renderer/pool is still limited to four camera-managed slots, and the
+optional third Strider remains gated. The continuous floor intentionally stays
+for this pacing review; the first water hazard is the separate Phase 6B.2 step.
+Diamond Bobs now use a padded two-word source row so trails may use arbitrary X
+positions without shifted Blitter reads crossing a cache row.
+Airborne shots may now hit raised-platform beetles when their existing geometry
+overlaps; grounded standing shots retain the deliberate floor-beetle miss and
+crouch shots retain the ordinary low attack contract.
 
 ## Source layout
 

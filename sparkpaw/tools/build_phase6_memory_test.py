@@ -9,7 +9,8 @@ from pathlib import Path
 
 from make_release import ROOT, RUNTIME_FILES, RUNTIME_README
 
-SOURCE_WIDTH = 1280
+BASELINE_WIDTH = 1280
+SOURCE_WIDTH = 2048
 TEST_WIDTH = 2048
 HEIGHT = 256
 TILE = 16
@@ -90,14 +91,14 @@ def main() -> None:
         encoding="ascii",
     )
     chip_delta = {
-        "front_clean": (TEST_WIDTH - SOURCE_WIDTH) // 8 * HEIGHT * 4,
-        "rear_world": (TEST_WIDTH - SOURCE_WIDTH) // 8 * HEIGHT * 3,
-        "front_display": (TEST_WIDTH - SOURCE_WIDTH) // 8 * HEIGHT * 4,
-        "collision_bytes": (TEST_WIDTH - SOURCE_WIDTH) // TILE * 14,
+        "front_clean": (TEST_WIDTH - BASELINE_WIDTH) // 8 * HEIGHT * 4,
+        "rear_world": (TEST_WIDTH - BASELINE_WIDTH) // 8 * HEIGHT * 3,
+        "front_display": (TEST_WIDTH - BASELINE_WIDTH) // 8 * HEIGHT * 4,
+        "collision_bytes": (TEST_WIDTH - BASELINE_WIDTH) // TILE * 14,
     }
     report = {
         "schema": 1,
-        "scope": "phase6a-2048px-repeated-art-memory-test",
+        "scope": "phase6a-2048px-production-memory-regression",
         "source_width": SOURCE_WIDTH,
         "test_width": TEST_WIDTH,
         "asset_sizes": sizes,

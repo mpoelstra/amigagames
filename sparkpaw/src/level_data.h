@@ -21,7 +21,11 @@
 #define SURFACE_STRIDER_OPTIONAL_RAISED 8
 #define SURFACE_STRIDER_JUMP_FLOOR 9
 #define SURFACE_STRIDER_GAP_HIGH 10
-#define ENEMY_SURFACE_COUNT 11
+#define SURFACE_BEETLE_EXTENDED_A 11
+#define SURFACE_BEETLE_EXTENDED_B 12
+#define SURFACE_BEETLE_EXTENDED_C 13
+#define SURFACE_BEETLE_EXTENDED_D 14
+#define ENEMY_SURFACE_COUNT 15
 #define INVALID_SURFACE_ID 255
 
 struct EnemyPatrolSurface {
@@ -43,7 +47,7 @@ struct EnemyTraversalLink {
     WORD gravity;
 };
 
-#define MAX_LEVEL_ENEMY_SPAWNS 9
+#define MAX_LEVEL_ENEMY_SPAWNS 13
 
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
 const struct EnemyPatrolSurface *levelEnemyPatrolSurface(UBYTE surfaceId);

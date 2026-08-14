@@ -2502,6 +2502,50 @@ gone. Fast rises from 6,349,280 to 6,674,416 bytes, returning 325,136 bytes.
 Phase 6A is complete; 2048px is accepted as the Phase 6B greybox basis without
 fixing the eventual level duration or width. No real-hardware result is claimed.
 
+Phase 6B.1 then promotes the validated 2048px width to production without a
+renderer change. The generator preserves all geometry in x=0..1279 and appends
+five greybox platform sections plus three short columns in x=1280..2047. Four
+new beetle candidates use authored surfaces in that extension (three required,
+one optional), while `MAX_ENEMIES` remains four and camera activation/parking
+continues to bound simultaneous Bobs. Twelve diamonds extend route guidance and
+reward pacing. Existing Strider candidates, surfaces, traversal links and the
+third-Strider runtime gate are unchanged. The floor remains continuous so this
+step does not silently introduce water/death or respawn semantics; those belong
+to 6B.2 and visual water remains a later renderer/asset step. Generated front/
+rear assets validate as 2048x256, collision as 128x14. Standard build, memory
+regression and release pass; the packed ADF uses 1,229 blocks. Supplied FS-UAE
+pacing/geometry review remains required.
+
+MrDig's supplied screenshot and `2026-08-14 15-41-27.mov` then proved that the
+new x=1664/1704/1744 diamond trail contained persistent split fragments while
+Sparkpaw stood still and did not fire. This rejected the initial interpretation
+that the cyan fragments were plasma frames. Source correlation isolated x=1704
+as the first non-16px-aligned collectible: a shifted 16px Blit requires two
+source words, but the diamond cache provided only one and used a negative source
+modulo. The focused fix pads every diamond mask/plane row to two words and passes
+that stride to the unchanged cookie-cut routine. It costs 210 Chip bytes and
+preserves restore/draw order, timing and free placement. Host builds and release
+pass; supplied FS-UAE retest remains required.
+
+The supplied `2026-08-14 15-46-37.mov` revealed a second 6B.1 interaction: near
+the end, Sparkpaw fires while jumping and the plasma visibly crosses a beetle on
+a raised platform without damage; crouching on that platform hits normally.
+The collision function gated all beetle geometry behind the original `lowShot`
+boolean, so the new vertical encounter exposed a rule that was too broad. The
+focused change marks crouched and airborne launches as beetle-capable while
+retaining the exact existing projectile point and beetle hitbox test. Ordinary
+grounded standing shots still miss floor beetles; airborne shots only hit when
+their world-space Y actually crosses the beetle. Builds and release pass;
+supplied FS-UAE retest remains required.
+
+MrDig's supplied follow-up testing accepted both focused fixes: the extended
+diamond trail remains complete, and an airborne shot that geometrically crosses
+the raised-platform beetle registers correctly. Phase 6B.1 is accepted. The
+next isolated step is 6B.2: one mechanically testable water region using a
+greybox floor interruption and explicit death/restart semantics. Visual water
+work must begin with concept art and remain separate from the hazard logic. No
+real-hardware result is claimed.
+
 MrDig later superseded the fixed 35-50-second target: level 1 should feel much
 longer than the current test and should use the supplied ThunderCats level for
 forward pacing/progression inspiration. The 2048px/eight-screen build remains

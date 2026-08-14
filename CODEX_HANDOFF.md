@@ -451,6 +451,37 @@ Next: Phase 6B.1 builds an eight-screen collision/pacing greybox without final
 art, extra enemy requirements or renderer changes. Establish route beats and
 play feel before deciding whether the finished level stays exactly 2048px.
 
+### Accepted: Phase 6B.1 — eight-screen pacing greybox
+
+Production now uses the accepted 2048x256 resident width. The original first
+five screens and all accepted Strider surfaces/links remain unchanged; screens
+six through eight append five greybox platform sections and three short columns.
+Level data appends four beetle candidates (three required, one optional) and
+twelve diamonds, while the simultaneous enemy pool remains four slots. The two
+runtime-enabled Striders remain unchanged and the optional third stays gated.
+There is still a continuous floor: water collision/death semantics are reserved
+for 6B.2 and water presentation remains a separate renderer/asset step. Host
+geometry checks, `make`, the 2048 memory regression and `make release` pass;
+supplied FS-UAE pacing/geometry review is required.
+
+The first supplied 6B.1 video exposed one non-word-aligned diamond at x=1704:
+the former one-word cache could not provide the second source word required by
+a shifted 16px Bob, producing persistent split diamond fragments. The diamond
+cache now pads every row to two source words, making arbitrary X placement
+shift-safe for 210 extra Chip bytes. Retest remains required.
+
+The supplied `2026-08-14 15-46-37.mov` also exposed that the legacy boolean
+beetle-shot gate rejected a visibly overlapping airborne shot against a beetle
+on a raised platform. Player projectiles now mark crouched or airborne launches
+as beetle-capable, but the existing geometric point/hitbox test remains
+authoritative. Grounded standing shots therefore still pass over floor beetles;
+crouch shots and genuinely overlapping airborne shots hit. MrDig accepted both
+focused fixes in supplied FS-UAE testing. No real-hardware result exists.
+
+Next: Phase 6B.2 introduces one greybox water hazard mechanically. First create
+a floor interruption plus explicit water/death region and safe life restart;
+water concept art must be approved before the later visual renderer/asset step.
+
 Level 1 target: an original Storm Ruins route materially longer than the current
 five-screen test and the earlier 35-50-second proposal. Treat the first
 2048px/eight-screen build as a resident-memory minimum experiment, then tune

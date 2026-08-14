@@ -23,7 +23,7 @@ from PIL import Image, ImageDraw, ImageOps
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "assets" / "runtime"
 LEVELS = ROOT / "assets" / "levels"
-WORLD_W, WORLD_H = 1280, 256
+WORLD_W, WORLD_H = 2048, 256
 PARALLAX_W = 640
 TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
@@ -473,7 +473,7 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
         for x in range(x0 + 8, x1, 16):
             d.line((x, y0 + 4, x, y1 - 2), fill=2)
 
-    # Continuous floor and varied but readable platforming route over five screens.
+    # Continuous floor and varied but readable Phase 6B greybox over eight screens.
     block(0, 13, cols, 1, 0)
     block(8, 10, 7, 1, 2)
     block(20, 8, 6, 1, 0)
@@ -481,15 +481,23 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
     block(43, 9, 5, 1, 1)
     block(53, 7, 9, 1, 2)
     block(67, 10, 8, 1, 0)
+    block(82, 10, 7, 1, 1)
+    block(92, 8, 6, 1, 2)
+    block(104, 11, 7, 1, 3)
+    block(115, 9, 6, 1, 0)
+    block(123, 7, 4, 1, 2)
     # Short columns establish occlusion and test collision at camera seams.
     block(16, 11, 2, 2, 1)
     block(40, 10, 2, 3, 0)
     block(63, 11, 2, 2, 3)
+    block(80, 11, 2, 2, 2)
+    block(100, 10, 2, 3, 1)
+    block(112, 11, 2, 2, 3)
     # Lamps, chains and Stormstone markings remain non-solid decoration.
-    for x in (190, 510, 830, 1150):
+    for x in (190, 510, 830, 1150, 1470, 1790):
         d.line((x, 24, x, 66), fill=4, width=2)
         d.ellipse((x - 5, 62, x + 5, 72), fill=13, outline=7)
-    for x in (270, 590, 910, 1230):
+    for x in (270, 590, 910, 1230, 1550, 1870):
         d.polygon([(x, 184), (x + 8, 168), (x + 16, 184), (x + 8, 200)], fill=12, outline=3)
         d.point((x + 8, 176), fill=11)
     return image, collision

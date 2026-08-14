@@ -4,7 +4,8 @@ static const struct EnemyPatrolSurface enemySurfaces[ENEMY_SURFACE_COUNT]={
     { 286, 392,208}, { 416, 492,208}, { 500, 640,208},
     { 752, 900,208}, { 912,1000,208}, {1035,1195,208},
     { 320, 416,128}, { 672,1008,208}, {1084,1188,160},
-    { 300, 496,208}, { 860, 980,112}
+    { 300, 496,208}, { 860, 980,112},
+    {1300,1420,208}, {1472,1568,128}, {1668,1760,176}, {1840,1936,144}
 };
 
 static const struct EnemySpawnCandidate enemySpawns[]={
@@ -33,6 +34,14 @@ static const struct EnemySpawnCandidate enemySpawns[]={
                                             ENEMY_POLICY_RESPAWN,1 },
     {1090,1136, 1,SURFACE_STRIDER_OPTIONAL_RAISED,
                          ENEMY_TYPE_CLOCKWORK_STORM_STRIDER,
+                                            ENEMY_POLICY_RESPAWN,0 },
+    {1320,1380, 1,SURFACE_BEETLE_EXTENDED_A,ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    {1490,1536,-1,SURFACE_BEETLE_EXTENDED_B,ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    {1688,1736, 1,SURFACE_BEETLE_EXTENDED_C,ENEMY_TYPE_CLOCKWORK_BEETLE,
+                                            ENEMY_POLICY_RESPAWN,1 },
+    {1860,1904,-1,SURFACE_BEETLE_EXTENDED_D,ENEMY_TYPE_CLOCKWORK_BEETLE,
                                             ENEMY_POLICY_RESPAWN,0 }
 };
 

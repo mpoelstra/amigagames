@@ -57,7 +57,8 @@ void playerStartShot(BOOL pressed,PlayerPlayShot playShot)
         player.shootCooldown=3; player.shotPending=FALSE;
         player.idleTicks=0;
         projectilesSpawn((WORD)(player.x>>8),(WORD)(player.y>>8),
-                         player.facingLeft,player.crouching,playShot);
+                         player.facingLeft,player.crouching,!player.grounded,
+                         playShot);
     }
 }
 

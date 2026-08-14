@@ -10,11 +10,13 @@ void collectiblesInit(void)
        Keep screen-local concurrency bounded for later larger-enemy headroom. */
     static const WORD spawnX[MAX_COLLECTIBLES]={
         144,160,192,208, 256,304, 336,368,400, 512,
-        560,592, 704,736, 864,896,944, 1008,1104,1168
+        560,592, 704,736, 864,896,944, 1008,1104,1168,
+        1296,1328,1360,1408, 1488,1520,1552, 1664,1704,1744,1840,1920
     };
     static const WORD spawnY[MAX_COLLECTIBLES]={
         132,122,122,132, 148,178, 100,90,100, 148,
-        138,148, 116,116, 84,74,84, 148,132,132
+        138,148, 116,116, 84,74,84, 148,132,132,
+        148,132,122,132, 100,90,100, 148,132,148,116,84
     };
     UBYTE index;
     memset(collectibles,0,sizeof(collectibles));

@@ -42,6 +42,7 @@
 #define PLAYER_PLASMA_PATTERNS 5
 #define PLASMA_PATTERNS (PLAYER_PLASMA_PATTERNS*2)
 #define PLASMA_SOURCE_WORDS 2
+#define DIAMOND_SOURCE_WORDS 2
 #define FRONT_PLANES 4
 #define REAR_PLANES 3
 #define WORLD_PLANES (FRONT_PLANES+REAR_PLANES)
@@ -460,8 +461,10 @@ static void blitMaskedBob(UWORD *mask,UWORD *bits,WORD sourceWords,
 static BOOL buildDiamondPattern(void)
 {
     UBYTE plane; WORD x,y;
-    diamondMask=(UWORD *)AllocMem(COLLECTIBLE_H*2,MEMF_CHIP|MEMF_CLEAR);
-    diamondBits=(UWORD *)AllocMem(COLLECTIBLE_H*FRONT_PLANES*2,
+    diamondMask=(UWORD *)AllocMem(COLLECTIBLE_H*DIAMOND_SOURCE_WORDS*2,
+                                  MEMF_CHIP|MEMF_CLEAR);
+    diamondBits=(UWORD *)AllocMem(COLLECTIBLE_H*DIAMOND_SOURCE_WORDS*
+                                  FRONT_PLANES*2,
                                   MEMF_CHIP|MEMF_CLEAR);
     if(!diamondMask||!diamondBits) return FALSE;
     for(y=0;y<COLLECTIBLE_H;y++) for(x=0;x<COLLECTIBLE_W;x++) {
@@ -471,9 +474,10 @@ static BOOL buildDiamondPattern(void)
         UBYTE pen;
         if(!(diamondSprite->mask[sourceAt]&sourceMask)) continue;
         pen=pixel(diamondSprite->bitmap,x,y,FRONT_PLANES);
-        diamondMask[y]|=bit;
+        diamondMask[(LONG)y*DIAMOND_SOURCE_WORDS]|=bit;
         for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
-            diamondBits[(LONG)plane*COLLECTIBLE_H+y]|=bit;
+            diamondBits[((LONG)plane*COLLECTIBLE_H+y)*
+                        DIAMOND_SOURCE_WORDS]|=bit;
     }
     return TRUE;
 }
@@ -501,7 +505,7 @@ static void drawCollectibleBobs(void)
         item->drawnX=item->x;
         item->drawnY=(WORD)(item->y+
             hover[((game->frameCounter>>2)+index)&7]);
-        blitMaskedBob(diamondMask,diamondBits,1,
+        blitMaskedBob(diamondMask,diamondBits,DIAMOND_SOURCE_WORDS,
                       COLLECTIBLE_W,COLLECTIBLE_H,
                       item->drawnX,item->drawnY);
         item->drawn=TRUE;
@@ -646,8 +650,10 @@ void rendererCleanup(void)
         if(cache->bits) FreeMem(cache->bits,maskWords*FRONT_PLANES*2);
         if(cache->mask) FreeMem(cache->mask,maskWords*2);
     }
-    if(diamondBits) FreeMem(diamondBits,COLLECTIBLE_H*FRONT_PLANES*2);
-    if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*2);
+    if(diamondBits) FreeMem(diamondBits,COLLECTIBLE_H*DIAMOND_SOURCE_WORDS*
+                            FRONT_PLANES*2);
+    if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*
+                            DIAMOND_SOURCE_WORDS*2);
     if(frontDisplay) FreeBitMap(frontDisplay);
     assetsUnloadGameplay();
 }

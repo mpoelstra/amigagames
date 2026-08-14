@@ -26,7 +26,7 @@ typedef void (*ProjectilePlaySound)(void);
 void projectilesInit(void);
 void projectilesResetPreservingDrawn(void);
 void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
-                      ProjectilePlaySound playSound);
+                      BOOL airborne,ProjectilePlaySound playSound);
 BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft);
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
                        ProjectileEnemyHit hitEnemy,

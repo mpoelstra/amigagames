@@ -31,7 +31,7 @@ void projectilesResetPreservingDrawn(void)
 }
 
 void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
-                      ProjectilePlaySound playSound)
+                      BOOL airborne,ProjectilePlaySound playSound)
 {
     WORD index;
     for(index=0;index<MAX_PLAYER_PROJECTILES;index++) {
@@ -44,7 +44,10 @@ void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
         projectile->y=(LONG)(playerY+(crouching?29:15))<<8;
         projectile->vx=facingLeft?-PROJECTILE_SPEED:PROJECTILE_SPEED;
         projectile->life=80; projectile->impactTimer=0;
-        projectile->lowShot=crouching; projectile->hostile=FALSE;
+        /* Floor beetles retain the crouch-shot contract, but an airborne shot
+           may hit an elevated beetle when the existing geometry overlaps. */
+        projectile->lowShot=crouching||airborne;
+        projectile->hostile=FALSE;
         projectile->active=TRUE;
         playSound(); return;
     }
