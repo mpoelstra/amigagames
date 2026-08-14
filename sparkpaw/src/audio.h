@@ -13,6 +13,7 @@ void audioPlayEnemyDeath(void);
 void audioPlayStriderShot(void);
 void audioPlayJump(void);
 void audioPlayCollect(void);
+void audioPlayWaterSplash(void);
 void audioUpdate(void);
 
 #endif

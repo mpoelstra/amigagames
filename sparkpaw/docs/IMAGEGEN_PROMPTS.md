@@ -371,3 +371,111 @@ The generated chroma source and locally keyed transparent source are retained
 as `clockwork-storm-strider-premium-shoot-source-v1-{chroma,transparent}.png`.
 Runtime generation fits the complete transparent actor once and derives slots
 9/10 from the same anatomy.
+
+## Phase 6B water-hazard concept v1
+
+Built-in image generation used
+`assets/concept/sparkpaw-gameplay-concept-aga64-preview.png` as the strict
+style, palette, scale, HUD, ruins and parallax reference:
+
+> Create a gameplay-scene concept showing an unmistakable 80-pixel-wide
+> water-filled break in the stone floor between two ruin platforms. The gap
+> must read mechanically as a deadly fall/restart hazard, with a dark
+> storm-water body below the walkable edge, a crisp cyan/blue-violet surface
+> line, sparse pale foam highlights and wet mossy stone lips. Suggest depth
+> through a dark vertical chasm and restrained reflections. Preserve the
+> side-on AGA platformer camera, established navy/violet/cyan/teal/moss palette,
+> bottom HUD and character design. Keep the gap five 16px tiles wide. Do not
+> add text, labels, checkpoint, new enemy, UI changes or a broad bright-blue
+> flat fill.
+
+The built-in ImageGen result is preserved for review as
+`assets/concept/sparkpaw-water-hazard-concept-v1.png`. It is concept-only and
+must not become runtime art until MrDig accepts its visual direction.
+
+### Water-hazard concept v2 colour/floor correction
+
+V1 used the already quantized AGA64 preview as its strict visual reference and
+therefore inherited flatter violets, lower contrast and cooler midtones. The
+focused v2 built-in ImageGen edit instead uses the full-colour
+`assets/concept/sparkpaw-gameplay-concept.png` as the authoritative edit target:
+
+> Change only one ordinary floor section into a deadly water gap exactly five
+> 16px tiles (80px) wide. Keep the left and right walking surfaces at the same
+> vertical height as the source. Wet stone lips may rise only 5–10 pixels above
+> that surface—no tall banks, raised floor or massive retaining blocks. Preserve
+> the source's vivid saturation and strong contrast exactly. Fill the opening
+> below the normal floor line with dark navy/violet storm water, a crisp cyan/
+> blue surface, sparse white foam pixels, subtle depth and restrained bubbles.
+> Preserve Sparkpaw, HUD, parallax, ruins, vegetation and platform scale.
+
+The result is preserved as
+`assets/concept/sparkpaw-water-hazard-concept-v2.png`; v1 remains as rejected
+review history. V2 is still concept-only pending MrDig's approval.
+
+### Water-hazard concept v3 thin-floor correction
+
+MrDig clarified that “floor height” meant the full visible vertical mass below
+the walking line, not an elevated edge. The supplied crop identified v2's large
+ruin foundation as the rejected area. Consecutive review of the supplied
+`testresults/thundercats-level1.mov` and screenshot was used only for the broad
+layout principle of a thin bottom floor interrupted by water; no map, character,
+art, palette, object or UI was copied.
+
+The focused built-in ImageGen edit uses v2 as its Sparkpaw edit target:
+
+> Reduce the ordinary floor on both sides to a thin low platform strip: one
+> 16px tile plus at most a small underside lip. Remove the huge stone foundation,
+> tall masonry, embedded machinery and vegetation mass below the walking line,
+> revealing forest/parallax negative space. Preserve the walking-surface height
+> and the five-tile jump distance. Keep tiny broken end caps only. Place dark
+> navy/violet water with a narrow cyan/white highlight in the interruption near
+> the thin floor strip. Preserve Sparkpaw's vivid palette, character, HUD,
+> platforms, enemy and diamonds. Do not copy the reference game's artwork.
+
+The result is preserved as
+`assets/concept/sparkpaw-water-hazard-concept-v3.png`; v1 and v2 remain review
+history. V3 is concept-only pending MrDig's approval.
+
+### Water-hazard concept v4 HUD-ground correction
+
+MrDig accepted v3's approximate floor thickness but identified the exposed
+forest band between that floating floor and the HUD as incorrect. The v4
+built-in ImageGen edit uses v3 as its edit target and the supplied crop as the
+exact problem reference:
+
+> Remove the entire exposed forest/parallax band below the ground. Move the
+> complete thin ground strip downward until its underside touches the HUD's top
+> border with no gap. Preserve the modest stone/moss thickness; do not recreate
+> a massive foundation. Move the five-tile water interruption down with it so
+> the water occupies the low break and meets the HUD boundary cleanly. Preserve
+> the saturated palette, character, enemy, HUD and surrounding world.
+
+The result is preserved as
+`assets/concept/sparkpaw-water-hazard-concept-v4.png`; earlier versions remain
+review history. V4 is concept-only pending MrDig's approval.
+
+## Sparkpaw ledge-teeter review strip v1
+
+Built-in ImageGen edit/reference workflow, 2026-08-14. Review-only source; not
+yet consumed by the runtime generator. Reference images were the authoritative
+`sparkpaw-sprites-reference-transparent.png` identity/action sheet and
+`sparkpaw-idle-refinement-v3-transparent.png` scale/grounding sheet.
+
+```text
+Use case: stylized-concept
+Asset type: review-only four-frame pixel-art sprite strip for an Amiga AGA game
+Primary request: exactly four sequential right-facing ledge-teeter poses of the
+same Sparkpaw: notice missing support, lean outward in alarm, throw arm and tail
+back to recover, then return toward idle. Preserve the supplied character,
+costume, proportions, 32x40 perceived scale inside a 48x48 cell, common boot
+baseline, orange/cream/navy/brown/cyan palette identity and pixel treatment.
+Exactly one horizontal row, isolated full bodies, no grid, text or effects.
+Perfectly flat #ff00ff chroma-key background. No redesign, zoom, altered
+gauntlet side, extra prop, platform, blur, translucent pixels or cast shadow.
+```
+
+Saved as `assets/sprites/sparkpaw-ledge-teeter-v1-chroma.png`; the skill's
+standard chroma-removal helper produced
+`assets/sprites/sparkpaw-ledge-teeter-v1-transparent.png`. Runtime slots 0..57
+remain unchanged pending explicit visual approval and a 48x48 palette proof.

@@ -14,6 +14,9 @@
 #define HIT_CROUCH_TOP 19
 #define HIT_BOTTOM 38
 #define IDLE_ACT_DELAY 100
+#define LEDGE_ACT_DELAY 10
+#define LEDGE_MAX_SUPPORT 10
+#define MIN_GROUND_SUPPORT 4
 #define LAND_TICKS 10
 #define TURN_TICKS 28
 #define CROUCH_SHOT_TICKS 11
@@ -25,11 +28,33 @@
 static struct PlayerState player;
 static BOOL joystickUpHeld,joystickFireHeld,crouchInputHeld;
 
+static UBYTE groundSupportCount(WORD x,WORD y,UBYTE *leftCount)
+{
+    WORD probe; UBYTE total=0,left=0;
+    for(probe=HIT_LEFT;probe<=HIT_RIGHT;probe++)
+        if(collisionSolidAt(x+probe,y)) {
+            total++;
+            if(probe<(HIT_LEFT+HIT_RIGHT+1)/2) left++;
+        }
+    if(leftCount) *leftCount=left;
+    return total;
+}
+
+static BOOL ledgeSideClear(WORD x,WORD y,BOOL missingLeft)
+{
+    WORD offset,side;
+    for(offset=1;offset<=3;offset++) {
+        side=x+(missingLeft?HIT_LEFT-offset:HIT_RIGHT+offset);
+        if(collisionSolidVertical(side,y+HIT_TOP,y+HIT_BOTTOM)) return FALSE;
+    }
+    return TRUE;
+}
+
 void playerInit(void)
 {
     memset(&player,0,sizeof(player));
     crouchInputHeld=FALSE;
-    player.x=36L<<8; player.y=164L<<8;
+    player.x=36L<<8; player.y=156L<<8;
     player.health=PLAYER_MAX_HEALTH;
 }
 
@@ -147,6 +172,23 @@ void playerAnimate(BOOL landed,LONG frameCounter)
         player.animFrame=(UBYTE)(2+player.runFrame); return;
     }
     player.runTick=0; player.runFrame=0;
+    if(player.idleTicks>=LEDGE_ACT_DELAY&&!player.shootTimer) {
+        WORD x=(WORD)(player.x>>FIX_SHIFT);
+        WORD y=(WORD)(player.y>>FIX_SHIFT)+HIT_BOTTOM+1;
+        UBYTE leftSupport,totalSupport=groundSupportCount(x,y,&leftSupport);
+        BOOL missingLeft=leftSupport<totalSupport-leftSupport;
+        if(totalSupport>=MIN_GROUND_SUPPORT&&
+           totalSupport<=LEDGE_MAX_SUPPORT&&
+           ledgeSideClear(x,(WORD)(player.y>>FIX_SHIFT),missingLeft)) {
+            UWORD phase=(UWORD)((player.idleTicks-LEDGE_ACT_DELAY)&31);
+            static const UBYTE frames[4]={58,59,60,61};
+            /* Face the unsupported side. The source family is authored right
+               and the existing hardware cache supplies its exact mirror. */
+            player.facingLeft=missingLeft;
+            player.animFrame=frames[phase>>3];
+            return;
+        }
+    }
     if(player.idleTicks>=IDLE_ACT_DELAY) {
         /* Keep the accepted acknowledgement sequence; the removed tail-sway
            shifted the silhouette sideways and read as a moonwalk. */
@@ -205,13 +247,27 @@ static void moveY(LONG delta)
         WORD next=y+direction;
         WORD edge=next+(direction<0?playerHitTop():HIT_BOTTOM);
         if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,edge)) {
-            if(direction>0) player.grounded=TRUE;
-            player.vy=0; player.y=(LONG)y<<8; return;
+            UBYTE leftSupport=0;
+            UBYTE totalSupport=direction>0?
+                groundSupportCount(x,edge,&leftSupport):MIN_GROUND_SUPPORT;
+            /* A last 1..3 pixels of horizontal overlap are not a landing.
+               Let downward movement pass the ledge; upward head collision
+               retains the established any-pixel blocking contract. */
+            if(direction<0||totalSupport>=MIN_GROUND_SUPPORT) {
+                if(direction>0) player.grounded=TRUE;
+                player.vy=0; player.y=(LONG)y<<8; return;
+            }
+            /* Clear exactly that residual overlap before descending. Without
+               this, the actor lands below while embedded in the ledge's side
+               and canStand() correctly—but confusingly—rejects the next jump. */
+            if(totalSupport&&leftSupport==totalSupport) x+=totalSupport;
+            else if(totalSupport&&!leftSupport) x-=totalSupport;
+            player.x=(LONG)x<<FIX_SHIFT;
         }
         y=next;
     }
     player.y=target;
-    if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,y+HIT_BOTTOM+1))
+    if(groundSupportCount(x,y+HIT_BOTTOM+1,NULL)>=MIN_GROUND_SUPPORT)
         player.grounded=TRUE;
 }
 

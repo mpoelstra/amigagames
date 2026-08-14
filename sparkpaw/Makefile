@@ -41,6 +41,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/strider-shot.raw \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
+	assets/runtime/water-splash.raw \
 	assets/runtime/clockwork-beetle.spbm \
 	assets/runtime/clockwork-storm-strider.spbm \
 	assets/runtime/sparkpaw-sprites.spbm \
@@ -78,6 +79,7 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/enemies/clockwork-storm-strider-premium-shoot-source-v1-transparent.png \
 	assets/sprites/sparkpaw-motion-refinement-v3-transparent.png \
 	assets/sprites/sparkpaw-turn-refinement-v4-transparent.png \
+	assets/sprites/sparkpaw-ledge-teeter-v1-transparent.png \
 	assets/sprites/sparkpaw-idle-refinement-v3-transparent.png \
 	assets/sprites/sparkpaw-combat-refinement-v7-transparent.png \
 	assets/sprites/sparkpaw-air-fire-v8-transparent.png \

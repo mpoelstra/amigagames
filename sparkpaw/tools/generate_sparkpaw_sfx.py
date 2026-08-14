@@ -32,6 +32,10 @@ def gain(track,amount): return [value*amount for value in track]
 
 def delay(track, seconds): return [0.0]*round(seconds*RATE)+track
 
+def fade_in(track, seconds):
+    samples=max(1,round(seconds*RATE))
+    return [value*min(1.0,i/samples) for i,value in enumerate(track)]
+
 def notes(sequence, duration=.08):
     return [v for f in sequence for v in tone(duration, f, 8)]
 
@@ -202,6 +206,14 @@ def plasma_hit_heavy():
                gain(noise(.10,68203,25,.18),.44))
 
 def collect(): return notes((659,880,1175),.065)
+def water_splash():
+    """Soft original water entry: swelling wash and dispersed droplets."""
+    wash=fade_in(noise(.32,68624,7,.11),.045)
+    fizz=fade_in(noise(.22,68625,15,.30),.025)
+    return mix(gain(wash,.86),
+               gain(delay(fizz,.025),.38),
+               gain(delay(tone(.10,690,24,-1800),.075),.10),
+               gain(delay(tone(.08,980,28,-2600),.135),.07))
 def checkpoint(): return notes((392,523,659,784),.10)
 def stormstone(): return mix(notes((523,659,784,1047),.13),delay(tone(.55,1319,5,-180),.22))
 def menu(): return tone(.07,780,18,2100)
@@ -212,7 +224,8 @@ EFFECTS=[
     ("strider-shot",strider_shot,60,7,12),
     ("enemy-hit",enemy_hit,60,6,4),("enemy-death",enemy_death,64,8,6),
     ("player-hurt",player_hurt,64,9,16),
-    ("collect-spark",collect,52,4,3),("checkpoint",checkpoint,60,7,15),
+    ("collect-spark",collect,52,4,3),("water-splash",water_splash,64,10,20),
+    ("checkpoint",checkpoint,60,7,15),
     ("stormstone",stormstone,64,10,30),("menu-select",menu,48,1,3),
 ]
 

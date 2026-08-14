@@ -23,6 +23,7 @@ static void resetLevelRuntime(void)
     projectilesResetPreservingDrawn();
     playerInit();
     game.cameraX=0; game.frameCounter=0;
+    game.waterSplashTimer=0;
 }
 
 static BOOL applyEnemyDamage(WORD sourceCenterX)
@@ -71,17 +72,23 @@ void gameUpdate(void)
     BOOL left,right,down,jump,fire,wasGrounded;
     WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
+    if(game.waterSplashTimer) {
+        audioUpdate(); game.frameCounter++;
+        if(!--game.waterSplashTimer) resetLevelRuntime();
+        return;
+    }
     playerReadInput(&left,&right,&down,&jump,&fire);
     wasGrounded=player->grounded;
     playerStartShot(fire,audioPlayShot);
     if(playerUpdatePhysics(left,right,down,jump)) audioPlayJump();
     playerUpdateShot();
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
-    if(levelPlayerInWater(playerLeft,playerRight,playerBottom)) {
+    if(levelPlayerTouchesWater(playerLeft,playerRight,playerBottom)) {
         if(game.lives>1) game.lives--;
         else game.lives=GAME_START_LIVES;
-        resetLevelRuntime();
-        audioUpdate();
+        game.waterSplashX=(WORD)((playerLeft+playerRight)>>1);
+        game.waterSplashTimer=16;
+        audioPlayWaterSplash();
         return;
     }
     enemiesUpdate((WORD)game.cameraX,collisionSolidAt,

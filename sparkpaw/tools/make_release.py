@@ -17,8 +17,8 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.1"
-ROADMAP_CHECKPOINT = "6B.2"
+RELEASE_VERSION = "0.6.0-alpha.4"
+ROADMAP_CHECKPOINT = "6B.5"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -50,17 +50,22 @@ RUNTIME_FILES = (
     "strider-shot.raw",
     "jump.raw",
     "collect-spark.raw",
+    "water-splash.raw",
 )
 
 RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} water-mechanics review
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} ledge-teeter accepted
 MrDig Productions - Copyright 2026
 
-Phase 6B.2 mechanical water fall/restart and the opaque two-line HUD boundary
-are accepted. Visual water presentation remains pending concept approval.
+Phase 6B.3 adds the approved thin ground cap; 6B.3A aligns floor actors to
+y=200 and 6B.3B adds synchronized sixteen-frame blue water. The HUD todo is open.
+Phase 6B.4 adds a four-frame splash, short pre-restart hold and original Paula
+water-impact effect. The HUD todo remains open.
+Phase 6B.5 appends four ledge-balance poses as player slots 58..61. Standing
+still with support under only one foot triggers them; movement interrupts them.
 
 Requirements
 ------------

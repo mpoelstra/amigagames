@@ -1,11 +1,11 @@
 #include "level_data.h"
 
 static const struct EnemyPatrolSurface enemySurfaces[ENEMY_SURFACE_COUNT]={
-    { 286, 392,208}, { 416, 492,208}, { 500, 640,208},
-    { 752, 900,208}, { 912,1000,208}, {1035,1195,208},
-    { 320, 416,128}, { 672,1008,208}, {1084,1188,160},
-    { 300, 496,208}, { 860, 980,112},
-    {1300,1420,208}, {1472,1568,128}, {1668,1760,176}, {1840,1936,144}
+    { 286, 392,200}, { 416, 492,200}, { 500, 640,200},
+    { 752, 900,200}, { 912,1000,200}, {1035,1195,200},
+    { 320, 416,128}, { 672,1008,200}, {1084,1188,160},
+    { 300, 496,200}, { 860, 980,112},
+    {1300,1420,200}, {1472,1568,128}, {1668,1760,176}, {1840,1936,144}
 };
 
 static const struct EnemySpawnCandidate enemySpawns[]={
@@ -99,4 +99,11 @@ BOOL levelPlayerInWater(WORD left,WORD right,WORD bottom)
 {
     return right>=LEVEL_WATER_LEFT&&left<=LEVEL_WATER_RIGHT&&
            bottom>=LEVEL_WATER_DEATH_Y;
+}
+
+BOOL levelPlayerTouchesWater(WORD left,WORD right,WORD bottom)
+{
+    WORD center=(WORD)((left+right)>>1);
+    return center>=LEVEL_WATER_LEFT&&center<=LEVEL_WATER_RIGHT&&
+           bottom>=LEVEL_WATER_SPLASH_Y;
 }

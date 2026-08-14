@@ -3,22 +3,69 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 and
+Current release: `0.6.0-alpha.4`. Roadmap checkpoint: accepted Phase 5F.4 and
 ADF optimization Stage B; Phase 6A memory validation is complete and Phase
-6B.1 eight-screen pacing greybox is accepted; Phase 6B.2 water mechanics are
-accepted, as is the focused HUD-boundary correction after FS-UAE and real-Amiga
-verification.
+6B.1 eight-screen pacing greybox and Phase 6B.2 water mechanics are accepted.
 
 Phase 6B.2 adds one mechanical water proof at x=1584..1663. The greybox floor
 opens for 80 pixels and only those columns allow falling below the normal game
 boundary. Sinking to y=224 removes one life and performs the existing safe
-in-memory level restart. Visual water, splash and audio await concept approval.
+in-memory level restart. Phase 6B.3 now adds the approved visual basis: an
+eight-pixel steel/stone ground cap immediately above the HUD, interrupted by
+blue storm water with a cyan/white surface. Phase 6B.3B animates sixteen small
+80x11 frames every two game ticks. A continuous shallow wave spans the full
+opening while six differently phased bubble tracks rise and rest independently.
+Synchronized Blitter copies update both clean and displayed foreground buffers.
+Collision,
+restart behaviour, renderer timing, splash and audio were unchanged in the
+visual-only pass. Phase 6B.3A now moves the actual continuous floor and its
+floor-owned enemy surfaces from y=208 to y=200, matching the visible cap instead
+of letting actors sink into it. Sparkpaw's reset height follows the same
+eight-pixel shift. Raised platforms and authored Strider links keep their
+existing geometry.
 MrDig accepted the fall/restart behaviour in supplied testing. A separate HUD
 asset correction retains its top separator at two scanlines and now fills
 those rows with an opaque dark HUD pen instead of transparent pen 0. The
 line-252 display switch and 48px total HUD height remain unchanged. MrDig
-verified the correction in FS-UAE and on a real Amiga; the moving/glitchy
-boundary pixels are fixed.
+initially verified the correction in FS-UAE and on a real Amiga. A later
+real-hardware observation still reports intermittent glitchy behaviour there;
+this is an explicit follow-up todo, not a reopened renderer change in 6B.3.
+The approved visual basis is preserved at
+`assets/concept/sparkpaw-water-hazard-concept-v4.png`. Extra small diamonds in
+that generated concept are an ImageGen artefact and are deliberately excluded:
+runtime retains the accepted diamond size, placement and Bob contract.
+The exact sixteen-frame native palette treatment is previewed in
+`assets/levels/storm-water-animation-aga-preview.png`. Its 7,040-byte Chip cache
+updates between existing Bob restores and draws during the line-253 pass; the
+relative projectile, enemy and collectible ordering remains unchanged.
+
+Phase 6B.4 adds water-impact feedback without changing the accepted hazard
+geometry. When Sparkpaw's centre enters the opening and his feet pass y=204,
+the six hardware sprites are hidden and a dedicated four-frame cyan/white
+splash Bob plays for sixteen game ticks. The splash is restored and drawn in
+the synchronized line-253 pass and does not consume an enemy-pool slot. An
+original 11.025 kHz mono water impact plays once on prioritized Paula gameplay
+channel 1. Life loss occurs once at impact; the resident restart follows after
+the short hold.
+
+Phase 6B.5 appends four ledge-teeter poses as player slots 58..61 without
+renumbering or replacing the accepted 0..57 contract. After ten stationary
+grounded ticks, the family triggers only with 4..10 supported pixels across the
+24px collision sole. Fewer than four supported pixels now releases `grounded`,
+and is ignored by downward landing resolution, preventing a repeated
+one-pixel collision from suspending Sparkpaw in the air. Sparkpaw faces the missing side and
+cycles notice, outward lean, counter-swing and recovery, but only when the next
+three pixels beside his full standing collision height are clear. Adjacent
+platform walls therefore suppress the animation. When 1..3 residual edge
+pixels are released, Sparkpaw is moved outward by exactly that overlap before
+descending, preventing a hidden wall penetration from blocking his next jump.
+Movement,
+jumping, crouching, shooting, turning, hurt or loss of grounding interrupts it
+through the existing higher-priority states. Collision maps and boxes remain
+unchanged; only the minimum extreme-edge support needed for `grounded` is new.
+MrDig accepted the final trigger timing, adjacent-wall suppression, edge fall
+and immediate post-landing jump in supplied FS-UAE testing. No real-hardware
+result is claimed.
 
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a
@@ -36,6 +83,10 @@ bounded clockwork-beetle vertical slice.
 - Two stable 8-colour AGA playfields with true quarter-speed rear parallax
 - 48x48 Sparkpaw poses made from three attached sprite pairs, with 24-bit AGA colour
 - C with VBCC; small reproducible Python asset and release tools
+
+The earlier 2 MB Chip/no-Fast Phase 6A result is retained only as a historical
+stress measurement. Production graphics and performance decisions target the
+stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 
 ## Controls
 
@@ -253,10 +304,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.1.lha`
-- `dist/Sparkpaw-0.6.0-alpha.1.zip`
-- `dist/Sparkpaw-0.6.0-alpha.1.adf`
-- `dist/Sparkpaw-0.6.0-alpha.1-Source.zip`
+- `dist/Sparkpaw-0.6.0-alpha.4.lha`
+- `dist/Sparkpaw-0.6.0-alpha.4.zip`
+- `dist/Sparkpaw-0.6.0-alpha.4.adf`
+- `dist/Sparkpaw-0.6.0-alpha.4-Source.zip`
 
 `tools/make_release.py` owns the SemVer prerelease value. Its minor component
 tracks the broad roadmap phase (`0.6.x` for Phase 6); the exact lettered

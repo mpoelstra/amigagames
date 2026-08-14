@@ -1,0 +1,4 @@
+interface:
+  display_name: "Extend Sparkpaw Animations"
+  short_description: "Safely expand Sparkpaw art and animations"
+  default_prompt: "Use $extend-sparkpaw-animations to add a reviewable Sparkpaw runtime animation family."

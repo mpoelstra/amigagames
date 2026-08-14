@@ -2592,6 +2592,138 @@ identity as part of the step itself, without waiting for a separate reminder.
 A successful `make release` also continues to leave only the current matching
 artifact set in `dist/`.
 
+After the earlier supplied acceptance of the two-line opaque HUD boundary,
+MrDig reported that he still sees some glitchy behaviour there on a real Amiga.
+That later observation supersedes the categorical “fixed” wording but does not
+yet identify a cause. The current two-line asset, line-252 HUD switch and
+line-253 Bob pass remain unchanged; follow-up is tracked as a separate renderer
+regression todo rather than being mixed into Phase 6B.3 gameplay work.
+
+MrDig approved `sparkpaw-water-hazard-concept-v4.png` as the visual basis for
+ground and water. Earlier revisions clarified three constraints: use the
+full-colour gameplay concept rather than its flatter AGA64 preview; keep the
+visible floor mass modest rather than building a tall canal wall; and place
+that low ground directly against the HUD rather than leaving a parallax strip
+below it. The duplicate smaller diamonds generated in concept v4 are rejected
+ImageGen noise, not an asset or placement proposal.
+
+Phase 6B.3 translates only those approved constraints into deterministic level
+art. The foreground generator adds an eight-pixel stone/moss cap at y=200..207,
+directly above the existing line-252 HUD switch. Across the accepted five-tile
+x=1584..1663 opening it draws dark navy storm water, a narrow cyan/white surface
+and sparse fixed wave pixels. The 6B.2 collision opening, y=224 death threshold
+and restart behaviour remain byte-for-byte in their existing modules. No splash,
+audio, renderer, Copper, Bob, collectible or enemy change is included. The
+release advances to `0.6.0-alpha.2` / Phase 6B.3. Native and release builds pass;
+FS-UAE and real-hardware review remain unclaimed.
+
+MrDig reconfirmed the production minimum as a stock PAL A1200/68020 with 2 MB
+Chip and 8 MB Fast. The old 2 MB/no-Fast Phase 6A run remains useful stress
+evidence but is not a shipping target and must not drive later renderer choices.
+
+The first runtime screenshot of the thin cap exposed a geometry/art mismatch:
+the cap begins at y=200 while the continuous collision floor and floor-owned
+enemy surfaces still ended at y=208, visibly sinking actors into the strip.
+Phase 6B.3A makes y=200 the continuous non-water floor, changes only authored
+groundY=208 surfaces to 200 and moves Sparkpaw's reset Y from 164 to 156. Raised
+surfaces and traversal link records remain unchanged. A host fixed-point replay
+of all four authored links confirms their landing conditions still succeed at
+down x=416, return x=380, gap-right x=1072 and gap-left x=936. Native/ADF build
+verification follows; runtime route and grounding review remain unclaimed.
+
+Phase 6B.3B is the isolated renderer follow-up. It replaces the static violet
+water fill with sixteen fully blue/cyan/white 80x11 frames held in a 7,040-byte
+Chip cache. Review of the supplied runtime movie showed that the first three
+separate crests read as isolated roof shapes and that the white particles rose
+too synchronously. The revised treatment spans the full 80px opening with one
+continuous shallow moving surface. Six bubble tracks have different starting
+phases, speeds and rest windows, avoiding a single shared particle beat. The
+first eight-frame runtime review exposed a half-period reset jump and crests
+occasionally rising above the banks. The final loop covers all sixteen wave
+phases, advances every two game ticks and pins its first/last three pixels to
+ground height, producing a seamless 25 Hz cycle with clean bank joins.
+After projectile erase, enemy
+restore and collectible restore, the existing line-253 pass copies the selected
+frame with the Blitter into `frontClean` and then `frontDisplay`; only afterward
+does it perform the unchanged collectible, enemy and projectile draws. This
+keeps next-frame restores synchronized without CPU read-modify-write or a full
+foreground duplicate. The update performs eight tiny five-word-by-eleven-row
+plane copies only when the animation frame changes. Collision, death/restart,
+Copper staging, HUD switch and relative Bob ordering remain unchanged. The
+generator writes an exact enlarged palette preview at
+`assets/levels/storm-water-animation-aga-preview.png`. Native and packaged
+build verification follows; no emulator or hardware result is claimed.
+
+Phase 6B.4 adds the pending impact feedback as two bounded pieces sharing one
+event. At bottom y=204, with Sparkpaw's centre inside the 80px opening, gameplay
+enters a sixteen-tick water-impact hold. Life is deducted once, the six player
+hardware sprites select the existing null sprite and a dedicated four-frame
+32x16 cyan/white splash Bob runs before the accepted resident restart. Its
+restore precedes the water copy and its draw follows that copy inside the
+line-253 pass, so it neither consumes an enemy slot nor changes existing Bob
+relative order. The accompanying original 11.025 kHz mono synthetic splash
+uses prioritized Paula gameplay channel 1 at priority 10; plasma keeps channel
+0. The release advances to `0.6.0-alpha.3` / Phase 6B.4. Runtime behaviour is
+not claimed until supplied FS-UAE or hardware evidence exists.
+
+The first supplied 6B.4 sound review found a hard percussive onset before the
+more convincing splash tail. The generator therefore removes the low impact
+body and instant full-level noise, replacing them with a 45 ms swelling wash,
+a separately faded fizz layer and two quiet delayed droplets. Visual timing,
+gameplay trigger and Paula ownership are unchanged; runtime review remains open.
+
+Phase 6B.5 adds the optional ledge-balance readability pass. Earlier player-art
+history makes this append-only: accepted slots 0..57 remain untouched, while
+four same-family poses occupy 58..61 and use the existing exact mirror path.
+The generated review strip was chroma-extracted and reduced as one family to
+the established 48x48 cell, 15-colour player palette and shared boot baseline.
+Runtime selection waits ten stationary grounded ticks and requires support
+under exactly one of the x+6/x+25 foot probes; the actor faces the unsupported
+side. Existing movement, jump, crouch, shot, turn, hurt and airborne states
+retain priority and collision/physics do not change. Release advances to
+`0.6.0-alpha.4` / Phase 6B.5; runtime judgement remains unclaimed.
+
+The first supplied FS-UAE review showed the two-point trigger beginning while
+too much of Sparkpaw remained on a platform. At the final edge, both probes
+were free but the broad horizontal collision still found one last solid pixel;
+`grounded` remained true and ordinary front-idle appeared while visibly
+suspended. The refinement counts all 24 pixels across the collision sole:
+teeter is limited to 4..10 supported pixels and fewer than four releases
+grounding so gravity resumes. This changes only extreme-edge support semantics;
+full platforms, authored 16px columns and collision dimensions remain intact.
+
+A second supplied clip then exposed a separate semantic false positive: narrow
+support inside a gap triggered teeter even though Sparkpaw was directly against
+another platform wall on the nominally unsupported side. The selector now also
+requires three clear horizontal pixels beside the complete standing collision
+height in the missing direction. This suppresses the balance act in wedged or
+wall-adjacent positions without moving platforms or broadening collision boxes.
+
+The next FS-UAE screenshots proved that clearing `grounded` after `moveY()` was
+insufficient: the following downward step still treated the same 1..3 overlap
+pixels as a landing, reset vertical speed and produced a stationary airborne
+pose. The four-pixel minimum now lives in downward vertical collision itself;
+sub-threshold overlap is traversed, while upward head collision preserves its
+established any-pixel rule. This removes the suspension loop at its source.
+
+The following FS-UAE movie showed that Sparkpaw then fell correctly but landed
+on the lower floor with the same 1..3px horizontal overlap still embedded in
+the ledge wall. The standing-clearance test consequently rejected jump until a
+manual sidestep removed it. Weakening `canStand()` would permit corner clipping,
+so downward edge release instead resolves x outward by exactly the discarded
+support count before continuing. The lower landing is then geometrically clean
+and jump eligibility needs no special exception.
+
+MrDig accepted the completed 6B.5 behaviour in supplied FS-UAE testing: teeter
+starts sufficiently near a genuine free edge, is suppressed beside an adjacent
+platform, sub-threshold support produces a real fall, and the lower landing
+allows an immediate jump without a corrective sidestep. No real-hardware result
+is claimed. The reusable project skill
+`.agents/skills/extend-sparkpaw-animations/` captures the concept-first,
+append-only, palette/cache, renderer-order and runtime-regression workflow for
+all future player, enemy, collectible, projectile, effect and water animation
+families.
+
 MrDig later superseded the fixed 35-50-second target: level 1 should feel much
 longer than the current test and should use the supplied ThunderCats level for
 forward pacing/progression inspiration. The 2048px/eight-screen build remains

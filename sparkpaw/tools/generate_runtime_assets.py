@@ -93,6 +93,9 @@ HUD_PREVIEW_LIVES = 3
 HUD_X_OFFSET = 2
 HUD_SEPARATOR_H = 2
 HUD_DIAMOND_STATES = 50
+WATER_LEFT_TILE = 99
+WATER_RIGHT_TILE = 104
+GROUND_CAP_TOP = 200
 HUD_PALETTE = [
     (0, 0, 0), (5, 16, 25), (28, 37, 43), (102, 98, 88),
     (239, 218, 164), (222, 47, 45), (239, 151, 39), (31, 201, 224),
@@ -477,13 +480,15 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
         for x in range(x0 + 8, x1, 16):
             d.line((x, y0 + 4, x, y1 - 2), fill=2)
 
-    # Continuous floor and varied but readable Phase 6B greybox over eight screens.
+    # Continuous collision floor and varied but readable Phase 6B greybox over
+    # eight screens. The visible 6B.3 cap is applied after the legacy eight-
+    # colour remap so it can use the existing fourth-plane steel/violet pens.
     block(0, 13, cols, 1, 0)
-    # Phase 6B.2 mechanical water proof. Transparent foreground exposes the
-    # rear layer for now; authored water presentation follows concept approval.
-    for tx in range(99, 104):
+    for tx in range(WATER_LEFT_TILE,WATER_RIGHT_TILE):
         collision[13 * cols + tx] = 0
-    d.rectangle((99 * TILE, 13 * TILE, 104 * TILE - 1, WORLD_H - 1),fill=0)
+    water_left=WATER_LEFT_TILE*TILE
+    water_right=WATER_RIGHT_TILE*TILE-1
+    d.rectangle((water_left,13*TILE,water_right,WORLD_H-1),fill=0)
     block(8, 10, 7, 1, 2)
     block(20, 8, 6, 1, 0)
     block(31, 11, 8, 1, 3)
@@ -509,6 +514,69 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
         d.polygon([(x, 184), (x + 8, 168), (x + 16, 184), (x + 8, 200)], fill=12, outline=3)
         d.point((x + 8, 176), fill=11)
     return image, collision
+
+
+def apply_ground_water_treatment(image: Image.Image) -> None:
+    """Apply approved 6B.3 art in the established four-plane front bank."""
+    image.putpalette([v for rgb in FRONT16 for v in rgb]+[0]*(768-48))
+    d=ImageDraw.Draw(image)
+    water_left=WATER_LEFT_TILE*TILE
+    water_right=WATER_RIGHT_TILE*TILE-1
+    # Thin steel/stone profile directly above the HUD; never a tall foundation.
+    d.rectangle((0,GROUND_CAP_TOP,WORLD_W-1,207),fill=8)
+    d.line((0,GROUND_CAP_TOP,WORLD_W-1,GROUND_CAP_TOP),fill=10)
+    d.line((0,GROUND_CAP_TOP+1,WORLD_W-1,GROUND_CAP_TOP+1),fill=9)
+    for x in range(0,WORLD_W,16):
+        d.line((x,GROUND_CAP_TOP+2,x,207),fill=1)
+        d.point((x+5,205),fill=10 if (x//16)&1 else 9)
+        d.line((x+10,206,min(x+12,WORLD_W-1),206),fill=1)
+        if (x//16)%3==1:
+            d.point((x+3,GROUND_CAP_TOP),fill=6)
+    # Static storm water replaces only the accepted five-tile opening.
+    for y in range(11):
+        for x in range(80):
+            d.point((water_left+x,197+y),fill=water_animation_pen(0,x,y))
+
+
+def water_animation_pen(frame: int,x: int,y: int) -> int:
+    surface_curve=(1,1,0,0,0,1,1,2,2,2,1,1,0,0,1,1)
+    bubble_x=(7,19,31,46,60,72)
+    bubble_start=(0,11,4,15,7,13)
+    bubble_life=(7,9,6,10,8,7)
+    surface=1+surface_curve[((x>>1)+frame)&15]
+    if x<3 or x>=77:
+        surface=3
+    if y<surface:
+        return 0
+    if y==surface:
+        return 11 if ((((x>>2)+frame*3)&7)==0 or
+                      ((x+frame*6)&31)==17) else 6
+    if y==surface+1:
+        return 5 if ((x+frame)&7) else 6
+    for bubble in range(6):
+        age=(frame+16-bubble_start[bubble])&15
+        life=bubble_life[bubble]
+        if age<life:
+            bx=bubble_x[bubble]+(1 if ((frame+bubble)&3)==0 else 0)
+            by=10-((age*7)//life)
+            if by<=surface+1:
+                continue
+            if x==bx and y==by:
+                return 11 if bubble&1 else 6
+            if not (bubble&1) and x==bx+1 and y==by:
+                return 6
+    return 5
+
+
+def make_water_animation_preview() -> Image.Image:
+    """Preview the renderer's exact sixteen-frame 80x11 water pen formula."""
+    sheet=indexed_image((80,11*16),FRONT16,0)
+    pixels=sheet.load()
+    for frame in range(16):
+        for y in range(11):
+            for x in range(80):
+                pixels[x,frame*11+y]=water_animation_pen(frame,x,y)
+    return sheet.resize((320,704),Image.Resampling.NEAREST)
 
 
 def draw_beetle_frame(frame: int) -> Image.Image:
@@ -994,8 +1062,10 @@ def make_sprites() -> tuple[Image.Image, bytes]:
                             "sparkpaw-hurt-v12-transparent.png").convert("RGBA")
     crouch_hurt_sheet = Image.open(ROOT / "assets" / "sprites" /
                                    "sparkpaw-crouch-hurt-v13-transparent.png").convert("RGBA")
+    ledge_sheet = Image.open(ROOT / "assets" / "sprites" /
+                             "sparkpaw-ledge-teeter-v1-transparent.png").convert("RGBA")
     cell_w = cell_h = 48
-    frame_count = 58
+    frame_count = 62
     rows = math.ceil(frame_count / 4)
     source = Image.new("RGBA", (cell_w * 4, cell_h * rows), (0, 0, 0, 0))
     ref_w, ref_h = reference.width // 4, reference.height // 4
@@ -1027,6 +1097,8 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     crouch_fire_poses = [cropped_component(grid_cell(crouch_fire_sheet, 4, 1, i)) for i in range(4)]
     hurt_poses = [cropped_component(grid_cell(hurt_sheet, 4, 1, i)) for i in range(4)]
     crouch_hurt_poses = [cropped_component(grid_cell(crouch_hurt_sheet, 4, 1, i)) for i in range(4)]
+    ledge_poses = [cropped_component(grid_cell(ledge_sheet, 4, 1, i))
+                   for i in range(4)]
     run_scale = family_scale(run_poses)
     jump_scale = family_scale(jump_poses)
     landing_scale = family_scale(landing_poses)
@@ -1037,6 +1109,7 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     hurt_scale = family_scale(hurt_poses, max_width=48)
     crouch_hurt_scale = family_scale(crouch_hurt_poses,
                                      max_width=48,max_height=24)
+    ledge_scale = family_scale(ledge_poses)
     # Match the established airborne body scale. The extended barrel may clip
     # by a pixel at the 48-pixel hardware-sprite cell edge, but shrinking the
     # whole actor would create the much more visible in-air zoom artifact.
@@ -1080,8 +1153,12 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     # silhouette, so temporary visual recoil respects low-platform clearance.
     for i, pose in enumerate(crouch_hurt_poses):
         place(54 + i, pose, crouch_hurt_scale)
+    # Phase 6B.5 appends the approved review family. Never replace or renumber
+    # the accepted 0..57 baseline; all four cells share one scale and baseline.
+    for i, pose in enumerate(ledge_poses):
+        place(58 + i, pose, ledge_scale)
     source.save(ROOT / "assets" / "sprites" / "sparkpaw-48x48-aga16-source.png")
-    # Preserve all sixteen authored poses. Left half contains the right-facing
+    # Preserve all authored poses. Left half contains the right-facing
     # cells and the second half contains deterministic pixel-perfect mirrors.
     # Direction changes therefore need no runtime flip or pixel copying.
     doubled = Image.new("RGBA", (source.width * 2, source.height), (0, 0, 0, 0))
@@ -1151,6 +1228,7 @@ def main() -> None:
     for x in range(0, WORLD_W, PARALLAX_W):
         rear_world.paste(rear_tile, (x, 0))
     front_world = remap(fg, FG_PALETTE, FRONT8, transparent_zero=True)
+    apply_ground_water_treatment(front_world)
     sprite_world = remap(sprites, FG_PALETTE, FRONT8, transparent_zero=True)
     sprite_mask = bitmap_mask(sprite_world)
     save_spbm(RUNTIME / "storm-front.spbm", front_world, FRONT16, depth=4)
@@ -1177,6 +1255,8 @@ def main() -> None:
         (ROOT / "sfx" / "raw" / "jump.raw").read_bytes())
     (RUNTIME / "collect-spark.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "collect-spark.raw").read_bytes())
+    (RUNTIME / "water-splash.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "water-splash.raw").read_bytes())
     world = indexed_image((WORLD_W, WORLD_H), WORLD_PALETTE, 16)
     shifted_bg = bg.point(lambda p: p + 16)
     for x in range(0, WORLD_W, PARALLAX_W):
@@ -1203,11 +1283,20 @@ def main() -> None:
     alpha.putalpha(alpha_image(fg.crop((0, 0, 320, 256))))
     fg_preview.paste(alpha, (0, 0), alpha)
     fg_preview.save(LEVELS / "storm-ruins-milestone-preview.png")
+    # Actual 4+3 palette preview at the water camera position. The rear crop
+    # uses the renderer's quarter-speed offset; the front crop is world-space.
+    water_preview = rear_world.crop((376,0,696,256)).convert("RGB")
+    water_front = front_world.crop((1504,0,1824,256)).convert("RGBA")
+    water_front.putalpha(alpha_image(front_world.crop((1504,0,1824,256))))
+    water_preview.paste(water_front,(0,0),water_front)
+    water_preview.save(LEVELS / "storm-water-hazard-aga-preview.png")
+    make_water_animation_preview().save(
+        LEVELS / "storm-water-animation-aga-preview.png")
     manifest = {
         "world": [WORLD_W, WORLD_H], "tile": TILE, "collision": [WORLD_W // TILE, 14],
         "foreground_palette": FG_PALETTE, "background_palette": BG_PALETTE,
         "sprite_sheet": {
-            "size": list(sprites.size), "frame": [48, 48], "frames": 58,
+            "size": list(sprites.size), "frame": [48, 48], "frames": 62,
             "depth": 4, "hardware_layout": "three attached sprite pairs",
         },
         "clockwork_beetle": {

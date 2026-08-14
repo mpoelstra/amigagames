@@ -43,6 +43,16 @@
 #define PLASMA_PATTERNS (PLAYER_PLASMA_PATTERNS*2)
 #define PLASMA_SOURCE_WORDS 2
 #define DIAMOND_SOURCE_WORDS 2
+#define WATER_X LEVEL_WATER_LEFT
+#define WATER_Y 197
+#define WATER_W (LEVEL_WATER_RIGHT-LEVEL_WATER_LEFT+1)
+#define WATER_H 11
+#define WATER_WORDS (WATER_W/16)
+#define WATER_FRAMES 16
+#define SPLASH_W 32
+#define SPLASH_H 16
+#define SPLASH_FRAMES 4
+#define SPLASH_SOURCE_WORDS 3
 #define FRONT_PLANES 4
 #define REAR_PLANES 3
 #define WORLD_PLANES (FRONT_PLANES+REAR_PLANES)
@@ -59,6 +69,11 @@ static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *diamondMask,*diamondBits;
+static UWORD *waterBits;
+static UBYTE waterDrawnFrame=255;
+static UWORD *splashMask,*splashBits;
+static BOOL splashDrawn;
+static WORD splashDrawnX,splashDrawnY;
 
 #ifdef PHASE6_MEMORY_TEST
 static ULONG phase6PeakChipFree,phase6PeakChipLargest;
@@ -326,7 +341,8 @@ static void setHardwareSprite(void)
     /* Blink the complete attached-sprite actor during accepted invulnerability.
        Pointer substitution preserves every cached 48-row stream and its real
        terminator; never shorten VSTOP to clip an attached pair. */
-    if(player->invulnTimer&&!(player->invulnTimer&4)) {
+    if(game->waterSplashTimer||
+       (player->invulnTimer&&!(player->invulnTimer&4))) {
         ULONG p=(ULONG)nullSprite;
         for(channel=0;channel<SPRITE_CHANNELS;channel++) {
             UWORD hi=spritePtrValue[channel];
@@ -482,6 +498,161 @@ static BOOL buildDiamondPattern(void)
     return TRUE;
 }
 
+static UBYTE waterPatternPen(UBYTE frame,WORD x,WORD y)
+{
+    static const UBYTE surfaceCurve[16]={
+        1,1,0,0,0,1,1,2,2,2,1,1,0,0,1,1
+    };
+    static const UBYTE bubbleX[6]={7,19,31,46,60,72};
+    static const UBYTE bubbleStart[6]={0,11,4,15,7,13};
+    static const UBYTE bubbleLife[6]={7,9,6,10,8,7};
+    UBYTE bubble;
+    UBYTE surface=(UBYTE)(1+surfaceCurve[((x>>1)+frame)&15]);
+    /* Meet both banks at y=200. The short ramps prevent an exposed crest at
+       either edge while leaving the centre free to undulate. */
+    if(x<3||x>=77) surface=3;
+    /* One continuous cyan surface spans the opening. Its shallow two-pixel
+       curve advances sideways instead of breaking into separate crests. */
+    if(y<surface) return 0;
+    if(y==surface)
+        return ((((x>>2)+frame*3)&7)==0||
+                (((x+frame*6)&31)==17))?11:6;
+    if(y==surface+1) return ((x+frame)&7)?5:6;
+    /* Six deterministic bubble tracks use distinct phases and speeds. Their
+       active/rest windows keep the highlights from rising in lockstep. */
+    for(bubble=0;bubble<6;bubble++) {
+        UBYTE age=(UBYTE)((frame+16-bubbleStart[bubble])&15);
+        UBYTE life=bubbleLife[bubble];
+        if(age<life) {
+            WORD bx=(WORD)(bubbleX[bubble]+(((frame+bubble)&3)==0?1:0));
+            WORD by=(WORD)(10-((age*7)/life));
+            if(by<=surface+1) continue;
+            if(x==bx&&y==by) return (bubble&1)?11:6;
+            if(!(bubble&1)&&x==bx+1&&y==by) return 6;
+        }
+    }
+    return 5;
+}
+
+static BOOL buildWaterPatterns(void)
+{
+    UBYTE frame,plane; WORD x,y;
+    LONG words=WATER_FRAMES*FRONT_PLANES*WATER_H*WATER_WORDS;
+    waterBits=(UWORD *)AllocMem(words*2,MEMF_CHIP|MEMF_CLEAR);
+    if(!waterBits) return FALSE;
+    for(frame=0;frame<WATER_FRAMES;frame++)
+        for(y=0;y<WATER_H;y++) for(x=0;x<WATER_W;x++) {
+            UBYTE pen=waterPatternPen(frame,x,y);
+            LONG row=((LONG)frame*FRONT_PLANES*WATER_H+y)*WATER_WORDS;
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                waterBits[row+(LONG)plane*WATER_H*WATER_WORDS+(x>>4)]|=bit;
+        }
+    return TRUE;
+}
+
+static UBYTE splashPatternPen(UBYTE frame,WORD x,WORD y)
+{
+    WORD dx=x-16;
+    if(frame==0) {
+        if(y>=12&&y<=14&&dx>=-7&&dx<=7) return y==12?11:6;
+        if((x==10||x==22)&&y>=8&&y<=11) return 6;
+    } else if(frame==1) {
+        if(y>=11&&y<=14&&dx>=-12&&dx<=12)
+            return (y==11&&(x&2))?11:6;
+        if((x==6||x==25)&&y>=5&&y<=8) return 6;
+        if((x==12||x==20)&&y>=2&&y<=5) return 11;
+    } else if(frame==2) {
+        if(y>=12&&y<=14&&dx>=-15&&dx<=15&&((x+y)&1)) return 6;
+        if((x==4||x==27)&&y>=8&&y<=10) return 6;
+        if((x==9||x==23)&&y>=4&&y<=6) return 11;
+        if((x==14||x==18)&&y<=2) return 6;
+    } else {
+        if(y==13&&((x+2)&7)<3) return 6;
+        if(y==11&&(x==5||x==16||x==27)) return 11;
+    }
+    return 0;
+}
+
+static UWORD *splashMaskRow(UBYTE frame,WORD row)
+{
+    return splashMask+((LONG)frame*SPLASH_H+row)*SPLASH_SOURCE_WORDS;
+}
+
+static UWORD *splashBitsRow(UBYTE frame,UBYTE plane,WORD row)
+{
+    LONG index=((LONG)frame*FRONT_PLANES+plane)*SPLASH_H+row;
+    return splashBits+index*SPLASH_SOURCE_WORDS;
+}
+
+static BOOL buildSplashPatterns(void)
+{
+    LONG maskWords=SPLASH_FRAMES*SPLASH_H*SPLASH_SOURCE_WORDS;
+    UBYTE frame,plane; WORD x,y;
+    splashMask=(UWORD *)AllocMem(maskWords*2,MEMF_CHIP|MEMF_CLEAR);
+    splashBits=(UWORD *)AllocMem(maskWords*FRONT_PLANES*2,MEMF_CHIP|MEMF_CLEAR);
+    if(!splashMask||!splashBits) return FALSE;
+    for(frame=0;frame<SPLASH_FRAMES;frame++)
+        for(y=0;y<SPLASH_H;y++) for(x=0;x<SPLASH_W;x++) {
+            UBYTE pen=splashPatternPen(frame,x,y);
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            if(!pen) continue;
+            splashMaskRow(frame,y)[x>>4]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                splashBitsRow(frame,plane,y)[x>>4]|=bit;
+        }
+    return TRUE;
+}
+
+static void restoreSplashBob(void)
+{
+    if(!splashDrawn) return;
+    blitRestoreRect(splashDrawnX,splashDrawnY,SPLASH_W,SPLASH_H);
+    splashDrawn=FALSE;
+}
+
+static void drawSplashBob(void)
+{
+    UBYTE frame;
+    if(!game->waterSplashTimer) return;
+    frame=(UBYTE)((16-game->waterSplashTimer)>>2);
+    if(frame>=SPLASH_FRAMES) frame=SPLASH_FRAMES-1;
+    splashDrawnX=(WORD)(game->waterSplashX-(SPLASH_W>>1));
+    splashDrawnY=184;
+    blitMaskedBob(splashMaskRow(frame,0),splashBitsRow(frame,0,0),
+                  SPLASH_SOURCE_WORDS,SPLASH_W,SPLASH_H,
+                  splashDrawnX,splashDrawnY);
+    splashDrawn=TRUE;
+}
+
+static void blitWaterFrame(struct BitMap *target,UBYTE frame)
+{
+    UBYTE plane;
+    LONG at=(LONG)WATER_Y*target->BytesPerRow+(WATER_X>>4)*2;
+    for(plane=0;plane<FRONT_PLANES;plane++) {
+        LONG source=((LONG)frame*FRONT_PLANES+plane)*WATER_H*WATER_WORDS;
+        platformWaitBlit();
+        hw->bltcon0=0x09f0; hw->bltcon1=0;
+        hw->bltafwm=0xffff; hw->bltalwm=0xffff;
+        hw->bltamod=0;
+        hw->bltdmod=(UWORD)(target->BytesPerRow-WATER_WORDS*2);
+        hw->bltapt=waterBits+source;
+        hw->bltdpt=target->Planes[plane]+at;
+        hw->bltsize=(UWORD)((WATER_H<<6)|WATER_WORDS);
+    }
+}
+
+static void animateWater(void)
+{
+    UBYTE frame=(UBYTE)((game->frameCounter>>1)&(WATER_FRAMES-1));
+    if(frame==waterDrawnFrame) return;
+    /* Restore passes have finished. Update clean first and display second so
+       later Bob draws and next-frame restores see the identical background. */
+    blitWaterFrame(frontClean->bitmap,frame);
+    blitWaterFrame(frontDisplay,frame);
+    waterDrawnFrame=frame;
+}
+
 static void restoreCollectibleBobs(void)
 {
     WORD index;
@@ -612,7 +783,8 @@ BOOL rendererPrepareGameplay(void)
                              (LONG)frontDisplay->BytesPerRow*WORLD_H);
     if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE])||
        !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER])||
-       !buildPlasmaPatterns()||!buildDiamondPattern())
+       !buildPlasmaPatterns()||!buildDiamondPattern()||!buildWaterPatterns()||
+       !buildSplashPatterns())
         return FALSE;
 #ifdef PHASE6_MEMORY_TEST
     phase6PeakChipFree=AvailMem(MEMF_CHIP);
@@ -654,6 +826,12 @@ void rendererCleanup(void)
                             FRONT_PLANES*2);
     if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*
                             DIAMOND_SOURCE_WORDS*2);
+    if(waterBits) FreeMem(waterBits,WATER_FRAMES*FRONT_PLANES*WATER_H*
+                          WATER_WORDS*2);
+    if(splashBits) FreeMem(splashBits,SPLASH_FRAMES*FRONT_PLANES*SPLASH_H*
+                           SPLASH_SOURCE_WORDS*2);
+    if(splashMask) FreeMem(splashMask,SPLASH_FRAMES*SPLASH_H*
+                           SPLASH_SOURCE_WORDS*2);
     if(frontDisplay) FreeBitMap(frontDisplay);
     assetsUnloadGameplay();
 }
@@ -672,7 +850,9 @@ void rendererUpdateGameplay(void)
 void rendererDrawGameplayBobs(void)
 {
     eraseProjectileBobs(); restoreEnemyBob(); restoreCollectibleBobs();
-    drawCollectibleBobs(); drawEnemyBob(); drawProjectileBobs();
+    restoreSplashBob();
+    animateWater();
+    drawSplashBob(); drawCollectibleBobs(); drawEnemyBob(); drawProjectileBobs();
     platformWaitBlit();
 }
 

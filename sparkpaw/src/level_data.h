@@ -52,11 +52,14 @@ struct EnemyTraversalLink {
 #define LEVEL_WATER_LEFT 1584
 #define LEVEL_WATER_RIGHT 1663
 #define LEVEL_WATER_DEATH_Y 224
+#define LEVEL_WATER_SPLASH_Y 204
+#define LEVEL_FLOOR_Y 200
 
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
 const struct EnemyPatrolSurface *levelEnemyPatrolSurface(UBYTE surfaceId);
 const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count);
 BOOL levelWaterColumnAt(WORD x);
 BOOL levelPlayerInWater(WORD left,WORD right,WORD bottom);
+BOOL levelPlayerTouchesWater(WORD left,WORD right,WORD bottom);
 
 #endif

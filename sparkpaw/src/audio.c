@@ -22,6 +22,8 @@ static UBYTE *jumpSample;
 static LONG jumpSampleBytes;
 static UBYTE *collectSample;
 static LONG collectSampleBytes;
+static UBYTE *waterSplashSample;
+static LONG waterSplashSampleBytes;
 static UBYTE shotDmaTicks;
 static UBYTE gameplayDmaTicks;
 static UBYTE gameplayPriority;
@@ -31,6 +33,7 @@ static UBYTE enemyDeathCooldown;
 static UBYTE striderShotCooldown;
 static UBYTE jumpCooldown;
 static UBYTE collectCooldown;
+static UBYTE waterSplashCooldown;
 static BOOL hardwareActive;
 
 #define GAMEPLAY_CHANNEL 1
@@ -52,6 +55,9 @@ static BOOL hardwareActive;
 #define COLLECT_PRIORITY 5
 #define COLLECT_TICKS 11
 #define COLLECT_COOLDOWN 3
+#define WATER_SPLASH_PRIORITY 10
+#define WATER_SPLASH_TICKS 16
+#define WATER_SPLASH_COOLDOWN 20
 
 static BOOL loadSample(CONST_STRPTR name,UBYTE **sample,LONG *sampleBytes)
 {
@@ -97,6 +103,10 @@ BOOL audioLoad(void)
                    &collectSample,&collectSampleBytes)) {
         audioUnload(); return FALSE;
     }
+    if(!loadSample("PROGDIR:assets/runtime/water-splash.raw",
+                   &waterSplashSample,&waterSplashSampleBytes)) {
+        audioUnload(); return FALSE;
+    }
     return TRUE;
 }
 
@@ -130,6 +140,10 @@ void audioUnload(void)
         FreeMem(collectSample,collectSampleBytes);
         collectSample=NULL; collectSampleBytes=0;
     }
+    if(waterSplashSample) {
+        FreeMem(waterSplashSample,waterSplashSampleBytes);
+        waterSplashSample=NULL; waterSplashSampleBytes=0;
+    }
 }
 
 void audioSetHardwareActive(BOOL active)
@@ -141,7 +155,7 @@ void audioSetHardwareActive(BOOL active)
         gameplayPriority=0; hurtCooldown=0; enemyHitCooldown=0;
         enemyDeathCooldown=0;
         striderShotCooldown=0;
-        jumpCooldown=0; collectCooldown=0;
+        jumpCooldown=0; collectCooldown=0; waterSplashCooldown=0;
     }
 }
 
@@ -215,6 +229,13 @@ void audioPlayCollect(void)
                        COLLECT_TICKS,&collectCooldown,COLLECT_COOLDOWN,58);
 }
 
+void audioPlayWaterSplash(void)
+{
+    playGameplaySample(waterSplashSample,waterSplashSampleBytes,
+                       WATER_SPLASH_PRIORITY,WATER_SPLASH_TICKS,
+                       &waterSplashCooldown,WATER_SPLASH_COOLDOWN,64);
+}
+
 void audioUpdate(void)
 {
     if(hardwareActive&&shotDmaTicks&&!--shotDmaTicks)
@@ -229,4 +250,5 @@ void audioUpdate(void)
     if(striderShotCooldown) striderShotCooldown--;
     if(jumpCooldown) jumpCooldown--;
     if(collectCooldown) collectCooldown--;
+    if(waterSplashCooldown) waterSplashCooldown--;
 }

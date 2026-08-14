@@ -5,7 +5,7 @@
 
 #define PLAYER_W 32
 #define PLAYER_H 40
-#define PLAYER_ANIM_FRAMES 58
+#define PLAYER_ANIM_FRAMES 62
 #define PLAYER_MAX_HEALTH 6
 
 struct PlayerState {

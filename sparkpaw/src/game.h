@@ -9,6 +9,8 @@ struct GameState {
     ULONG enemySeed;
     UBYTE lives;
     UBYTE diamonds;
+    UBYTE waterSplashTimer;
+    WORD waterSplashX;
 };
 
 #define GAME_START_LIVES 3

@@ -64,10 +64,10 @@ amigagame/
 - Use Git as normal recovery. Make a dated local backup as well before risky
   renderer, asset-format, audio/physics or bulk source-movement work.
 - Sparkpaw releases use one SemVer prerelease stem for every artifact, currently
-  `Sparkpaw-0.6.0-alpha.1`; platform text stays in the requirements rather than
+  `Sparkpaw-0.6.0-alpha.4`; platform text stays in the requirements rather than
   filenames. `tools/make_release.py` is the single version source. The SemVer
   minor tracks the broad roadmap phase (`0.6.x` for Phase 6), while the exact
-  lettered checkpoint (currently Phase 6B.2) belongs in README and packaged
+  lettered checkpoint (currently Phase 6B.5) belongs in README and packaged
   release notes. Increment the prerelease counter for later meaningful packaged
   checkpoints within that phase. Treat release identity maintenance as part of
   every roadmap step without waiting for MrDig to request it. The release tool
@@ -88,6 +88,9 @@ accepted production minimum. Extra capacity is not permission for waste:
 minimize Chip residency, prefer Fast for CPU-only data/code, release temporary
 conversion data promptly and measure both memory and frame-time effects.
 The workspace-local VBCC/NDK toolchain lives under ignored `.toolchain/`.
+The earlier 2 MB Chip/no-Fast Phase 6A run is historical stress evidence only;
+never use it as the production requirement or reject a design solely against
+that configuration.
 
 ## How to handle supplied test evidence
 
@@ -139,7 +142,7 @@ palette banks, BPLCON state, sprite priority or Bob timing.
 
 - The original accepted player baseline is frames 0..49.
 - Eight hurt frames were appended without renumbering it: standing 50..53 and
-  crouched 54..57. Current total: 58 frames.
+  crouched 54..57. Phase 6B.5 appends ledge balance 58..61. Current total: 62 frames.
 - Preserve family-wide scale, stable foot anchors, mirrored facing and the
   six-channel packed hardware-sprite format.
 - Accepted movement includes run, jump/fall, landing, crouch/crouch-walk,
@@ -486,9 +489,9 @@ authoritative. Grounded standing shots therefore still pass over floor beetles;
 crouch shots and genuinely overlapping airborne shots hit. MrDig accepted both
 focused fixes in supplied FS-UAE testing. No real-hardware result exists.
 
-Next isolated work: create and approve water concept art before implementing
-the visual renderer/asset treatment. The mechanical floor interruption,
-water/death region and safe life restart are already accepted.
+The approved `sparkpaw-water-hazard-concept-v4.png` is now translated into the
+Phase 6B.3 runtime asset for review. The mechanical floor interruption,
+water/death region and safe life restart remain the accepted 6B.2 foundation.
 
 ### Accepted: Phase 6B.2 — mechanical water hazard
 
@@ -509,8 +512,10 @@ black separator scanlines; the rejected four-scanline experiment has been
 reverted to the accepted two-scanline baseline. The current focused correction
 fills those two rows across the full fetched width with non-zero dark HUD pen 1,
 because pen 0 is transparent to hardware sprites. Preserve the line-252 display
-switch and line-253 Bob pass. MrDig verified this correction in both FS-UAE and
-on a real Amiga; the formerly moving/glitchy HUD-boundary pixels are fixed.
+switch and line-253 Bob pass. MrDig initially verified this correction in both
+FS-UAE and on a real Amiga. A later real-hardware observation still reports
+intermittent glitchy behaviour at this boundary. Preserve the current two-line
+baseline for now and track the remaining symptom as a renderer-regression todo.
 
 Level 1 target: an original Storm Ruins route materially longer than the current
 five-screen test and the earlier 35-50-second proposal. Treat the first
@@ -521,11 +526,83 @@ copy maps, characters, art, music or exact timing. Extra enemy types are not a
 requirement for level 1: first obtain variety through route, height, hazards,
 breathing space and placement of the accepted beetles and Striders.
 
+### Accepted: Phase 6B.3 — grounded animated water treatment
+
+The foreground generator draws an eight-pixel steel/stone cap in rows
+200..207, immediately above the unchanged line-252 HUD switch. The existing
+80px hazard replaces that cap with blue water and a cyan/white surface.
+Phase 6B.3B adds sixteen deterministic 80x11 water frames in a 7,040-byte Chip
+cache. A continuous shallow cyan/white wave spans the full 80px opening, meets
+both banks at ground height and closes its full phase without a reset jump.
+Six bubble tracks use different start phases, rise times and rest windows.
+Every two game frames, the synchronized
+line-253 pass Blitter-copies
+the selected frame to both `frontClean` and `frontDisplay` after all previous
+Bob restores and before new Bob draws. Relative projectile/enemy/collectible
+restore/draw ordering is unchanged; no CPU compositing is introduced. Collision,
+y=224 death threshold, restart and diamonds remain unchanged. The extra
+small diamonds visible in generated concept v4 are explicitly rejected concept
+noise and do not exist in runtime.
+
+Phase 6B.3A aligns mechanics with that approved cap: the continuous non-water
+floor now begins at y=200, floor-owned patrol surfaces move from groundY 208 to
+200 and Sparkpaw's reset position moves up eight pixels. Raised surfaces and
+all traversal link geometry remain unchanged; a host trajectory check confirms
+all four authored Strider links still enter their landing windows. This is a
+collision/grounding step only; animated water remains the next isolated renderer
+step. Runtime validation is still required.
+
+The blue animation preview is generated as
+`assets/levels/storm-water-animation-aga-preview.png`. Native and packaged
+builds pass; no FS-UAE or real-hardware result is claimed. After grounding and
+water are accepted, the next isolated graphics work is a representative
+concept-quality vertical slice and a measured 4+3 versus 5+3 renderer proof,
+not an immediate repaint of all 2048 pixels.
+
+### Accepted: Phase 6B.4 — splash and water-impact sound
+
+Crossing the surface starts one sixteen-tick impact state before the accepted
+resident restart. Sparkpaw's six hardware sprites are hidden and a dedicated
+four-frame 32x16 cyan/white splash Bob is restored/drawn inside the synchronized
+line-253 pass. It does not consume the generic four-slot enemy pool. The new
+original 11.025 kHz mono `water-splash.raw` plays once with priority 10 on
+Paula gameplay channel 1; rapid plasma retains channel 0. Collision geometry,
+the y=224 safety threshold, water cache, Copper staging and HUD switch remain
+unchanged. Native/package builds are required; runtime review remains unclaimed.
+
+### Accepted: Phase 6B.5 — Sparkpaw ledge teeter
+
+The accepted 58-frame player contract is preserved verbatim and four new
+right-facing poses append at slots 58..61; the existing cache creates exact
+mirrors. After ten stationary grounded ticks, the family triggers only while
+4..10 pixels of the 24px collision sole remain supported. Fewer than four
+pixels releases grounded, fixing the supplied floating/front-idle end case.
+The same minimum is enforced inside downward `moveY()` collision resolution;
+otherwise the residual overlap would reset vertical speed on every descent and
+leave the actor suspended despite `grounded=FALSE`.
+When that 1..3px support is released, `moveY()` also resolves the actor outward
+by the exact overlap. This prevents landing below while embedded in the old
+ledge side, which had made `canStand()` reject jumping until a manual sidestep.
+The full standing collision height must also be clear for three pixels toward
+the missing side, suppressing teeter when wedged against an adjacent platform.
+Sparkpaw faces the missing side. All established higher-priority states
+interrupt it. The ImageGen review strip, chroma source, exact prompt
+and native 48x48/palette reduction are preserved. MrDig accepted the timing,
+wall suppression, real fall and immediate post-landing jump in supplied FS-UAE
+testing. No real-hardware result is claimed.
+
+The repository skill `.agents/skills/extend-sparkpaw-animations/` now governs
+future player, enemy, collectible, projectile, effect and water/background
+animation expansions. Use it before changing animation art, frame contracts,
+runtime caches or selection logic.
+
 ## Known limitations and backlog
 
 - No clean Workbench exit; reset the Amiga/emulator to leave gameplay.
-- The first mechanical water/death region is accepted, but visual water,
-  splash feedback and audio remain pending concept approval.
+- The mechanical water/death region, animation, splash feedback and audio are
+  accepted from supplied FS-UAE testing; real-hardware review remains open.
+- The two-line opaque HUD/world boundary still has an intermittent real-Amiga
+  glitch report; retain the current correction and investigate separately.
 - Far-right reload is temporary; real level completion/progression is pending.
 - Broader route graphs and additional hazard semantics remain future level
   work. Strider contact, ranged combat, hurt, death and respawn are accepted.
@@ -594,9 +671,11 @@ artifact set in dist synchronized as part of every roadmap step without waiting
 for me to request it. Target 2 MB Chip plus 8 MB Fast RAM efficiently. Do not
 claim FS-UAE or real-hardware verification unless I provide the result.
 
-Current checkpoint: Phase 6B.2 mechanical water fall/restart is accepted. Its
-visual water treatment awaits concept approval. The two-line opaque HUD-boundary
-correction is accepted after successful FS-UAE and real-Amiga verification.
+Current checkpoint: Phase 6B.5 ledge-teeter and Phase 6B.2 through 6B.4 water
+work are accepted from supplied FS-UAE testing. Next is the isolated
+representative concept-quality vertical slice / measured renderer proof. The two-line opaque
+HUD-boundary correction has a later intermittent real-Amiga glitch report
+recorded as a separate todo.
 
 My next request is: ...
 ```
