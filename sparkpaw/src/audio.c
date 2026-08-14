@@ -14,6 +14,8 @@ static UBYTE *hurtSample;
 static LONG hurtSampleBytes;
 static UBYTE *enemyHitSample;
 static LONG enemyHitSampleBytes;
+static UBYTE *enemyDeathSample;
+static LONG enemyDeathSampleBytes;
 static UBYTE *striderShotSample;
 static LONG striderShotSampleBytes;
 static UBYTE *jumpSample;
@@ -25,6 +27,7 @@ static UBYTE gameplayDmaTicks;
 static UBYTE gameplayPriority;
 static UBYTE hurtCooldown;
 static UBYTE enemyHitCooldown;
+static UBYTE enemyDeathCooldown;
 static UBYTE striderShotCooldown;
 static UBYTE jumpCooldown;
 static UBYTE collectCooldown;
@@ -37,6 +40,9 @@ static BOOL hardwareActive;
 #define ENEMY_HIT_PRIORITY 6
 #define ENEMY_HIT_TICKS 8
 #define ENEMY_HIT_COOLDOWN 4
+#define ENEMY_DEATH_PRIORITY 8
+#define ENEMY_DEATH_TICKS 13
+#define ENEMY_DEATH_COOLDOWN 6
 #define STRIDER_SHOT_PRIORITY 7
 #define STRIDER_SHOT_TICKS 10
 #define STRIDER_SHOT_COOLDOWN 12
@@ -75,6 +81,10 @@ BOOL audioLoad(void)
                    &enemyHitSample,&enemyHitSampleBytes)) {
         audioUnload(); return FALSE;
     }
+    if(!loadSample("PROGDIR:assets/runtime/enemy-death.raw",
+                   &enemyDeathSample,&enemyDeathSampleBytes)) {
+        audioUnload(); return FALSE;
+    }
     if(!loadSample("PROGDIR:assets/runtime/strider-shot.raw",
                    &striderShotSample,&striderShotSampleBytes)) {
         audioUnload(); return FALSE;
@@ -104,6 +114,10 @@ void audioUnload(void)
         FreeMem(enemyHitSample,enemyHitSampleBytes);
         enemyHitSample=NULL; enemyHitSampleBytes=0;
     }
+    if(enemyDeathSample) {
+        FreeMem(enemyDeathSample,enemyDeathSampleBytes);
+        enemyDeathSample=NULL; enemyDeathSampleBytes=0;
+    }
     if(striderShotSample) {
         FreeMem(striderShotSample,striderShotSampleBytes);
         striderShotSample=NULL; striderShotSampleBytes=0;
@@ -125,6 +139,7 @@ void audioSetHardwareActive(BOOL active)
         hardware->dmacon=DMAF_AUD0|DMAF_AUD1;
         shotDmaTicks=0; gameplayDmaTicks=0;
         gameplayPriority=0; hurtCooldown=0; enemyHitCooldown=0;
+        enemyDeathCooldown=0;
         striderShotCooldown=0;
         jumpCooldown=0; collectCooldown=0;
     }
@@ -174,6 +189,13 @@ void audioPlayEnemyHit(void)
                        ENEMY_HIT_COOLDOWN,60);
 }
 
+void audioPlayEnemyDeath(void)
+{
+    playGameplaySample(enemyDeathSample,enemyDeathSampleBytes,
+                       ENEMY_DEATH_PRIORITY,ENEMY_DEATH_TICKS,
+                       &enemyDeathCooldown,ENEMY_DEATH_COOLDOWN,64);
+}
+
 void audioPlayStriderShot(void)
 {
     playGameplaySample(striderShotSample,striderShotSampleBytes,
@@ -203,6 +225,7 @@ void audioUpdate(void)
     }
     if(hurtCooldown) hurtCooldown--;
     if(enemyHitCooldown) enemyHitCooldown--;
+    if(enemyDeathCooldown) enemyDeathCooldown--;
     if(striderShotCooldown) striderShotCooldown--;
     if(jumpCooldown) jumpCooldown--;
     if(collectCooldown) collectCooldown--;

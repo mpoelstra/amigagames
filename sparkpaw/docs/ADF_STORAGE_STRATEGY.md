@@ -1,9 +1,11 @@
 # Sparkpaw ADF storage and multidisk research
 
-Status: Stage A is the next implementation step, 14 August 2026. The strategy
-itself remains planning-only: Phase 5F.3/5F.4 is accepted and its append-only
-Strider frames now exceed the unoptimized single-ADF capacity. Start with the
-host measurement report; do not introduce an ADF loader in Stage A.
+Status: Stage A and all three reversible Stage B proofs are accepted,
+14 August 2026. MrDig reported both supplied ADFs work correctly. The current
+next ADF also replaces the Strider cache with SPR1 through the same separate
+loader. HD packages remain on the ordinary executable and loose assets. Focused
+MrDig reported the packed-Strider ADF works correctly. The optimization is at a
+safe checkpoint before generalizing the container or expanding another family.
 
 ## Goal and non-negotiable constraints
 
@@ -113,6 +115,17 @@ desirable for this game.
    not an acceptance metric.
 4. Keep the report out of the runtime and do not change the HD package.
 
+The implemented `make adf-report` target covers item 1 and the reproducible host
+ratio/CRC portion of item 2. It measures the exact ADF release file list and
+writes ignored JSON plus Markdown under `build/adf-report/`. The current raw
+payload is 877,595 bytes and projects to 1,775 DOS1 blocks including fixed
+filesystem structures: 15 blocks beyond a 1,760-block DD ADF. Independent
+zlib-9 and LZMA-9/XZ host proxies project to 478 and 409 blocks respectively.
+Every proxy stream is decoded byte-for-byte and its CRC32 compared with the raw
+asset. These codecs and desktop timings are not Amiga codec or performance
+decisions. Pinned Shrinkler/L-Packer/LZ4/ZX0 comparisons and stock-68020 memory/
+timing measurements remain open and require their own evidence.
+
 ### Stage B — ADF-only packed asset container
 
 Generate `sparkpaw-adf.pak` only for the floppy release. Give it a small table
@@ -136,6 +149,34 @@ Recommended first codec trial:
 Keep the title immediately available or uncompressed so boot never looks hung.
 Use the existing `LOADING`/`CHARGING` states for disk I/O/depack feedback. Never
 decrunch during the line-253 gameplay Bob window.
+
+The first proof deliberately precedes the general table/container. SPR1 has a
+16-byte header (`SPR1`, raw length, CRC32, packed length) and 1–128-byte literal
+or repeated-byte commands. It reduces `storm-front.spbm` from 163,900 to 7,689
+bytes and streams through a 512-byte input buffer directly into the final
+BitMap planes. The resulting DOS1 ADF builds successfully with 1,466 blocks
+used and 294 free. The release tool verifies the boot block, extracts the ADF
+executable and SPR1, decodes it on the host and compares it byte-for-byte with
+the canonical HD SPBM. This is an asset-aware proof suited to the highly
+repetitive world; it is not yet the general block container or final codec for
+all asset families. ADF/FS-UAE cold-boot and five-screen visual parity remain
+required before expanding it. MrDig subsequently reported that this
+foreground-only ADF works correctly, accepting the first proof.
+
+The second isolated proof applies the unchanged decoder to `storm-rear.spbm`,
+reducing 122,916 bytes to 30,165. The ADF now uses 1,281 blocks and leaves 479
+free. Host extraction and byte comparison pass for both world assets. This
+second build requires focused ADF review of cold load and quarter-speed rear
+parallax before any sprite/enemy/presentation family is packed. MrDig reported
+that this ADF works correctly, accepting the rear proof.
+
+The third isolated proof packs `clockwork-storm-strider.spbm` from 143,420 to
+87,914 bytes with the unchanged direct decoder. The resulting ADF uses 1,171
+blocks and leaves 589 free. Host extraction and canonical byte comparison pass.
+ADF review must cover walk, endpoint turn, ranged attack, hit, both traversal
+routes and death/respawn before this first packed enemy family is accepted.
+MrDig subsequently reported this ADF works correctly, accepting the Strider
+proof; no real-hardware result is inferred.
 
 ### Stage C — asset-aware reconstruction (the highest-value demo technique)
 
@@ -232,10 +273,11 @@ testing budgeted as its own milestone.
 ## Proposed decision order
 
 1. Preserve the accepted Phase 5F gameplay and renderer checkpoint.
-2. Add only the host size/codec/CRC/projected-FFS report (Stage A).
-3. Use that experiment to compare tiled reconstruction versus generic packing.
-4. Implement the ADF-only block container with one asset as a reversible proof.
-5. Expand it asset-by-asset, then evaluate executable crunching.
+2. Review the completed host size/codec/CRC/projected-FFS report (Stage A).
+3. Use the measurements to compare tiled reconstruction versus generic packing.
+4. Keep the accepted world proofs and review the Strider-cache extension.
+5. After acceptance, generalize the table/container and expand asset-by-asset,
+   then evaluate executable crunching.
 6. Add ordinary AmigaDOS multidisk volumes when content genuinely exceeds one
    comfortably margined packed disk.
 7. Consider sector-table or raw-track loading only after measured evidence shows

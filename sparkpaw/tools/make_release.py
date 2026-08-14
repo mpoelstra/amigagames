@@ -11,15 +11,50 @@ import tempfile
 import time
 from pathlib import Path
 
+from pack_adf_asset import decode as decode_adf_asset
+
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-STAGE = STAGE_PARENT / "Sparkpaw-Milestone2A"
+RELEASE_VERSION = "0.5.0-alpha.1"
+RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
+STAGE = STAGE_PARENT / RELEASE_NAME
+ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
+ADF_FRONT_ASSET = ROOT / "build" / "adf-assets" / "storm-front.spr1"
+ADF_REAR_ASSET = ROOT / "build" / "adf-assets" / "storm-rear.spr1"
+ADF_STRIDER_ASSET = (
+    ROOT / "build" / "adf-assets" / "clockwork-storm-strider.spr1"
+)
+
+RUNTIME_FILES = (
+    "sparkpaw-title.spbm",
+    "sparkpaw-level-loading.spbm",
+    "sparkpaw-level-charging.spbm",
+    "sparkpaw-hud-base.spbm",
+    "sparkpaw-hud-health.spbm",
+    "sparkpaw-hud-lives.spbm",
+    "sparkpaw-hud-diamonds.spbm",
+    "sparkpaw-diamond.spbm",
+    "storm-front.spbm",
+    "storm-rear.spbm",
+    "storm-collision.bin",
+    "sparkpaw-sprites4.spbm",
+    "clockwork-beetle.spbm",
+    "clockwork-storm-strider.spbm",
+    "energy-shot.raw",
+    "player-hurt.raw",
+    "enemy-hit.raw",
+    "enemy-death.raw",
+    "strider-shot.raw",
+    "jump.raw",
+    "collect-spark.raw",
+)
 
 RUNTIME_README = """Sparkpaw: The Stormstone Quest
 =================================
 
-AGA Milestone 2A enemy vertical slice
+AGA alpha 0.5.0, prerelease 1
+Roadmap checkpoint: Phase 5F.4 plus ADF optimization Stage B
 MrDig Productions - Copyright 2026
 
 Requirements
@@ -28,9 +63,9 @@ Requirements
 Amiga 1200 or compatible AGA Amiga, Motorola 68020, 2 MB Chip RAM.
 Fast RAM is recommended but not required by this milestone.
 
-Keep the complete Sparkpaw-Milestone2A drawer together. Start it from Shell:
+Keep the complete Sparkpaw-0.5.0-alpha.1 drawer together. Start it from Shell:
 
-  CD Sparkpaw-Milestone2A
+  CD Sparkpaw-0.5.0-alpha.1
   Sparkpaw
 
 Controls
@@ -111,26 +146,7 @@ def copy_runtime() -> None:
         shutil.rmtree(STAGE_PARENT)
     STAGE.mkdir(parents=True)
     shutil.copy2(ROOT / "sparkpaw", STAGE / "Sparkpaw")
-    for name in (
-        "sparkpaw-title.spbm",
-        "sparkpaw-level-loading.spbm",
-        "sparkpaw-level-charging.spbm",
-    "sparkpaw-hud-base.spbm",
-    "sparkpaw-hud-health.spbm",
-    "sparkpaw-hud-lives.spbm",
-    "sparkpaw-hud-diamonds.spbm",
-    "sparkpaw-diamond.spbm",
-        "storm-front.spbm", "storm-rear.spbm",
-        "storm-collision.bin", "sparkpaw-sprites4.spbm",
-        "clockwork-beetle.spbm",
-        "clockwork-storm-strider.spbm",
-        "energy-shot.raw",
-        "player-hurt.raw",
-        "enemy-hit.raw",
-        "strider-shot.raw",
-        "jump.raw",
-        "collect-spark.raw",
-    ):
+    for name in RUNTIME_FILES:
         target = STAGE / "assets" / "runtime" / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / "assets" / "runtime" / name, target)
@@ -142,11 +158,29 @@ def make_adf() -> Path:
     if adf_root.exists():
         shutil.rmtree(adf_root)
     shutil.copytree(STAGE, adf_root)
+    shutil.copy2(ADF_EXECUTABLE, adf_root / "Sparkpaw")
+    (adf_root / "assets" / "runtime" / "storm-front.spbm").unlink()
+    shutil.copy2(
+        ADF_FRONT_ASSET,
+        adf_root / "assets" / "runtime" / "storm-front.spr1",
+    )
+    (adf_root / "assets" / "runtime" / "storm-rear.spbm").unlink()
+    shutil.copy2(
+        ADF_REAR_ASSET,
+        adf_root / "assets" / "runtime" / "storm-rear.spr1",
+    )
+    (adf_root / "assets" / "runtime" /
+     "clockwork-storm-strider.spbm").unlink()
+    shutil.copy2(
+        ADF_STRIDER_ASSET,
+        adf_root / "assets" / "runtime" /
+        "clockwork-storm-strider.spr1",
+    )
     (adf_root / "S").mkdir()
     (adf_root / "S" / "startup-sequence").write_text(
         "Sparkpaw\n", encoding="ascii"
     )
-    adf = DIST / "Sparkpaw-Milestone2A-A1200.adf"
+    adf = DIST / f"{RELEASE_NAME}.adf"
     amitools = ROOT / ".toolchain" / "amitools"
     if not (amitools / "amitools" / "tools" / "xdftool.py").is_file():
         raise SystemExit("missing independent sparkpaw/.toolchain/amitools")
@@ -154,8 +188,8 @@ def make_adf() -> Path:
     env["PYTHONPATH"] = str(amitools)
     command = [
         sys.executable, "-m", "amitools.tools.xdftool", "-f", str(adf),
-        # FFS is native to the target A1200 and recovers enough per-file data
-        # blocks for the appended 64x64 Phase 5D traversal frames.
+        # FFS is native to the target A1200. The ADF-only executable decodes
+        # storm-front.spr1; HD archives retain ordinary storm-front.spbm.
         "format", "SparkpawM2A", "DOS1", "+", "boot", "install",
     ]
     for directory in ("S", "assets", "assets/runtime"):
@@ -177,17 +211,48 @@ def make_adf() -> Path:
             "read", "Sparkpaw", str(extracted / "Sparkpaw"),
             "+", "read", "S/startup-sequence",
             str(extracted / "startup-sequence"),
+            "+", "read", "assets/runtime/storm-front.spr1",
+            str(extracted / "storm-front.spr1"),
+            "+", "read", "assets/runtime/storm-rear.spr1",
+            str(extracted / "storm-rear.spr1"),
+            "+", "read", "assets/runtime/clockwork-storm-strider.spr1",
+            str(extracted / "clockwork-storm-strider.spr1"),
         ], cwd=ROOT, env=env, check=True)
-        if (extracted / "Sparkpaw").read_bytes() != (ROOT / "sparkpaw").read_bytes():
+        if (extracted / "Sparkpaw").read_bytes() != ADF_EXECUTABLE.read_bytes():
             raise SystemExit("ADF verification failed: Sparkpaw")
         if (extracted / "startup-sequence").read_bytes() != b"Sparkpaw\n":
             raise SystemExit("ADF verification failed: S/startup-sequence")
+        packed = (extracted / "storm-front.spr1").read_bytes()
+        if packed != ADF_FRONT_ASSET.read_bytes():
+            raise SystemExit("ADF verification failed: storm-front.spr1")
+        if decode_adf_asset(packed) != (
+            ROOT / "assets" / "runtime" / "storm-front.spbm"
+        ).read_bytes():
+            raise SystemExit("ADF decode verification failed: storm-front.spr1")
+        packed = (extracted / "storm-rear.spr1").read_bytes()
+        if packed != ADF_REAR_ASSET.read_bytes():
+            raise SystemExit("ADF verification failed: storm-rear.spr1")
+        if decode_adf_asset(packed) != (
+            ROOT / "assets" / "runtime" / "storm-rear.spbm"
+        ).read_bytes():
+            raise SystemExit("ADF decode verification failed: storm-rear.spr1")
+        packed = (extracted / "clockwork-storm-strider.spr1").read_bytes()
+        if packed != ADF_STRIDER_ASSET.read_bytes():
+            raise SystemExit(
+                "ADF verification failed: clockwork-storm-strider.spr1"
+            )
+        if decode_adf_asset(packed) != (
+            ROOT / "assets" / "runtime" / "clockwork-storm-strider.spbm"
+        ).read_bytes():
+            raise SystemExit(
+                "ADF decode verification failed: clockwork-storm-strider.spr1"
+            )
     return adf
 
 
 def make_source_zip() -> Path:
     source_root = ROOT / "build" / "source-release"
-    source_stage = source_root / "Sparkpaw-Milestone2A-Source"
+    source_stage = source_root / f"{RELEASE_NAME}-Source"
     if source_root.exists():
         shutil.rmtree(source_root)
     source_stage.mkdir(parents=True)
@@ -206,18 +271,26 @@ def make_source_zip() -> Path:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
     return Path(shutil.make_archive(
-        str(DIST / "Sparkpaw-Milestone2A-Source"), "zip",
+        str(DIST / f"{RELEASE_NAME}-Source"), "zip",
         source_root, source_stage.name,
     ))
 
 
+def clean_dist_releases() -> None:
+    """Keep dist reviewable: one current, consistently versioned release set."""
+    DIST.mkdir(exist_ok=True)
+    for path in DIST.iterdir():
+        if path.is_file() and path.name.startswith("Sparkpaw-"):
+            path.unlink()
+
+
 def main() -> None:
     copy_runtime()
-    DIST.mkdir(exist_ok=True)
+    clean_dist_releases()
     zip_path = Path(shutil.make_archive(
-        str(DIST / "Sparkpaw-Milestone2A-A1200"), "zip", STAGE_PARENT, STAGE.name,
+        str(DIST / RELEASE_NAME), "zip", STAGE_PARENT, STAGE.name,
     ))
-    lha_path = DIST / "Sparkpaw-Milestone2A-A1200.lha"
+    lha_path = DIST / f"{RELEASE_NAME}.lha"
     with lha_path.open("wb") as output:
         for path in sorted(STAGE.rglob("*")):
             if path.is_file():

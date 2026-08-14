@@ -47,6 +47,13 @@ def strider_shot():
                gain(delay(tone(.11,620,21,-2400),.022),.34))
 def enemy_hit(): return plasma_hit_energy_pop()
 
+def enemy_death():
+    """Original compact mechanical defeat: heavy drop, shell break and tail."""
+    return mix(gain(tone(.24,112,10,-185),.88),
+               gain(tone(.16,224,18,-620,True),.42),
+               gain(noise(.15,68400,20,.13),.58),
+               gain(delay(tone(.11,540,23,-1700),.025),.25))
+
 def player_hurt():
     """Selected short arcade-like feline chirp for accepted contact damage."""
     return hurt_meow_chirp()
@@ -203,7 +210,8 @@ EFFECTS=[
     ("jump",jump,58,4,4),("land",land,48,2,4),
     ("energy-shot",energy_shot,60,5,3),("charged-shot",charged_shot,64,8,8),
     ("strider-shot",strider_shot,60,7,12),
-    ("enemy-hit",enemy_hit,60,6,4),("player-hurt",player_hurt,64,9,16),
+    ("enemy-hit",enemy_hit,60,6,4),("enemy-death",enemy_death,64,8,6),
+    ("player-hurt",player_hurt,64,9,16),
     ("collect-spark",collect,52,4,3),("checkpoint",checkpoint,60,7,15),
     ("stormstone",stormstone,64,10,30),("menu-select",menu,48,1,3),
 ]

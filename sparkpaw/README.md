@@ -3,6 +3,9 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
+Current release: `0.5.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 with
+ADF optimization Stage B in progress; Phase 6 has not started.
+
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a
 native AGA dual-playfield display, two independently
@@ -43,7 +46,7 @@ hurt art is present; the eventual game-over presentation remains a focused
 later step. A full-width fixed HUD band across the bottom now shows the
 existing six health units as three full, half or empty hearts and reserves
 separate framed panels for the active life counter and diamonds. Original
-player-hurt, enemy-hit and accepted-jump effects now share a prioritized Paula
+player-hurt, enemy-hit, enemy-death and accepted-jump effects share a prioritized Paula
 gameplay channel;
 the existing rapid plasma sound remains independently available. Destroyed
 beetles receive a five-to-ten-second cooldown and can respawn indefinitely only
@@ -63,8 +66,9 @@ rigid mechanical gait. At each authored patrol extremum they stop briefly in a
 planted frontal turn pose, then resume from walk frame zero in the opposite
 direction. Their 64x64 four-plane Bobs share one packed cache and retain the
 accepted camera culling and synchronized background restore/draw pipeline.
-They remain non-interactive in this step: projectile hitboxes, contact damage,
-attacks, hurt and destruction are still reserved follow-up work. Their cool
+This paragraph describes the original 5C.3 checkpoint; current Striders also
+have the later accepted contact, ranged, hurt, destruction and respawn work.
+Their cool
 navy/violet/blue armour and cyan energy identity deliberately avoid the warm
 orange palette shared by Sparkpaw and the beetles.
 
@@ -194,6 +198,14 @@ MrDig's focused HD/FS-UAE retest accepted the heavier discharge and confirmed
 that loose hostile shots no longer remain. Phase 5F.2A is accepted; no
 real-hardware verification exists.
 
+Lethal projectiles now select a dedicated original enemy-death cue instead of
+the ordinary hit-pop. The shared beetle/Strider sound is a compact mechanical
+drop with a shell break and metallic tail, inspired only in weight and brevity
+by the supplied ThunderCats level-one gameplay reference. It does not copy its
+sample. Paula channel 1 priority is 8: player hurt (9) may interrupt it, while
+it replaces Strider fire (7), ordinary enemy hit (6) and lower effects. MrDig
+accepted the resulting cue in supplied testing.
+
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
@@ -227,13 +239,40 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-Milestone2A-A1200.lha`
-- `dist/Sparkpaw-Milestone2A-A1200.zip`
-- `dist/Sparkpaw-Milestone2A-A1200.adf`
-- `dist/Sparkpaw-Milestone2A-Source.zip`
+- `dist/Sparkpaw-0.5.0-alpha.1.lha`
+- `dist/Sparkpaw-0.5.0-alpha.1.zip`
+- `dist/Sparkpaw-0.5.0-alpha.1.adf`
+- `dist/Sparkpaw-0.5.0-alpha.1-Source.zip`
 
-The DOS1/FFS ADF contains `S/startup-sequence` and boots directly into exactly
-the same executable and asset files as the HD release.
+`tools/make_release.py` owns the SemVer prerelease value. Each release removes
+older `Sparkpaw-*` artifacts from `dist/` before writing one consistently named
+ADF/LHA/ZIP/source set, preventing stale milestone files from being mistaken
+for the current test build.
+
+The DOS1/FFS ADF contains `S/startup-sequence` and boots directly. Its gameplay
+data reconstructs to the same bytes as HD, but Stage B deliberately uses an
+ADF-only executable plus `storm-front.spr1` in place of `storm-front.spbm`.
+ZIP/LHA retain the ordinary executable, loose SPBM files and existing loader.
+
+Run `make adf-report` for the ADF-only Stage A storage measurement. It writes
+ignored JSON and Markdown reports under `build/adf-report/` with raw sizes,
+CRC32, host-verified zlib-9/LZMA-9 proxy sizes and projected DOS1/FFS blocks.
+This command does not alter the executable, runtime assets, HD ZIP/LHA layout or
+Amiga loader. The proxy codecs measure opportunity only; neither is selected as
+the eventual ADF codec.
+
+Stage B first packed `storm-front.spbm` with the project-owned SPR1 byte-run
+format; MrDig reported that supplied ADF works correctly. The same accepted
+path now covers `storm-rear.spbm`, whose ADF was also accepted, plus the current
+in-review Strider cache. The ADF executable streams all three directly into their final
+allocated bitplanes using a 512-byte input buffer and validates raw size plus
+CRC32; it never allocates a second complete foreground copy. Release validation
+extracts both packed files and compares their host-decoded bytes with the
+canonical SPBMs. Test the ADF from a cold boot through title, `LOADING`,
+`CHARGING` and all five gameplay screens. Foreground and rear parity are
+accepted; now exercise both Striders through walk, turn, shoot, hit, traversal
+and death/respawn. A corrupt/truncated stream must fail loading rather than
+enter gameplay.
 
 Run `make bench` to build the isolated `sparkpaw-renderbench`. This small
 program validates the dual-playfield foundation before it is allowed back
@@ -284,8 +323,9 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `src/assets.c` / `src/assets.h`: SPBM loading, validation, gameplay-asset
   lifetime and cleanup plus a separate early-title lifetime; packed
   hardware-sprite and Bob cache preparation remains in `renderer.c`
-- `src/audio.c` / `src/audio.h`: energy-shot, player-hurt, enemy-hit and jump
-  sample loading, Paula channel 0 rapid-shot playback, prioritized channel 1 gameplay effects
+- `src/audio.c` / `src/audio.h`: energy-shot, player-hurt, enemy-hit/death and
+  jump sample loading, Paula channel 0 rapid-shot playback, prioritized channel
+  1 gameplay effects
   and explicit hardware-active lifecycle control; channels 2-3 remain reserved
   for a future music layout
 - `tools/generate_runtime_assets.py`: creates wide planar playfields, source
@@ -297,7 +337,7 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `assets/sprites/`: prototype animation art and named frame metadata
 - `assets/enemies/`: native-resolution enemy art, preview and frame metadata
   (including the historical eighteen-frame upright Strider palette proof, the
-  current 24-frame runtime contract and preserved concept/scale review sources)
+  current 28-frame runtime contract and preserved concept/scale review sources)
 - `assets/sfx/previews/`: WAV previews for later milestones
 - `sfx/raw/`: signed 8-bit mono Paula-ready samples; the current build uses the
   energy-shot, player-hurt, enemy-hit and jump samples and reserves the others
@@ -448,3 +488,7 @@ when turning, remain grounded, ignore standing and airborne fire, react to the
 first crouch-shot and play all four destruction stages after the second.
 Stress the renderer with several simultaneous plasma pulses and visible
 beetles, and watch for residue where enemies and projectiles overlap.
+On each beetle's second hit and each Strider's third hit, confirm the ordinary
+hit-pop is replaced by one short heavier death cue. Test grounded and traversal
+Strider deaths, rapid fire and simultaneous player damage; player hurt must win
+priority and no death cue may repeat during the destruction frames or respawn.

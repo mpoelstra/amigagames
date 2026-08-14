@@ -2,6 +2,7 @@
 #define SPARKPAW_ENEMIES_H
 
 #include <exec/types.h>
+#include "projectiles.h"
 
 #define ENEMY_W 32
 #define ENEMY_H 24
@@ -30,7 +31,7 @@ void enemiesInit(ULONG seed);
 void enemiesResetPreservingDrawn(ULONG seed);
 void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
                    WORD playerCenterY,EnemySpawnProjectile spawnProjectile);
-BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot);
+UBYTE enemiesHitProjectile(WORD x,WORD y,BOOL lowShot);
 BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
                           WORD *enemyCenterX);
 struct Enemy *enemyAt(WORD index);

@@ -8,6 +8,11 @@ CC = $(VBCC_ROOT)/bin/vc
 PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
+ADF_TARGET = build/sparkpaw-adf
+ADF_FRONT_ASSET = build/adf-assets/storm-front.spr1
+ADF_REAR_ASSET = build/adf-assets/storm-rear.spr1
+ADF_STRIDER_ASSET = build/adf-assets/clockwork-storm-strider.spr1
+ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET)
 BENCH_TARGET = sparkpaw-renderbench
 BENCH_ASSET = assets/runtime/renderbench-strider-idle.raw
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c \
@@ -30,6 +35,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/energy-shot.raw \
 	assets/runtime/player-hurt.raw \
 	assets/runtime/enemy-hit.raw \
+	assets/runtime/enemy-death.raw \
 	assets/runtime/strider-shot.raw \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
@@ -39,7 +45,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean assets release bench
+.PHONY: all clean assets release bench adf-report
 
 all: assets $(TARGET)
 
@@ -82,11 +88,12 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	sfx/raw/energy-shot.raw \
 	sfx/raw/player-hurt.raw \
 	sfx/raw/enemy-hit.raw \
+	sfx/raw/enemy-death.raw \
 	sfx/raw/strider-shot.raw \
 	sfx/raw/jump.raw
 	$(PYTHON) tools/generate_runtime_assets.py
 
-sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/strider-shot.raw \
+sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/enemy-death.raw sfx/raw/strider-shot.raw \
 	sfx/raw/jump.raw sfx/raw/collect-spark.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
@@ -95,8 +102,24 @@ $(TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)"
 	$(CC) $(CFLAGS) -o $@ $(SOURCES)
 
-release: all
+$(ADF_TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DADF_PACKED_ASSETS -o $@ $(SOURCES)
+
+$(ADF_FRONT_ASSET): assets/runtime/storm-front.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+$(ADF_REAR_ASSET): assets/runtime/storm-rear.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+$(ADF_STRIDER_ASSET): assets/runtime/clockwork-storm-strider.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+release: all $(ADF_TARGET) $(ADF_ASSETS)
 	$(PYTHON) tools/make_release.py
+
+adf-report: all
+	$(PYTHON) tools/report_adf_storage.py
 
 clean:
 	$(RM) $(TARGET) $(BENCH_TARGET) src/*.o

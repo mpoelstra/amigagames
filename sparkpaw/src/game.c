@@ -106,7 +106,7 @@ void gameUpdate(void)
         }
     }
     projectilesUpdate((WORD)game.cameraX,collisionSolidAt,enemiesHitProjectile,
-                      audioPlayEnemyHit);
+                      audioPlayEnemyHit,audioPlayEnemyDeath);
     if(projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                                 &enemyCenterX)&&
        applyEnemyDamage(enemyCenterX)) return;

@@ -2138,6 +2138,93 @@ Stage A from `docs/ADF_STORAGE_STRATEGY.md`, preserving normal HD assets while
 measuring packed sizes, CRCs and projected FFS blocks before any ADF loader is
 implemented.
 
+The ADF optimization sidestep begins with Stage A only. A new
+`make adf-report` target measures the exact release executable, runtime files,
+ReadMe and startup sequence without changing any package or Amiga code. It
+records raw byte size and CRC32, independently compresses each file with host
+zlib-9 and LZMA-9/XZ proxies, verifies both decoded streams byte-for-byte and
+projects DOS1 file header, 512-byte data and 72-pointer extension blocks. The
+machine-readable JSON and readable Markdown outputs live under ignored
+`build/adf-report/`; the HD ZIP/LHA layout and loader remain unchanged.
+
+The first post-Phase-5F.4 report measures 877,595 raw payload bytes and 1,775
+total projected filesystem blocks, 15 beyond the 1,760-block DD image. zlib-9
+projects 478 total blocks and LZMA-9/XZ 409, demonstrating ample capacity but
+not selecting either as an Amiga codec. `storm-front.spbm`, `storm-rear.spbm`
+and the Strider cache show the strongest immediate generic-compression value;
+the player cache and title remain comparatively expensive. Pinned native codec
+comparisons, stock-68020 decode timing and peak Chip/Fast memory are explicitly
+still open; desktop proxy timing is not accepted as hardware evidence.
+
+The first reversible Stage B proof then targets only the most repetitive large
+asset, `storm-front.spbm`. A deterministic project-owned SPR1 byte-run packer
+reduces it from 163,900 to 7,689 bytes. A separately compiled ADF executable
+opens `storm-front.spr1`; the HD executable and ZIP/LHA continue to open the
+ordinary SPBM. The ADF decoder uses a 512-byte input buffer and writes SPBM
+header/palette/plane data directly into the final allocations, avoiding a
+second complete raw foreground buffer. It rejects bad magic, truncation,
+output overflow, size mismatch, trailing commands and CRC32 mismatch.
+
+`make release` now succeeds again. Its DOS1 inspection reports 1,466 blocks
+used (750,592 bytes) and 294 free. Release verification extracts the ADF-only
+executable and packed foreground, confirms their exact staged bytes, decodes
+SPR1 on the host and compares it byte-for-byte with the canonical HD asset. A
+separate ZIP inspection confirms the HD executable and `storm-front.spbm`
+remain byte-identical and no SPR1 is present. Host round-trip, boundary and
+corruption tests pass. No FS-UAE or real-hardware result is claimed; cold-boot,
+title/loading/charging flow and all-five-screen foreground parity are now the
+required supplied ADF test before another asset is packed.
+
+MrDig reported that the supplied foreground-packed ADF works correctly. This
+accepts the first Stage B proof from user-supplied ADF testing; no real-hardware
+result is inferred. The next isolated build reuses the unchanged SPR1 stream
+decoder for `storm-rear.spbm`, reducing it from 122,916 to 30,165 bytes. The
+rebuilt ADF succeeds with 1,281 blocks used and 479 free. Release extraction and
+byte-for-byte host decode verification pass for both world assets, while HD ZIP
+parity remains unchanged. Focused supplied ADF review must now confirm the rear
+layer and its accepted quarter-speed parallax before another asset family is
+added.
+
+MrDig reported that the supplied foreground-plus-rear ADF works correctly,
+accepting the second SPR1 proof. The third isolated proof then targets the
+Strider cache, the largest remaining gameplay family with useful byte-run
+compression. `clockwork-storm-strider.spbm` reduces from 143,420 to 87,914
+bytes. The unchanged streaming decoder writes it into the final allocated
+bitmap/mask storage and verifies CRC32. The rebuilt ADF uses 1,171 blocks and
+leaves 589 free; host extraction and byte-for-byte comparison pass for all
+three packed assets. Supplied ADF review is now required across every Strider
+state. No real-hardware verification is claimed.
+
+MrDig reported that the supplied three-asset ADF works correctly, accepting the
+packed Strider cache in addition to both world layers. This leaves ADF Stage B
+at a safe user-tested checkpoint with 589 free blocks; no real-hardware result
+is inferred.
+
+The next isolated gameplay/audio step adds one original shared enemy-death cue.
+The supplied `thundercats-level1.mov` is used only as a reference for a short,
+weighty kill punctuation and broader gameplay inspiration; no sample is copied.
+Sparkpaw synthesizes a roughly 0.24-second low mechanical drop, shell-break
+noise and small metallic tail. Projectile hit dispatch now distinguishes miss,
+non-lethal hit and lethal hit. A lethal beetle second hit or Strider third hit
+plays death priority 8 instead of the ordinary priority-6 hit-pop, preventing
+two effects from stacking on Paula channel 1. Player hurt priority 9 can still
+interrupt it; death can replace Strider fire priority 7 and lower effects. The
+sound triggers once when death begins, not during later destruction frames or
+respawn. Renderer, animation timing, HP and collision remain unchanged.
+
+MrDig accepted the shared beetle/Strider death cue as-is in supplied testing.
+No real-hardware result is inferred.
+
+Release naming is consolidated at this checkpoint. One central
+`RELEASE_VERSION` now produces `Sparkpaw-0.5.0-alpha.1.adf`, `.lha`, `.zip` and
+`Sparkpaw-0.5.0-alpha.1-Source.zip`; A1200 remains a documented requirement but
+is omitted from filenames. Before packaging, the release tool removes older
+`Sparkpaw-*` artifacts from ignored `dist/`, preventing milestone and SemVer
+sets from being mixed. This cleanup does not touch backups or test evidence.
+The SemVer minor follows the broad Phase 5 roadmap; the precise accepted
+Phase 5F.4 plus in-progress ADF Stage B checkpoint is recorded in release
+documentation rather than encoded into the filename.
+
 Appending six full 64x64 masked source frames exceeded the nearly full DOS0
 release disk during `make release`. The bootable ADF now uses DOS1/FFS, which is
 native to the A1200 target and stores file data more efficiently; its executable
@@ -2342,6 +2429,15 @@ screens are 60 percent longer than the current five-screen/1280-pixel test
 world and are expected to add roughly 221 KiB of Chip RAM across the resident
 foreground source, foreground display buffer and rear bitmap; verify actual
 free and largest Chip blocks before accepting that layout.
+
+MrDig later superseded the fixed 35-50-second target: level 1 should feel much
+longer than the current test and should use the supplied ThunderCats level for
+forward pacing/progression inspiration. The 2048px/eight-screen build remains
+the first resident-memory experiment, not a promise that eight screens or the
+old duration is sufficient. Measure a playable greybox before fixing the final
+time/width. Additional enemy types are explicitly optional for level 1; route,
+height, hazards, breathing space and better placement of the accepted beetles
+and Striders should create variety first.
 
 Implement the longer level only after Phase 4 spawn/respawn is stable and the
 Phase 5 second enemy works in the current world. Split Phase 6 into reviewable

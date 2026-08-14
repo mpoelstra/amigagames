@@ -69,12 +69,13 @@ BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft)
 
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
                        ProjectileEnemyHit hitEnemy,
-                       ProjectilePlaySound playEnemyHitSound)
+                       ProjectilePlaySound playEnemyHitSound,
+                       ProjectilePlaySound playEnemyDeathSound)
 {
     WORD index;
     for(index=0;index<MAX_PROJECTILES;index++) {
         struct Projectile *projectile=&projectiles[index]; WORD x,y,screenHit;
-        BOOL enemyWasHit;
+        UBYTE enemyHitResult;
         if(!projectile->active) continue;
         if(projectile->impactTimer) {
             if(!--projectile->impactTimer) projectile->active=FALSE;
@@ -83,10 +84,11 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         projectile->x+=projectile->vx;
         x=(WORD)(projectile->x>>8)+(projectile->vx>0?PROJECTILE_W-1:0);
         y=(WORD)(projectile->y>>8)+(PROJECTILE_H>>1);
-        enemyWasHit=!projectile->hostile&&
-                    hitEnemy(x,y,projectile->lowShot);
-        if(enemyWasHit) playEnemyHitSound();
-        if(enemyWasHit||solidAt(x,y)||!--projectile->life) {
+        enemyHitResult=!projectile->hostile?
+                       hitEnemy(x,y,projectile->lowShot):PROJECTILE_ENEMY_MISS;
+        if(enemyHitResult==PROJECTILE_ENEMY_KILL) playEnemyDeathSound();
+        else if(enemyHitResult==PROJECTILE_ENEMY_HIT) playEnemyHitSound();
+        if(enemyHitResult||solidAt(x,y)||!--projectile->life) {
             screenHit=x-cameraX;
             /* Never show a clipped impact on invisible off-screen geometry. */
             if(screenHit<2||screenHit>SCREEN_W-3) projectile->active=FALSE;

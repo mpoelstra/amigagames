@@ -63,6 +63,9 @@ amigagame/
   unless he supplied that result.
 - Use Git as normal recovery. Make a dated local backup as well before risky
   renderer, asset-format, audio/physics or bulk source-movement work.
+- Sparkpaw releases use one SemVer prerelease stem for every artifact, currently
+  `Sparkpaw-0.5.0-alpha.1`; platform text stays in the requirements rather than
+  filenames. The release tool removes older `Sparkpaw-*` files from `dist/`.
 
 Normal Sparkpaw commands, run from `sparkpaw/`:
 
@@ -146,7 +149,10 @@ palette banks, BPLCON state, sprite priority or Bob timing.
   The counter awards a life at 50 and supports lives `x1` through `x9`.
 - Up to six plasma projectiles share a packed synchronized Bob pipeline.
 - Paula channel 0 owns rapid plasma playback. Prioritized gameplay effects use
-  channel 1. Channels 2-3 remain reserved for a future music layout.
+  channel 1. A lethal beetle or Strider hit replaces the ordinary hit-pop with
+  the short heavy enemy-death cue at priority 8, below player hurt (9) and
+  above Strider fire (7). MrDig accepted this cue in supplied testing. Channels
+  2-3 remain reserved for future music.
 
 ### Enemy and spawn foundation
 
@@ -172,7 +178,7 @@ Clockwork beetles:
   and airborne shots pass over them.
 - Contact damage, hit/death effects and off-camera respawn are active.
 
-Clockwork Storm Striders (accepted through Phase 5D):
+Clockwork Storm Striders (accepted through Phase 5F.4):
 
 - Upright 64x64, four-plane masked Bobs in the shared foreground `FRONT16` bank.
 - Two guaranteed encounters currently patrol a raised platform and a long floor
@@ -186,11 +192,13 @@ Clockwork Storm Striders (accepted through Phase 5D):
 - Walk advancement must wrap immediately with `(animFrame + 1) & 7`. Allowing
   frame 7 to increment to 8 leaks the front pose for one frame mid-walk.
 - Incidental solid/missing-support safety reversals must not select slot 8.
-- Slots 9..17 remain reserved placeholders for later attack/shooting, hurt/hit
-  and death. Do not spend them on extra walk interpolation.
+- Slots 9/10 are the accepted ranged charge/release and slots 11..17 are the
+  accepted non-lethal hit reaction. Do not spend them on walk interpolation.
 - Slots 18..23 are appended Phase 5D traversal poses: two cyan compression
   stages, flight, descent, planted landing and recovery. The original 0..17
-  contract is unchanged; the packed cache now contains 24 frames.
+  contract is unchanged.
+- Slots 24..27 append the accepted four-stage death without renumbering
+  traversal; the packed cache now contains 28 frames.
 - The required raised-platform Strider owns one explicit, one-way test-level
   link from its current platform to the adjacent lower floor. Link geometry,
   launch velocity and gravity live in level data rather than AI code.
@@ -201,9 +209,9 @@ Clockwork Storm Striders (accepted through Phase 5D):
   start platform and stays between the x=288 column face and x=496 low-platform
   face. Inset-foot bounds prevent the 64px body crossing either solid without
   adding the generic body-aware navigation reserved for Phase 5E.
-- Striders deal accepted contact and ranged damage. Phase 5F.3 gives them three
-  HP and a non-lethal projectile-hit reaction in slots 11..17; test combat
-  clamps at one HP until death and safe respawn are implemented separately.
+- Striders deal accepted contact and ranged damage. They have three HP, use
+  slots 11..17 for non-lethal hits and start slots 24..27 on a lethal third hit
+  in grounded or traversal state. Safe off-camera respawn is active.
 - Logical collision cells remain at their authored Y. Drawing uses the accepted
   two-pixel visual offset because source rows 62-63 are transparent.
 
@@ -379,20 +387,30 @@ FS-UAE or real-hardware result is claimed.
 
 ### Later phases
 
-- Next, implement Stage A of the ADF
-  storage strategy: a host-only raw/packed/CRC/projected-FFS measurement report.
-  Do not couple the later ADF loader/container to gameplay or renderer code.
+- ADF Stage A reports raw/proxy-packed/CRC/projected-FFS sizes. The first Stage
+  B proof is also implemented: only the ADF replaces `storm-front.spbm` with a
+  7,689-byte SPR1 stream and separate loader, decoding through 512 bytes directly
+  into final planes with size/CRC validation. The DOS1 image now builds with
+  294 free blocks. HD ZIP/LHA remain on the ordinary executable and loose
+  foreground SPBM. MrDig reported that this first ADF works correctly, accepting
+  the foreground proof. MrDig then reported the foreground-plus-rear ADF works
+  correctly too, accepting rear quarter-speed parallax. The next isolated build
+  packs the Strider cache from 143,420 to 87,914 bytes and leaves 589 blocks
+  free. MrDig reported this ADF works correctly as well, accepting the packed
+  Strider cache. The ADF optimization is therefore at a safe checkpoint before
+  generalizing the container or packing another family.
 - Phase 6: level/progression work. First measure a resident 2048px/eight-screen
   repeated-art memory experiment, then build an eight-screen collision/pacing
   greybox, checkpoint/progression state, encounters and finally unique art.
 
-Level 1 target: an original Storm Ruins route approximately 35-50 seconds for a
-practised run and one to two minutes for a cautious first playthrough. The cited
-ThunderCats Amiga level 1 (about 3:32-4:10 in the supplied video) is only a
-pacing/behaviour reference. Do not copy maps, characters, art, music or exact
-timing. The eventual larger enemy should continue through the viewport, survive
-being jumped over, and traverse authored platforms/gaps/water rather than act as
-local beetle-like decoration.
+Level 1 target: an original Storm Ruins route materially longer than the current
+five-screen test and the earlier 35-50-second proposal. Treat the first
+2048px/eight-screen build as a resident-memory minimum experiment, then tune
+actual length from a playable greybox rather than forcing an unmeasured time.
+The supplied ThunderCats level 1 is a pacing/progression reference only. Do not
+copy maps, characters, art, music or exact timing. Extra enemy types are not a
+requirement for level 1: first obtain variety through route, height, hazards,
+breathing space and placement of the accepted beetles and Striders.
 
 ## Known limitations and backlog
 
@@ -402,13 +420,14 @@ local beetle-like decoration.
   two existing raised platforms.
 - Far-right reload is temporary; real level completion/progression is pending.
 - Broader route graphs and real water/death-hazard semantics remain future
-  level work. Strider contact and ranged combat are accepted; hurt and death
-  remain pending.
+  level work. Strider contact, ranged combat, hurt, death and respawn are
+  accepted.
 - Music is pending; define Paula ownership before integration.
 - Game-over presentation and broader checkpoint/progression flow remain pending.
 - Stock 68020/2 MB Chip RAM performance and real-hardware timing remain unproven.
 - ADF-only compression, asset reconstruction and eventual multidisk options are
-  researched but deliberately unimplemented. Preserve the HD path and consult
+  researched; Stage A plus one ADF-only foreground proof exist. Preserve the
+  HD path and consult
   `sparkpaw/docs/ADF_STORAGE_STRATEGY.md` before changing asset formats, release
   layout, disk I/O or adding a trackloader.
 

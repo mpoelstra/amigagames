@@ -620,7 +620,7 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
     activateVisibleSpawns(cameraX,FALSE);
 }
 
-BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
+UBYTE enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
 {
     WORD index;
     for(index=0;index<MAX_ENEMIES;index++) {
@@ -664,7 +664,7 @@ BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
                     enemy->walkTick=0;
                 }
             }
-            return TRUE;
+            return enemy->dying?PROJECTILE_ENEMY_KILL:PROJECTILE_ENEMY_HIT;
         }
         if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE&&lowShot&&
            enemy->active&&!enemy->dying&&
@@ -676,10 +676,10 @@ BOOL enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
             } else {
                 enemy->hitTimer=8; enemy->animFrame=4;
             }
-            return TRUE;
+            return enemy->dying?PROJECTILE_ENEMY_KILL:PROJECTILE_ENEMY_HIT;
         }
     }
-    return FALSE;
+    return PROJECTILE_ENEMY_MISS;
 }
 
 BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,

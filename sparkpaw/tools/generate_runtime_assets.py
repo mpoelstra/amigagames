@@ -1153,6 +1153,8 @@ def main() -> None:
         (ROOT / "sfx" / "raw" / "player-hurt.raw").read_bytes())
     (RUNTIME / "enemy-hit.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "enemy-hit.raw").read_bytes())
+    (RUNTIME / "enemy-death.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "enemy-death.raw").read_bytes())
     (RUNTIME / "strider-shot.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "strider-shot.raw").read_bytes())
     (RUNTIME / "jump.raw").write_bytes(
