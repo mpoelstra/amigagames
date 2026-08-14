@@ -1,4 +1,5 @@
 #include "collision.h"
+#include "level_data.h"
 #include "world_config.h"
 
 #include <dos/dos.h>
@@ -24,7 +25,8 @@ BOOL collisionLoad(void)
 BOOL collisionSolidAt(WORD x,WORD y)
 {
     WORD tileX,tileY;
-    if(x<0||x>=WORLD_W||y<0||y>=GAME_H) return TRUE;
+    if(x<0||x>=WORLD_W||y<0) return TRUE;
+    if(y>=GAME_H) return !levelWaterColumnAt(x);
     tileX=x/TILE_SIZE; tileY=y/TILE_SIZE;
     return collision[tileY*MAP_COLS+tileX]!=0;
 }

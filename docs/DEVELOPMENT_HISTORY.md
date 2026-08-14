@@ -2546,6 +2546,52 @@ greybox floor interruption and explicit death/restart semantics. Visual water
 work must begin with concept art and remain separate from the hazard logic. No
 real-hardware result is claimed.
 
+Phase 6B.2 implements only water mechanics. The generator removes five floor
+tiles at x=1584..1663 and the next x=1664 low platform supplies the far landing.
+Level data owns the water bounds and y=224 death threshold. Collision remains
+solid below the gameplay area everywhere else, but returns open space below
+those water columns so the player can genuinely fall. Once the player contact
+box reaches the threshold, gameplay removes one life and reuses the accepted
+in-memory restart, including its preserved HUD diamond total. No renderer,
+palette, water art, splash, audio, enemy route or Strider contract changed.
+Standard and ADF builds pass; supplied FS-UAE review remains required.
+
+MrDig's latest supplied movie accepted the Phase 6B.2 mechanical outcome:
+Sparkpaw falls through the authored opening and the level restarts. During the
+same review he reported a separate boundary defect, especially pronounced on a
+real Amiga in both ADF and HD builds: the intended black line between world and
+HUD appears intermittently contaminated by adjacent colour. The HUD bitmap was
+verified to contain only two all-zero separator rows before its detailed metal
+frame begins; moving world/rear pixels occupy the immediately preceding line.
+The first asset-only correction increased the band to four all-zero rows, but
+supplied FS-UAE footage showed more moving coloured pixels rather than an
+improvement. That experiment was therefore rejected and reverted to the
+accepted two-row height. Because HUD pen 0 is transparent to hardware sprites,
+the focused follow-up fills both separator rows across the full fetched width
+with non-zero dark HUD pen 1. The HUD remains 48px high and the accepted
+line-252 Copper switch and line-253 Bob pass are unchanged. Supplied FS-UAE and
+real-hardware retest initially remained required. MrDig subsequently verified
+the two-row opaque-pen correction in FS-UAE and on a real Amiga. The formerly
+moving/glitchy boundary pixels are fixed; this is the accepted baseline.
+
+Release naming is advanced with the broad roadmap phase. The Phase 6 release
+line is `0.6.0-alpha.1`, replacing the earlier Phase-5-aligned
+`0.5.0-alpha.1`. `tools/make_release.py` remains the single version source and
+now interpolates that value into the packaged drawer instructions as well as
+all artifact names. The SemVer minor follows the broad numbered phase; the
+precise lettered checkpoint, currently Phase 6B.2, remains in README and
+packaged release notes. Later meaningful packaged checkpoints within Phase 6
+increment the prerelease counter. Older `Sparkpaw-*` files in ignored `dist/`
+are still removed only by the release packager.
+
+Release identity is now enforced rather than relying only on session discipline.
+The packager owns both `RELEASE_VERSION` and `ROADMAP_CHECKPOINT`, interpolates
+them into the packaged metadata and rejects a build when the SemVer minor does
+not match the numbered roadmap phase. Future roadmap steps must update release
+identity as part of the step itself, without waiting for a separate reminder.
+A successful `make release` also continues to leave only the current matching
+artifact set in `dist/`.
+
 MrDig later superseded the fixed 35-50-second target: level 1 should feel much
 longer than the current test and should use the supplied ThunderCats level for
 forward pacing/progression inspiration. The 2048px/eight-screen build remains

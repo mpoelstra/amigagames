@@ -3,10 +3,22 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.5.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 and
+Current release: `0.6.0-alpha.1`. Roadmap checkpoint: accepted Phase 5F.4 and
 ADF optimization Stage B; Phase 6A memory validation is complete and Phase
 6B.1 eight-screen pacing greybox is accepted; Phase 6B.2 water mechanics are
-next.
+accepted, as is the focused HUD-boundary correction after FS-UAE and real-Amiga
+verification.
+
+Phase 6B.2 adds one mechanical water proof at x=1584..1663. The greybox floor
+opens for 80 pixels and only those columns allow falling below the normal game
+boundary. Sinking to y=224 removes one life and performs the existing safe
+in-memory level restart. Visual water, splash and audio await concept approval.
+MrDig accepted the fall/restart behaviour in supplied testing. A separate HUD
+asset correction retains its top separator at two scanlines and now fills
+those rows with an opaque dark HUD pen instead of transparent pen 0. The
+line-252 display switch and 48px total HUD height remain unchanged. MrDig
+verified the correction in FS-UAE and on a real Amiga; the moving/glitchy
+boundary pixels are fixed.
 
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a
@@ -241,12 +253,18 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.5.0-alpha.1.lha`
-- `dist/Sparkpaw-0.5.0-alpha.1.zip`
-- `dist/Sparkpaw-0.5.0-alpha.1.adf`
-- `dist/Sparkpaw-0.5.0-alpha.1-Source.zip`
+- `dist/Sparkpaw-0.6.0-alpha.1.lha`
+- `dist/Sparkpaw-0.6.0-alpha.1.zip`
+- `dist/Sparkpaw-0.6.0-alpha.1.adf`
+- `dist/Sparkpaw-0.6.0-alpha.1-Source.zip`
 
-`tools/make_release.py` owns the SemVer prerelease value. Each release removes
+`tools/make_release.py` owns the SemVer prerelease value. Its minor component
+tracks the broad roadmap phase (`0.6.x` for Phase 6); the exact lettered
+checkpoint remains explicit in this README and the packaged ReadMe. Increment
+the prerelease counter for later meaningful packaged checkpoints within the
+same broad phase. Release packaging validates that the SemVer minor matches the
+numbered roadmap phase and fails on drift. Maintaining this identity is part of
+every roadmap step rather than a separate manual request. Each release removes
 older `Sparkpaw-*` artifacts from `dist/` before writing one consistently named
 ADF/LHA/ZIP/source set, preventing stale milestone files from being mistaken
 for the current test build.

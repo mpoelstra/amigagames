@@ -221,12 +221,16 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
     """Build one static HUD plus compact dynamic-panel patch atlases."""
     with Image.open(HUD_SOURCE) as source:
         rgb = source.convert("RGB").crop((14, 238, 1969, 550))
-    # Keep the complete authored frame, but reserve a dark two-line separation
-    # above it so actors no longer appear to stand directly on the metal beam.
+    # Keep the complete authored frame, but reserve an opaque dark two-line
+    # separation above it. HUD pen 0 is transparent to hardware sprites, so
+    # the separator must use a non-zero HUD pen across the full fetched width.
     rgb = rgb.resize((320, HUD_HEIGHT-HUD_SEPARATOR_H),
                      Image.Resampling.LANCZOS)
     base = indexed_image((336, HUD_HEIGHT), HUD_PALETTE, 0)
     src, dst = rgb.load(), base.load()
+    for y in range(HUD_SEPARATOR_H):
+        for x in range(base.width):
+            dst[x, y] = 1
     for y in range(HUD_HEIGHT-HUD_SEPARATOR_H):
         for x in range(320):
             dst[x + HUD_X_OFFSET, y + HUD_SEPARATOR_H] = nearest_index(
@@ -475,6 +479,11 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
 
     # Continuous floor and varied but readable Phase 6B greybox over eight screens.
     block(0, 13, cols, 1, 0)
+    # Phase 6B.2 mechanical water proof. Transparent foreground exposes the
+    # rear layer for now; authored water presentation follows concept approval.
+    for tx in range(99, 104):
+        collision[13 * cols + tx] = 0
+    d.rectangle((99 * TILE, 13 * TILE, 104 * TILE - 1, WORLD_H - 1),fill=0)
     block(8, 10, 7, 1, 2)
     block(20, 8, 6, 1, 0)
     block(31, 11, 8, 1, 3)
@@ -491,7 +500,6 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
     block(40, 10, 2, 3, 0)
     block(63, 11, 2, 2, 3)
     block(80, 11, 2, 2, 2)
-    block(100, 10, 2, 3, 1)
     block(112, 11, 2, 2, 3)
     # Lamps, chains and Stormstone markings remain non-solid decoration.
     for x in (190, 510, 830, 1150, 1470, 1790):

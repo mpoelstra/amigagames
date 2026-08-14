@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import re
 from pathlib import Path
 
 from pack_adf_asset import decode as decode_adf_asset
@@ -16,7 +17,8 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.5.0-alpha.1"
+RELEASE_VERSION = "0.6.0-alpha.1"
+ROADMAP_CHECKPOINT = "6B.2"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -50,22 +52,25 @@ RUNTIME_FILES = (
     "collect-spark.raw",
 )
 
-RUNTIME_README = """Sparkpaw: The Stormstone Quest
+RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
-AGA alpha 0.5.0, prerelease 1
-Roadmap checkpoint: Phase 5F.4 plus ADF optimization Stage B
+AGA alpha {RELEASE_VERSION}
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} water-mechanics review
 MrDig Productions - Copyright 2026
+
+Phase 6B.2 mechanical water fall/restart and the opaque two-line HUD boundary
+are accepted. Visual water presentation remains pending concept approval.
 
 Requirements
 ------------
 
-Amiga 1200 or compatible AGA Amiga, Motorola 68020, 2 MB Chip RAM.
-Fast RAM is recommended but not required by this milestone.
+Amiga 1200 or compatible AGA Amiga, Motorola 68020, 2 MB Chip RAM and
+8 MB Fast RAM.
 
-Keep the complete Sparkpaw-0.5.0-alpha.1 drawer together. Start it from Shell:
+Keep the complete {RELEASE_NAME} drawer together. Start it from Shell:
 
-  CD Sparkpaw-0.5.0-alpha.1
+  CD {RELEASE_NAME}
   Sparkpaw
 
 Controls
@@ -284,7 +289,23 @@ def clean_dist_releases() -> None:
             path.unlink()
 
 
+def validate_release_identity() -> None:
+    """Prevent packaged SemVer and the numbered roadmap phase from drifting."""
+    version_match = re.fullmatch(r"0\.(\d+)\.\d+-[0-9A-Za-z.-]+", RELEASE_VERSION)
+    phase_match = re.fullmatch(r"(\d+)[A-Z](?:\.\d+)?", ROADMAP_CHECKPOINT)
+    if version_match is None:
+        raise ValueError(f"invalid Sparkpaw prerelease version: {RELEASE_VERSION}")
+    if phase_match is None:
+        raise ValueError(f"invalid Sparkpaw roadmap checkpoint: {ROADMAP_CHECKPOINT}")
+    if version_match.group(1) != phase_match.group(1):
+        raise ValueError(
+            "release/roadmap mismatch: "
+            f"{RELEASE_VERSION} does not belong to Phase {ROADMAP_CHECKPOINT}"
+        )
+
+
 def main() -> None:
+    validate_release_identity()
     copy_runtime()
     clean_dist_releases()
     zip_path = Path(shutil.make_archive(

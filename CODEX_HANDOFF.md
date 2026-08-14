@@ -64,8 +64,16 @@ amigagame/
 - Use Git as normal recovery. Make a dated local backup as well before risky
   renderer, asset-format, audio/physics or bulk source-movement work.
 - Sparkpaw releases use one SemVer prerelease stem for every artifact, currently
-  `Sparkpaw-0.5.0-alpha.1`; platform text stays in the requirements rather than
-  filenames. The release tool removes older `Sparkpaw-*` files from `dist/`.
+  `Sparkpaw-0.6.0-alpha.1`; platform text stays in the requirements rather than
+  filenames. `tools/make_release.py` is the single version source. The SemVer
+  minor tracks the broad roadmap phase (`0.6.x` for Phase 6), while the exact
+  lettered checkpoint (currently Phase 6B.2) belongs in README and packaged
+  release notes. Increment the prerelease counter for later meaningful packaged
+  checkpoints within that phase. Treat release identity maintenance as part of
+  every roadmap step without waiting for MrDig to request it. The release tool
+  validates that the SemVer minor matches the numbered roadmap phase and removes
+  older `Sparkpaw-*` files from `dist/`, so a successful `make release` leaves
+  only one state-aligned artifact set.
 
 Normal Sparkpaw commands, run from `sparkpaw/`:
 
@@ -478,9 +486,31 @@ authoritative. Grounded standing shots therefore still pass over floor beetles;
 crouch shots and genuinely overlapping airborne shots hit. MrDig accepted both
 focused fixes in supplied FS-UAE testing. No real-hardware result exists.
 
-Next: Phase 6B.2 introduces one greybox water hazard mechanically. First create
-a floor interruption plus explicit water/death region and safe life restart;
-water concept art must be approved before the later visual renderer/asset step.
+Next isolated work: create and approve water concept art before implementing
+the visual renderer/asset treatment. The mechanical floor interruption,
+water/death region and safe life restart are already accepted.
+
+### Accepted: Phase 6B.2 — mechanical water hazard
+
+One authored 80px region at x=1584..1663 removes the continuous floor and
+lands on the next low platform. Only those columns permit falling below the
+normal 224px gameplay boundary. When the player contact box reaches y=224 in
+the region, one life is removed and the accepted in-memory level restart runs;
+diamonds already banked in the HUD remain preserved by the existing restart
+contract. There is deliberately no water art, splash or new sound yet. Standard
+and ADF builds pass, and MrDig accepted the fall/restart in supplied FS-UAE
+testing.
+
+MrDig accepted the mechanical result in supplied testing: Sparkpaw falls
+through the authored region and the level restarts. No visual water is claimed.
+The same review plus supplied real-Amiga ADF and HD observation exposed an
+insufficiently isolated HUD/world boundary. The HUD asset contained only two
+black separator scanlines; the rejected four-scanline experiment has been
+reverted to the accepted two-scanline baseline. The current focused correction
+fills those two rows across the full fetched width with non-zero dark HUD pen 1,
+because pen 0 is transparent to hardware sprites. Preserve the line-252 display
+switch and line-253 Bob pass. MrDig verified this correction in both FS-UAE and
+on a real Amiga; the formerly moving/glitchy HUD-boundary pixels are fixed.
 
 Level 1 target: an original Storm Ruins route materially longer than the current
 five-screen test and the earlier 35-50-second proposal. Treat the first
@@ -494,13 +524,11 @@ breathing space and placement of the accepted beetles and Striders.
 ## Known limitations and backlog
 
 - No clean Workbench exit; reset the Amiga/emulator to leave gameplay.
-- Current world retains its continuous player floor and has no water/death
-  hazard yet; 5E.5 only proves Strider traversal across the visible gap between
-  two existing raised platforms.
+- The first mechanical water/death region is accepted, but visual water,
+  splash feedback and audio remain pending concept approval.
 - Far-right reload is temporary; real level completion/progression is pending.
-- Broader route graphs and real water/death-hazard semantics remain future
-  level work. Strider contact, ranged combat, hurt, death and respawn are
-  accepted.
+- Broader route graphs and additional hazard semantics remain future level
+  work. Strider contact, ranged combat, hurt, death and respawn are accepted.
 - Music is pending; define Paula ownership before integration.
 - Game-over presentation and broader checkpoint/progression flow remain pending.
 - Stock 68020/2 MB Chip RAM performance and real-hardware timing remain unproven.
@@ -554,14 +582,21 @@ and synchronized line-253 Blitter Bob pass used by plasma projectiles,
 collectibles and the generic four-slot enemy pool. Preserve packed planar
 caches, camera culling, Bob restore/draw ordering and the accepted beetle and
 Strider animation/collision contracts. Strider runtime slots 0..7 are walk,
-slot 8 is the endpoint turn, and slots 9..17 remain reserved for later
-attack/shooting, hurt/hit and death work. Do not reintroduce CPU
-read-modify-write compositing in displayed Chip RAM.
+slot 8 is the endpoint turn, slots 9/10 are ranged charge/release, slots 11..17
+are non-lethal hurt, slots 18..23 are traversal and slots 24..27 are death. Do
+not reintroduce CPU read-modify-write compositing in displayed Chip RAM.
 
 Work in small reviewable steps and do not combine renderer changes with
 unrelated gameplay or asset changes. Do not modify or delete ignored local
 backups or test evidence. Always run make and make release after implementation.
-Do not claim FS-UAE or real-hardware verification unless I provide the result.
+Keep release SemVer, roadmap checkpoint, packaged notes and the sole current
+artifact set in dist synchronized as part of every roadmap step without waiting
+for me to request it. Target 2 MB Chip plus 8 MB Fast RAM efficiently. Do not
+claim FS-UAE or real-hardware verification unless I provide the result.
+
+Current checkpoint: Phase 6B.2 mechanical water fall/restart is accepted. Its
+visual water treatment awaits concept approval. The two-line opaque HUD-boundary
+correction is accepted after successful FS-UAE and real-Amiga verification.
 
 My next request is: ...
 ```

@@ -49,8 +49,14 @@ struct EnemyTraversalLink {
 
 #define MAX_LEVEL_ENEMY_SPAWNS 13
 
+#define LEVEL_WATER_LEFT 1584
+#define LEVEL_WATER_RIGHT 1663
+#define LEVEL_WATER_DEATH_Y 224
+
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
 const struct EnemyPatrolSurface *levelEnemyPatrolSurface(UBYTE surfaceId);
 const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count);
+BOOL levelWaterColumnAt(WORD x);
+BOOL levelPlayerInWater(WORD left,WORD right,WORD bottom);
 
 #endif

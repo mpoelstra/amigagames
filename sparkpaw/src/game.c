@@ -4,6 +4,7 @@
 #include "collision.h"
 #include "collectibles.h"
 #include "enemies.h"
+#include "level_data.h"
 #include "player.h"
 #include "projectiles.h"
 #include "world_config.h"
@@ -76,6 +77,13 @@ void gameUpdate(void)
     if(playerUpdatePhysics(left,right,down,jump)) audioPlayJump();
     playerUpdateShot();
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+    if(levelPlayerInWater(playerLeft,playerRight,playerBottom)) {
+        if(game.lives>1) game.lives--;
+        else game.lives=GAME_START_LIVES;
+        resetLevelRuntime();
+        audioUpdate();
+        return;
+    }
     enemiesUpdate((WORD)game.cameraX,collisionSolidAt,
                   (WORD)((playerLeft+playerRight)>>1),
                   (WORD)((playerTop+playerBottom)>>1),

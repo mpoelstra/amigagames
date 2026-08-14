@@ -89,3 +89,14 @@ const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count)
     *count=(UWORD)(sizeof(enemyTraversalLinks)/sizeof(enemyTraversalLinks[0]));
     return enemyTraversalLinks;
 }
+
+BOOL levelWaterColumnAt(WORD x)
+{
+    return x>=LEVEL_WATER_LEFT&&x<=LEVEL_WATER_RIGHT;
+}
+
+BOOL levelPlayerInWater(WORD left,WORD right,WORD bottom)
+{
+    return right>=LEVEL_WATER_LEFT&&left<=LEVEL_WATER_RIGHT&&
+           bottom>=LEVEL_WATER_DEATH_Y;
+}
