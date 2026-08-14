@@ -3292,3 +3292,23 @@ ChipSnake or Futsal instead.
   and `-meow-chirp.wav`. MrDig selected the very short arcade-like
   `meow-chirp`; it now generates the runtime `player-hurt.raw` while preserving
   the accepted damage trigger, Paula channel 1 and priority 9.
+
+## 14 August 2026: repository-local Sparkpaw workflow skills
+
+Five focused Codex skills now preserve recurring project contracts without
+turning the handoff into procedural history. `extend-sparkpaw-animations`
+already covered append-only player/enemy/effect/water asset integration. The
+new `build-sparkpaw-visual-slice` isolates concept-quality environment work and
+the measured 4+3-versus-5+3 proof; `analyze-amiga-test-evidence` separates
+observation from renderer/gameplay hypotheses; and
+`catalog-sparkpaw-test-evidence` gives reviewed MOV/PNG files a collision-safe
+phase/result name plus a same-basename provenance sidecar. The catalog rule
+preserves media bytes and never overwrites existing evidence.
+
+`ship-sparkpaw-checkpoint` adds Sparkpaw-specific build, SemVer, documentation
+and four-artifact gates before the generic Git shipping workflow. The separate
+`study-thundercats-reference` skill routes every Sparkpaw/ThunderCats comparison
+to `sparkpaw/testresults/thundercats-level1.mov`, treats it only as a design
+reference and opens each activation with “Thunder, thunder, thunder,
+ThunderCats, Ho!” No gameplay, renderer, asset, release identity or verification
+claim changes in this workflow-only checkpoint.

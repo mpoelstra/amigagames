@@ -1,0 +1,4 @@
+interface:
+  display_name: "Catalog Sparkpaw Test Evidence"
+  short_description: "Rename evidence and write its review sidecar"
+  default_prompt: "Use $catalog-sparkpaw-test-evidence to inspect new MOV or PNG evidence in sparkpaw/testresults, give it a meaningful collision-safe name, and create its matching review sidecar."

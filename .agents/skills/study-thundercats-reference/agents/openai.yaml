@@ -1,0 +1,4 @@
+interface:
+  display_name: "Study ThunderCats Reference"
+  short_description: "Inspect the local ThunderCats gameplay reference"
+  default_prompt: "Use $study-thundercats-reference to inspect sparkpaw/testresults/thundercats-level1.mov and translate the relevant visual or gameplay principle into Sparkpaw constraints."

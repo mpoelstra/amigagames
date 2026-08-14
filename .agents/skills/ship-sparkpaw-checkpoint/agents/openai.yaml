@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship Sparkpaw Checkpoint"
+  short_description: "Synchronize and verify a Sparkpaw release"
+  default_prompt: "Use $ship-sparkpaw-checkpoint to build, package, document, and verify the current Sparkpaw roadmap checkpoint before committing."

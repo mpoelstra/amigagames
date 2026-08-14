@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Sparkpaw Visual Slice"
+  short_description: "Create a measured concept-quality AGA slice"
+  default_prompt: "Use $build-sparkpaw-visual-slice to create and prove one representative concept-quality Sparkpaw foreground and parallax slice."

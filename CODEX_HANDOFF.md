@@ -591,10 +591,15 @@ and native 48x48/palette reduction are preserved. MrDig accepted the timing,
 wall suppression, real fall and immediate post-landing jump in supplied FS-UAE
 testing. No real-hardware result is claimed.
 
-The repository skill `.agents/skills/extend-sparkpaw-animations/` now governs
-future player, enemy, collectible, projectile, effect and water/background
-animation expansions. Use it before changing animation art, frame contracts,
-runtime caches or selection logic.
+Repository-local skills under `.agents/skills/` now guard recurring Sparkpaw
+workflows. Use `extend-sparkpaw-animations` for every player, enemy,
+collectible, projectile, effect or water/background animation expansion;
+`build-sparkpaw-visual-slice` for concept-quality environment and measured
+4+3-versus-5+3 work; `analyze-amiga-test-evidence` plus
+`catalog-sparkpaw-test-evidence` when reviewing and preserving supplied MOV/PNG
+evidence; `ship-sparkpaw-checkpoint` before release commits; and
+`study-thundercats-reference` whenever ThunderCats is invoked as a Sparkpaw
+comparison. The latter reads the preserved local movie as inspiration only.
 
 ## Known limitations and backlog
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Amiga Test Evidence"
+  short_description: "Diagnose supplied emulator and hardware evidence"
+  default_prompt: "Use $analyze-amiga-test-evidence to inspect supplied Sparkpaw recordings or screenshots and isolate the regression without overstating verification."
