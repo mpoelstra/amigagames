@@ -37,7 +37,7 @@ static void writePhase6MemoryLog(ULONG beforeFree,ULONG beforeLargest)
 {
     BPTR file=Open("PROGDIR:phase6-memory.log",MODE_NEWFILE);
     if(!file) return;
-    FPrintf(file,"phase=6A world_width=%ld\n",(LONG)SPARKPAW_WORLD_W);
+    FPrintf(file,"phase=6C.1 world_width=%ld\n",(LONG)SPARKPAW_WORLD_W);
     FPrintf(file,"before_gameplay_free=%ld before_gameplay_largest=%ld\n",
             (LONG)beforeFree,(LONG)beforeLargest);
     FPrintf(file,"peak_chip_free=%ld peak_chip_largest=%ld\n",
@@ -114,6 +114,9 @@ int main(void)
     titleRelease();
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        UWORD diagnosticStart,diagnosticEnd;
+#endif
         while(platformRasterLine()<100) { }
         gameUpdate();
         /* The Copper consumes these list entries at frame start. Update them
@@ -125,8 +128,25 @@ int main(void)
            the next line, using the complete remaining PAL blank/HUD window
            instead of squeezing large 64x64 four-plane Bobs into lines 300..311. */
         while(platformRasterLine()<253) { }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticBeginFrame(); diagnosticStart=platformRasterLine();
+#endif
         rendererDrawGameplayBobs();
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        diagnosticEnd=platformRasterLine();
+        rendererDiagnosticEndFrame(diagnosticStart,diagnosticEnd);
+#endif
         while(platformRasterLine()>=253) { }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        if(platformLeftMouse()) state=APP_BOOT;
+#endif
     }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        if(platformLeftMouse()) state=APP_BOOT;
+#endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    while(platformLeftMouse()) { }
+    platformRestore(); rendererWriteDiagnosticLog(); cleanup();
+#endif
     return 0;
 }

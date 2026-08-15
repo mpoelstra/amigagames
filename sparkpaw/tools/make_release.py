@@ -17,8 +17,8 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.4"
-ROADMAP_CHECKPOINT = "6B.5"
+RELEASE_VERSION = "0.6.0-alpha.28"
+ROADMAP_CHECKPOINT = "6C.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -27,6 +27,7 @@ ADF_REAR_ASSET = ROOT / "build" / "adf-assets" / "storm-rear.spr1"
 ADF_STRIDER_ASSET = (
     ROOT / "build" / "adf-assets" / "clockwork-storm-strider.spr1"
 )
+ADF_PLAYER_ASSET = ROOT / "build" / "adf-assets" / "sparkpaw-sprites4.spr1"
 
 RUNTIME_FILES = (
     "sparkpaw-title.spbm",
@@ -57,7 +58,7 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} ledge-teeter accepted
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} twelve-screen route integration
 MrDig Productions - Copyright 2026
 
 Phase 6B.3 adds the approved thin ground cap; 6B.3A aligns floor actors to
@@ -66,6 +67,111 @@ Phase 6B.4 adds a four-frame splash, short pre-restart hold and original Paula
 water-impact effect. The HUD todo remains open.
 Phase 6B.5 appends four ledge-balance poses as player slots 58..61. Standing
 still with support under only one foot triggers them; movement interrupts them.
+Phase 6B.6 continues the approved lowest-ground visual direction. Production stays
+4+3: AGA cannot provide 5+3 dual playfield. A new authored REAR8 layer adds
+storm clouds, mountain depth, dense forest silhouettes, ruined towers,
+waterfalls and a cyan-lit central ruin without adding a bitplane or changing
+the stable renderer. Its unique native source span is extended from 640 to
+1024 pixels, moving the former repeated-art boundary beyond the complete
+current and planned quarter-speed camera ranges. The accepted sixteen-frame water cache, collision,
+line-252 HUD switch and synchronized line-253 Bob pass remain unchanged.
+Alpha.17 keeps the three-plane rear bitmap but uses twelve horizontal-blank
+Copper palette steps to morph among dedicated sky, mountain and forest colour
+ranges. This increases displayed rear colour depth without an eighth plane,
+extra bitmap fetch or CPU compositing. Emulator and real-hardware review of the
+new palette timing remain pending.
+Supplied alpha.17 FS-UAE review accepts the colour improvement but exposes the
+sole non-word-aligned diamond's second-word residue. Alpha.18 adds a dedicated
+400-byte two-word background cache for that slot; the other 31 collectibles
+retain their compact one-word restore path.
+Alpha.19 replaces the complete parallax master with a coherent full-height
+Storm Ruins panorama. Turbulent cloud masses now reach the upper edge while
+the opening vortex/tower, unique mountain passes, ruins, waterfalls and forest
+survive exact 1024x208 Copper-banded reduction. Rear dimensions, three-plane
+fetch, scroll factor and memory footprint are unchanged.
+Supplied alpha.19 FS-UAE review accepts the panorama but finds its destination
+tower less recognizable than the title art. Alpha.20 uses a completely new v4
+master generated from that title architecture: central gothic spire, side
+turrets, castle base and cyan Stormstone heart. One existing mountain palette
+index becomes cyan; plane count, Copper steps and memory remain unchanged.
+Supplied alpha.20 FS-UAE evidence accepts the title-identity rear baseline.
+Alpha.21 starts the separate foreground re-author with a newly generated AGA
+ruin kit: whole platform/column families, open braces, gothic cavities and cyan
+conduits replace repeated tile boxes. Collision, top edges, water and renderer
+memory/DMA contracts remain unchanged.
+Supplied alpha.21 FS-UAE review finds the new material better but rejects its
+repeated centred supports, uniform ground strip and obsolete floating purple
+lozenges/orange lamps as final foreground quality. Alpha.22 replaces them with
+a newly generated richer kit: seven slab rhythms, four distinct underside
+structures, four pier families and one shallow authored ground facade. The
+legacy decoration is removed. Collision geometry, platform bounds, actor
+baselines, FRONT16 ownership and renderer work remain unchanged.
+Alpha.23 starts Phase 6C with the complete 3072-pixel/twelve-screen resident
+route. Four distinct new screens add a broken low bridge, high side-pier,
+second animated water opening, broad patrol court and final portal/chasm. The
+level now has two 80-pixel water gaps and two dry chasms. Seven persistent
+Striders follow authored world-space routes, including bidirectional crossings
+over both water gaps and both dry chasms; they keep updating while parked
+offscreen. Ten required plus up to four optional beetle candidates share the
+same generic four-slot active enemy/Bob pool. Sixteen aligned diamonds extend
+the trails to 48 total. The second water location reuses the existing 7,040-byte
+frame bank and is copied to clean/display in the synchronized line-253 pass.
+No player/enemy frame IDs, line-100 staging or line-252 HUD switch change.
+On HD, the same left-mouse exit now adds prepared-peak and post-run Chip/Fast
+free/largest values to `renderdiag.log`; no separate executable is needed for
+the primary Phase 6C.1 memory/timing return.
+The ADF-only build also packs the 184,380-byte player source as a 135,907-byte
+SPR1 stream. It uses the accepted 512-byte streaming decoder and leaves the HD
+SPBM path unchanged; this saves disk space but does not claim lower resident
+Chip use.
+Alpha.24 fixes the blocked final ascent found in supplied alpha.23 FS-UAE
+evidence. The last dry-gap landing is now a low broken step followed by a
+reachable 48-pixel rise to the portal platform; global jump physics is
+unchanged. Dry gaps retain distinct fall semantics and gain broken bank faces,
+dark recessed bottoms and severed cyan conduit details. Suspended-platform
+undersides also alternate shallow lips, braces and deeper machinery silhouettes
+without changing solid slabs or renderer work.
+Supplied alpha.24 FS-UAE evidence rejects that first correction: Sparkpaw can
+stand on the low landing, but its adjacent 48-pixel wall cancels horizontal
+motion before his feet clear the portal lip. Alpha.25 shortens the low landing,
+leaves a 16-pixel open run between steps, reduces the rise to 32 pixels and
+aligns the remaining portal deck at that height. Exact host simulation includes
+moveX-before-moveY, the standing hitbox and four approach speeds; all land on
+the portal. Global movement, jump velocity and renderer contracts are unchanged.
+The four final-deck diamonds are also re-aligned above y=144 with full hover
+clearance, and the last beetle patrol follows that corrected solid surface. A
+full 48-diamond collision audit also corrects five earlier placements whose
+16x21 Bob plus two-pixel low hover touched a platform or the floor.
+Supplied alpha.25 FS-UAE evidence rejects the 32-pixel step at the extreme
+right/max-speed launch boundary. Alpha.26 lowers the entire portal deck to
+y=160: a 16-pixel rise after the existing 16-pixel gap. An exhaustive host
+collision model covers all 21 valid launch X positions and 83 horizontal speed
+samples (1,743 cases), including exact maximum speed, with zero failures.
+Supplied alpha.26 FS-UAE evidence nevertheless rejects that 16-pixel rise.
+Alpha.27 removes the vertical step: the low landing and complete portal deck
+share y=176 with only one open 16-pixel tile between them. Completion no longer
+depends on a wall-adjacent jump; global movement and jump physics stay intact.
+Supplied alpha.27 FS-UAE evidence identifies a different blocked route at the
+second-water approach: its x=2320 platform sits 64 pixels above the preceding
+slab. Alpha.28 lowers that complete platform and attached pier from y=112 to
+y=160, leaving a readable but reachable 16-pixel rise. The following water gap,
+global jump physics and renderer contracts remain unchanged.
+The later portal is restored from alpha.27's unnecessary flat y=176 experiment
+to the still-raised y=160 alpha.26 layout. Independently audited diamond
+clearance remains intact.
+Supplied alpha.28 FS-UAE/HD testing accepts the corrected platform and confirms
+Sparkpaw can continue through and complete the full level. ADF gameplay parity,
+real-A1200 verification and full-run timing/memory evidence remain pending.
+Supplied FS-UAE review rejects REAR8 plus foreground v1 as the final visual
+quality target while retaining the corrected non-repeating composition, and
+accepts rb19c as a worthwhile isolated REAR16 visual proof. The source package
+Supplied rd01 production evidence finds seven per-frame diamond restore/draws
+in the 172-line high-water frame. Alpha.15 keeps their accepted hover but stores
+5,376 bytes of compact original Chip-RAM patches, retains active diamonds in
+clean/display and staggers their updates over four frames. Supplied rd02 shows
+the next real bottleneck is a six-projectile/four-enemy combat frame. The HD
+main executable now keeps the high-water log and clean left-mouse exit, avoiding
+separate test drawers. ADF stays reset-only. Production remains 4+3.
 
 Requirements
 ------------
@@ -84,8 +190,8 @@ Controls
 Joystick port 2: left/right to run, up to jump and fire to shoot. Every fire
 press launches a fast blue/cyan plasma pulse; rapid tapping supports several
 pulses in flight. Hold down to crouch; combine down with left/right to
-crouch-walk, and press fire to shoot from a dedicated low pose. Four guaranteed
-and up to two optional low clockwork beetles patrol separate parts of the test
+crouch-walk, and press fire to shoot from a dedicated low pose. Ten required
+plus a bounded optional set of low clockwork beetles patrol the test
 level with bounded position and speed variation. Only crouch-shots
 can hit them; fire twice to destroy each one. Beetle contact removes one of
 six internal half-heart health units, applies knockback and plays a short hurt
@@ -95,17 +201,17 @@ current test level in memory so it can be replayed without rebooting.
 A fixed full-width HUD band at the bottom shows the six health units as three
 full, half or empty hearts. The Sparkpaw-head counter starts at x3, decreases on
 each zero-health reset and temporarily cycles to x3 after the third loss until
-the later game-over state is implemented. Twenty hovering diamonds form short
+the later game-over state is implemented. Forty-eight hovering diamonds form
 trails and original arcs throughout the level; the adjacent two-digit HUD
 counter records them up to 49. Contact invulnerability is shown by a brief
 whole-character blink.
-Reset the Amiga or emulator to leave this bare-metal milestone. Mouse exit is
-disabled so an accidental click cannot interrupt a test.
+On HD, left mouse cleanly restores Workbench and writes `renderdiag.log` beside
+Sparkpaw. The bootable ADF remains reset-to-exit and performs no DOS log write.
 
 What to test
 ------------
 
-Walk through all five screen widths, jump onto and off each platform, reverse
+Walk through all twelve screen widths, jump onto and off each platform, reverse
 direction often, and compare the movement on HD and ADF. The rear scenery
 must move at one quarter of the foreground speed. Sparkpaw now uses fixed
 48x48, 15-colour AGA poses for idle, blink, run, jump, fall, landing and
@@ -117,13 +223,12 @@ overlap an enemy or two beetles approach the same screen edge.
 Please look for sprite flicker, apparent size changes, foot sliding, tearing,
 collision errors, camera jumps and parallax glitches.
 
-Two non-interactive Clockwork Storm Striders patrol independently: one starts
-on a raised platform and one on the floor. The raised Strider pauses in two
-cyan compression stages at its right endpoint, jumps to the adjacent lower
-floor, lands and recovers before resuming patrol. They do not damage Sparkpaw
-or absorb shots yet. Check grounding, the complete jump and stale 64x64 pixels
-while moving them on/off screen and restarting the level. Music remains outside
-this milestone.
+Seven persistent Clockwork Storm Striders patrol independently across the
+twelve-screen route. Their authored traversal links cross both water openings
+and both dry chasms in both directions. Offscreen Striders keep simulating in
+world space while their Bobs remain parked; verify natural entry from either
+screen edge, grounding, traversal, ranged/contact damage, hit/death/respawn and
+the absence of stale 64x64 pixels. Music remains outside this milestone.
 """
 
 
@@ -186,6 +291,11 @@ def make_adf() -> Path:
         adf_root / "assets" / "runtime" /
         "clockwork-storm-strider.spr1",
     )
+    (adf_root / "assets" / "runtime" / "sparkpaw-sprites4.spbm").unlink()
+    shutil.copy2(
+        ADF_PLAYER_ASSET,
+        adf_root / "assets" / "runtime" / "sparkpaw-sprites4.spr1",
+    )
     (adf_root / "S").mkdir()
     (adf_root / "S" / "startup-sequence").write_text(
         "Sparkpaw\n", encoding="ascii"
@@ -227,6 +337,8 @@ def make_adf() -> Path:
             str(extracted / "storm-rear.spr1"),
             "+", "read", "assets/runtime/clockwork-storm-strider.spr1",
             str(extracted / "clockwork-storm-strider.spr1"),
+            "+", "read", "assets/runtime/sparkpaw-sprites4.spr1",
+            str(extracted / "sparkpaw-sprites4.spr1"),
         ], cwd=ROOT, env=env, check=True)
         if (extracted / "Sparkpaw").read_bytes() != ADF_EXECUTABLE.read_bytes():
             raise SystemExit("ADF verification failed: Sparkpaw")
@@ -256,6 +368,15 @@ def make_adf() -> Path:
         ).read_bytes():
             raise SystemExit(
                 "ADF decode verification failed: clockwork-storm-strider.spr1"
+            )
+        packed = (extracted / "sparkpaw-sprites4.spr1").read_bytes()
+        if packed != ADF_PLAYER_ASSET.read_bytes():
+            raise SystemExit("ADF verification failed: sparkpaw-sprites4.spr1")
+        if decode_adf_asset(packed) != (
+            ROOT / "assets" / "runtime" / "sparkpaw-sprites4.spbm"
+        ).read_bytes():
+            raise SystemExit(
+                "ADF decode verification failed: sparkpaw-sprites4.spr1"
             )
     return adf
 

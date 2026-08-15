@@ -479,3 +479,188 @@ Saved as `assets/sprites/sparkpaw-ledge-teeter-v1-chroma.png`; the skill's
 standard chroma-removal helper produced
 `assets/sprites/sparkpaw-ledge-teeter-v1-transparent.png`. Runtime slots 0..57
 remain unchanged pending explicit visual approval and a 48x48 palette proof.
+
+## Phase 6B.6 representative environment slice concept v1
+
+Built-in ImageGen reference workflow, 2026-08-14. Review-only environment
+source; not consumed by the runtime generator. References were the saturated
+`sparkpaw-gameplay-concept.png` and approved low-ground water concept v4.
+
+```text
+Use case: stylized-concept
+Asset type: review-only representative environment slice for a PAL A1200 AGA
+side-scrolling platform game
+Primary request: one polished environment-only Storm Ruins gameplay slice with
+a short blue water gap interrupting a low stone-and-metal ground strip. Preserve
+the saturated premium pixel-art identity and approved low floor. Ground runs to
+the bottom edge with no forest band. Use dark carved ruin blocks, restrained
+moss, cyan energy seams, clean banks, rich water with irregular full-width
+wavelets and independently spaced bubbles, deep mountain/forest/ruin parallax
+and one raised platform.
+Composition: 16:10 gameplay viewport approximating the upper 208 lines of
+320x256, continuous banks and one 80px-proportion centre opening.
+Constraints: no character, enemy, beetle, Strider, collectible, diamond,
+projectile, HUD, text or interface; no tall floor; surface only about 5-10px
+above the bottom boundary; wave never above either bank; original structures.
+Avoid: duplicate object scales, empty lower strip, photorealism, smoothing,
+gradients, antialiasing, watermark, logo or text.
+```
+
+Saved as `assets/concept/sparkpaw-visual-slice-concept-v1.png`. Its atmosphere
+and parallax direction were useful, but its bottom foundation was internally
+rejected as roughly three times too tall for the intended native playfield.
+
+### Visual slice concept v2 thin-ground correction
+
+Built-in ImageGen edit workflow using v1 as the edit target and water concept
+v4 as the low-ground authority:
+
+```text
+Change only the bottom ground and water-bank vertical geometry. Reduce the
+foundation to a compact 40-55px total height in the 1586x992 review image, with
+the underside touching the bottom edge. Move the water and both bank lips to
+the same walkable height. Preserve the compact carved edge, cyan seams, tiny
+moss cap and everything above it: saturated mountains, forest, ruined towers,
+central ruin, waterfalls, lighting, palette and raised platform. Keep the wave
+between the banks. No HUD, characters, enemies, collectibles, text or empty
+lower band; avoid a thick foundation or cliff-height floor.
+```
+
+Saved as `assets/concept/sparkpaw-visual-slice-concept-v2.png`. V2 is the
+current review candidate; neither concept is consumed by runtime generation.
+
+## Phase 6B.6 extended parallax master v2
+
+Built-in ImageGen edit workflow, 2026-08-14. The accepted v1 parallax master
+was the edit target and visual authority. Its 640px native reduction produced
+an abrupt repeated landmark boundary during the supplied FS-UAE scroll review.
+
+```text
+Use case: stylized-concept
+Asset type: extended source master for a PAL Amiga AGA side-scrolling game's
+quarter-speed rear parallax
+Primary request: preserve the iconic left opening with storm vortex,
+lightning-struck ruined tower, violet mountains and waterfalls, then extend it
+into a much longer continuous Storm Ruins journey with unique mountain passes,
+varied cloud banks, dense forest depth, smaller broken ruins, restrained
+waterfalls and distant cyan energy traces. Major landmarks must not repeat.
+Composition: ultra-wide panoramic background. Keep important detail in the
+upper two-thirds for reduction to a 1024x208 native strip. Make the far right
+calmer; do not duplicate the vortex or opening tower and avoid abrupt vertical
+changes in colour, mountain height, clouds or forest height.
+Constraints: environment only; no actors, collectibles, platforms, foreground,
+HUD, text or watermark. Crisp hard-edged premium 1990s Amiga pixel art. Preserve
+readability after exact fixed eight-colour indigo/violet/blue reduction.
+```
+
+Saved non-destructively as
+`assets/concept/sparkpaw-parallax-master-concept-v2.png`. The v1 source remains
+preserved. V2 is consumed only after deterministic REAR8 reduction and seam/
+camera-range validation; REAR16 remains a separate preview/benchmark candidate.
+
+## Phase 6B.6 foreground material study v1 and geometry-locked concept v3
+
+Built-in ImageGen edit using `sparkpaw-visual-slice-concept-v2.png` as the sole
+edit target. The first prompt requested premium AGA ruin foreground materials,
+larger unique structures, chipped pale stone lips, dark/violet recesses, cyan
+conduits, sparse vegetation and an authored right platform while preserving the
+storm background and water opening. Its material direction succeeds, but it
+adds a left raised structure and is therefore rejected as a geometry source.
+It is preserved as `assets/concept/sparkpaw-foreground-material-study-v1.png`.
+
+The corrective prompt repeated the same material request with a strict geometry
+lock: preserve the continuous lowest walk line, identical central water gap and
+only the existing right raised rectangular platform/support; add no ledge,
+ramp, stairs, rubble on a walk surface or traversal silhouette. Change only
+material inside/below those shapes, using large asymmetrical structural bays,
+chipped pale stone/steel, deep navy/violet cavities, irregular braces,
+restrained cyan conduits, masonry relief and sparse moss/amber accents. Preserve
+all rear scenery exactly; no actors, HUD, text, gradients or blur.
+
+The result is preserved as `assets/concept/sparkpaw-foreground-concept-v3.png`.
+It is review-only and must not be converted or integrated before approval and a
+fixed FRONT16 palette/geometry proof.
+
+## Phase 6B.6 full parallax master v3
+
+Built-in ImageGen generation/edit workflow, 2026-08-15, using parallax v2 as
+the opening-composition reference and foreground concept v3 as the premium
+Storm Ruins material/atmosphere reference. The first generation supplied strong
+ruins and forest but framed mountains against the top edge; it was rejected.
+The targeted revision preserved those materials while restoring a turbulent
+upper-third storm sky, one left-quarter vortex/lightning tower, unique mountain
+passes, ruins, waterfalls and a cold-green forest across the full panorama.
+It explicitly excludes actors, collectibles, foreground platforms, HUD, text,
+orange orbs, repeated landmarks, flat top streaks and right-edge filler.
+
+Saved as `assets/concept/sparkpaw-parallax-master-concept-v3.png`. Exact review
+uses the complete vertical composition reduced to 1024x208, rather than v2's
+top-biased crop. `assets/levels/storm-parallax-copper-banded-v3-review.png`
+records the exact three-bitplane/twelve-step Copper-palette result. V3 is
+accepted for alpha.19 runtime integration; v1 and v2 remain preserved.
+
+## Phase 6B.6 title-identity parallax master v4
+
+Built-in ImageGen generation workflow, 2026-08-15. This is a completely new
+generation, not an edit or repaint of v3. The runtime title preview is the
+architectural identity authority; v3 is used only as a panorama-quality and
+atmosphere reference. The prompt requires one left-quarter destination citadel
+with a slender central gothic spire, two lower side turrets, a readable castle
+base, sparse vertical cyan Stormstone channels and a lightning connection to a
+large vortex. The remaining panorama contains unique storm clouds, mountain
+passes, forest, lesser ruins and waterfalls, with no repeated main tower,
+actors, collectibles, foreground, HUD, text, orange orb or right-side filler.
+
+Saved as `assets/concept/sparkpaw-parallax-master-concept-v4.png`. Exact review
+is preserved in `assets/levels/storm-parallax-copper-banded-v4-review.png`.
+Because the original mountain band reduced cyan structure to violet, a second
+hardware-exact preview assigns one of its eight indices to cyan and is retained
+as `storm-parallax-copper-banded-v4-cyan-review.png`. Mountain depth remains
+readable while the citadel heart, distant conduits and waterfalls regain the
+title-world identity. V4 plus that palette role is accepted for alpha.20.
+
+## Phase 6B.6 newly generated foreground kit v1
+
+Built-in ImageGen generation workflow, 2026-08-15. Foreground concept v3 is the
+material/lighting authority and the alpha.20 native viewport supplies scale and
+geometry language, but the kit is generated entirely anew rather than painted
+over either reference. It contains one long low ruin facade, six broad unique
+platform families, short gothic columns and paired water-bank motifs on a flat
+magenta chroma background. Required materials are chipped pale stone/steel,
+deep navy/violet cavities, open braces, cyan Stormstone conduits, sparse moss
+and restrained amber rivets; repeated 16px boxes, perspective, collision-changing
+tops, actors, HUD and rear scenery are excluded.
+
+The chroma source is preserved as
+`assets/concept/sparkpaw-foreground-kit-concept-v1-chroma.png`; the cleaned RGBA
+kit is `sparkpaw-foreground-kit-concept-v1.png`. Runtime conversion maps whole
+platform/column pieces into the exact existing FRONT16/collision rectangles.
+Broad platforms retain transparent open supports below their collision slab;
+the y=200 floor remains an honest eight-pixel cap above the fixed HUD.
+
+## Phase 6B.6 richer foreground kit v2
+
+Built-in ImageGen generation workflow, 2026-08-15. The foreground kit v1 is
+the material-identity reference, foreground concept v3 is the architecture and
+quality target, and the runtime title preview anchors the world identity. The
+new orthographic kit supplies seven horizontal slab families, four genuinely
+different underside/support silhouettes, four grounded columns, mirrored
+water-bank motifs and one long shallow ground facade. It explicitly excludes
+the obsolete floating purple lozenges, hanging lamps/orbs and repeated central
+T-supports. All walkable tops remain horizontal and collision-readable.
+
+```text
+Generate a completely new orthographic modular Storm Ruins foreground kit,
+richer and more authored than v1. Arrange clearly separated short-to-long
+platforms, asymmetric broken arches, offset buttresses, suspended rib vaults,
+compact conduit trusses, grounded piers, water-bank endcaps and a long shallow
+ground cap on flat #ff00ff. Use chipped pale stone/steel, charcoal/navy masonry,
+deep violet recesses, structural cyan channels, tiny amber fasteners and sparse
+moss. No floating diamonds, purple lozenges, hanging lamps, orbs, chains,
+actors, collectibles, HUD, rear scenery, perspective, gradients or repeated
+16px boxes. Crisp hard-edged premium late-era AGA pixel art.
+```
+
+Saved as `assets/concept/sparkpaw-foreground-kit-concept-v2-chroma.png`; the
+cleaned RGBA source is `sparkpaw-foreground-kit-concept-v2.png`. V2 replaces
+only generated foreground pixels; collision, renderer and gameplay stay fixed.

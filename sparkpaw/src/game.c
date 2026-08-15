@@ -91,6 +91,13 @@ void gameUpdate(void)
         audioPlayWaterSplash();
         return;
     }
+    if(levelPlayerFallsInDryGap(playerLeft,playerRight,playerBottom)) {
+        if(game.lives>1) game.lives--;
+        else game.lives=GAME_START_LIVES;
+        resetLevelRuntime();
+        audioUpdate();
+        return;
+    }
     enemiesUpdate((WORD)game.cameraX,collisionSolidAt,
                   (WORD)((playerLeft+playerRight)>>1),
                   (WORD)((playerTop+playerBottom)>>1),

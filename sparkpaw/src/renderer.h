@@ -10,6 +10,12 @@ UWORD *rendererCopperList(void);
 void rendererUpdateGameplay(void);
 void rendererDrawGameplayBobs(void);
 
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+void rendererDiagnosticBeginFrame(void);
+void rendererDiagnosticEndFrame(UWORD startLine,UWORD endLine);
+void rendererWriteDiagnosticLog(void);
+#endif
+
 #ifdef PHASE6_MEMORY_TEST
 ULONG rendererPhase6PeakChipFree(void);
 ULONG rendererPhase6PeakChipLargest(void);

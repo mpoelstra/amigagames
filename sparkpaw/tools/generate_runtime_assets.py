@@ -23,8 +23,8 @@ from PIL import Image, ImageDraw, ImageOps
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "assets" / "runtime"
 LEVELS = ROOT / "assets" / "levels"
-WORLD_W, WORLD_H = 2048, 256
-PARALLAX_W = 640
+WORLD_W, WORLD_H = 3072, 256
+PARALLAX_W = 1024
 TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
 BEETLE_FRAMES = 9
@@ -72,6 +72,36 @@ REAR8 = [
     (68, 68, 153), (102, 85, 170), (153, 119, 187), (204, 187, 221),
 ]
 
+# Three Copper-switched palettes retain the 3-plane rear bitmap while giving
+# the fixed-height sky, mountain and forest bands their own material range.
+# Index zero stays the same near-black in every band to keep blanking and the
+# transparent front-playfield relationship stable.
+REAR8_BANDS = [
+    [(0, 0, 1), (0, 0, 4), (1, 1, 6), (2, 1, 8),
+     (4, 2, 9), (6, 4, 11), (9, 6, 12), (13, 11, 14)],
+    [(0, 0, 1), (1, 1, 4), (2, 10, 13), (3, 3, 7),
+     (4, 3, 9), (6, 5, 10), (9, 7, 12), (12, 10, 13)],
+    [(0, 0, 1), (0, 1, 2), (0, 2, 3), (1, 3, 4),
+     (1, 4, 4), (2, 5, 5), (4, 6, 6), (6, 8, 9)],
+]
+REAR8_MORPHS = [(64 + step * 4, 0, 1, step, 4)
+                for step in range(1, 5)] + [
+    (136 + step * 3, 1, 2, step, 8) for step in range(1, 9)
+]
+
+
+def rear_palette_for_y(y: int) -> list[tuple[int, int, int]]:
+    anchor = REAR8_BANDS[0]
+    for at, source, target, step, steps in REAR8_MORPHS:
+        if y < at:
+            break
+        anchor = [tuple(((REAR8_BANDS[source][pen][channel] * (steps-step) +
+                          REAR8_BANDS[target][pen][channel] * step) // steps) * 17
+                        for channel in range(3)) for pen in range(8)]
+    if anchor is REAR8_BANDS[0]:
+        return [tuple(channel * 17 for channel in rgb) for rgb in anchor]
+    return anchor
+
 TITLE_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-title-concept-aga64-preview.png"
 TITLE_RUNTIME_PREVIEW = (ROOT / "assets" / "concept" /
                          "sparkpaw-title-aga64-runtime-preview.png")
@@ -81,6 +111,10 @@ LEVEL_LOADING_PREVIEW = (ROOT / "assets" / "concept" /
                          "sparkpaw-level-loading-aga64-preview.png")
 LEVEL_CHARGING_SOURCE = (ROOT / "assets" / "concept" /
                          "sparkpaw-level-charging-concept-v2.png")
+PARALLAX_MASTER = (ROOT / "assets" / "concept" /
+                   "sparkpaw-parallax-master-concept-v4.png")
+FOREGROUND_KIT = (ROOT / "assets" / "concept" /
+                  "sparkpaw-foreground-kit-concept-v2.png")
 LEVEL_CHARGING_PREVIEW = (ROOT / "assets" / "concept" /
                           "sparkpaw-level-charging-aga64-preview.png")
 HUD_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-hud-concept-v1.png"
@@ -93,8 +127,8 @@ HUD_PREVIEW_LIVES = 3
 HUD_X_OFFSET = 2
 HUD_SEPARATOR_H = 2
 HUD_DIAMOND_STATES = 50
-WATER_LEFT_TILE = 99
-WATER_RIGHT_TILE = 104
+WATER_GAPS = ((99,104),(152,157))
+DRY_GAPS = ((132,136),(174,179))
 GROUND_CAP_TOP = 200
 HUD_PALETTE = [
     (0, 0, 0), (5, 16, 25), (28, 37, 43), (102, 98, 88),
@@ -423,72 +457,195 @@ def make_level_loading() -> tuple[Image.Image, Image.Image,
 
 
 def make_background() -> Image.Image:
-    image = indexed_image((PARALLAX_W, WORLD_H), BG_PALETTE, 1)
+    image = indexed_image((PARALLAX_W, WORLD_H), REAR8, 2)
     d = ImageDraw.Draw(image)
-    # Pixel-banded storm sky: no expensive runtime gradient and no palette cycling.
-    for y, pen in ((0, 1), (30, 2), (62, 3), (94, 4), (126, 5), (158, 6), (190, 7)):
-        d.rectangle((0, y, PARALLAX_W - 1, min(y + 31, WORLD_H - 1)), fill=pen)
-    # Distant mountains and forests repeat slowly enough to remain useful at /4 scroll.
-    for base in range(-80, PARALLAX_W + 200, 220):
-        peak = 52 + ((base // 220) & 3) * 8
-        d.polygon([(base, 190), (base + 95, peak), (base + 205, 190)], fill=13)
-        d.polygon([(base + 35, 190), (base + 112, peak + 28), (base + 220, 190)], fill=14)
-    # Very sparse distant lights stay in the slowest plane.
-    for x, y in ((92, 36), (278, 54), (443, 25), (594, 66)):
-        d.point((x, y), fill=12)
-        d.line((x - 2, y, x + 2, y), fill=12)
-    d.line((535, 26, 522, 52, 535, 49, 515, 82), fill=12, width=2)
+    # Saturated storm bands and broken clouds, all inside the fixed REAR8 bank.
+    d.rectangle((0, 0, PARALLAX_W - 1, 31), fill=2)
+    d.rectangle((0, 32, PARALLAX_W - 1, 69), fill=3)
+    d.rectangle((0, 70, PARALLAX_W - 1, 112), fill=2)
+    for x in range(-24, PARALLAX_W, 92):
+        d.polygon([(x, 42), (x + 22, 31), (x + 54, 35),
+                   (x + 76, 27), (x + 104, 44)], fill=4)
+        d.line((x + 12, 47, x + 78, 47), fill=5)
+
+    # Two mountain depths with deliberate highlight facets instead of flat
+    # greybox triangles. Shapes overlap the 640px repeat at both edges.
+    for base, peak in ((-120, 58), (70, 22), (285, 46), (480, 18)):
+        d.polygon([(base, 175), (base + 95, peak), (base + 210, 175)], fill=4)
+        d.polygon([(base + 95, peak), (base + 65, 92),
+                   (base + 98, 74), (base + 120, 114)], fill=6)
+        d.polygon([(base + 95, peak), (base + 120, 114),
+                   (base + 180, 175), (base + 124, 153)], fill=4)
+        d.line((base + 95, peak + 3, base + 113, 63), fill=5, width=2)
+    for base in (-20, 190, 400, 610):
+        d.polygon([(base, 188), (base + 70, 88), (base + 152, 188)], fill=3)
+        d.polygon([(base + 70, 88), (base + 88, 136),
+                   (base + 127, 188), (base + 94, 165)], fill=2)
+
+    # Distant broken storm towers and waterfalls establish the concept's
+    # vertical landmarks without stealing foreground contrast.
+    for x, top, width in ((38, 65, 26), (276, 78, 22), (520, 55, 30)):
+        d.rectangle((x, top, x + width, 179), fill=3)
+        d.polygon([(x - 4, top), (x + width // 2, top - 24),
+                   (x + width + 3, top)], fill=4)
+        d.line((x + width // 2, top + 5, x + width // 2, 171), fill=6, width=2)
+        for y in range(top + 18, 166, 25):
+            d.line((x + 4, y, x + width - 4, y - 5), fill=5)
+    for x, top in ((148, 105), (422, 92)):
+        d.line((x, top, x, 190), fill=6, width=3)
+        d.line((x + 4, top + 8, x + 4, 190), fill=7, width=1)
+
+    # One broad lightning fork animates only through scrolling; no palette
+    # cycling or Copper changes are introduced.
+    d.line((592, 18, 579, 42, 590, 40, 568, 70), fill=6, width=1)
     return image
 
 
+def make_authored_parallax() -> Image.Image:
+    """Reduce the approved wide parallax master directly into exact REAR8."""
+    source = Image.open(PARALLAX_MASTER).convert("RGB")
+    # V3 was authored as one complete sky/mountain/ruin/forest panorama. Keep
+    # its full vertical composition rather than applying v2's top-biased crop.
+    source = source.resize((PARALLAX_W, 208), Image.Resampling.LANCZOS)
+    image = indexed_image((PARALLAX_W, WORLD_H), rear_palette_for_y(0), 1)
+    src, dst = source.load(), image.load()
+    for y in range(208):
+        palette = rear_palette_for_y(y)
+        for x in range(PARALLAX_W):
+            r, g, b = src[x, y]
+            # The low forest is colour-graded toward the concept's cold green
+            # stone/trees before exact palette reduction. Geometry and pixels
+            # still come from the approved authored master.
+            if y >= 145:
+                r = (r * 3) // 5
+                g = min(255, (g * 6) // 5 + 8)
+                b = (b * 4) // 5
+            dst[x, y] = nearest_index((r, g, b), palette)
+    return image
+
+
+def rear_rgb(image: Image.Image) -> Image.Image:
+    """Render band-indexed rear pixels as the Copper will display them."""
+    result = Image.new("RGB", image.size)
+    src, dst = image.load(), result.load()
+    for y in range(image.height):
+        source_y = y % WORLD_H
+        palette = rear_palette_for_y(source_y)
+        for x in range(image.width):
+            dst[x, y] = palette[int(src[x, y])]
+    return result
+
+
 def make_midground() -> Image.Image:
-    image = indexed_image((PARALLAX_W, WORLD_H), BG_PALETTE, 0)
+    image = indexed_image((PARALLAX_W, WORLD_H), REAR8, 0)
     d = ImageDraw.Draw(image)
-    # Towers, arches and trees form an independently moving middle distance.
-    for x in (70, 335, 590):
-        d.rectangle((x, 86, x + 38, 200), fill=2)
-        d.rectangle((x - 7, 78, x + 45, 96), fill=3)
-        d.polygon([(x - 5, 78), (x + 19, 48), (x + 43, 78)], fill=13)
-        for wy in (108, 137, 166):
-            d.rectangle((x + 14, wy, x + 23, wy + 12), fill=11)
-    for x in range(-10, PARALLAX_W, 34):
-        h = 28 + ((x * 13) % 38)
-        d.polygon([(x, 223), (x + 17, 223 - h), (x + 34, 223)], fill=15 if x % 68 else 14)
-    for x in (16, 280, 544):
-        d.line((x, 106, x, 207), fill=2, width=5)
-        d.line((x + 70, 106, x + 70, 207), fill=2, width=5)
-        d.arc((x, 84, x + 70, 148), 180, 360, fill=6, width=4)
+    # Three forest silhouettes use stepped branch clusters rather than a row of
+    # identical triangles. Their values stay below gameplay silhouettes.
+    for depth, base_y, step, pen in ((0, 211, 29, 3), (1, 222, 25, 2),
+                                     (2, 230, 21, 1)):
+        for x in range(-18 + depth * 7, PARALLAX_W + 24, step):
+            h = 31 + ((x * 7 + depth * 19) % (42 - depth * 7))
+            cx = x + step // 2
+            d.rectangle((cx - 1, base_y - h, cx + 1, base_y), fill=pen)
+            for branch in range(6, h - 3, 7):
+                half = max(3, (h - branch) // 5)
+                y = base_y - branch
+                d.polygon([(cx, y - 8), (cx - half, y + 3),
+                           (cx + half, y + 3)], fill=pen)
+
+    # Near parallax ruins and arches echo the concept's carved technology.
+    for x, top, width in ((84, 118, 42), (326, 99, 50), (552, 126, 38)):
+        d.rectangle((x, top, x + width, 218), fill=1)
+        d.rectangle((x + 5, top + 5, x + width - 5, 218), fill=2)
+        d.line((x + 4, top + 3, x + width - 4, top + 3), fill=5, width=2)
+        d.polygon([(x - 4, top), (x + width // 2, top - 20),
+                   (x + width + 4, top)], fill=3)
+        d.line((x + width // 2, top + 10, x + width // 2, 205), fill=7, width=2)
+        d.rectangle((x + width // 2 - 4, top + 42,
+                     x + width // 2 + 4, top + 54), fill=0)
+    for x in (8, 238, 456):
+        d.line((x, 139, x, 218), fill=1, width=6)
+        d.line((x + 76, 139, x + 76, 218), fill=1, width=6)
+        d.arc((x, 104, x + 76, 171), 180, 360, fill=3, width=5)
+        d.arc((x + 7, 112, x + 69, 168), 180, 360, fill=5, width=2)
     return image
 
 
 def make_foreground() -> tuple[Image.Image, bytearray]:
-    image = indexed_image((WORLD_W, WORLD_H), FG_PALETTE, 0)
+    image = indexed_image((WORLD_W, WORLD_H), FRONT16, 0)
     d = ImageDraw.Draw(image)
+    kit = Image.open(FOREGROUND_KIT).convert("RGBA")
+    platform_parts = (
+        (105,44,218,98), (284,44,500,102), (565,44,1231,128),
+        (104,130,864,208), (103,218,1011,284),
+        (104,305,1279,376), (97,395,1444,468),
+    )
+    support_parts = (
+        (123,501,419,610), (478,501,678,608),
+        (738,501,1086,608), (1139,501,1402,599),
+    )
+    column_parts = (
+        (416,648,551,838), (616,648,741,838),
+        (807,648,932,836), (992,650,1113,837),
+    )
     cols, rows = WORLD_W // TILE, 14
     collision = bytearray(cols * rows)
+
+    def kit_piece(crop: tuple[int,int,int,int], box: tuple[int,int,int,int]) -> None:
+        x0,y0,x1,y1=box
+        part=kit.crop(crop).resize((x1-x0+1,y1-y0+1),Image.Resampling.LANCZOS)
+        pixels=part.load()
+        for py in range(part.height):
+            for px in range(part.width):
+                r,g,b,a=pixels[px,py]
+                if a>=80:
+                    r=min(255,r+20); g=min(255,g+20); b=min(255,b+24)
+                    if g>r+16 and b>r+24:
+                        pen=6 if g+b>250 else 5
+                    else:
+                        pen=nearest_index((r,g,b),FRONT16,avoid_zero=True)
+                    image.putpixel((x0+px,y0+py),pen)
 
     def block(tx: int, ty: int, tw: int, th: int, style: int = 0) -> None:
         for yy in range(ty, min(ty + th, rows)):
             for xx in range(max(tx, 0), min(tx + tw, cols)):
                 collision[yy * cols + xx] = 1
         x0, y0, x1, y1 = tx * TILE, ty * TILE, (tx + tw) * TILE - 1, (ty + th) * TILE - 1
-        base = (5, 15, 2, 12)[style & 3]
-        edge = (4, 7, 10, 9)[style & 3]
+        base = (8, 9, 8, 9)[style & 3]
+        edge = (10, 10, 11, 10)[style & 3]
+        # Layered Storm Ruins construction: a pale load-bearing lip, irregular
+        # steel slabs and recessed violet/cyan machinery. This stays inside the
+        # established FRONT16 bank and never changes the collision rectangle.
         d.rectangle((x0, y0, x1, y1), fill=1)
-        d.rectangle((x0 + 2, y0 + 2, x1 - 1, y1 - 1), fill=base)
-        d.line((x0 + 2, y0 + 2, x1 - 1, y0 + 2), fill=edge, width=2)
-        for x in range(x0 + 8, x1, 16):
-            d.line((x, y0 + 4, x, y1 - 2), fill=2)
+        d.rectangle((x0 + 1, y0 + 2, x1 - 1, y1 - 1), fill=base)
+        d.line((x0 + 1, y0, x1 - 1, y0), fill=11)
+        d.line((x0 + 2, y0 + 1, x1 - 2, y0 + 1), fill=edge)
+        d.line((x0 + 2, y1 - 1, x1 - 2, y1 - 1), fill=1)
+        if th>1:
+            crop=column_parts[(tx+style)%len(column_parts)]
+            art_y1=y1
+        elif tw>=6 and y0<GROUND_CAP_TOP:
+            crop=support_parts[(tx//8+style)%len(support_parts)]
+            # Alternate shallow lips, open braces and deeper machinery masses.
+            # These are decorative silhouettes below the unchanged solid slab.
+            art_y1=min(GROUND_CAP_TOP-1,y0+(22,38,30,46)[style&3])
+        else:
+            crop=platform_parts[(tx+tw+style*3)%len(platform_parts)]
+            art_y1=y1
+        kit_piece(crop,(x0,y0,x1,art_y1))
+        # Reassert a continuous collision-readable top lip after indexed
+        # reduction; all other pixels come from the newly generated kit.
+        d.line((x0,y0,x1,y0),fill=11)
+        d.line((x0+1,y0+1,x1-1,y0+1),fill=edge)
 
     # Continuous collision floor and varied but readable Phase 6B greybox over
     # eight screens. The visible 6B.3 cap is applied after the legacy eight-
     # colour remap so it can use the existing fourth-plane steel/violet pens.
     block(0, 13, cols, 1, 0)
-    for tx in range(WATER_LEFT_TILE,WATER_RIGHT_TILE):
-        collision[13 * cols + tx] = 0
-    water_left=WATER_LEFT_TILE*TILE
-    water_right=WATER_RIGHT_TILE*TILE-1
-    d.rectangle((water_left,13*TILE,water_right,WORLD_H-1),fill=0)
+    for gap_left,gap_right in WATER_GAPS+DRY_GAPS:
+        for tx in range(gap_left,gap_right):
+            collision[13 * cols + tx] = 0
+        d.rectangle((gap_left*TILE,13*TILE,gap_right*TILE-1,WORLD_H-1),fill=0)
     block(8, 10, 7, 1, 2)
     block(20, 8, 6, 1, 0)
     block(31, 11, 8, 1, 3)
@@ -500,19 +657,34 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
     block(104, 11, 7, 1, 3)
     block(115, 9, 6, 1, 0)
     block(123, 7, 4, 1, 2)
+    # Phase 6C extends the route to twelve screens. These are authored beats,
+    # not a repeated four-screen tail: dry chasm, high approach, second water,
+    # long patrol court, bidirectional Strider chasm and final portal ascent.
+    block(128, 9, 4, 1, 1)
+    block(136,11, 7, 1, 3)
+    # Alpha.28 lowers the previously unreachable 64px water approach. The
+    # complete slab remains raised, but only 16px above its y=176 approach.
+    block(145,10, 6, 1, 0)
+    block(157, 9, 8, 1, 2)
+    block(166,11, 8, 1, 1)
+    # Keep the later portal architecturally raised but conservatively reachable.
+    # Alpha.28 rolls back alpha.27's unnecessary flattening after evidence showed
+    # that the reported blocker was the earlier x=2320 water approach.
+    block(179,11, 3, 1, 1)
+    block(183,10, 3, 1, 3)
+    block(188,10, 4, 1, 0)
     # Short columns establish occlusion and test collision at camera seams.
     block(16, 11, 2, 2, 1)
     block(40, 10, 2, 3, 0)
     block(63, 11, 2, 2, 3)
     block(80, 11, 2, 2, 2)
     block(112, 11, 2, 2, 3)
-    # Lamps, chains and Stormstone markings remain non-solid decoration.
-    for x in (190, 510, 830, 1150, 1470, 1790):
-        d.line((x, 24, x, 66), fill=4, width=2)
-        d.ellipse((x - 5, 62, x + 5, 72), fill=13, outline=7)
-    for x in (270, 590, 910, 1230, 1550, 1870):
-        d.polygon([(x, 184), (x + 8, 168), (x + 16, 184), (x + 8, 200)], fill=12, outline=3)
-        d.point((x + 8, 176), fill=11)
+    # Attached piers turn several slabs into the authored L/portal silhouettes
+    # from the approved concept references instead of floating shelf repeats.
+    block(144, 10, 2, 3, 1)
+    block(165,  9, 2, 4, 0)
+    block(186, 10, 2, 3, 2)
+    block(190, 10, 2, 3, 3)
     return image, collision
 
 
@@ -520,22 +692,59 @@ def apply_ground_water_treatment(image: Image.Image) -> None:
     """Apply approved 6B.3 art in the established four-plane front bank."""
     image.putpalette([v for rgb in FRONT16 for v in rgb]+[0]*(768-48))
     d=ImageDraw.Draw(image)
-    water_left=WATER_LEFT_TILE*TILE
-    water_right=WATER_RIGHT_TILE*TILE-1
-    # Thin steel/stone profile directly above the HUD; never a tall foundation.
-    d.rectangle((0,GROUND_CAP_TOP,WORLD_W-1,207),fill=8)
-    d.line((0,GROUND_CAP_TOP,WORLD_W-1,GROUND_CAP_TOP),fill=10)
-    d.line((0,GROUND_CAP_TOP+1,WORLD_W-1,GROUND_CAP_TOP+1),fill=9)
-    for x in range(0,WORLD_W,16):
-        d.line((x,GROUND_CAP_TOP+2,x,207),fill=1)
-        d.point((x+5,205),fill=10 if (x//16)&1 else 9)
-        d.line((x+10,206,min(x+12,WORLD_W-1),206),fill=1)
-        if (x//16)%3==1:
-            d.point((x+3,GROUND_CAP_TOP),fill=6)
-    # Static storm water replaces only the accepted five-tile opening.
-    for y in range(11):
-        for x in range(80):
-            d.point((water_left+x,197+y),fill=water_animation_pen(0,x,y))
+    # Thin concept-quality ruin profile directly above the HUD; never a tall
+    # foundation. It shares the raised-platform slab language without changing
+    # the accepted y=200 collision line.
+    kit=Image.open(FOREGROUND_KIT).convert("RGBA")
+    ground=kit.crop((84,896,1456,969)).resize((512,8),Image.Resampling.LANCZOS)
+    if not hasattr(Image.Transpose,"FLIP_LEFT_RIGHT"):
+        raise RuntimeError("Pillow transpose support is required")
+    for section_x in range(0,WORLD_W,512):
+        part=ground if ((section_x//512)&1)==0 else ground.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        src=part.load()
+        for py in range(8):
+            for px in range(min(512,WORLD_W-section_x)):
+                r,g,b,a=src[px,py]
+                if a>=80:
+                    if g>r+16 and b>r+24:
+                        pen=6 if g+b>250 else 5
+                    else:
+                        pen=nearest_index((min(255,r+20),min(255,g+20),min(255,b+24)),
+                                          FRONT16,avoid_zero=True)
+                    image.putpixel((section_x+px,GROUND_CAP_TOP+py),pen)
+                else:
+                    image.putpixel((section_x+px,GROUND_CAP_TOP+py),1)
+    d.line((0,GROUND_CAP_TOP,WORLD_W-1,GROUND_CAP_TOP),fill=11)
+    d.line((0,GROUND_CAP_TOP+1,WORLD_W-1,GROUND_CAP_TOP+1),fill=10)
+    d.line((0,207,WORLD_W-1,207),fill=1)
+    # Dry chasms remain a different hazard from water. Eleven visible pixels is
+    # all the fixed HUD boundary permits, so use broken bank faces, a recessed
+    # bottom and severed conduit glints instead of pretending this is a deep
+    # vertical vista. All pixels inside the opening remain non-solid.
+    for gap_index,(gap_left,gap_right) in enumerate(DRY_GAPS):
+        x0=gap_left*TILE; x1=gap_right*TILE-1
+        d.rectangle((x0,197,x1,207),fill=0)
+        d.polygon(((x0,197),(x0+11,197),(x0+8,201),(x0+5,207),(x0,207)),fill=1)
+        d.polygon(((x1-11,197),(x1,197),(x1,207),(x1-5,207),(x1-8,202)),fill=1)
+        d.line((x0,197,x0+9,197,x0+6,202),fill=10)
+        d.line((x1-9,197,x1,197),fill=10)
+        d.line((x0+2,199,x0+5,202,x0+4,206),fill=8)
+        d.line((x1-3,199,x1-6,203,x1-5,206),fill=9)
+        abyss_top=204+(gap_index&1)
+        d.rectangle((x0+7,abyss_top,x1-7,207),fill=1)
+        for tooth_x in range(x0+12+(gap_index*5),x1-8,17):
+            d.polygon(((tooth_x,abyss_top),(tooth_x+4,abyss_top),
+                       (tooth_x+2,abyss_top-2)),fill=1)
+        conduit_y=202+(gap_index&1)
+        d.line((x0+7,conduit_y,x0+14,conduit_y+3),fill=5)
+        d.point((x0+8,conduit_y),fill=6)
+        d.line((x1-14,conduit_y+2,x1-8,conduit_y),fill=5)
+        d.point((x1-9,conduit_y),fill=6)
+    for gap_left,gap_right in WATER_GAPS:
+        water_left=gap_left*TILE
+        for y in range(11):
+            for x in range((gap_right-gap_left)*TILE):
+                d.point((water_left+x,197+y),fill=water_animation_pen(0,x,y))
 
 
 def water_animation_pen(frame: int,x: int,y: int) -> int:
@@ -1192,9 +1401,7 @@ def make_sprites() -> tuple[Image.Image, bytes]:
 def main() -> None:
     RUNTIME.mkdir(parents=True, exist_ok=True)
     LEVELS.mkdir(parents=True, exist_ok=True)
-    bg = make_background()
-    mid = make_midground()
-    bg.paste(mid, (0, 0), alpha_image(mid))
+    bg = make_authored_parallax()
     fg, collision = make_foreground()
     sprites, mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
@@ -1222,12 +1429,15 @@ def main() -> None:
               FRONT16,depth=4,mask=collectible_diamond_mask)
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
-    # renderer. The rear artwork repeats across the entire five-screen world.
-    rear_tile = remap(bg, BG_PALETTE, REAR8)
+    # renderer. The 1024px authored rear span covers every quarter-speed source
+    # coordinate visible in both the current 2048px world and planned 3072px
+    # route; the padded repeat is never reached by either camera range.
+    rear_tile = bg
     rear_world = indexed_image((WORLD_W, WORLD_H), REAR8, 0)
     for x in range(0, WORLD_W, PARALLAX_W):
         rear_world.paste(rear_tile, (x, 0))
-    front_world = remap(fg, FG_PALETTE, FRONT8, transparent_zero=True)
+    rear_preview = rear_rgb(rear_world)
+    front_world = fg
     apply_ground_water_treatment(front_world)
     sprite_world = remap(sprites, FG_PALETTE, FRONT8, transparent_zero=True)
     sprite_mask = bitmap_mask(sprite_world)
@@ -1274,27 +1484,38 @@ def main() -> None:
     (RUNTIME / "storm-foreground.spbm").unlink(missing_ok=True)
     (RUNTIME / "storm-midground.spbm").unlink(missing_ok=True)
     (RUNTIME / "storm-collision.bin").write_bytes(collision)
-    bg.crop((0, 0, 320, 256)).save(LEVELS / "storm-background-preview.png")
-    fg_preview = bg.crop((0, 0, 320, 256)).convert("RGB")
-    mid_alpha = mid.crop((0, 0, 320, 256)).convert("RGBA")
-    mid_alpha.putalpha(alpha_image(mid.crop((0, 0, 320, 256))))
-    fg_preview.paste(mid_alpha, (0, 0), mid_alpha)
+    authored_rear_preview=rear_rgb(bg)
+    authored_rear_preview.crop((0, 0, 320, 256)).save(
+        LEVELS / "storm-background-preview.png")
+    authored_rear_preview.crop((0,0,PARALLAX_W,208)).save(
+        LEVELS / "storm-parallax-copper-banded-preview.png")
+    fg_preview = rear_preview.crop((0, 0, 320, 256))
     alpha = fg.crop((0, 0, 320, 256)).convert("RGBA")
     alpha.putalpha(alpha_image(fg.crop((0, 0, 320, 256))))
     fg_preview.paste(alpha, (0, 0), alpha)
     fg_preview.save(LEVELS / "storm-ruins-milestone-preview.png")
     # Actual 4+3 palette preview at the water camera position. The rear crop
     # uses the renderer's quarter-speed offset; the front crop is world-space.
-    water_preview = rear_world.crop((376,0,696,256)).convert("RGB")
+    water_preview = rear_preview.crop((376,0,696,256))
     water_front = front_world.crop((1504,0,1824,256)).convert("RGBA")
     water_front.putalpha(alpha_image(front_world.crop((1504,0,1824,256))))
     water_preview.paste(water_front,(0,0),water_front)
     water_preview.save(LEVELS / "storm-water-hazard-aga-preview.png")
+    # Four hardware-exact panels cover the complete new Phase 6C extension.
+    # Each uses the renderer's quarter-speed rear sample and world-space front.
+    route_preview=Image.new("RGB",(1280,208))
+    for panel,camera_x in enumerate((1920,2176,2432,2752)):
+        panel_image=rear_preview.crop((camera_x//4,0,camera_x//4+320,208))
+        panel_front=front_world.crop((camera_x,0,camera_x+320,208)).convert("RGBA")
+        panel_front.putalpha(alpha_image(front_world.crop((camera_x,0,camera_x+320,208))))
+        panel_image.paste(panel_front,(0,0),panel_front)
+        route_preview.paste(panel_image,(panel*320,0))
+    route_preview.save(LEVELS / "storm-phase6c-route-aga-preview.png")
     make_water_animation_preview().save(
         LEVELS / "storm-water-animation-aga-preview.png")
     manifest = {
         "world": [WORLD_W, WORLD_H], "tile": TILE, "collision": [WORLD_W // TILE, 14],
-        "foreground_palette": FG_PALETTE, "background_palette": BG_PALETTE,
+        "foreground_palette": FRONT16, "background_palette": REAR8,
         "sprite_sheet": {
             "size": list(sprites.size), "frame": [48, 48], "frames": 62,
             "depth": 4, "hardware_layout": "three attached sprite pairs",

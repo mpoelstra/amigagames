@@ -244,8 +244,8 @@ BOOL assetsLoadGameplay(void)
                            &frontClean,4,TRUE)&&
            loadPackedAsset("PROGDIR:assets/runtime/storm-rear.spr1",
                            &rearWorld,3,TRUE)&&
-           loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
-                     &playerSprites,4,FALSE)&&
+           loadPackedAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spr1",
+                           &playerSprites,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
                      &enemySprites,4,FALSE)&&
            loadPackedAsset(

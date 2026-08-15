@@ -1,4 +1,4 @@
-/* Sparkpaw bare-metal PAL Copper benchmark: AGA 4+3 dual playfield. */
+/* Sparkpaw bare-metal PAL matched 4+3/4+4 production-load benchmark. */
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <graphics/gfxbase.h>
@@ -21,8 +21,18 @@
  * $30..$d0 therefore fetches 21 words, not 22.
  */
 #define FETCH_BYTES 42
-#define COP_WORDS 256
-#define BUILD_ID "2026-08-12-rb18-final-color-idle-proof"
+#define COP_WORDS 512
+#define BUILD_ID "2026-08-14-rb21-calibrated-production-worst-case"
+#ifndef REAR_PLANES
+#define REAR_PLANES 4
+#endif
+#define FRONT_PLANES 4
+#define TOTAL_PLANES (FRONT_PLANES+REAR_PLANES)
+#define HUD_TOP 208
+#define WORK_WORDS 5
+#define WORK_H 64
+#define SPRITE_H 48
+#define SPRITE_WORDS (2+SPRITE_H*2+2)
 #define STRIDER_W 64
 #define STRIDER_H 64
 #define STRIDER_ROW_BYTES 8
@@ -32,11 +42,13 @@
 struct GfxBase *GfxBase;
 struct IntuitionBase *IntuitionBase;
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
-static struct BitMap *frontBM,*rearBM;
+static struct BitMap *frontBM,*frontCleanBM,*rearBM,*hudBM;
 static struct View *oldView;
 static UWORD *cop;
 static UWORD copPos;
-static UWORD ptrValue[7];
+static UWORD ptrValue[TOTAL_PLANES];
+static UWORD *spriteData[8];
+static UWORD *workMask,*workBits;
 static UWORD scrollValue;
 static UWORD oldDma;
 static UWORD oldIntena;
@@ -47,6 +59,12 @@ static LONG lastCamera;
 static LONG frameCount;
 static BOOL exitedByMouse;
 static BOOL striderLoaded;
+static BOOL rear16Loaded;
+static LONG maxWorkEnd;
+static LONG maxWorkElapsed;
+static LONG overBudgetFrames;
+static UWORD workLastLine;
+static BOOL workWrapped;
 
 static void move(UWORD reg,UWORD value)
 {
@@ -60,6 +78,12 @@ static void pointer(UWORD reg,APTR value,UWORD plane)
     if(copPos+4>COP_WORDS) { copperOverflow=TRUE; return; }
     move(reg,(UWORD)(p>>16)); ptrValue[plane]=copPos-1;
     move(reg+2,(UWORD)p);
+}
+
+static void plainPointer(UWORD reg,APTR value)
+{
+    ULONG p=(ULONG)value;
+    move(reg,(UWORD)(p>>16)); move(reg+2,(UWORD)p);
 }
 
 static void paint(struct BitMap *bm,BOOL rear)
@@ -90,8 +114,10 @@ static BOOL placeStriderIdle(void)
     WORD x,y; UBYTE plane;
     const WORD targetX=286,targetY=146;
     if(!raw) return FALSE;
-    file=Open("PROGDIR:assets/runtime/renderbench-strider-idle.raw",
-              MODE_OLDFILE);
+    file=Open("PROGDIR:renderbench-strider-idle.raw",MODE_OLDFILE);
+    if(!file)
+        file=Open("PROGDIR:assets/runtime/renderbench-strider-idle.raw",
+                  MODE_OLDFILE);
     if(!file||Read(file,raw,STRIDER_RAW_BYTES)!=STRIDER_RAW_BYTES) {
         if(file) Close(file);
         FreeMem(raw,STRIDER_RAW_BYTES); return FALSE;
@@ -116,23 +142,48 @@ static BOOL placeStriderIdle(void)
     FreeMem(raw,STRIDER_RAW_BYTES); return TRUE;
 }
 
+static BOOL loadRear16(void)
+{
+    BPTR file=Open("PROGDIR:renderbench-rear16.raw",MODE_OLDFILE);
+    UBYTE plane;
+    LONG planeBytes=(LONG)rearBM->BytesPerRow*rearBM->Rows;
+    if(!file)
+        file=Open("PROGDIR:assets/runtime/renderbench-rear16.raw",
+                  MODE_OLDFILE);
+    if(!file) {
+        PutStr("rb19: cannot open renderbench-rear16.raw\n");
+        return FALSE;
+    }
+    for(plane=0;plane<REAR_PLANES;plane++) {
+        LONG got=Read(file,rearBM->Planes[plane],planeBytes);
+        if(got!=planeBytes) {
+            Printf("rb19: rear plane %ld read %ld, expected %ld\n",
+                   (LONG)plane,got,planeBytes);
+            Close(file); return FALSE;
+        }
+    }
+    Close(file); return TRUE;
+}
+
 static void buildCopper(void)
 {
-    static const UWORD colors[32]={
-        /* PF1: cool 15-colour Strider/Storm Ruins palette. */
-        0x001,0x111,0x123,0x235,0x444,0x666,0xa9a,0xedc,
-        0x426,0x72a,0xa5d,0xd9f,0x07a,0x0df,0xcff,0xe26,
-        /* PF2: representative Storm Ruins rear palette at offset 16. */
-        0x001,0x013,0x125,0x247,0x449,0x65a,0x97b,0xcbd,
-        0x100,0x210,0x320,0x430,0x540,0x650,0x760,0x870
+    static const UBYTE colors[32][3]={
+        {0,0,17},{9,10,24},{18,27,54},{32,47,86},
+        {55,55,65},{101,98,103},{163,157,158},{229,225,219},
+        {67,29,100},{112,45,157},{166,77,218},{210,139,246},
+        {0,112,170},{0,207,239},{201,246,255},{224,35,104},
+        {0,0,17},{0,17,51},{17,34,85},{34,68,119},
+        {68,68,153},{102,85,170},{153,119,187},{204,187,221},
+        {0,29,43},{0,48,58},{13,67,69},{31,86,82},
+        {56,105,91},{79,103,117},{45,145,194},{151,211,224}
     };
-    WORD i;
+    WORD pen,i;
     copPos=0;
     move(0x08e,0x2c81); /* DIWSTRT: PAL line 44, x=129 */
     move(0x090,0x2cc1); /* DIWSTOP: PAL line 300, x=449 */
     move(0x092,0x0030); /* one early word for smooth horizontal scroll */
     move(0x094,0x00d0);
-    move(0x100,0x7600); /* seven planes: PF1=4, PF2=3, dual playfield */
+    move(0x100,REAR_PLANES==4?0x0610:0x7600);
     move(0x102,0x0000); scrollValue=copPos-1;
     move(0x104,0x0024);
     move(0x106,0x1020); /* AGA border blank; PF2 colour-table offset 16 */
@@ -147,19 +198,39 @@ static void buildCopper(void)
     pointer(0x0f0,frontBM->Planes[2],4);
     pointer(0x0f4,rearBM->Planes[2],5);
     pointer(0x0f8,frontBM->Planes[3],6);
+    if(REAR_PLANES==4) pointer(0x0fc,rearBM->Planes[3],7);
     /* Load AGA palette registers 0-31 in high- then low-nibble passes. */
-    for(i=0;i<2;i++) {
-        WORD pen;
-        move(0x106,(UWORD)(0x1020|(i<<13)));
-        for(pen=0;pen<16;pen++)
-            move((UWORD)(0x180+pen*2),colors[i*16+pen]);
+    move(0x106,0x1020); /* bank 0, high nibbles, PF2OF=16 */
+    for(pen=0;pen<32;pen++) {
+        const UBYTE *rgb=colors[pen];
+        move((UWORD)(0x180+pen*2),
+             (UWORD)(((rgb[0]>>4)<<8)|((rgb[1]>>4)<<4)|(rgb[2]>>4)));
     }
-    for(i=0;i<2;i++) {
-        WORD pen;
-        move(0x106,(UWORD)(0x1220|(i<<13)));
-        for(pen=0;pen<16;pen++) move((UWORD)(0x180+pen*2),0);
+    move(0x106,0x1220); /* bank 0, low nibbles, PF2OF=16 */
+    for(pen=0;pen<32;pen++) {
+        const UBYTE *rgb=colors[pen];
+        move((UWORD)(0x180+pen*2),
+             (UWORD)(((rgb[0]&15)<<8)|((rgb[1]&15)<<4)|(rgb[2]&15)));
     }
     move(0x106,0x1020);
+    /* Six active player channels plus two null channels, matching production
+       sprite DMA ownership. The small streams remain transparent. */
+    for(i=0;i<8;i++) plainPointer((UWORD)(0x120+i*4),spriteData[i]);
+    /* Match the production HUD boundary and fixed foreground-only display. */
+    if(copPos+2<=COP_WORDS) {
+        cop[copPos++]=(UWORD)(((44+HUD_TOP)<<8)|1);
+        cop[copPos++]=0xfffe;
+    } else copperOverflow=TRUE;
+    move(0x102,0x000f);
+    for(i=0;i<TOTAL_PLANES;i++) {
+        APTR value=(i&1)||(i==6)?(APTR)rearBM->Planes[0]:
+                   (APTR)hudBM->Planes[i>>1];
+        ULONG p=(ULONG)value;
+        move((UWORD)(0x0e0+i*4),(UWORD)(p>>16));
+        move((UWORD)(0x0e2+i*4),(UWORD)p);
+    }
+    move(0x108,hudBM->BytesPerRow-FETCH_BYTES);
+    move(0x10a,rearBM->BytesPerRow-FETCH_BYTES);
     if(copPos+2<=COP_WORDS) {
         cop[copPos++]=0xffff; cop[copPos++]=0xfffe;
     } else copperOverflow=TRUE;
@@ -185,6 +256,7 @@ static void setScroll(LONG foreground,LONG background)
     setPlanePointer(3,rearBM->Planes[1],bo);
     setPlanePointer(5,rearBM->Planes[2],bo);
     setPlanePointer(6,frontBM->Planes[3],fo);
+    if(REAR_PLANES==4) setPlanePointer(7,rearBM->Planes[3],bo);
     cop[scrollValue]=(bf<<4)|ff;
 }
 
@@ -207,6 +279,83 @@ static void waitRasterFrame(void)
     while(rasterLine()>=300) { }
 }
 
+static void waitWorkBlit(void)
+{
+    UWORD line;
+    (void)hw->dmaconr;
+    while(hw->dmaconr&DMAF_BLTDONE) { }
+    line=rasterLine();
+    if(line<workLastLine) workWrapped=TRUE;
+    workLastLine=line;
+}
+
+static void blitCopy(struct BitMap *source,struct BitMap *target,
+                     WORD x,WORD y,WORD width,WORD height)
+{
+    UBYTE plane; UWORD words=(UWORD)(((x&15)+width+15)>>4);
+    LONG at=(LONG)y*target->BytesPerRow+(x>>4)*2;
+    for(plane=0;plane<FRONT_PLANES;plane++) {
+        waitWorkBlit();
+        hw->bltcon0=0x09f0; hw->bltcon1=0;
+        hw->bltafwm=0xffff; hw->bltalwm=0xffff;
+        hw->bltamod=(UWORD)(source->BytesPerRow-words*2);
+        hw->bltdmod=(UWORD)(target->BytesPerRow-words*2);
+        hw->bltapt=source->Planes[plane]+at;
+        hw->bltdpt=target->Planes[plane]+at;
+        hw->bltsize=(UWORD)((height<<6)|words);
+    }
+}
+
+static void blitBob(WORD x,WORD y,WORD width,WORD height)
+{
+    UBYTE plane; UWORD shift=(UWORD)(x&15);
+    UWORD words=(UWORD)((width>>4)+(shift?1:0));
+    LONG at=(LONG)y*frontBM->BytesPerRow+(x>>4)*2;
+    for(plane=0;plane<FRONT_PLANES;plane++) {
+        waitWorkBlit();
+        hw->bltcon0=(UWORD)((shift<<12)|0x0fca);
+        hw->bltcon1=(UWORD)(shift<<12);
+        hw->bltafwm=0xffff; hw->bltalwm=0xffff;
+        hw->bltamod=(UWORD)((WORK_WORDS-words)*2);
+        hw->bltbmod=(UWORD)((WORK_WORDS-words)*2);
+        hw->bltcmod=(UWORD)(frontBM->BytesPerRow-words*2);
+        hw->bltdmod=(UWORD)(frontBM->BytesPerRow-words*2);
+        hw->bltapt=workMask; hw->bltbpt=workBits+(LONG)plane*WORK_H*WORK_WORDS;
+        hw->bltcpt=frontBM->Planes[plane]+at;
+        hw->bltdpt=frontBM->Planes[plane]+at;
+        hw->bltsize=(UWORD)((height<<6)|words);
+    }
+}
+
+static void runMatchedWorkload(void)
+{
+    WORD i;
+    LONG end,elapsed;
+    workWrapped=FALSE; workLastLine=253;
+    /* Exact production ordering with a calibrated current-level worst case:
+       eight projectile slots, two 64x64 Striders plus two 32x24 beetles, nine
+       camera-visible diamonds, one 32x16 splash and the every-other-frame
+       double water update. The actor mix is conservative but runtime-valid. */
+    for(i=0;i<8;i++) blitCopy(frontCleanBM,frontBM,(WORD)(18+i*37),184,16,9);
+    for(i=0;i<2;i++) blitCopy(frontCleanBM,frontBM,(WORD)(24+i*144),120,64,64);
+    for(i=0;i<2;i++) blitCopy(frontCleanBM,frontBM,(WORD)(104+i*144),176,32,24);
+    for(i=0;i<9;i++) blitCopy(frontCleanBM,frontBM,(WORD)(8+i*35),88,16,21);
+    blitCopy(frontCleanBM,frontBM,145,181,32,16);
+    blitCopy(frontCleanBM,frontCleanBM,160,197,80,11);
+    blitCopy(frontCleanBM,frontBM,160,197,80,11);
+    blitBob(145,181,32,16);
+    for(i=0;i<9;i++) blitBob((WORD)(8+i*35),88,16,21);
+    for(i=0;i<2;i++) blitBob((WORD)(24+i*144),120,64,64);
+    for(i=0;i<2;i++) blitBob((WORD)(104+i*144),176,32,24);
+    for(i=0;i<8;i++) blitBob((WORD)(18+i*37),184,16,9);
+    waitWorkBlit();
+    end=rasterLine();
+    elapsed=(workWrapped?312:0)+end-253;
+    if(end>maxWorkEnd) maxWorkEnd=end;
+    if(elapsed>maxWorkElapsed) maxWorkElapsed=elapsed;
+    if(workWrapped) overBudgetFrames++;
+}
+
 static void writeLog(void)
 {
     BPTR file=Open("PROGDIR:renderbench.log",MODE_NEWFILE);
@@ -214,12 +363,19 @@ static void writeLog(void)
     FPrintf(file,"Sparkpaw AGA renderbench %s\n",BUILD_ID);
     FPrintf(file,"result=clean-exit exit=%s frames=%ld camera=%ld\n",
         exitedByMouse?"left-mouse":"frame-limit",frameCount,lastCamera);
-    FPrintf(file,"bitmap=%ldx%ld depth=4+3 rowbytes=%ld/%ld\n",
-        (LONG)BW,(LONG)H,(LONG)frontBM->BytesPerRow,(LONG)rearBM->BytesPerRow);
+    FPrintf(file,"bitmap=%ldx%ld depth=4+%ld rowbytes=%ld/%ld\n",
+        (LONG)BW,(LONG)H,(LONG)REAR_PLANES,(LONG)frontBM->BytesPerRow,
+        (LONG)rearBM->BytesPerRow);
     FPrintf(file,"copper_words=%ld capacity=%ld overflow=%ld\n",
         (LONG)copPos,(LONG)COP_WORDS,(LONG)copperOverflow);
     FPrintf(file,"strider_idle=aga15 loaded=%ld size=64x64\n",
         (LONG)striderLoaded);
+    FPrintf(file,"rear_loaded=%ld source=672x256 planes=%ld\n",
+        (LONG)rear16Loaded,(LONG)REAR_PLANES);
+    FPrintf(file,"matched_load=sprites6x48 hud_line=252 bobs_line=253 enemies=2x64x64+2x32x24 projectiles=8x16x9 collectibles=9x16x21 splash=32x16 water_targets=2\n");
+    FPrintf(file,"work_max_end_line=%ld work_max_elapsed_lines=%ld over_budget_frames=%ld result=%s\n",
+        maxWorkEnd,maxWorkElapsed,overBudgetFrames,
+        overBudgetFrames?"OVER_BUDGET":"WITHIN_FRAME");
     FPrintf(file,"diwstrt=$2c81 diwstop=$2cc1 ddfstrt=$0030 ddfstop=$00d0\n");
     FPrintf(file,"fetch_words=21 fetch_bytes=%ld modulo=%ld/%ld old_dma=$%04lx\n",
         (LONG)FETCH_BYTES,(LONG)(frontBM->BytesPerRow-FETCH_BYTES),
@@ -268,7 +424,13 @@ static void restore(void)
     if(frontBM&&rearBM) writeLog();
     if(cop) FreeMem(cop,COP_WORDS*2);
     if(frontBM) FreeBitMap(frontBM);
+    if(frontCleanBM) FreeBitMap(frontCleanBM);
     if(rearBM) FreeBitMap(rearBM);
+    if(hudBM) FreeBitMap(hudBM);
+    { WORD i; for(i=0;i<8;i++) if(spriteData[i])
+        FreeMem(spriteData[i],SPRITE_WORDS*2); }
+    if(workMask) FreeMem(workMask,WORK_H*WORK_WORDS*2);
+    if(workBits) FreeMem(workBits,FRONT_PLANES*WORK_H*WORK_WORDS*2);
     if(IntuitionBase) CloseLibrary((struct Library *)IntuitionBase);
     if(GfxBase) CloseLibrary((struct Library *)GfxBase);
 }
@@ -279,11 +441,28 @@ int main(void)
     GfxBase=(struct GfxBase *)OpenLibrary("graphics.library",39);
     IntuitionBase=(struct IntuitionBase *)OpenLibrary("intuition.library",39);
     if(!GfxBase||!IntuitionBase) { restore(); return 5; }
-    frontBM=AllocBitMap(BW,H,4,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
-    rearBM=AllocBitMap(BW,H,3,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    frontBM=AllocBitMap(BW,H,FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    frontCleanBM=AllocBitMap(BW,H,FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    rearBM=AllocBitMap(BW,H,REAR_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    hudBM=AllocBitMap(BW,48,FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
-    if(!frontBM||!rearBM||!cop) { restore(); return 10; }
-    paint(frontBM,FALSE); paint(rearBM,TRUE);
+    { WORD i; for(i=0;i<8;i++) {
+        WORD vstart=92,vstop=vstart+SPRITE_H,hstart=145+i*8;
+        spriteData[i]=(UWORD *)AllocMem(SPRITE_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+        if(spriteData[i]) {
+            spriteData[i][0]=(UWORD)((vstart<<8)|(hstart>>1));
+            spriteData[i][1]=(UWORD)((vstop<<8)|(hstart&1)|
+                ((i&1)?0x0080:0));
+        }
+    } }
+    workMask=(UWORD *)AllocMem(WORK_H*WORK_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    workBits=(UWORD *)AllocMem(FRONT_PLANES*WORK_H*WORK_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    if(!frontBM||!frontCleanBM||!rearBM||!hudBM||!cop||!workMask||!workBits||
+       !spriteData[7]) { restore(); return 10; }
+    paint(frontBM,FALSE);
+    paint(frontCleanBM,FALSE);
+    rear16Loaded=loadRear16();
+    if(!rear16Loaded) { restore(); return 11; }
     striderLoaded=placeStriderIdle();
     if(!striderLoaded) { restore(); return 12; }
     buildCopper();
@@ -305,7 +484,8 @@ int main(void)
      */
     hw->dmacon=DMAF_ALL;
     hw->cop1lc=(ULONG)cop; hw->copjmp1=0;
-    hw->dmacon=DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER;
+    hw->dmacon=DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE|
+               DMAF_BLITTER;
     while(frames<3000 && !leftButton()) {
         waitRasterFrame();
         while(rasterLine()<100) { }
@@ -316,6 +496,9 @@ int main(void)
          */
         if(camera<300) camera++;
         setScroll(camera,camera>>2);
+        while(rasterLine()<253) { }
+        runMatchedWorkload();
+        while(rasterLine()>=253) { }
         frames++;
     }
     exitedByMouse=leftButton(); frameCount=frames; lastCamera=camera;

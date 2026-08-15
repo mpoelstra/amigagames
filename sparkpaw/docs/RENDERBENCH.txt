@@ -1,6 +1,63 @@
 SPARKPAW AGA RENDER BENCHMARK
 =============================
 
+rb21 calibrated 4+3 versus 4+4 production-worst-case proof
+-----------------------------------------------------------
+
+Run `Sparkpaw-Renderbench-4plus3`, exit with left mouse, and preserve its
+`renderbench.log`. Rename that log before running `Sparkpaw-Renderbench-4plus4`,
+which otherwise writes to the same filename. Keep both RAW files beside both
+executables.
+
+The binaries differ only in rear depth and corresponding BPLCON0/pointer setup.
+Both use the same scene, scrolling, six 48-line sprite DMA channels, line-252
+HUD switch and synchronized line-253 production ordering. The workload is the
+current runtime worst case: two 64x64 Striders plus two 32x24 beetles, all eight
+projectiles, the measured maximum nine camera-visible diamonds, splash, and the
+every-other-frame update of water in both clean and display buffers.
+
+Both logs must report the same build ID and `result=WITHIN_FRAME`:
+
+```text
+2026-08-14-rb21-calibrated-production-worst-case
+matched_load=sprites6x48 hud_line=252 bobs_line=253 enemies=2x64x64+2x32x24 projectiles=8x16x9 collectibles=9x16x21 splash=32x16 water_targets=2
+over_budget_frames=0 result=WITHIN_FRAME
+```
+
+Compare `work_max_elapsed_lines`; subtract it from 59 (PAL lines 253..311) for
+the remaining line budget. A 4+4 result within the frame is necessary but not
+sufficient for integration; the 4+3 difference measures eighth-plane DMA cost.
+Return both logs and a smoothness/corruption report. This remains an isolated
+test, not production, ADF or real-hardware verification.
+
+rb19c REAR16 4+4 visual proof (accepted)
+-----------------------------------------
+
+The preceding rb19c isolated benchmark changes its rear bitmap only from three
+to four planes and displays the exact Phase 6B.6 REAR16 art. Supplied FS-UAE
+evidence accepts its colour benefit and stable scrolling as a visual proof, not
+as a production timing result.
+
+The rear proof adds 22,528 bytes to this 672x256 test bitmap because
+`AllocBitMap` measures 88 bytes per row. A production
+2048x256 rear would add exactly 65,536 Chip bytes; the planned 3072px rear would
+add 98,304. Raster fetch rises from seven to eight planes (+14.3%). Run from the
+Sparkpaw drawer with both RAW files beside the executable. Review
+whether cyan/green ruin materials, forest separation and mountain/cloud ramps
+are a clearly worthwhile improvement over alpha.7 REAR8. Exit with left mouse
+or wait for the frame limit, then return `renderbench.log`. It must report:
+
+```text
+2026-08-14-rb19c-bank0-color00-31
+bitmap=672x256 depth=4+4
+rear16_loaded=1 source=672x256x4
+overflow=0
+```
+
+Do not infer production 50 Hz safety from this lightweight proof. A positive
+visual result permits the next matched workload benchmark with the line-252 HUD
+switch and line-253 Bob pass; a weak visual result rejects the extra plane.
+
 Experimental branch note (rb15)
 -------------------------------
 

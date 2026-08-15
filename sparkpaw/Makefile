@@ -10,12 +10,15 @@ CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
+RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
 ADF_FRONT_ASSET = build/adf-assets/storm-front.spr1
 ADF_REAR_ASSET = build/adf-assets/storm-rear.spr1
 ADF_STRIDER_ASSET = build/adf-assets/clockwork-storm-strider.spr1
-ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET)
-BENCH_TARGET = sparkpaw-renderbench
-BENCH_ASSET = assets/runtime/renderbench-strider-idle.raw
+ADF_PLAYER_ASSET = build/adf-assets/sparkpaw-sprites4.spr1
+ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET) $(ADF_PLAYER_ASSET)
+BENCH_TARGETS = sparkpaw-renderbench-4plus3 sparkpaw-renderbench-4plus4
+BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
+	assets/runtime/renderbench-rear16.raw
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
@@ -48,19 +51,36 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean assets release bench adf-report phase6-memory
+.PHONY: all clean assets release bench bench-package renderdiag renderdiag-package visual-slice-proof adf-report phase6-memory
 
 all: assets $(TARGET)
 
-bench: $(BENCH_TARGET)
+bench: $(BENCH_TARGETS)
 
-$(BENCH_ASSET): tools/generate_renderbench_assets.py \
+bench-package: bench
+	@mkdir -p build/renderbench-test
+	cp sparkpaw-renderbench-4plus3 build/renderbench-test/Sparkpaw-Renderbench-4plus3
+	cp sparkpaw-renderbench-4plus4 build/renderbench-test/Sparkpaw-Renderbench-4plus4
+	cp assets/runtime/renderbench-rear16.raw build/renderbench-test/
+	cp assets/runtime/renderbench-strider-idle.raw build/renderbench-test/
+	cp docs/RENDERBENCH.txt build/renderbench-test/ReadMe.txt
+
+visual-slice-proof:
+	$(PYTHON) tools/generate_visual_slice_proof.py
+	$(PYTHON) tools/generate_parallax_proof.py
+
+$(BENCH_ASSETS): tools/generate_renderbench_assets.py \
+	assets/levels/storm-parallax-rear16-preview.png \
 	assets/enemies/clockwork-storm-strider-biped-production-v5-transparent.png
 	$(PYTHON) tools/generate_renderbench_assets.py
 
-$(BENCH_TARGET): src/aga_renderbench.c $(BENCH_ASSET)
+sparkpaw-renderbench-4plus3: src/aga_renderbench.c $(BENCH_ASSETS)
 	@mkdir -p "$(TMPDIR)"
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -DREAR_PLANES=3 -o $@ $<
+
+sparkpaw-renderbench-4plus4: src/aga_renderbench.c $(BENCH_ASSETS)
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DREAR_PLANES=4 -o $@ $<
 
 assets: $(RUNTIME_ASSETS)
 
@@ -68,6 +88,8 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
 	assets/concept/sparkpaw-level-loading-concept-v3.png \
 	assets/concept/sparkpaw-level-charging-concept-v2.png \
+	assets/concept/sparkpaw-parallax-master-concept-v4.png \
+	assets/concept/sparkpaw-foreground-kit-concept-v2.png \
 	assets/concept/sparkpaw-hud-concept-v1.png \
 	assets/sprites/sparkpaw-sprites-reference-transparent.png \
 	assets/sprites/sparkpaw-supplemental-poses-v2-transparent.png \
@@ -102,17 +124,17 @@ sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/en
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
-$(TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)"
-	$(CC) $(CFLAGS) -o $@ $(SOURCES)
+	$(CC) $(CFLAGS) -DSPARKPAW_RENDER_DIAGNOSTIC -o $@ $(SOURCES)
 
-$(ADF_TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DADF_PACKED_ASSETS -o $@ $(SOURCES)
 
-$(PHASE6_MEMORY_TARGET): $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+$(PHASE6_MEMORY_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
-	$(CC) $(CFLAGS) -DSPARKPAW_WORLD_W=2048 -DPHASE6_MEMORY_TEST \
+	$(CC) $(CFLAGS) -DSPARKPAW_WORLD_W=3072 -DPHASE6_MEMORY_TEST \
 		-o $@ $(SOURCES)
 
 $(ADF_FRONT_ASSET): assets/runtime/storm-front.spbm tools/pack_adf_asset.py
@@ -124,6 +146,9 @@ $(ADF_REAR_ASSET): assets/runtime/storm-rear.spbm tools/pack_adf_asset.py
 $(ADF_STRIDER_ASSET): assets/runtime/clockwork-storm-strider.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
+$(ADF_PLAYER_ASSET): assets/runtime/sparkpaw-sprites4.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
 release: all $(ADF_TARGET) $(ADF_ASSETS)
 	$(PYTHON) tools/make_release.py
 
@@ -133,5 +158,17 @@ adf-report: all
 phase6-memory: all $(PHASE6_MEMORY_TARGET)
 	$(PYTHON) tools/build_phase6_memory_test.py
 
+renderdiag: assets $(RENDER_DIAG_TARGET)
+
+renderdiag-package: renderdiag
+	@mkdir -p build/renderdiag-test/assets/runtime
+	cp $(RENDER_DIAG_TARGET) build/renderdiag-test/Sparkpaw-Renderdiag
+	cp $(RUNTIME_ASSETS) build/renderdiag-test/assets/runtime/
+	cp docs/RENDERDIAG.txt build/renderdiag-test/ReadMe.txt
+
+$(RENDER_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_RENDER_DIAGNOSTIC -o $@ $(SOURCES)
+
 clean:
-	$(RM) $(TARGET) $(BENCH_TARGET) src/*.o
+	$(RM) $(TARGET) $(BENCH_TARGETS) sparkpaw-renderbench src/*.o

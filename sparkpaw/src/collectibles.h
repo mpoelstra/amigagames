@@ -5,7 +5,7 @@
 
 #define COLLECTIBLE_W 16
 #define COLLECTIBLE_H 21
-#define MAX_COLLECTIBLES 32
+#define MAX_COLLECTIBLES 48
 
 struct Collectible {
     WORD x,y,drawnX,drawnY;

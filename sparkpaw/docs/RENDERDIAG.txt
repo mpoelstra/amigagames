@@ -1,0 +1,27 @@
+SPARKPAW PRODUCTION RENDER DIAGNOSTIC
+=====================================
+
+rd02 measures the optimized production 4+3 renderer. The ordinary HD
+`sparkpaw` now contains the same high-water logger and clean left-mouse exit,
+so a separate diagnostic drawer is no longer needed. It does not display or
+test REAR16. Active diamonds now persist in the clean/display world and retain
+their eight-position hover while movement updates are staggered over four
+frames. Start `Sparkpaw-Renderdiag` from this complete drawer, play through
+the level normally and deliberately exercise busy real situations:
+
+- fire rapidly while enemies and diamond trails are visible;
+- follow both Striders through their routes;
+- reach the water region and trigger the splash;
+- backtrack so parked/respawning encounters are exercised.
+
+Click the left mouse button when finished. The HD build restores Workbench and
+writes `renderdiag.log` beside the executable. Return that log and, if anything
+looked abnormal, a recording. The log must identify:
+
+  2026-08-14-rd02-staggered-diamond-high-water
+
+It records only the single slowest real production frame: raster duration,
+camera position, wraps and exact restore/draw counts for projectiles, beetles,
+Striders, diamonds, splash and water. No DOS writes occur during takeover.
+
+The bootable ADF remains reset-to-exit and performs no DOS log write.

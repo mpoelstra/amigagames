@@ -106,6 +106,13 @@ void platformWaitBlit(void)
     while(hardware->dmaconr&DMAF_BLTDONE) { }
 }
 
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+BOOL platformLeftMouse(void)
+{
+    return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
+}
+#endif
+
 static void acknowledgeKeyboard(void)
 {
     UWORD line=platformRasterLine(),changes=0;

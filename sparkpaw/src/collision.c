@@ -28,8 +28,8 @@ BOOL collisionSolidAt(WORD x,WORD y)
     if(x<0||x>=WORLD_W||y<0) return TRUE;
     /* Phase 6B.3A moves the continuous floor top to the visible cap while the
        accepted water columns remain open through the bottom death region. */
-    if(y>=LEVEL_FLOOR_Y&&!levelWaterColumnAt(x)) return TRUE;
-    if(y>=GAME_H) return !levelWaterColumnAt(x);
+    if(y>=LEVEL_FLOOR_Y&&!levelHazardColumnAt(x)) return TRUE;
+    if(y>=GAME_H) return !levelHazardColumnAt(x);
     tileX=x/TILE_SIZE; tileY=y/TILE_SIZE;
     return collision[tileY*MAP_COLS+tileX]!=0;
 }

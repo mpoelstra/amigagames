@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the isolated rb17 premium 15-colour Strider idle proof."""
+"""Generate isolated Strider and exact REAR16 assets for the AGA benchmark."""
 
 from pathlib import Path
 from PIL import Image
@@ -7,6 +7,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "assets/enemies/clockwork-storm-strider-premium-color-idle-source-v2.png"
 OUTPUT = ROOT / "assets/runtime/renderbench-strider-idle.raw"
+REAR_SOURCE = ROOT / "assets/levels/storm-parallax-rear16-preview.png"
+REAR_OUTPUT = ROOT / "assets/runtime/renderbench-rear16.raw"
 PREVIEW = ROOT / "assets/enemies/clockwork-storm-strider-64x64-aga15-idle-v3.png"
 W = H = 64
 
@@ -82,6 +84,40 @@ def main():
                     planes[plane * plane_size + at] |= bit
     OUTPUT.write_bytes(planes + mask)
     print(f"Generated {OUTPUT.relative_to(ROOT)} ({len(planes) + len(mask)} bytes)")
+
+    rear_source = Image.open(REAR_SOURCE).convert("RGB")
+    rear_palette = [
+        (0, 0, 17), (0, 17, 51), (17, 34, 85), (34, 68, 119),
+        (68, 68, 153), (102, 85, 170), (153, 119, 187), (204, 187, 221),
+        (0, 29, 43), (0, 48, 58), (13, 67, 69), (31, 86, 82),
+        (56, 105, 91), (79, 103, 117), (45, 145, 194), (151, 211, 224),
+    ]
+    rear = Image.new("P", (672, 256), 0)
+    rear.putpalette([v for rgb in rear_palette for v in rgb] + [0] * (768 - 48))
+    source_pixels, rear_pixels = rear_source.load(), rear.load()
+    for y in range(min(208, rear_source.height)):
+        for x in range(672):
+            rgb = source_pixels[x, y]
+            rear_pixels[x, y] = min(
+                range(16),
+                key=lambda i: sum((rgb[c] - rear_palette[i][c]) ** 2
+                                  for c in range(3)),
+            )
+    # graphics.library rounds this 672px displayable bitmap from 84 to 88
+    # bytes per row on AGA. Match AllocBitMap's measured stride exactly.
+    row_bytes = 88
+    plane_size = row_bytes * 256
+    rear_planes = bytearray(plane_size * 4)
+    for y in range(256):
+        for x in range(672):
+            pen = rear_pixels[x, y]
+            at = y * row_bytes + (x >> 3)
+            bit = 0x80 >> (x & 7)
+            for plane in range(4):
+                if pen & (1 << plane):
+                    rear_planes[plane * plane_size + at] |= bit
+    REAR_OUTPUT.write_bytes(rear_planes)
+    print(f"Generated {REAR_OUTPUT.relative_to(ROOT)} ({len(rear_planes)} bytes)")
 
 
 if __name__ == "__main__":

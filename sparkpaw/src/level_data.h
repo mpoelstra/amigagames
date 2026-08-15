@@ -25,7 +25,17 @@
 #define SURFACE_BEETLE_EXTENDED_B 12
 #define SURFACE_BEETLE_EXTENDED_C 13
 #define SURFACE_BEETLE_EXTENDED_D 14
-#define ENEMY_SURFACE_COUNT 15
+#define SURFACE_BEETLE_EXTENDED_E 15
+#define SURFACE_BEETLE_EXTENDED_F 16
+#define SURFACE_BEETLE_EXTENDED_G 17
+#define SURFACE_BEETLE_EXTENDED_H 18
+#define SURFACE_STRIDER_DRY0_LEFT 19
+#define SURFACE_STRIDER_DRY0_RIGHT 20
+#define SURFACE_STRIDER_WATER1_LEFT 21
+#define SURFACE_STRIDER_WATER1_RIGHT 22
+#define SURFACE_STRIDER_DRY1_LEFT 23
+#define SURFACE_STRIDER_DRY1_RIGHT 24
+#define ENEMY_SURFACE_COUNT 25
 #define INVALID_SURFACE_ID 255
 
 struct EnemyPatrolSurface {
@@ -47,10 +57,16 @@ struct EnemyTraversalLink {
     WORD gravity;
 };
 
-#define MAX_LEVEL_ENEMY_SPAWNS 13
+#define MAX_LEVEL_ENEMY_SPAWNS 24
 
-#define LEVEL_WATER_LEFT 1584
-#define LEVEL_WATER_RIGHT 1663
+#define LEVEL_WATER_COUNT 2
+#define LEVEL_WATER_W 80
+#define LEVEL_WATER0_LEFT 1584
+#define LEVEL_WATER1_LEFT 2432
+#define LEVEL_DRY_GAP0_LEFT 2112
+#define LEVEL_DRY_GAP0_RIGHT 2175
+#define LEVEL_DRY_GAP1_LEFT 2784
+#define LEVEL_DRY_GAP1_RIGHT 2863
 #define LEVEL_WATER_DEATH_Y 224
 #define LEVEL_WATER_SPLASH_Y 204
 #define LEVEL_FLOOR_Y 200
@@ -59,7 +75,10 @@ const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
 const struct EnemyPatrolSurface *levelEnemyPatrolSurface(UBYTE surfaceId);
 const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count);
 BOOL levelWaterColumnAt(WORD x);
+WORD levelWaterLeft(UBYTE index);
+BOOL levelHazardColumnAt(WORD x);
 BOOL levelPlayerInWater(WORD left,WORD right,WORD bottom);
 BOOL levelPlayerTouchesWater(WORD left,WORD right,WORD bottom);
+BOOL levelPlayerFallsInDryGap(WORD left,WORD right,WORD bottom);
 
 #endif

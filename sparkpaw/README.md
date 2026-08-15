@@ -3,9 +3,61 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.4`. Roadmap checkpoint: accepted Phase 5F.4 and
-ADF optimization Stage B; Phase 6A memory validation is complete and Phase
-6B.1 eight-screen pacing greybox and Phase 6B.2 water mechanics are accepted.
+Current release: `0.6.0-alpha.28`. Roadmap checkpoint: Phase 6C.1 twelve-screen
+route integration; accepted Phase 6B.5 remains the player-gameplay baseline.
+Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
+also accepted. Phase 6B.6 now contains the integrated extended REAR8 parallax
+and foreground-material v1 candidates alongside the measured palette previews;
+Supplied FS-UAE review rejects these latest art changes as the final quality
+target while preserving the corrected rear composition. Supplied FS-UAE review
+accepts isolated rb19c as a worthwhile REAR16 visual proof. Supplied rb20 logs
+show its four-Strider synthetic load exceeds a frame even at 4+3, so it is not
+a valid production decision. Supplied rb21 logs likewise exceed a frame because
+they combine independent maxima. Supplied rd01 production evidence identifies
+seven diamonds plus two enemies and water as its 172-line peak. Alpha.15 keeps
+diamond hover but persists them in clean/display and staggers their updates;
+supplied rd02 timing shows a later six-projectile/four-enemy frame is now the
+227-line peak. The HD main executable now logs and exits with left mouse;
+production remains 4+3 and the ADF remains reset-only. Alpha.17 adds a
+production Copper palette morph across the fixed-height sky, mountain and
+forest regions: the rear bitmap remains three planes, but twelve horizontal-
+blank palette steps provide three purpose-built eight-colour material ranges
+without an eighth bitplane or displayed-Chip CPU compositing. FS-UAE and real-
+hardware review of this new morph remain pending. Supplied alpha.17 FS-UAE
+evidence accepts the visual improvement and exposes one partial-diamond residue
+from the sole non-word-aligned collectible. Alpha.18 gives only that slot a
+two-word restore cache, adding 400 Chip bytes without slowing the other 31.
+Alpha.19 completely replaces the rear art master: one coherent full-height
+panorama now carries turbulent cloud detail through the upper edge, preserves
+the opening vortex/lightning tower and continues through unique mountains,
+storm ruins, waterfalls and cold-green forest without the former calm right-
+hand filler. Runtime stays 1024x208 source, 2048x256x3 resident rear and the
+same twelve-step Copper palette morph.
+The opening tower/vortex is a narrative landmark shared with the title-screen
+world: it foreshadows the distant end-level destination and is not disposable
+background decoration.
+Supplied alpha.19 FS-UAE review accepts the new panorama but finds that tower
+too rock-like relative to the title. Alpha.20 uses an entirely new v4 master,
+generated from the title architecture rather than repainting v3. Its slender
+central spire, side turrets, castle base and cyan Stormstone heart survive the
+exact three-plane reduction; one mountain-band colour role is reassigned to
+cyan without adding Copper steps, planes or memory.
+Supplied alpha.20 FS-UAE evidence accepts the title-identity background as the
+new rear baseline. Alpha.21 begins the separate foreground replacement using a
+newly generated orthographic ruin kit. Whole authored platform and column
+families replace repeated per-tile boxes; broad platforms gain open decorative
+braces, cyan conduits and gothic cavities while every collision rectangle,
+walkable top, water opening and actor baseline remains unchanged.
+Supplied alpha.21 FS-UAE review confirms the material improvement but rejects
+the foreground as the final baseline: centred supports repeat too often, the
+ground reads as one uniform tech strip, and the legacy purple lozenges and
+hanging orange lamps have no gameplay or architectural purpose. Alpha.22
+removes those decorations and consumes a completely new orthographic kit with
+seven slab rhythms, four asymmetric support families, four grounded piers and
+a long shallow ruin facade. This remains a strict art pass: collision bytes,
+enemy surfaces, traversal links, actor baselines, water and renderer contracts
+do not change. A dry non-water gap and taller L/portal compositions are a
+separate future level-layout checkpoint because they affect pacing and collision.
 
 Phase 6B.2 adds one mechanical water proof at x=1584..1663. The greybox floor
 opens for 80 pixels and only those columns allow falling below the normal game
@@ -67,6 +119,129 @@ MrDig accepted the final trigger timing, adjacent-wall suppression, edge fall
 and immediate post-landing jump in supplied FS-UAE testing. No real-hardware
 result is claimed.
 
+Phase 6B.6 is split into concept approval, exact indexed previews, an isolated
+renderer comparison and only then production integration. Its first review
+source is `assets/concept/sparkpaw-visual-slice-concept-v2.png`: an environment-
+only water section using the saturated concept identity, low ground strip,
+compact bank edges, raised ruin platform and layered Storm Ruins parallax. It
+contains no player, enemy, diamond or HUD and is not runtime art. Production
+4+3 remains authoritative while feasible alternatives are evaluated.
+MrDig accepted v2's lowest-ground
+direction. A hardware audit corrected the proposed comparison: AGA supports at
+most four planes per dual playfield, so eight fetchplanes are 4+4, never 5+3.
+The generated 32-colour PF1 image is retained only as an art upper bound, not a
+renderer candidate. A matched sixteen-frame sheet proves that the concept's
+blue body, flowing full-width wavelets and asynchronous bubbles fit the current
+4+3 FRONT16 bank using navy, blue, cyan and pale foam. Runtime water remains
+unchanged. The approved parallax source was reduced with a fixed REAR8 palette
+and integrated as the production rear layer. Supplied FS-UAE scrolling then
+exposed the 640px source repeat as an abrupt landmark boundary. Its replacement
+is a 1024x208 unique native span: it preserves the opening tower, vortex and
+lightning, progresses through distinct mountain/ruin scenery and places the
+first repeat beyond pixel 1007, the maximum rear sample required by the planned
+3072px world at quarter speed. It adds storm clouds, mountain
+depth, dense forest silhouettes, ruined towers, waterfalls and a cyan-lit
+central ruin without an extra bitplane. Alpha.17 retains the same three-plane
+bitmap and scroll factor but quantizes its fixed vertical regions against
+separate sky, mountain and forest palettes. Twelve Copper changes are staged
+in the preceding horizontal blanks to morph between those palettes, removing
+a hard band while exposing roughly 24 authored rear colours across the frame.
+The Copper allocation grows by 512 bytes of Chip RAM; bitmap size, Blitter work
+and bitplane-fetch DMA do not change. An exact REAR16
+comparison is retained for a later isolated 4+4 benchmark; it cannot add
+foreground or water colours.
+Additional bitmap memory is allowed when it produces a clear visual gain and
+still fits the stock A1200, 2 MB Chip plus 8 MB Fast target. Such work remains a
+measured isolated renderer step; the current production candidate needs no
+extra plane.
+The current separate foreground pass keeps every existing collision
+rectangle and actor baseline but replaces the flat greybox slab treatment with
+layered pale ruin lips, irregular steel panels, dark recesses, violet machinery,
+cyan conduits and deterministic cracks. It uses the existing FRONT16 bank and
+adds no bitmap, Blitter or Copper cost. Alpha.22 replaces the rejected v1
+support rhythm and legacy decoration with richer authored variations. Larger
+L/portal silhouettes and a dry gap remain a separate geometry/pacing step.
+
+### Phase 6C.1 — twelve-screen route integration
+
+Production is now 3072px/twelve screens. The four new screens are authored as
+distinct route beats rather than a repeated tail: a broken low bridge, high
+side-pier approach, second animated water opening, broad patrol court and a
+final L/portal ruin around a second dry chasm. The complete level has two 80px
+water hazards at x=1584..1663 and x=2432..2511 plus dry gaps at x=2112..2175
+and x=2784..2863. Dry falls use the existing safe life/restart path without a
+water splash; water retains the accepted splash/audio hold.
+
+Seven required persistent Striders now live in world space. Four new route
+families cross both water openings and both dry gaps in both directions. A
+parked Strider still advances exactly once per frame without a Bob slot, so it
+may naturally enter the visible camera from left or right at whatever point its
+route has reached. Ten required plus zero, one or four optional beetle
+candidates and 48 diamonds fill the longer route. The generic active enemy pool
+remains four slots; more authored encounters do not create more simultaneous
+enemy Bobs. The second water instance shares the same deterministic 7,040-byte
+frame bank and adds only synchronized destination Blits, not another cache.
+Renderer staging, animation IDs and palette ownership remain unchanged.
+
+Alpha.24 corrects the final ascent rejected in supplied alpha.23 FS-UAE review.
+The right bank now provides a low broken landing followed by a reachable 48px
+rise to the portal; Sparkpaw's global jump remains unchanged. Dry gaps stay
+distinct from water and now show fractured bank faces, a dark recessed lower
+edge and severed cyan conduits. Platform undersides alternate four authored
+depth rhythms while their collision-readable top slabs remain unchanged.
+
+Supplied alpha.24 FS-UAE evidence rejects that first ascent correction. The low
+landing is reachable, but its edge directly touches the 48px-higher portal wall;
+horizontal collision cancels the jump before Sparkpaw's feet clear the lip.
+Alpha.25 shortens the low landing to x=2864..2911, leaves x=2912..2927 open,
+and places the complete portal deck at y=144, a 32px rise. Host simulation uses
+the generated collision bytes and the real moveX-before-moveY order; starts at
+four positions/speeds all land. Runtime FS-UAE confirmation remains pending.
+The final diamond arc is re-aligned with full 21px-plus-hover clearance above
+the y=144 deck, and the last beetle patrol now references that same surface. A
+complete 48-item bounding-box audit corrects five older floor/platform overlaps;
+every diamond now has collision clearance through its complete hover range.
+
+Supplied alpha.25 FS-UAE evidence rejects the 32px rise from the natural extreme
+right/max-speed launch. Alpha.26 places the complete portal deck at y=160, only
+16px above the low landing after the existing 16px opening. The generated-map
+model now exhausts all 21 valid launch origins and 83 speed samples from zero
+through exact maximum: all 1,743 cases land. FS-UAE confirmation remains open.
+
+Supplied alpha.26 FS-UAE evidence rejects that correction in practice too.
+Alpha.27 removes the vertical step instead of adding a new wall-jump mechanic:
+the low landing and complete portal deck now share y=176, with only the existing
+16px horizontal opening between them. Jump physics and all renderer contracts
+remain unchanged; supplied FS-UAE completion confirmation is pending.
+
+Supplied alpha.27 FS-UAE evidence exposes that the actual blocked platform is
+earlier at x=2320..2415: it stood at y=112, 64px above the preceding y=176
+platform after a 32px opening. Alpha.28 lowers that complete platform and its
+attached pier to y=160, a reachable 16px rise, without changing global jump
+physics. The following water gap remains 80px and both Strider crossings are
+retimed to the corrected banks. Supplied FS-UAE route confirmation is pending.
+The unrelated later portal is restored from alpha.27's flat y=176 experiment to
+the raised y=160 alpha.26 layout; independently audited diamond clearance stays.
+
+Supplied alpha.28 FS-UAE/HD testing accepts the correction: Sparkpaw reaches the
+lowered platform, continues through the remaining route and completes the full
+level. This accepts Phase 6C.1 route traversal. ADF gameplay parity, real-A1200
+behavior and a supplied full-run timing/memory log remain separate checks.
+
+The resident width adds 131,072 bytes to each of `frontClean` and
+`frontDisplay`, 98,304 rear bytes and 896 collision bytes versus 2048px:
+360,448 extra bitmap bytes, before small extra collectible restore state.
+Host builds/package validation pass and supplied FS-UAE/HD testing accepts full
+route traversal. FS-UAE memory/timing evidence, ADF parity and real hardware
+remain pending.
+
+Current visual backlog keeps accepted contracts separate: Sparkpaw is regarded
+as production-ready; water/splash animation and diamonds are otherwise accepted.
+Later polish should separate the beetle colour identity further from Sparkpaw
+and remove remaining diamond-edge residue. A possible fast two-shot Strider
+burst and revised speed variation are future gameplay/AI tuning, not part of
+the Phase 6B.6 environment renderer pass.
+
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a
 native AGA dual-playfield display, two independently
@@ -94,7 +269,8 @@ stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
 - Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots
-- Reset the Amiga or emulator to leave this engine milestone
+- HD: left mouse returns cleanly to Workbench and writes `renderdiag.log`
+- ADF: reset the Amiga or emulator to leave this engine milestone
 
 Each separate fire press launches a fast blue/cyan plasma pulse from
 Sparkpaw's right-hand gauntlet. Up to six pulses can remain in flight, so the
@@ -120,9 +296,8 @@ earlier level areas therefore creates fresh encounters. Reaching the far-right
 world edge temporarily resets the player, camera, projectiles, collectibles and
 enemy encounter state in memory without reloading resident level assets. This
 right-edge replay stands in for the later `LEVEL_COMPLETE -> next level` flow.
-Mouse exit is disabled because clean Workbench
-restoration remains a separate technical milestone; reset the Amiga or
-emulator to leave the current build.
+The HD build supports clean left-mouse Workbench restoration and writes its
+high-water log only after takeover ends. The ADF remains reset-to-exit.
 
 Phase 5C.3 places two guaranteed Clockwork Storm Striders—one on a raised
 platform and one on the floor—with one optional third encounter in the level
@@ -304,10 +479,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.4.lha`
-- `dist/Sparkpaw-0.6.0-alpha.4.zip`
-- `dist/Sparkpaw-0.6.0-alpha.4.adf`
-- `dist/Sparkpaw-0.6.0-alpha.4-Source.zip`
+- `dist/Sparkpaw-0.6.0-alpha.28.lha`
+- `dist/Sparkpaw-0.6.0-alpha.28.zip`
+- `dist/Sparkpaw-0.6.0-alpha.28.adf`
+- `dist/Sparkpaw-0.6.0-alpha.28-Source.zip`
 
 `tools/make_release.py` owns the SemVer prerelease value. Its minor component
 tracks the broad roadmap phase (`0.6.x` for Phase 6); the exact lettered
@@ -322,7 +497,7 @@ for the current test build.
 
 The DOS1/FFS ADF contains `S/startup-sequence` and boots directly. Its gameplay
 data reconstructs to the same bytes as HD, but Stage B deliberately uses an
-ADF-only executable plus `storm-front.spr1` in place of `storm-front.spbm`.
+ADF-only executable plus SPR1 streams for front, rear, Strider and player data.
 ZIP/LHA retain the ordinary executable, loose SPBM files and existing loader.
 
 Run `make adf-report` for the ADF-only Stage A storage measurement. It writes
@@ -335,12 +510,12 @@ the eventual ADF codec.
 Stage B first packed `storm-front.spbm` with the project-owned SPR1 byte-run
 format; MrDig reported that supplied ADF works correctly. The same accepted
 path now covers `storm-rear.spbm`, whose ADF was also accepted, plus the current
-in-review Strider cache. The ADF executable streams all three directly into their final
+in-review Strider and player sources. The ADF executable streams all four directly into their final
 allocated bitplanes using a 512-byte input buffer and validates raw size plus
 CRC32; it never allocates a second complete foreground copy. Release validation
-extracts both packed files and compares their host-decoded bytes with the
+extracts every packed file and compares its host-decoded bytes with the
 canonical SPBMs. Test the ADF from a cold boot through title, `LOADING`,
-`CHARGING` and all five gameplay screens. Foreground and rear parity are
+`CHARGING` and all twelve gameplay screens. Foreground and rear parity are
 accepted; now exercise both Striders through walk, turn, shoot, hit, traversal
 and death/respawn. A corrupt/truncated stream must fail loading rather than
 enter gameplay.
@@ -349,13 +524,15 @@ Run `make bench` to build the isolated `sparkpaw-renderbench`. This small
 program validates the dual-playfield foundation before it is allowed back
 into the game; see `docs/RENDERBENCH.txt`.
 
-Run `make phase6-memory` for the isolated 2048px Phase 6A resident-memory
-experiment. It writes a directly runnable HD test drawer under
-`build/test/Sparkpaw-Phase6A-2048/`, repeats existing world/collision data without changing
-the production level, and compiles only the test executable with
-`SPARKPAW_WORLD_W=2048`. Once gameplay prepares successfully it writes
+Run `make phase6-memory` for the isolated 3072px Phase 6C.1 resident-memory
+measurement. It writes a directly runnable HD test drawer under
+`build/test/Sparkpaw-Phase6C1-3072/` using the exact production assets and
+compiles only the test executable with `SPARKPAW_WORLD_W=3072`. Once gameplay
+prepares successfully it writes
 `phase6-memory.log` beside that executable with Chip RAM free/largest values.
-This target is a capacity test, not the Phase 6 greybox or production renderer.
+The normal HD `sparkpaw` also records prepared-peak and post-run memory in
+`renderdiag.log` on left-mouse exit, so the primary test needs no extra drawer.
+The following Phase 6A measurements remain historical baseline evidence.
 Phase 6A.2 releases the exact 325,220-byte player, enemy and collectible
 conversion sources after their final DMA caches and the Copper palette have
 been built. Its log records Chip and Fast free/largest values both immediately
@@ -447,7 +624,7 @@ including on accelerated systems. Both screens share one 64-colour palette.
 
 ## What to test
 
-Walk through all five screen widths, jump onto and off every platform and
+Walk through all twelve screen widths, jump onto and off every platform and
 reverse direction frequently. Verify that the foreground follows the camera
 while the mountain/tower layer moves at one quarter speed. Compare HD and ADF
 behaviour. Useful reports include the exact location and whether the issue

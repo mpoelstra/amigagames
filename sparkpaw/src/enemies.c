@@ -74,11 +74,12 @@ static UWORD randomBelow(UWORD limit)
     return limit?(UWORD)(nextRandom()%limit):0;
 }
 
-static BOOL spawnRuntimeReady(UBYTE spawnIndex,UBYTE type)
+static BOOL spawnRuntimeReady(UBYTE type)
 {
     if(type==ENEMY_TYPE_CLOCKWORK_BEETLE) return TRUE;
-    /* Keep the optional third Strider gated until its runtime load is tested. */
-    return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&spawnIndex<8;
+    /* Phase 6C admits every authored Strider candidate while the existing
+       camera-managed pool still limits simultaneous enemy Bobs to four. */
+    return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER;
 }
 
 static WORD enemyWidthForType(UBYTE type)
@@ -368,7 +369,7 @@ static void activateVisibleSpawns(WORD cameraX,BOOL allowRestoreSlots)
             LONG priority;
             if(!state->selected||state->respawnPending||state->exhausted||
                state->loadedSlot!=INVALID_SPAWN||
-               !spawnRuntimeReady(spawnIndex,state->enemy.type)||
+               !spawnRuntimeReady(state->enemy.type)||
                !spawnNearCamera(&state->enemy,cameraX)) continue;
             priority=spawnPriority(&state->enemy,cameraX);
             if(priority<bestPriority) {
