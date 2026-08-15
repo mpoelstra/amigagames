@@ -232,15 +232,27 @@ The resident width adds 131,072 bytes to each of `frontClean` and
 `frontDisplay`, 98,304 rear bytes and 896 collision bytes versus 2048px:
 360,448 extra bitmap bytes, before small extra collectible restore state.
 Host builds/package validation pass and supplied FS-UAE/HD testing accepts full
-route traversal. FS-UAE memory/timing evidence, ADF parity and real hardware
-remain pending.
+route traversal. Supplied full-run memory remains viable, but production timing
+is rejected/pending optimization; ADF parity and real hardware remain pending.
 
-Current visual backlog keeps accepted contracts separate: Sparkpaw is regarded
-as production-ready; water/splash animation and diamonds are otherwise accepted.
-Later polish should separate the beetle colour identity further from Sparkpaw
-and remove remaining diamond-edge residue. A possible fast two-shot Strider
-burst and revised speed variation are future gameplay/AI tuning, not part of
-the Phase 6B.6 environment renderer pass.
+Current follow-up keeps three contracts separate. Supplied alpha.28 FS-UAE
+evidence rejects the world diamond's transparent dark facets and ragged lower
+tip: replace it with one clean native 16x21 opaque-outline diamond without
+changing Bob dimensions, cache or restore ordering. Separate evidence shows a
+standing plasma sample geometrically crossing an elevated beetle but being
+rejected by the legacy `lowShot` gate; remove only that redundant gate, because
+ordinary floor beetles remain crouch targets through actual Y overlap. Do not
+combine either correction with renderer work.
+
+The supplied long alpha.28 `renderdiag.log` covers 27,819 frames and records
+14,172 line-253 passes crossing PAL wrap. Its peak runs 251 raster lines (margin
+-192) with five projectiles, two beetles, two Striders, one collectible and two
+water updates. Prepared memory remains viable at 170,752 Chip bytes free
+(169,456 largest) and 6,362,480 Fast bytes free, but full-run production timing
+is rejected/pending. After the two small isolated corrections, profile work by
+operation family and optimize the production 4+3 path without changing the
+accepted display/Copper contracts. A possible fast two-shot Strider burst and
+revised speed variation remain later gameplay/AI tuning.
 
 This is a deliberately small but real engine test. It validates the risky
 parts before broader enemy variety, music and level progression are added: a

@@ -789,8 +789,10 @@ FS-UAE/HD traversal testing, built on the accepted
 alpha.20 rear and alpha.22 foreground direction. Two water hazards, two dry
 chasms, seven persistent Striders with bidirectional gap traversal, additional
 beetles and 48 diamonds are integrated without enlarging the generic four-slot
-active enemy pool. Full-run timing/memory review, ADF parity and real-A1200
-verification remain pending. Earlier Phase 6B.6
+active enemy pool. Supplied alpha.28 full-run memory remains viable, but timing
+is rejected/pending: 14,172 of 27,819 synchronized passes cross PAL wrap and the
+peak consumes 251 lines versus the 59-line post-line-253 window. ADF parity and
+real-A1200 verification remain pending. Earlier Phase 6B.6
 extended 1024px REAR8 parallax plus separate
 FRONT16 foreground-material v1 candidate, both rejected as the final visual
 quality target in supplied FS-UAE review. The seam correction remains useful.
@@ -849,9 +851,32 @@ ground facade. Collision, enemy surfaces, traversal, water and renderer state
 remain unchanged. A real dry gap plus larger L/portal architecture is the next
 logical isolated layout step; do not fold that collision/pacing change into the
 alpha.22 foreground-art review.
+Before renderer optimization, complete two isolated alpha.28 regressions. First,
+remove the beetle `lowShot` eligibility gate while retaining geometric hitbox
+testing; evidence shows a standing shot crossing an elevated beetle without a
+hit, while floor beetles remain naturally above standing-shot Y. Second, author
+a clean native 16x21 world diamond with pen zero only outside the silhouette,
+opaque dark outline/facets and no ragged lower fringe. Preserve its Bob size,
+mask/cache ownership and restore order. Do not combine these gameplay/art steps
+with each other or with renderer changes. Then profile the line-253 pass by
+water, projectile, enemy and collectible families before optimizing production
+4+3. Also correct the stale `alpha23` diagnostic-log label in the next build.
+
 The two-line opaque
 HUD-boundary correction has a later intermittent real-Amiga glitch report
 recorded as a separate todo.
 
-My next request is: ...
+My next request is:
+
+Continue from commit after the alpha.28 follow-up plan. First read this handoff,
+`sparkpaw/README.md`, the new alpha.28 evidence sidecars and current source.
+Implement only the isolated elevated-beetle hit correction: remove the redundant
+`lowShot` gate while preserving the existing geometric body rectangle, floor-
+beetle crouch behavior, health/hurt/death contracts and renderer. Prove standing
+shots hit an elevated beetle and still miss an ordinary floor beetle, then run
+`make` and `make release`, synchronize SemVer/checkpoint/package notes and give
+me the normal `sparkpaw` executable for FS-UAE review. Do not start diamond art
+or renderer optimization in the same change. After acceptance, separately make
+the clean native 16x21 diamond; only after that profile/optimize the 251-line
+production Bob peak.
 ```

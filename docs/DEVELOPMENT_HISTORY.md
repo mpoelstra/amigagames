@@ -3883,3 +3883,38 @@ reaches the previously blocking platform, continues through the remainder and
 completes the full 3072-pixel level. This accepts Phase 6C.1 route traversal.
 The result does not establish ADF gameplay parity, real-A1200 behavior or a
 full-run production timing/memory margin; those boundaries remain explicit.
+
+## 15 August 2026: alpha.28 full-run follow-up plan
+
+The subsequent long FS-UAE/HD playthrough supplies the missing production log
+and two focused regressions. `renderdiag.log` covers 27,819 frames; 14,172 Bob
+passes cross PAL wrap. The peak starts at line 253 and finishes at line 192 of
+the next frame, or 251 raster lines versus 59 available (margin -192). It
+restores/draws five projectiles, two beetles, two Striders and one collectible,
+and updates both water locations. Prepared peak memory remains viable at
+170,752 Chip bytes free, 169,456 largest, 6,362,480 Fast bytes free and
+6,361,360 largest. This accepts neither production timing nor real-hardware
+margin; it does show that memory is not the immediate FS-UAE blocker. The log
+is preserved as `testresults/Phase 6C.1-alpha28-full-run-render-overbudget.log`.
+
+The first recording shows intended black HUD-derived diamond facets becoming
+transparent holes and its narrow lower pixels reading as a ragged fringe. The
+cause is exact: HUD pen zero represents both black/shadow art and background,
+while the world Bob correctly treats pen zero as transparent. The future art
+step must replace it with one newly authored native 16x21 indexed diamond, pen
+zero only outside the object and opaque dark contour/facets inside. Bob size,
+mask generation, packed cache, hover and synchronized restore/draw order stay.
+Evidence is catalogued as
+`testresults/Phase 6C.1-alpha28-diamond-transparency-fringe.mov`.
+
+The second recording shows standing plasma crossing an elevated beetle's body
+without impact. Code confirms the sample point is inside the existing beetle
+rectangle but is rejected by the additional `lowShot` predicate. That predicate
+is redundant: floor beetles naturally reject standing fire because its Y does
+not overlap their body, while crouch fire does. The next implementation is only
+this eligibility correction, with host tests for elevated-hit and floor-miss;
+diamond art follows as a separate checkpoint. Renderer profiling/optimization
+comes third and must attribute water, projectile, enemy and collectible costs
+before changing the stable 4+3 pipeline. The stale alpha23 diagnostic identifier
+must be corrected in that later diagnostic build. Evidence is catalogued as
+`testresults/Phase 6C.1-alpha28-elevated-beetle-standing-shot-miss.mov`.
