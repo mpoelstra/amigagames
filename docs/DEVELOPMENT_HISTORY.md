@@ -4349,3 +4349,33 @@ measurement-first route: map FFS blocks against actual runtime open order,
 benchmark a byte-identical layout-only disk, and consider a sequential ADF-only
 container only if physical layout is insufficient. No ADF loading change is
 implemented in alpha.41.
+
+## 19 August 2026: pre-renderer-redesign recovery checkpoint
+
+Planning after the supplied alpha.41 hardware evidence rejects treating a
+one-visible-Strider limit as the primary fix. The current full-world in-place
+Bob path scales presentation correctness with load: two Striders coincide with
+the strongest corruption and cadence loss, killing one nearly removes both,
+and a repeatable world position can corrupt the HUD. A short diagnostic build
+will first correlate Bob completion, raster wraps, per-family cost and active
+Copper publication; it is deliberately bounded evidence gathering rather than
+an extended profiling project.
+
+The preferred structural proof then uses two complete Copper lists and compact
+double-buffered rolling gameplay targets. Hardware fine scroll moves the view,
+only newly exposed tile columns are constructed, each target owns its restore
+history, and neither CPU nor Blitter writes the displayed target. A
+representative slice must cover the repeatable HUD point, two Striders, water,
+projectiles and collectibles before full-route migration. Camera-tripwire actor
+dormancy is part of the proof; max-one-visible-Strider remains only a fallback
+budget or intentional encounter choice. Current foreground art, all sprites,
+colours, animation, separate HUD and the three-plane quarter-speed parallax are
+non-negotiable invariants. The Analogue Pocket 68020/no-cache configuration is
+an explicit additional stress regression because its supplied evidence shows
+widespread Bob, gameplay-field and HUD corruption; it remains distinct from
+FS-UAE and real-A1200 verification.
+
+`sparkpaw/docs/RENDERER_GLITCH_CORRECTION_PLAN.md` records the complete gates,
+memory alternatives and classic/Scorpion research. This is a planning/recovery
+checkpoint on the unchanged alpha.41 executable, not a new SemVer release and
+not FS-UAE, ADF, Analogue Pocket or hardware acceptance.

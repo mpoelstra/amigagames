@@ -161,21 +161,30 @@ Water/route:
 
 ## Immediate work order
 
-### 1. Real-hardware enemy glitch correction
+### 1. Renderer-safety prototype
 
-Reproduce and isolate the intermittent corruption around the first two
-Striders on the real A1200/68030; beetles may show the same fault. Alpha.40 and
-alpha.41 evidence proves this predates alpha.41. Treat missed render deadlines,
-unsafe phase entry and shared Bob restore/draw behavior as hypotheses, not
-conclusions. Preserve all sprites, colours, geometry and accepted overlap order.
-Fix scheduling/timing if required, but do not begin broad 68020 optimization
-unless it is necessary to make Bob presentation safe.
+Use `sparkpaw/docs/RENDERER_GLITCH_CORRECTION_PLAN.md`. Begin with one short,
+separate debug measurement of Bob completion, raster wraps, family cost and
+active-Copper publication at the repeatable HUD point and the first two-Strider
+scene. Then prototype the structural solution directly: two atomic Copper
+lists plus compact double-buffered rolling gameplay targets, hardware fine
+scroll, newly exposed tile-column construction, per-target dirty ownership and
+camera-tripwire actor dormancy. Never write the displayed gameplay target.
+
+The prototype must retain the complete current foreground, three-plane REAR8
+quarter-speed parallax, colours, sprites, animation and HUD. Max-one-visible-
+Strider is only a fallback presentation budget or level-design option, not the
+preferred renderer fix. Compare the representative slice with the existing
+alpha.41 path before migrating the full route. Alpha.40 and alpha.41 evidence
+proves the corruption predates alpha.41; do not claim its exact cause until the
+minimal trace correlates it. Treat the Analogue Pocket 68020/no-cache result as
+a separate stress gate, not as FS-UAE or real-A1200 equivalence.
 
 The title contract is unchanged: 35 black PAL frames after display takeover,
 24 fade frames and 225 fully visible title frames. Faster loading before title
 takeover must not be confused with a shortened Indivision stabilization delay.
 
-### 2. Stock-68020 performance — after stable enemy presentation
+### 2. Stock-68020 performance — after safe prototype presentation
 
 Use `sparkpaw/docs/PERFORMANCE_68020_PLAN.md`.
 

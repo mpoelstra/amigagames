@@ -4,8 +4,8 @@ Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
 Current release: `0.6.0-alpha.41`. Roadmap checkpoint: accepted Phase 6C.1
-real-HD Chip-RAM correction, followed by real-hardware enemy-glitch isolation;
-stock-68020 profiling/optimization follows stable enemy presentation;
+real-HD Chip-RAM correction, followed by a measured renderer-safety prototype;
+stock-68020 profiling/optimization follows safe enemy presentation;
 accepted Phase 6B.5 remains the player-gameplay baseline.
 Supplied alpha.39 testing accepts presentation/cadence at 68030 in FS-UAE and
 the ADF on a real A1200/68030. Both packages work in FS-UAE, but real-A1200 HD
@@ -28,6 +28,15 @@ two-Strider scene due to intermittent enemy glitches and apparent cadence loss;
 occasional beetle glitches are also reported. Stock-68020 FS-UAE performance
 remains a separate rejected/open optimization track after that presentation
 fault is isolated.
+The next renderer step deliberately does not reduce visual ambition. After one
+short diagnostic trace, it prototypes two atomically published Copper lists
+and compact double-buffered rolling gameplay targets that are never modified
+while displayed. The existing FRONT16 art, three-plane quarter-speed REAR8
+parallax, palettes, sprites, animation and separate HUD are hard invariants.
+Camera-tripwire dormancy and a possible one-visible-Strider budget may be
+measured, but the latter is not the preferred structural fix. The Analogue
+Pocket 68020/no-cache configuration is a separate stress regression after the
+prototype; it is not evidence of FS-UAE or real-A1200 acceptance.
 Host/native/package validation passes. The alpha.41 ADF uses 1,177 blocks
 (588 KiB) and leaves 583 blocks free.
 Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
