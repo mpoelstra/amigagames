@@ -3918,3 +3918,434 @@ comes third and must attribute water, projectile, enemy and collectible costs
 before changing the stable 4+3 pipeline. The stale alpha23 diagnostic identifier
 must be corrected in that later diagnostic build. Evidence is catalogued as
 `testresults/Phase 6C.1-alpha28-elevated-beetle-standing-shot-miss.mov`.
+
+## 15 August 2026: alpha.29 isolated elevated-beetle hitfix
+
+The beetle branch in `enemiesHitProjectile()` no longer requires the legacy
+`lowShot` boolean. It still requires an active, non-dying beetle and the exact
+existing x+2..29, y+7..23 body rectangle. Health, eight-tick hit reaction,
+twenty-tick four-frame death, sound result, respawn lifecycle, projectile
+impact handling and the complete line-253 renderer remain unchanged. The
+projectile field is intentionally retained to keep this patch narrow; the now
+redundant callback parameter is removed so the runtime does not carry an unused
+eligibility argument into enemy hit testing.
+
+The runtime and a host regression share `beetleHitboxContains()`. `make test`
+proves that a standing sample at y=171 hits a beetle elevated to y=152, that
+the identical sample misses a floor beetle at y=176 through natural Y
+separation, and that its crouch sample at y=185 still hits that floor beetle.
+These are host geometry results only. MrDig's supplied FS-UAE/HD retest of the
+normal alpha.29 executable accepts the elevated standing hit, ordinary floor
+standing miss, floor crouch hit and clean left-mouse exit. ADF gameplay parity
+and real-A1200 verification are not claimed. Diamond art and renderer profiling
+are unchanged and remain later strictly separate steps.
+
+`make test`, native `make PYTHON=../.venv/bin/python3` and
+`make release PYTHON=../.venv/bin/python3` pass. Release validation round-trips
+all four ADF-only SPR1 streams and verifies the bootable DOS1/FFS image. It uses
+1,549 blocks (774 KiB) and leaves 211 blocks free. These remain host build and
+package checks, not ADF gameplay acceptance.
+
+## 15 August 2026: alpha.30 rejected player sprite-stream hypothesis
+
+The supplied alpha.28 recording now catalogued as
+`testresults/Phase 6C.1-alpha28-overlapping-strider-flicker.mov` shows that the
+apparent Strider flicker contains transient orange/dark pixels over the pair.
+Consecutive recording frames 210/211 and 216/217 isolate corruption and
+recovery. This initially suggested unsafe player hardware-sprite mutation.
+
+The six player Copper pointers are consumed at frame start, but the old path
+then rewrote POS/CTL in the selected cached sprite streams after raster line
+100. With Sparkpaw lower in the field, sprite DMA could still consume those
+headers. Alpha.30 makes the complete 62-frame/facing/channel art cache immutable.
+Two runtime banks each own six complete 100-word streams. The CPU prepares only
+the inactive bank with POS, CTL, all 96 data words and the existing two-word
+terminator, then updates the next-field Copper pointers. The current DMA bank
+is never modified. This is 2,400 additional Chip bytes; pixels, frame IDs,
+palette, player geometry, six attached channels and line-100 list staging stay.
+
+Host tests use the runtime stream builder and prove immutable source data,
+correct POS/CTL, complete pixel/terminator copies, independent banks and no
+mutation of the active bank. The rejected VSTOP clipping experiment is not
+reintroduced. The diamond Bob, enemy Bobs and line-253 pass are unchanged.
+Supplied FS-UAE/HD review rejects alpha.30. The later recording catalogued as
+`testresults/Phase 6C.1-alpha30-rejected-strider-flicker-persists.mov` shows
+heavy flicker and also an isolated Strider failing while the other is far away.
+The sprite-stream hypothesis is therefore disproved. No ADF gameplay or
+real-A1200 result is claimed.
+
+`make test`, `make PYTHON=../.venv/bin/python3` and
+`make release PYTHON=../.venv/bin/python3` pass without compiler warnings.
+Release validation round-trips all four ADF-only SPR1 streams and verifies the
+bootable DOS1/FFS image. Alpha.30 uses 1,551 blocks (775 KiB), leaving 209 free.
+This is host build/package evidence only.
+
+## 15 August 2026: alpha.31 camera-culls resident water animation
+
+The rejected alpha.30 quit diagnostic records 3,525 PAL wraps in 3,844 passes.
+Its 237-line peak starts at line 253 and ends at line 178 at camera 810 with one
+beetle, two Striders, two collectibles and two water updates. Neither resident
+water strip (x=1584 and x=2432) intersects that camera. Those sixteen unnecessary
+four-plane clean/display blits extend displayed FRONT16 mutation through the
+upper Strider scanlines, where sequential plane writes can expose transient
+mixed palette pens.
+
+Alpha.31 removes the rejected 2,400-byte runtime sprite-bank experiment and
+keeps the original player stream contract. Water animation now owns a drawn
+frame per resident strip and blits only strips intersecting the camera plus a
+16-pixel margin. A stale off-screen strip synchronizes directly to the current
+frame on entry. Host boundary tests prove both water strips are excluded at
+camera 810 and cover entry/exit edges. The world diamond, water art/cache,
+enemy art and geometry, FRONT16 layout, line-253 scheduling and Bob restore/draw
+order are unchanged. Focused FS-UAE/HD review remains pending; no ADF gameplay
+or real-A1200 result is claimed.
+
+`make test`, native `make PYTHON=../.venv/bin/python3` and release
+`make release PYTHON=../.venv/bin/python3` pass. The bootable alpha.31 ADF uses
+1,551 blocks (775 KiB), leaving 209 free. This is host package evidence only.
+
+Supplied FS-UAE/HD review then accepts both water strips while reporting that
+the Strider glitch is improved but not gone. The preserved alpha.31 recording
+and quit log show sporadic upper-Strider wrong-colour pixels, 6,599 wraps in
+6,796 passes and a 219-line zero-water peak at camera 797. Alpha.31 is therefore
+accepted for water culling but rejected as a complete Strider correction.
+
+## 15 August 2026: alpha.32 prioritizes upper enemy Bobs
+
+The remaining corruption occurs on the upper Strider because all enemy restores
+and collectible work precede enemy redraw, while slot order can leave that Bob
+behind lower actors. Alpha.32 makes both enemy restore and draw traversal a
+stable ascending-Y order. Equal-Y enemies retain their original slot order;
+the existing projectile, collectible and enemy family priority is unchanged.
+This moves upper Strider completion ahead of lower Strider/beetle work without
+removing an update or changing total Blitter work.
+
+A host regression proves ascending order and stable equal-Y ordering. Beetle
+hit geometry and water visibility regressions still pass. Enemy art, animation,
+geometry, masks, FRONT16 layout, collectible hover, world diamond, line-253
+start and accepted alpha.31 water culling are unchanged. Focused FS-UAE/HD
+review remains pending; no ADF gameplay or real-A1200 result is claimed.
+
+`make test`, native `make PYTHON=../.venv/bin/python3` and release
+`make release PYTHON=../.venv/bin/python3` pass. The bootable alpha.32 ADF uses
+1,553 blocks (776 KiB), leaving 207 free. This is host package evidence only.
+
+Supplied alpha.32 FS-UAE/HD evidence then accepts the large improvement and
+separated Strider stability, while preserving a small remaining head/horn/crest
+flicker only as the two upper Striders walk through each other. Its quit log
+records a 214-line peak with two Striders and zero water updates.
+
+## 15 August 2026: alpha.33 merges overlapping Strider restores
+
+Two intersecting 64x64 Striders previously restored both complete rectangles,
+copying their shared background area twice across four displayed planes before
+either unchanged Bob draw completed. Alpha.33 detects only intersecting drawn
+Strider rectangles and restores their bounding union once. Both drawn flags and
+diagnostic counts retain per-Strider semantics. Separated enemies retain their
+ordinary restore path and the stable ascending-Y draw order remains unchanged.
+
+A host regression proves horizontal and vertical union bounds and rejects
+edge-touching rectangles. Existing vertical-order, water-culling and beetle-hit
+tests still pass. Art, masks, geometry, animation, family priority, collectible
+hover, diamond and water are unchanged. Focused FS-UAE/HD overlap review remains
+pending; no ADF gameplay or real-A1200 result is claimed.
+
+`make test`, native `make PYTHON=../.venv/bin/python3` and release
+`make release PYTHON=../.venv/bin/python3` pass. The bootable alpha.33 ADF uses
+1,555 blocks (777 KiB), leaving 205 free. This is host package evidence only.
+
+MrDig's supplied FS-UAE/HD retest accepts alpha.33: separated Striders and the
+head/horn/crest overlap remain stable. A separate short recording then exposes
+an unrelated projectile-occlusion defect at the narrow floor pillar. A flush
+crouch shot appears beyond the pillar and damages the beetle behind; moving
+slightly left makes the same shot collide with the pillar.
+
+## 15 August 2026: alpha.34 sweeps projectile collision from the physics edge
+
+Player shots retain their authored visual muzzle position, which is five pixels
+beyond Sparkpaw's 32px physics box when facing right. The old update advanced
+about nine pixels per frame, sampled only the new leading-edge midpoint and
+dispatched enemy damage before solid collision. A muzzle next to a narrow wall
+could therefore begin inside/beyond it or skip it between samples.
+
+Alpha.34 adds a collision-only X sample initialized at Sparkpaw's physical front
+edge. Each update visits every crossed pixel through the new projectile leading
+edge in travel order and tests solid geometry before enemy damage. Enemy shots
+use their existing leading edge as the initial sample. Render origins, plasma
+pixels, velocity, Y samples, impact lifecycle, projectile capacity and beetle
+geometry are unchanged. A host regression proves contiguous sweeps in both
+directions; all earlier beetle, water and renderer ordering tests still pass.
+Focused FS-UAE/HD review remains pending; no ADF gameplay or real-A1200 result
+is claimed.
+
+`make test`, native `make PYTHON=../.venv/bin/python3` and release
+`make release PYTHON=../.venv/bin/python3` pass. The bootable alpha.34 ADF uses
+1,557 blocks (778 KiB), leaving 203 free. This is host package evidence only.
+
+## 15 August 2026: alpha.35 starts stock-68020 profiling and aligns HD loading
+
+MrDig accepts alpha.34 projectile occlusion in supplied FS-UAE/HD testing, then
+identifies that recent reviews had inadvertently used a 68030 configuration.
+The new 68020 full run shows substantial frame loss and renewed Strider flicker.
+Its quit log records 2,293 wraps in 3,015 passes and a 311-line peak from line
+253 to line 252, containing three projectiles, two beetles, one Strider and two
+collectibles with no water update. General 68020 performance is rejected.
+
+Alpha.35 removes the first proven invisible cost: active projectiles outside
+the camera plus 16-pixel margin are no longer drawn into the resident 3072px
+foreground. A previously visible projectile is still restored before it is
+parked. A host boundary regression covers both margins. The production log now
+records accumulated and peak raster-line costs separately for projectiles,
+enemies, collectibles, water and splash, and identifies itself as alpha.35
+instead of the stale alpha23 label. The measurement build preserves the 4+3
+dual playfield, line-100 staging, line-252 HUD switch, line-253 Bob start,
+packed caches, family order and no-CPU-RMW displayed-Chip rule.
+
+Separate supplied real-Amiga evidence shows the alpha.34 floppy/ADF package
+working but the HD build entering horizontal display corruption immediately
+after CHARGING. The main HD executable had used raw SPBM for four large assets
+while the ADF used verified SPR1 streams. Alpha.35 packages and decodes those
+same four packed assets on HD, reducing disk I/O and removing that principal
+transition-path difference. Its streaming CRC changes from eight polynomial
+bit iterations to two nibble-table steps per output byte; the standard
+`123456789` CRC32 vector proves identical results. This is a targeted candidate, not a hardware fix
+claim. FS-UAE 68020 timing and real-Amiga HD acceptance remain pending; exact
+ADF gameplay parity is not inferred. Diamond art and renderer presentation are
+unchanged.
+
+All seven host regressions, native `make PYTHON=../.venv/bin/python3` and
+`make release PYTHON=../.venv/bin/python3` pass. The bootable alpha.35 ADF uses
+1,560 blocks (780 KiB) and leaves 200 free. This is host package evidence only.
+
+## 15 August 2026: alpha.36 rolls rejected packed loading back out of HD
+
+Supplied alpha.35 FS-UAE/HD evidence reaches LOADING but remains there for the
+rest of a 30.8-second recording; CHARGING and gameplay never appear. The user
+also observes green marks at upper left and intermittent display glitches. This
+directly rejects the only alpha.35 loading-path change: compiling and packaging
+the normal HD executable with the ADF's SPR1 decoder.
+
+Alpha.36 restores raw SPBM loading and raw HD package contents exactly for the
+four large gameplay assets. ADF keeps its required packed streams and the
+independently verified two-nibble CRC optimization. The off-screen-projectile
+cull, per-family timing profiler, Copper/display structure and all gameplay
+changes remain intact. This rollback requires a fresh FS-UAE HD loading gate;
+it does not establish the cause or correction of alpha.34's separate real-Amiga
+post-CHARGING display corruption.
+
+All seven host regressions, native `make PYTHON=../.venv/bin/python3` and
+`make release PYTHON=../.venv/bin/python3` pass. The alpha.36 ADF uses 1,561
+blocks (780 KiB), leaving 199 free. This is host package evidence only.
+
+## 15 August 2026: alpha.37 tightens the measured dominant enemy Bob family
+
+Supplied alpha.36 FS-UAE/HD evidence confirms that raw loading again enters
+gameplay, then rejects performance and enemy presentation on 68020. Its 4,139-
+frame log contains 3,709 wraps and a 310-line worst pass with two Striders, one
+projectile and one collectible. Enemy restore/draw dominates: 354,807
+accumulated raster lines and a 263-line peak, versus collectibles at 179,035/54,
+projectiles at 22,432/257, water at 5,692/25 and splash at 1,854/11.
+
+Mask inspection shows that the fixed 64x64 Strider blits include large
+transparent margins: common frames occupy roughly 42x55 pixels. Beetle art
+starts around row six despite fixed 32x24 work. Alpha.37 computes exact opaque
+bounds for every facing and animation frame while building the existing packed
+cache, normalizes pixels into those per-frame rectangles, and records the exact
+world rectangle for restore. Intersecting Strider restores now union unequal
+tight rectangles. No visible source pixel, collision cell, animation cadence,
+family order, camera rule or Copper/display contract changes. Focused FS-UAE
+68020 timing and clipping/residue review remain pending.
+
+All seven host regressions, native `make PYTHON=../.venv/bin/python3` and
+`make release PYTHON=../.venv/bin/python3` pass. The alpha.37 ADF uses 1,563
+blocks (781 KiB), leaving 197 free. This is host package evidence only.
+
+## 15 August 2026: alpha.38 replaces the visible-world Bob pass
+
+Supplied alpha.37 FS-UAE/68020 evidence rejects both presentation and timing:
+enemy sprites are damaged and frame rate remains unacceptable. The broader
+audit confirms the gameplay/HUD split is sound, but finds one full 3072x256
+foreground was restored and redrawn while displayed. Its nominal 59-line
+post-HUD window could never contain measured 251--310-line passes. Production
+diagnostics additionally forced a WaitBlit after every family, preventing
+normal CPU/Blitter overlap. Jumping adds CPU collision probes because vertical
+movement resolves per pixel, but Sparkpaw is a hardware sprite and this is not
+the dominant source of enemy tearing.
+
+Alpha.38 uses two 512x256 displayable FRONT16 viewport buffers. A 96-pixel
+camera guard preserves partially visible Bobs. Each frame updates diamonds and
+water only in the clean resident world, Blitter-copies its 512x208 camera-local
+slice into the hidden viewport, draws splash/enemies/projectiles there, waits
+for completion and only then publishes Copper pointers. No operation writes the
+displayed foreground and transient restore passes are gone. Dual playfield 4+3,
+the line-252 separate HUD, rear parallax, Bob family priority, packed caches,
+camera culling and player hardware sprites remain. The invasive family waits
+are removed from the normal diagnostic executable. FS-UAE/68020 behavior,
+ADF gameplay parity and real-A1200 behavior remain unverified.
+
+## 16 August 2026: alpha.39 restores the accepted in-place baseline
+
+Supplied alpha.38 FS-UAE/HD evidence rejects the hidden-viewport rewrite on
+both 68020 and a separate 68030 check. Its log records 3,324 wraps in 3,722
+compositions and a 311-line worst composition. Copying a 512x208 four-plane
+foreground slice every update adds about 53 KiB of destination traffic plus
+source reads before dynamic Bobs, so this route is abandoned rather than
+incrementally tuned.
+
+Alpha.39 restores the alpha.33-style resident foreground restore/draw renderer
+and line-253 pass. Alpha.37 tight enemy bounds and all alpha.38 viewport code
+are removed. Accepted beetle/projectile collision, off-screen projectile and
+water culling, Strider overlap ordering and raw HD loading remain. The normal
+diagnostic retains whole-pass logging and left-mouse exit but does not insert
+per-family WaitBlit barriers. FS-UAE/68030 presentation is the first gate,
+followed by a measured 68020 baseline; neither is yet accepted.
+
+Default releases now contain LHA, ZIP and ADF plus an extracted same-version
+review drawer in `dist`. The source ZIP exceeds 100 MB and is created only on
+explicit request with `tools/make_release.py --include-source`. Host tests,
+native build and release validation pass. The alpha.39 ADF uses 1,564 blocks
+(782 KiB), leaving 196 free; this is package evidence only.
+
+## 19 August 2026: alpha.40 bounds real-HD raw reads
+
+MrDig accepts alpha.39 presentation and cadence at 68030 in FS-UAE. He also
+accepts the alpha.39 ADF on a real A1200. Both alpha.39 HD and ADF work in
+FS-UAE, but supplied real-A1200 HD evidence rejects the transition after
+CHARGING: HDMI becomes nearly black with horizontal remnants and the native CRT
+shows moving cyan/white noise bands. This rules out an Indivision-only symptom.
+
+The remaining launch-path difference is asset transfer. Packed ADF gameplay
+assets are streamed through a 512-byte reader. Raw HD instead issued one DOS
+Read for any plane whose file and bitmap row widths match, including 98,304
+bytes for each 3072x256 world plane. Classic filesystem/device MaxTransfer and
+Mask settings exist specifically because some drivers corrupt unsuitable or
+oversized direct transfers. Alpha.40 routes raw headers, palettes, planes and
+masks through the same 512-byte staging principle as the working ADF reader,
+then CPU-copies into the final allocation. DOS therefore never receives a
+complete world plane or arbitrary final DMA address. Asset formats, resident
+memory, renderer, Copper, gameplay and ADF decoding are unchanged.
+Real-A1200 HD verification remains pending. Host regressions, native build and
+release validation pass. The alpha.40 ADF uses 1,566 blocks (783 KiB), leaving
+194 free; this is package evidence only.
+
+## 19 August 2026: Analogue Pocket exposes broader alpha.39 timing sensitivity
+
+Supplied alpha.39 ADF footage from the Analogue-Amiga FPGA core, configured for
+68020 with caches disabled, AGA/PAL/Turbo, 2 MB Chip and 32 MB Fast, shows
+frequent transient red/magenta wedges, fragmented dynamic objects and partial
+HUD-heart corruption. The failure is not confined to overlapping Striders.
+Because the HUD uses a separate bitmap selected by the Copper at line 252, this
+adds missed frame phase or late Copper/HUD publication to the first profiling
+questions; static Strider art alone cannot explain the complete observation.
+
+The core is FPGA/Minimig-derived rather than Amiberry software emulation. Its
+result is retained as a useful timing-sensitivity stress test, not as proof of
+cycle-equivalent stock-A1200/68020 behavior and not as a reversal of the
+separately accepted alpha.39 ADF result on the real A1200/68030. No production
+code or release changes for this evidence review.
+
+## 19 August 2026: alpha.40 real-HD failure is isolated to Chip RAM
+
+MrDig retested the unchanged alpha.40 HD package on the same real A1200/68030.
+Boot With No Startup-Sequence leaves nearly all 2 MB Chip RAM available and the
+level loads and plays correctly. A normal Workbench with 1,430,032 free Chip
+bytes reproduces the alpha.39/40 post-CHARGING corruption. Reducing that same
+Workbench to two colours raises free Chip RAM to 1,924,888 bytes, after which
+alpha.40 again loads and plays correctly. This establishes real-hardware HD
+operation with sufficient Chip RAM and isolates the remaining normal-Workbench
+defect to peak/resident Chip demand. It rejects MaxTransfer as the current
+primary cause without generalizing acceptance to the low-memory launch.
+
+The next correction is a measured memory-layout checkpoint. The separate
+LOADING and CHARGING screens currently allocate complete 320x256 six-plane
+bitmaps although only the word LOADING changes to CHARGING; one retained floppy
+image with a changed status area is acceptable. The resident gameplay images
+also include rows below the line-252 HUD switch and a rear span beyond the
+maximum quarter-scroll fetch. Remove only demonstrably unreachable bitmap data,
+consolidate the status screen and place CPU-only data in Fast RAM, while keeping
+all custom-chip DMA sources in Chip RAM. The production target remains 2 MB
+Chip plus 8 MB Fast.
+
+Official HD and ADF releases no longer need left-mouse Workbench restoration or
+runtime logging. Those facilities belong only to explicitly named debug builds
+for focused investigation; a later WHDLoad package may own a separate exit
+contract. This policy is recorded before implementation, and no new release is
+created by this documentation step.
+
+The debug contract is subsequently tightened further. Debug builds do not need
+to return to Workbench either. Startup and pre-takeover diagnostics may be
+written and closed immediately while DOS is available. Gameplay diagnostics
+must accumulate in Fast RAM because filesystem calls are unsafe after Sparkpaw
+has disabled interrupts and taken over the machine. A deliberate flush action
+will restore only the OS services necessary to write and close the file, then
+wait for reset without reopening Workbench. Reset alone cannot preserve an
+unflushed RAM buffer. Official builds contain none of this input, restoration,
+buffering or file code.
+
+## 19 August 2026: alpha.41 reduces Chip RAM without reducing quality
+
+Alpha.41 implements the measured normal-Workbench memory checkpoint. Both
+3072-pixel FRONT16 buffers retain exactly the 208 rows displayed before the
+line-252 HUD switch instead of 256 rows. REAR8 retains the complete 1024-pixel
+authored master and 208 displayed rows; the removed repeated tail lies beyond
+the maximum word-aligned quarter-scroll plus 42-byte fetch. A host regression
+proves that final fetch ends within the retained span. This saves 362,496
+resident Chip bytes across the two foregrounds and rear without removing any
+reachable pixel.
+
+The complete fixed-size 28-frame, two-facing Strider cache is built
+bit-identically in Fast RAM. Four 2,560-byte Chip slots, one per possible active
+enemy, receive a complete frame only when its frame or facing changes. The 62
+player poses likewise remain complete Fast-RAM DMA-stream masters; two
+alternating six-channel Chip stages receive their exact words before Copper
+publication. These changes save a calculated 133,120 and 146,400 Chip bytes
+respectively without bounds cropping, palette changes or frame removal.
+
+LOADING and CHARGING now retain one complete accepted floppy bitmap. While
+fully faded black, a 224x40 six-plane CPU-only Fast-RAM patch replaces only the
+status band, then the same bitmap fades back in. This removes about 54 KiB from
+the status-screen peak. Total calculated permanent Chip saving is 642,016
+bytes. CPU-only asset allocations explicitly require the production minimum's
+8 MB Fast RAM; every display, Copper, sprite stage, audio sample and Blitter
+source remains in Chip RAM.
+
+The official HD target no longer defines render diagnostics; like ADF it is
+reset-to-exit and contains no mouse/log path. The separate renderdiag target
+buffers during takeover, restores only scheduling/interrupt services on its
+flush gesture, writes and closes the log, and waits for reset without reopening
+Workbench. Host regressions and native builds pass. FS-UAE presentation,
+normal-Workbench real-A1200 HD and ADF regression acceptance remain pending.
+Release validation passes; the alpha.41 DOS1/FFS ADF uses 1,177 blocks
+(588 KiB) and leaves 583 free. The normal executable and extracted HD review
+executable are byte-identical. The current Sparkpaw release set is LHA, ZIP,
+ADF and one extracted same-version drawer; no source ZIP is produced.
+
+Supplied real-A1200/68030 HD testing subsequently accepts alpha.41 startup and
+gameplay entry from a normal Workbench with about 1.4 MB Chip RAM free. This
+closes the real-HD Chip-RAM gate without lowering Workbench colours or using a
+minimal boot. Alpha.41 ADF regression remains unclaimed.
+
+The title timing is audited against its accepted implementation: display
+takeover still holds black for 35 PAL frames, fades over 24 frames and starts a
+225-frame fully visible hold only after the fade. Alpha.41 did not shorten this
+Indivision stabilization contract. Its smaller production load path can make
+the program reach display takeover sooner, which is distinct from shortening
+the on-screen timing.
+
+Two supplied real-hardware recordings are catalogued as
+`Phase 6C.1-alpha40-real-a1200-two-strider-glitches.MOV` and
+`Phase 6C.1-alpha41-real-a1200-two-strider-glitches.MOV`, with metadata and
+scope in matching sidecars. Both show the reported intermittent corruption and
+cadence loss in the first two-Strider scene; occasional beetle corruption is
+also reported. Camera sampling of a PAL screen prevents frame-exact raster
+claims, but the user's direct observation confirms that the fault is visible
+on the hardware. Its presence in alpha.40 proves that alpha.41's Fast-RAM
+masters and staging are not its point of introduction. Focused Bob scheduling
+and deadline safety now precede broad stock-68020 optimization.
+
+A Gotek user also reports repeated early-to-late track motion during ADF
+loading. `sparkpaw/docs/ADF_LOAD_OPTIMIZATION_PLAN.md` records a deferred,
+measurement-first route: map FFS blocks against actual runtime open order,
+benchmark a byte-identical layout-only disk, and consider a sequential ADF-only
+container only if physical layout is insufficient. No ADF loading change is
+implemented in alpha.41.

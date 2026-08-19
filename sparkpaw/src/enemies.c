@@ -1,4 +1,5 @@
 #include "enemies.h"
+#include "beetle_hitbox.h"
 
 #include "level_data.h"
 
@@ -621,7 +622,7 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
     activateVisibleSpawns(cameraX,FALSE);
 }
 
-UBYTE enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
+UBYTE enemiesHitProjectile(WORD x,WORD y)
 {
     WORD index;
     for(index=0;index<MAX_ENEMIES;index++) {
@@ -667,10 +668,9 @@ UBYTE enemiesHitProjectile(WORD x,WORD y,BOOL lowShot)
             }
             return enemy->dying?PROJECTILE_ENEMY_KILL:PROJECTILE_ENEMY_HIT;
         }
-        if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE&&lowShot&&
+        if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE&&
            enemy->active&&!enemy->dying&&
-           x>=(WORD)(enemy->x>>8)+2&&x<=(WORD)(enemy->x>>8)+ENEMY_W-3&&
-           y>=enemy->y+7&&y<=enemy->y+ENEMY_H-1) {
+           beetleHitboxContains(x,y,(WORD)(enemy->x>>8),enemy->y)) {
             if(!--enemy->health) {
                 enemy->dying=TRUE; enemy->deathTimer=20;
                 enemy->vx=0; enemy->animFrame=5;

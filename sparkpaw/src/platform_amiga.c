@@ -111,6 +111,24 @@ BOOL platformLeftMouse(void)
 {
     return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
 }
+
+void platformPrepareDebugFlush(void)
+{
+    /* A debug flush needs DOS scheduling and interrupts, not Workbench.  Stop
+       every custom-chip user of gameplay memory, restore the saved interrupt
+       mask and release the OS locks.  The caller writes/closes its log and
+       then waits for reset without freeing or redisplaying any bitmap. */
+    if(interruptsDisabled) {
+        audioSetHardwareActive(FALSE);
+        hardware->dmacon=DMAF_ALL;
+        hardware->intena=0x7fff;
+        hardware->intena=0x8000|oldIntena;
+        Enable(); interruptsDisabled=FALSE;
+    }
+    if(systemLocked) {
+        DisownBlitter(); Permit(); systemLocked=FALSE;
+    }
+}
 #endif
 
 static void acknowledgeKeyboard(void)

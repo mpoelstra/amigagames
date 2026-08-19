@@ -3,8 +3,33 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.28`. Roadmap checkpoint: Phase 6C.1 twelve-screen
-route integration; accepted Phase 6B.5 remains the player-gameplay baseline.
+Current release: `0.6.0-alpha.41`. Roadmap checkpoint: accepted Phase 6C.1
+real-HD Chip-RAM correction, followed by real-hardware enemy-glitch isolation;
+stock-68020 profiling/optimization follows stable enemy presentation;
+accepted Phase 6B.5 remains the player-gameplay baseline.
+Supplied alpha.39 testing accepts presentation/cadence at 68030 in FS-UAE and
+the ADF on a real A1200/68030. Both packages work in FS-UAE, but real-A1200 HD
+output corrupts immediately after CHARGING. Alpha.40 changes only raw HD asset
+input: every DOS read uses a 512-byte staging buffer followed by a CPU copy to
+the final allocation, matching the working ADF reader's transfer granularity
+and avoiding dependence on partition/device MaxTransfer and Mask behavior.
+Supplied real-A1200/68030 testing now proves alpha.40 HD loads and plays with
+about 1.92 MB Chip free, both after Boot With No Startup-Sequence and from a
+two-colour Workbench. It reproduces the post-CHARGING corruption from a normal
+Workbench with 1,430,032 Chip bytes free. The open HD defect is therefore the
+resident/peak Chip-RAM budget, not unverified disk transfer. Alpha.41 removes
+only unreachable world storage, keeps one floppy status bitmap, moves complete
+player and Strider masters bit-identically to Fast RAM, and retains small Chip
+DMA stages. The calculated permanent saving is about 642 KiB plus about 54 KiB
+at the loading peak. Supplied real-A1200/68030 testing accepts alpha.41 HD from
+a normal Workbench with about 1.4 MB Chip RAM free. Alpha.41 ADF regression is
+pending. Alpha.40 and alpha.41 real-hardware evidence both reject the first
+two-Strider scene due to intermittent enemy glitches and apparent cadence loss;
+occasional beetle glitches are also reported. Stock-68020 FS-UAE performance
+remains a separate rejected/open optimization track after that presentation
+fault is isolated.
+Host/native/package validation passes. The alpha.41 ADF uses 1,177 blocks
+(588 KiB) and leaves 583 blocks free.
 Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
 also accepted. Phase 6B.6 now contains the integrated extended REAR8 parallax
 and foreground-material v1 candidates alongside the measured palette previews;
@@ -17,8 +42,9 @@ they combine independent maxima. Supplied rd01 production evidence identifies
 seven diamonds plus two enemies and water as its 172-line peak. Alpha.15 keeps
 diamond hover but persists them in clean/display and staggers their updates;
 supplied rd02 timing shows a later six-projectile/four-enemy frame is now the
-227-line peak. The HD main executable now logs and exits with left mouse;
-production remains 4+3 and the ADF remains reset-only. Alpha.17 adds a
+227-line peak. Alpha.15 historically put logging and left-mouse exit in the HD
+main executable; the next production checkpoint removes both from official HD
+and ADF builds. Production remains 4+3. Alpha.17 adds a
 production Copper palette morph across the fixed-height sky, mountain and
 forest regions: the rear bitmap remains three planes, but twelve horizontal-
 blank palette steps provide three purpose-built eight-colour material ranges
@@ -240,9 +266,108 @@ evidence rejects the world diamond's transparent dark facets and ragged lower
 tip: replace it with one clean native 16x21 opaque-outline diamond without
 changing Bob dimensions, cache or restore ordering. Separate evidence shows a
 standing plasma sample geometrically crossing an elevated beetle but being
-rejected by the legacy `lowShot` gate; remove only that redundant gate, because
-ordinary floor beetles remain crouch targets through actual Y overlap. Do not
-combine either correction with renderer work.
+rejected by the legacy `lowShot` gate. Alpha.29 removes only that redundant
+eligibility predicate: the existing beetle body rectangle remains authoritative,
+so ordinary floor beetles remain crouch targets through actual Y overlap.
+Host tests cover elevated standing hit, floor standing miss and floor crouch
+hit. MrDig's supplied FS-UAE/HD retest accepts those cases and clean left-mouse
+exit.
+
+A separate alpha.28 recording exposes transient orange/dark pixels over the
+first two simultaneous Striders. Supplied FS-UAE/HD evidence rejects alpha.30:
+double-buffering the player sprite streams does not remove the flicker, and an
+isolated Strider also fails while the other is far away. The accompanying log
+records 3,525 wraps in 3,844 passes and a 237-line peak at camera 810. That peak
+still performs both resident water updates although their x=1584 and x=2432
+strips are off-screen. Alpha.31 removes the disproved sprite-bank experiment
+and updates only water strips inside the camera plus 16-pixel margin; a strip
+immediately receives the current frame when it re-enters. This preserves water
+art/cache, FRONT16, Bob geometry, mask/restore ownership and draw order. Host
+tests pass; focused FS-UAE/HD review is pending. The diamond remains unchanged.
+Native/package validation passes; the alpha.31 ADF uses 1,551 blocks (775 KiB)
+and leaves 209 free. Supplied FS-UAE/HD review accepts water-strip behavior but
+still finds less-frequent upper-Strider corruption. Its zero-water peak remains
+219 lines and 6,599 of 6,796 passes wrap. Alpha.32 stably orders enemy restore
+and draw work from upper to lower world Y, so the upper Strider completes before
+later lower enemies. Equal-Y enemies retain slot order and the collectible /
+enemy / projectile family priority is unchanged. Art, geometry, masks, water,
+collectible hover and diamond remain unchanged. Focused FS-UAE review is pending.
+Native/package validation passes; the alpha.32 ADF uses 1,553 blocks (776 KiB)
+and leaves 207 free. This is not ADF gameplay acceptance.
+Supplied FS-UAE/HD review accepts separated Strider stability in alpha.32 but
+retains small head/crest flicker only while two Striders overlap. Its peak is
+214 lines with zero water updates. Alpha.33 restores the union of intersecting
+Strider rectangles once instead of restoring the shared area twice, then uses
+the unchanged stable upper-first draws. Non-overlapping restores, art, masks,
+geometry, family priority, water, collectible hover and diamond are unchanged.
+Focused FS-UAE/HD review remains pending.
+Native/package validation passes; the alpha.33 ADF uses 1,555 blocks (777 KiB)
+and leaves 205 free. This is not ADF gameplay acceptance.
+MrDig's supplied FS-UAE/HD review accepts alpha.33 for separated and overlapping
+Strider stability. A separate alpha.33 recording shows a flush crouch shot
+spawning through a narrow pillar and hitting the beetle behind, while the same
+shot stops when fired from farther left. Alpha.34 starts collision at Sparkpaw's
+physical front edge and checks every crossed X pixel through the projectile's
+new leading edge, with solid geometry before enemy damage at each position.
+Visual muzzle origin, projectile speed/height, beetle hitbox and renderer are
+unchanged. MrDig's supplied FS-UAE/HD review accepts this correction.
+Native/package validation passes; the alpha.34 ADF uses 1,557 blocks (778 KiB)
+and leaves 203 free. This is not ADF gameplay acceptance.
+
+A newly supplied full-level FS-UAE/HD run at 68020 speed rejects general
+performance acceptance: 2,293 of 3,015 measured Bob passes wrap, with a
+311-line peak against the 59-line post-HUD window. Alpha.35 begins measured
+optimization without changing dual playfield 4+3, Copper staging, line-252 HUD,
+line-253 Bob start, packed caches or restore/draw priority. Projectiles outside
+the camera plus 16-pixel margin are no longer drawn into the resident world;
+their last visible Bob is still restored normally. The diagnostic now records
+separate accumulated and peak raster-line costs for projectile, enemy,
+collectible, water and splash work, and its stale alpha23 label is corrected.
+The HD executable now reads the same four packed large assets as the working
+ADF path, reducing disk I/O and removing that raw-versus-packed transition
+difference. Its CRC check uses two nibble-table steps per unpacked byte instead
+of eight polynomial bit steps; a standard CRC32 vector guards equivalence.
+Supplied real-Amiga evidence accepts the packaged floppy launch but
+rejects alpha.34 HD: immediately after CHARGING its display becomes corrupted.
+Alpha.35 HD and stock-68020 timing therefore require focused user retesting;
+neither is claimed accepted here. Diamond art remains unchanged.
+Host tests, native build and package validation pass. The alpha.35 ADF uses
+1,560 blocks (780 KiB) and leaves 200 blocks free; this is package evidence,
+not ADF gameplay or performance acceptance.
+
+Supplied alpha.35 FS-UAE/HD evidence rejects using the packed ADF asset route
+for the normal executable: it remains on LOADING for the full recording, never
+reaches CHARGING, and shows intermittent display marks. Alpha.36 restores the
+previous raw-SPBM HD loader while retaining the independent off-screen
+projectile culling, family profiler and corrected diagnostic label. Packed SPR1
+and its faster verified CRC remain ADF-only. This is a focused rollback of the
+rejected path, not FS-UAE acceptance or a fix claim for the separate real-Amiga
+alpha.34 post-CHARGING corruption.
+All seven host regressions, native build and release validation pass. The
+alpha.36 ADF uses 1,561 blocks (780 KiB) and leaves 199 free; this remains host
+package evidence only.
+
+Supplied alpha.36 FS-UAE/HD evidence accepts that raw loading again reaches
+gameplay, but rejects stock-68020 performance and enemy presentation: 3,709 of
+4,139 passes wrap and a two-Strider frame takes 310 lines. The family profile
+identifies enemies as the dominant cost (354,807 accumulated lines, peak 263),
+followed by collectibles. Alpha.37 converts each enemy animation frame into a
+tightly normalized Bob rectangle containing exactly its non-transparent pixels
+and restores those recorded bounds. Intersecting Striders merge their actual
+unequal rectangles. This removes transparent row/column blits without changing
+art pixels, collision cells, animation cadence, draw priority, camera culling
+or the display/Copper structure. FS-UAE 68020 review remains pending.
+All seven host regressions, native build and release validation pass. The
+alpha.37 ADF uses 1,563 blocks (781 KiB), leaving 197 free; this is host package
+evidence only. Supplied FS-UAE/68020 review rejects alpha.37: sprites are
+damaged and timing remains unacceptable. Alpha.38 removes that tight-bound
+experiment and replaces the single displayed full-world foreground with two
+hidden 512x256 FRONT16 viewport buffers. A completed camera-local clean-world
+copy plus dynamic Bob composition is published atomically; no render operation
+writes the displayed foreground and enemy/projectile/splash restore passes are
+gone. The separate line-252 HUD, 4+3 dual playfield, rear parallax, player
+hardware sprites, packed caches, camera culling and family priority remain.
+FS-UAE/68020, ADF gameplay and real-A1200 verification are pending.
 
 The supplied long alpha.28 `renderdiag.log` covers 27,819 frames and records
 14,172 line-253 passes crossing PAL wrap. Its peak runs 251 raster lines (margin
@@ -281,17 +406,18 @@ stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
 - Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots
-- HD: left mouse returns cleanly to Workbench and writes `renderdiag.log`
-- ADF: reset the Amiga or emulator to leave this engine milestone
+- Production alpha.41 HD and ADF: reset the Amiga or emulator to leave
+- Explicit debug build only: diagnostics buffer in Fast RAM; a deliberate
+  flush writes/closes the log and then waits for reset without opening Workbench
 
 Each separate fire press launches a fast blue/cyan plasma pulse from
 Sparkpaw's right-hand gauntlet. Up to six pulses can remain in flight, so the
 weapon responds to rapid tapping. Four guaranteed and up to two optional low
 clockwork beetles patrol safe authored zones; their exact X positions and
 48/96/192 movement speeds vary on each complete test replay. Their independent
-walk cadence follows the selected speed. Standing and
-airborne shots deliberately pass over
-them: crouch and fire twice to destroy each one through a hit reaction and
+walk cadence follows the selected speed. Standing shots naturally pass over
+floor beetles, but any shot whose sample actually overlaps an elevated beetle
+can hit it. Crouch and fire twice to destroy a floor beetle through a hit reaction and
 four-stage destruction sequence. Contact with an active beetle now removes one
 of six internal half-heart health units, applies brief knockback/input lock and
 grants one second of invulnerability. Dedicated standing and crawl-height
@@ -308,8 +434,13 @@ earlier level areas therefore creates fresh encounters. Reaching the far-right
 world edge temporarily resets the player, camera, projectiles, collectibles and
 enemy encounter state in memory without reloading resident level assets. This
 right-edge replay stands in for the later `LEVEL_COMPLETE -> next level` flow.
-The HD build supports clean left-mouse Workbench restoration and writes its
-high-water log only after takeover ends. The ADF remains reset-to-exit.
+Alpha.40 HD still supports clean left-mouse Workbench restoration and writes
+its high-water log only after takeover ends. This is now classified as temporary
+review instrumentation: the next official HD and ADF builds are reset-to-exit,
+while a separately named debug build retains logging but does not reopen
+Workbench. Startup diagnostics can be written and closed before takeover.
+Gameplay diagnostics require an explicit safe flush before reset because a
+plain reset discards buffered RAM and cannot guarantee a valid DOS file.
 
 Phase 5C.3 places two guaranteed Clockwork Storm Striders—one on a raised
 platform and one on the floor—with one optional third encounter in the level
@@ -491,10 +622,14 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.28.lha`
-- `dist/Sparkpaw-0.6.0-alpha.28.zip`
-- `dist/Sparkpaw-0.6.0-alpha.28.adf`
-- `dist/Sparkpaw-0.6.0-alpha.28-Source.zip`
+- `dist/Sparkpaw-0.6.0-alpha.41.lha`
+- `dist/Sparkpaw-0.6.0-alpha.41.zip`
+- `dist/Sparkpaw-0.6.0-alpha.41.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.41/`
+
+The source ZIP is deliberately omitted by default because it is over 100 MB.
+Create it only on explicit request with
+`../.venv/bin/python3 tools/make_release.py --include-source` after the build.
 
 `tools/make_release.py` owns the SemVer prerelease value. Its minor component
 tracks the broad roadmap phase (`0.6.x` for Phase 6); the exact lettered
@@ -542,8 +677,11 @@ measurement. It writes a directly runnable HD test drawer under
 compiles only the test executable with `SPARKPAW_WORLD_W=3072`. Once gameplay
 prepares successfully it writes
 `phase6-memory.log` beside that executable with Chip RAM free/largest values.
-The normal HD `sparkpaw` also records prepared-peak and post-run memory in
-`renderdiag.log` on left-mouse exit, so the primary test needs no extra drawer.
+Alpha.40's normal HD `sparkpaw` also records prepared-peak and post-run memory
+in `renderdiag.log` on left-mouse exit. At the next checkpoint this moves to an
+explicit debug build. Its gameplay samples stay in Fast RAM until a deliberate
+safe flush writes and closes the file, after which it waits for reset rather
+than returning to Workbench. The official executable contains neither facility.
 The following Phase 6A measurements remain historical baseline evidence.
 Phase 6A.2 releases the exact 325,220-byte player, enemy and collectible
 conversion sources after their final DMA caches and the Copper palette have
@@ -565,9 +703,9 @@ optional third Strider remains gated. The continuous floor intentionally stays
 for this pacing review; the first water hazard is the separate Phase 6B.2 step.
 Diamond Bobs now use a padded two-word source row so trails may use arbitrary X
 positions without shifted Blitter reads crossing a cache row.
-Airborne shots may now hit raised-platform beetles when their existing geometry
-overlaps; grounded standing shots retain the deliberate floor-beetle miss and
-crouch shots retain the ordinary low attack contract.
+Any player shot may hit a beetle when the existing geometric body rectangle
+overlaps. Grounded standing shots retain the natural floor-beetle miss through
+their Y position, and crouch shots retain the ordinary low attack contract.
 
 ## Source layout
 
@@ -769,14 +907,15 @@ The Milestone 2A beetle art is a 32x24, nine-frame, three-plane masked Bob.
 Four to six level instances share one packed art cache and retain independent
 HP and animation state. A bounded four-slot runtime pool activates them near
 the camera and parks their state when safely distant. Their fixed height keeps
-ordinary standing and airborne shots above them, while the domed steel/violet
+ordinary standing shots above floor beetles, while the domed steel/violet
 shell, round cyan lens and jointed legs follow the
 gameplay concept at native AGA resolution. Enemy and plasma restore/draw passes
 use synchronized Blitter DMA with standard-copy and cookie-cut minterms; the
 68020 no longer composites their planar rows byte by byte in Chip RAM. Verify
 that all selected beetles walk smoothly between their patrol limits, mirror cleanly
-when turning, remain grounded, ignore standing and airborne fire, react to the
-first crouch-shot and play all four destruction stages after the second.
+when turning and remain grounded. Verify standing fire still misses floor
+beetles, crouch fire still triggers their hit/death lifecycle, and a standing
+shot damages an elevated beetle when its sample crosses the existing rectangle.
 Stress the renderer with several simultaneous plasma pulses and visible
 beetles, and watch for residue where enemies and projectiles overlap.
 On each beetle's second hit and each Strider's third hit, confirm the ordinary

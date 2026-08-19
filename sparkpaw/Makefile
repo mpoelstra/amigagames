@@ -5,6 +5,7 @@ export PATH := $(VBCC_ROOT)/bin:$(PATH)
 export TMPDIR := $(CURDIR)/build/tmp
 
 CC = $(VBCC_ROOT)/bin/vc
+HOST_CC ?= cc
 PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 TARGET = sparkpaw
@@ -22,13 +23,13 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
-HEADERS = src/assets.h src/audio.h src/collision.h src/collectibles.h src/enemies.h src/game.h src/hud.h \
+HEADERS = src/assets.h src/audio.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/enemies.h src/enemy_vertical_order.h src/game.h src/hud.h \
 	src/level_data.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
-	src/world_config.h
+	src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \
-	assets/runtime/sparkpaw-level-charging.spbm \
+	assets/runtime/level-charge-patch.spbm \
 	assets/runtime/sparkpaw-hud-base.spbm \
 	assets/runtime/sparkpaw-hud-health.spbm \
 	assets/runtime/sparkpaw-hud-lives.spbm \
@@ -51,9 +52,27 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean assets release bench bench-package renderdiag renderdiag-package visual-slice-proof adf-report phase6-memory
+.PHONY: all clean test assets release bench bench-package renderdiag renderdiag-package visual-slice-proof adf-report phase6-memory
 
 all: assets $(TARGET)
+
+test:
+	@mkdir -p build/host-tests
+	$(PYTHON) tests/test_runtime_memory_layout.py
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-beetle-hitbox tests/test_beetle_hitbox.c
+	build/host-tests/test-beetle-hitbox
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-water-update-visibility tests/test_water_update_visibility.c
+	build/host-tests/test-water-update-visibility
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-enemy-vertical-order tests/test_enemy_vertical_order.c
+	build/host-tests/test-enemy-vertical-order
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-strider-restore-union tests/test_strider_restore_union.c
+	build/host-tests/test-strider-restore-union
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-projectile-sweep tests/test_projectile_sweep.c
+	build/host-tests/test-projectile-sweep
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-projectile-render-visibility tests/test_projectile_render_visibility.c
+	build/host-tests/test-projectile-render-visibility
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-packed-crc32 tests/test_packed_crc32.c
+	build/host-tests/test-packed-crc32
 
 bench: $(BENCH_TARGETS)
 
@@ -126,7 +145,7 @@ sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/en
 
 $(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)"
-	$(CC) $(CFLAGS) -DSPARKPAW_RENDER_DIAGNOSTIC -o $@ $(SOURCES)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES)
 
 $(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"

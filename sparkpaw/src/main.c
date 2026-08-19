@@ -119,14 +119,7 @@ int main(void)
 #endif
         while(platformRasterLine()<100) { }
         gameUpdate();
-        /* The Copper consumes these list entries at frame start. Update them
-           well after that read and well before the next wrap, independent of
-           how long the post-display Bob pass takes. */
         rendererUpdateGameplay();
-        /* The Copper switches from frontDisplay to the separate HUD bitmap at
-           hardware line 252 (44+HUD_TOP). Start the synchronized Bob pass on
-           the next line, using the complete remaining PAL blank/HUD window
-           instead of squeezing large 64x64 four-plane Bobs into lines 300..311. */
         while(platformRasterLine()<253) { }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         rendererDiagnosticBeginFrame(); diagnosticStart=platformRasterLine();
@@ -142,11 +135,10 @@ int main(void)
 #endif
     }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
-        if(platformLeftMouse()) state=APP_BOOT;
-#endif
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
     while(platformLeftMouse()) { }
-    platformRestore(); rendererWriteDiagnosticLog(); cleanup();
+    platformPrepareDebugFlush();
+    rendererWriteDiagnosticLog();
+    for(;;) { }
 #endif
     return 0;
 }

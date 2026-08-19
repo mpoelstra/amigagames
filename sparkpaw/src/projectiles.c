@@ -1,8 +1,10 @@
 #include "projectiles.h"
+#include "projectile_sweep.h"
 
 #include <string.h>
 
 #define SCREEN_W 320
+#define PLAYER_COLLISION_W 32
 #define PROJECTILE_SPEED 2300
 #define ENEMY_PROJECTILE_SPEED 1150
 
@@ -43,6 +45,10 @@ void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
         projectile->x=(LONG)(facingLeft?playerX-22:playerX+37)<<8;
         projectile->y=(LONG)(playerY+(crouching?29:15))<<8;
         projectile->vx=facingLeft?-PROJECTILE_SPEED:PROJECTILE_SPEED;
+        /* Collision starts at Sparkpaw's physical front edge, not at the
+           authored muzzle/Bob origin, which may visually enter a nearby wall. */
+        projectile->collisionX=(WORD)(facingLeft?playerX-1:
+                                      playerX+PLAYER_COLLISION_W);
         projectile->life=80; projectile->impactTimer=0;
         /* Floor beetles retain the crouch-shot contract, but an airborne shot
            may hit an elevated beetle when the existing geometry overlaps. */
@@ -62,6 +68,7 @@ BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft)
         projectile->x=(LONG)x<<8; projectile->y=(LONG)y<<8;
         projectile->vx=facingLeft?-ENEMY_PROJECTILE_SPEED:
                                   ENEMY_PROJECTILE_SPEED;
+        projectile->collisionX=(WORD)(facingLeft?x:x+PROJECTILE_W-1);
         projectile->life=100; projectile->impactTimer=0;
         projectile->lowShot=FALSE; projectile->hostile=TRUE;
         projectile->active=TRUE;
@@ -78,6 +85,7 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
     WORD index;
     for(index=0;index<MAX_PROJECTILES;index++) {
         struct Projectile *projectile=&projectiles[index]; WORD x,y,screenHit;
+        BOOL contacted=FALSE;
         UBYTE enemyHitResult;
         if(!projectile->active) continue;
         if(projectile->impactTimer) {
@@ -87,11 +95,21 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         projectile->x+=projectile->vx;
         x=(WORD)(projectile->x>>8)+(projectile->vx>0?PROJECTILE_W-1:0);
         y=(WORD)(projectile->y>>8)+(PROJECTILE_H>>1);
-        enemyHitResult=!projectile->hostile?
-                       hitEnemy(x,y,projectile->lowShot):PROJECTILE_ENEMY_MISS;
+        enemyHitResult=PROJECTILE_ENEMY_MISS;
+        /* Sweep every crossed pixel. Solid geometry wins at each position,
+           including the physical muzzle edge, before enemy dispatch. */
+        for(;;) {
+            WORD sampleX=projectile->collisionX;
+            if(solidAt(sampleX,y)) { contacted=TRUE; x=sampleX; break; }
+            if(!projectile->hostile) enemyHitResult=hitEnemy(sampleX,y);
+            if(enemyHitResult) { contacted=TRUE; x=sampleX; break; }
+            if(sampleX==x) break;
+            projectile->collisionX=projectileSweepNext(sampleX,x);
+        }
+        projectile->collisionX=x;
         if(enemyHitResult==PROJECTILE_ENEMY_KILL) playEnemyDeathSound();
         else if(enemyHitResult==PROJECTILE_ENEMY_HIT) playEnemyHitSound();
-        if(enemyHitResult||solidAt(x,y)||!--projectile->life) {
+        if(contacted||!--projectile->life) {
             screenHit=x-cameraX;
             /* Never show a clipped impact on invisible off-screen geometry. */
             if(screenHit<2||screenHit>SCREEN_W-3) projectile->active=FALSE;

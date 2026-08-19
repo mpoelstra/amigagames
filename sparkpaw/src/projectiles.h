@@ -11,6 +11,7 @@
 
 struct Projectile {
     LONG x,y,vx;
+    WORD collisionX;
     UBYTE life,impactTimer;
     BOOL active,drawn,lowShot,hostile;
     WORD drawnX,drawnY;
@@ -20,7 +21,7 @@ typedef BOOL (*ProjectileSolidAt)(WORD x,WORD y);
 #define PROJECTILE_ENEMY_MISS 0
 #define PROJECTILE_ENEMY_HIT 1
 #define PROJECTILE_ENEMY_KILL 2
-typedef UBYTE (*ProjectileEnemyHit)(WORD x,WORD y,BOOL lowShot);
+typedef UBYTE (*ProjectileEnemyHit)(WORD x,WORD y);
 typedef void (*ProjectilePlaySound)(void);
 
 void projectilesInit(void);

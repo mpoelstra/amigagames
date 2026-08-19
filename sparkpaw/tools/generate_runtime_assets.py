@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "assets" / "runtime"
 LEVELS = ROOT / "assets" / "levels"
 WORLD_W, WORLD_H = 3072, 256
+GAMEPLAY_H = 208
 PARALLAX_W = 1024
 TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
@@ -1416,7 +1417,12 @@ def main() -> None:
     save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-level-loading.spbm",level_loading,
               level_loading_palette,depth=6)
-    save_spbm(RUNTIME / "sparkpaw-level-charging.spbm",level_charging,
+    # Runtime keeps the accepted LOADING floppy picture resident and replaces
+    # only this word-sized status band while faded to black.  The separate
+    # generated preview remains useful for visual review, but a second complete
+    # 320x256 six-plane bitmap no longer consumes Chip RAM.
+    charging_patch = level_charging.crop((48, 192, 272, 232))
+    save_spbm(RUNTIME / "level-charge-patch.spbm",charging_patch,
               level_loading_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-hud-base.spbm",hud_base,HUD_PALETTE,depth=3)
     save_spbm(RUNTIME / "sparkpaw-hud-health.spbm",hud_health,
@@ -1441,8 +1447,16 @@ def main() -> None:
     apply_ground_water_treatment(front_world)
     sprite_world = remap(sprites, FG_PALETTE, FRONT8, transparent_zero=True)
     sprite_mask = bitmap_mask(sprite_world)
-    save_spbm(RUNTIME / "storm-front.spbm", front_world, FRONT16, depth=4)
-    save_spbm(RUNTIME / "storm-rear.spbm", rear_world, REAR8, depth=3)
+    # The Copper changes to the independent HUD after 208 gameplay rows.  The
+    # camera's maximum quarter-scroll fetch ends inside the authored 1024px
+    # rear master, so the repeated tail and hidden bottom rows were never
+    # observable and need not occupy displayable Chip RAM.
+    save_spbm(RUNTIME / "storm-front.spbm",
+              front_world.crop((0, 0, WORLD_W, GAMEPLAY_H)),
+              FRONT16, depth=4)
+    save_spbm(RUNTIME / "storm-rear.spbm",
+              rear_world.crop((0, 0, PARALLAX_W, GAMEPLAY_H)),
+              REAR8, depth=3)
     save_spbm(RUNTIME / "sparkpaw-sprites3.spbm", sprite_world, FRONT8,
               depth=3, mask=sprite_mask)
     save_spbm(RUNTIME / "sparkpaw-sprites4.spbm", sprites, FG_PALETTE,

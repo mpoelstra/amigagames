@@ -7,6 +7,8 @@
 #include <proto/graphics.h>
 #include <string.h>
 
+#include "packed_crc32.h"
+
 static struct PlanarAsset title,levelLoading,levelCharging,frontClean,rearWorld;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
@@ -15,6 +17,24 @@ static struct PlanarAsset collectibleDiamond;
 static UWORD readBigEndian16(const UBYTE *value)
 {
     return (UWORD)(((UWORD)value[0]<<8)|value[1]);
+}
+
+/* Match the real-hardware-proven ADF reader: DOS only sees a small ordinary
+   buffer, never a complete 98 KiB plane or an arbitrary final DMA address.
+   This makes raw HD loading independent of fragile MaxTransfer/Mask setups. */
+#define RAW_READ_CHUNK 512L
+
+static BOOL readExact(BPTR file,UBYTE *target,LONG size)
+{
+    UBYTE input[RAW_READ_CHUNK];
+    while(size>0) {
+        LONG wanted=size>RAW_READ_CHUNK?RAW_READ_CHUNK:size;
+        LONG got=Read(file,input,wanted);
+        if(got!=wanted) return FALSE;
+        CopyMem(input,target,got);
+        target+=got; size-=got;
+    }
+    return TRUE;
 }
 
 #ifdef ADF_PACKED_ASSETS
@@ -30,14 +50,6 @@ static ULONG readBigEndian32(const UBYTE *value)
 {
     return ((ULONG)value[0]<<24)|((ULONG)value[1]<<16)|
            ((ULONG)value[2]<<8)|value[3];
-}
-
-static ULONG updateCRC32(ULONG crc,UBYTE value)
-{
-    UBYTE bit;
-    crc^=value;
-    for(bit=0;bit<8;bit++) crc=(crc>>1)^((crc&1)?0xedb88320UL:0);
-    return crc;
 }
 
 static BOOL packedByte(struct PackedReader *reader,UBYTE *value)
@@ -86,7 +98,7 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
         else if(!packedByte(reader,&value)) return FALSE;
         if(reader->produced>=reader->expectedSize) return FALSE;
         *target++=value;
-        reader->crc=updateCRC32(reader->crc,value);
+        reader->crc=packedCRC32Byte(reader->crc,value);
         reader->produced++; reader->tokenRemaining--;
     }
     return TRUE;
@@ -133,14 +145,14 @@ static BOOL allocateAssetBitmap(struct PlanarAsset *asset,BOOL dmaSource)
         return asset->bitmap!=NULL;
     }
     asset->bitmap=(struct BitMap *)AllocMem(sizeof(*asset->bitmap),
-                                            MEMF_ANY|MEMF_CLEAR);
+                                            MEMF_FAST|MEMF_CLEAR);
     if(!asset->bitmap) return FALSE;
     asset->cpuOnlyBitmap=TRUE;
     InitBitMap(asset->bitmap,asset->depth,asset->width,asset->height);
     planeBytes=(LONG)asset->bitmap->BytesPerRow*asset->height;
     for(plane=0;plane<asset->depth;plane++) {
         asset->bitmap->Planes[plane]=(PLANEPTR)AllocMem(planeBytes,
-                                                       MEMF_ANY|MEMF_CLEAR);
+                                                       MEMF_FAST|MEMF_CLEAR);
         if(!asset->bitmap->Planes[plane]) {
             freeAsset(asset); return FALSE;
         }
@@ -153,9 +165,9 @@ static BOOL readRows(BPTR file,PLANEPTR plane,UWORD fileRow,UWORD memoryRow,
 {
     UWORD row;
     if(fileRow==memoryRow)
-        return Read(file,plane,(LONG)fileRow*height)==(LONG)fileRow*height;
+        return readExact(file,plane,(LONG)fileRow*height);
     for(row=0;row<height;row++)
-        if(Read(file,plane+(LONG)row*memoryRow,fileRow)!=fileRow) return FALSE;
+        if(!readExact(file,plane+(LONG)row*memoryRow,fileRow)) return FALSE;
     return TRUE;
 }
 
@@ -165,7 +177,7 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
     BPTR file; UBYTE header[12],plane; LONG size;
     memset(asset,0,sizeof(*asset));
     file=Open((STRPTR)name,MODE_OLDFILE); if(!file) return FALSE;
-    if(Read(file,header,12)!=12||memcmp(header,"SPBM",4)!=0) {
+    if(!readExact(file,header,12)||memcmp(header,"SPBM",4)!=0) {
         Close(file); return FALSE;
     }
     asset->width=readBigEndian16(header+4);
@@ -173,8 +185,8 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
     asset->depth=header[8]; asset->hasMask=header[9];
     asset->rowBytes=readBigEndian16(header+10);
     if(asset->depth!=wantedDepth||
-       Read(file,asset->palette,(LONG)(1<<asset->depth)*3)!=
-       (LONG)(1<<asset->depth)*3) {
+       !readExact(file,(UBYTE *)asset->palette,
+                  (LONG)(1<<asset->depth)*3)) {
         Close(file); return FALSE;
     }
     if(!allocateAssetBitmap(asset,dmaSource)) { Close(file); return FALSE; }
@@ -185,8 +197,8 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
         }
     if(asset->hasMask) {
         size=(LONG)asset->rowBytes*asset->height;
-        asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_ANY);
-        if(!asset->mask||Read(file,asset->mask,size)!=size) {
+        asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_FAST);
+        if(!asset->mask||!readExact(file,asset->mask,size)) {
             Close(file); freeAsset(asset); return FALSE;
         }
     }
@@ -226,7 +238,7 @@ static BOOL loadPackedAsset(const char *name,struct PlanarAsset *asset,
                            asset->bitmap->BytesPerRow,asset->height)) goto done;
     if(asset->hasMask) {
         size=(LONG)asset->rowBytes*asset->height;
-        asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_ANY);
+        asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_FAST);
         if(!asset->mask||!packedRead(&reader,asset->mask,size)) goto done;
     }
     complete=TRUE;
@@ -307,8 +319,9 @@ void assetsUnloadLevelLoading(void)
 
 BOOL assetsLoadLevelCharging(void)
 {
-    return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-charging.spbm",
-                     &levelCharging,6,TRUE);
+    return loadAsset(
+        "PROGDIR:assets/runtime/level-charge-patch.spbm",
+        &levelCharging,6,FALSE);
 }
 
 void assetsUnloadLevelCharging(void)

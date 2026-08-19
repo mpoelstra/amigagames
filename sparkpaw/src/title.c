@@ -19,6 +19,10 @@
 #define FADE_FRAMES 24
 #define DISPLAY_LOCK_FRAMES 35
 #define PALETTE_SAFE_LINE 100
+#define CHARGING_PATCH_X 48
+#define CHARGING_PATCH_Y 192
+#define CHARGING_PATCH_W 224
+#define CHARGING_PATCH_H 40
 
 static volatile struct Custom *hardware=(volatile struct Custom *)0xdff000;
 static struct View *previousView;
@@ -213,17 +217,27 @@ BOOL titlePrepareLevelLoading(void)
 
 BOOL titleShowLevelCharging(void)
 {
-    UBYTE next=currentCopper^1;
-    if(!displayed||!assetsLevelCharging()->bitmap) {
+    UBYTE plane; UWORD row;
+    const struct PlanarAsset *loading=assetsLevelLoading();
+    const struct PlanarAsset *patch=assetsLevelCharging();
+    if(!displayed||!loading->bitmap||!patch->bitmap||
+       patch->width!=CHARGING_PATCH_W||patch->height!=CHARGING_PATCH_H) {
         failureReason="charging image was not prepared"; return FALSE;
     }
-    /* Both status images share one palette. Rebuild only the inactive list,
-       switch it at VBlank, then release the no-longer-visible bitmap before
-       the CPU-heavy gameplay preparation begins. */
-    buildCopper(assetsLevelCharging(),next,256);
-    installCopper(next);
+    /* Keep one complete floppy image.  Fade it fully black, replace only the
+       status band from the CPU-only Fast-RAM patch, then reveal CHARGING.
+       This is a one-shot write, never a read/modify/write of visible Chip RAM. */
+    fadeTo(loading,FALSE);
+    WaitTOF();
+    for(plane=0;plane<6;plane++) for(row=0;row<CHARGING_PATCH_H;row++)
+        CopyMem(patch->bitmap->Planes[plane]+(LONG)row*patch->bitmap->BytesPerRow,
+                loading->bitmap->Planes[plane]+
+                    (LONG)(CHARGING_PATCH_Y+row)*loading->bitmap->BytesPerRow+
+                    CHARGING_PATCH_X/8,
+                CHARGING_PATCH_W/8);
+    fadeTo(loading,TRUE);
     chargingStartFrame=GfxBase->VBCounter;
-    assetsUnloadLevelLoading();
+    assetsUnloadLevelCharging();
     return TRUE;
 }
 
@@ -248,9 +262,7 @@ BOOL titleShowLevelLoading(void)
 
 void titleFadeOut(void)
 {
-    if(displayed&&assetsLevelCharging()->bitmap)
-        fadeTo(assetsLevelCharging(),FALSE);
-    else if(displayed&&assetsLevelLoading()->bitmap)
+    if(displayed&&assetsLevelLoading()->bitmap)
         fadeTo(assetsLevelLoading(),FALSE);
 }
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create identical HD, LHA, ZIP, source and bootable ADF milestone builds."""
+"""Create HD, LHA, ZIP and bootable ADF milestone builds."""
 from __future__ import annotations
 
 import os
@@ -17,7 +17,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.28"
+RELEASE_VERSION = "0.6.0-alpha.41"
 ROADMAP_CHECKPOINT = "6C.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -32,7 +32,7 @@ ADF_PLAYER_ASSET = ROOT / "build" / "adf-assets" / "sparkpaw-sprites4.spr1"
 RUNTIME_FILES = (
     "sparkpaw-title.spbm",
     "sparkpaw-level-loading.spbm",
-    "sparkpaw-level-charging.spbm",
+    "level-charge-patch.spbm",
     "sparkpaw-hud-base.spbm",
     "sparkpaw-hud-health.spbm",
     "sparkpaw-hud-lives.spbm",
@@ -162,6 +162,93 @@ clearance remains intact.
 Supplied alpha.28 FS-UAE/HD testing accepts the corrected platform and confirms
 Sparkpaw can continue through and complete the full level. ADF gameplay parity,
 real-A1200 verification and full-run timing/memory evidence remain pending.
+Alpha.29 removes the redundant `lowShot` eligibility predicate from beetle
+hits while preserving the existing x+2..29, y+7..23 body rectangle, two-HP
+hurt/death lifecycle and renderer. Host tests prove an elevated standing hit,
+a floor standing miss through natural Y separation and a floor crouch hit.
+MrDig's supplied FS-UAE/HD retest accepts this isolated correction and clean
+left-mouse exit.
+Alpha.29 native build, host regressions and release validation passed. Its
+bootable ADF used 1,549 blocks (774 KiB), leaving 211 blocks free; that did not
+establish ADF gameplay parity.
+Supplied FS-UAE/HD evidence rejects alpha.30: Strider flicker persists even
+when the second Strider is far away, disproving the player-stream hypothesis.
+Its diagnostic records 3,525 wraps in 3,844 passes and a 237-line peak at
+camera 810 with two off-screen water updates. Alpha.31 removes that experimental
+sprite staging and camera-culls water animation per strip. A strip synchronizes
+to the current frame as soon as it enters the 16-pixel margin. The world
+diamond, enemy art/geometry, FRONT16 planes, line-253 pass and draw order remain
+unchanged. Host visibility and beetle-hit regressions pass; FS-UAE review of
+the focused alpha.31 correction partially accepts water behavior, but residual
+upper-Strider flicker remains. Its quit log records 6,599 wraps in 6,796 passes
+and a 219-line zero-water peak. Alpha.32 keeps family priority unchanged while
+stably ordering enemy restores and draws from upper to lower world Y. Equal-Y
+enemies retain slot order, so upper Bobs complete earlier before their next
+scanout. Art, geometry, masks, collectibles, diamond and water are unchanged.
+Host ordering, visibility and beetle-hit regressions pass; focused FS-UAE/HD
+review of alpha.32 remains pending, with no ADF or real-A1200 claim.
+Supplied alpha.32 FS-UAE/HD review accepts separated Strider stability but finds
+small head/crest flicker while two Striders intersect. Its zero-water peak is
+214 lines. Alpha.33 merges only intersecting Strider restore rectangles, so the
+shared background area is restored once before the unchanged stable upper-first
+draws. Non-overlapping restores, art, masks, geometry, draw priority, water,
+collectibles and diamond remain unchanged. Host overlap-union and existing
+regressions pass; focused FS-UAE/HD review remains pending, with no ADF or
+real-A1200 claim.
+Native/package validation passes. The bootable alpha.33 ADF uses 1,555 blocks
+(777 KiB), leaving 205 free; this is host package evidence only.
+MrDig's supplied FS-UAE/HD review accepts alpha.33 overlapping-Strider
+presentation. Separate evidence rejects projectile occlusion at a narrow
+pillar: a flush crouch shot can spawn beyond it and damage the beetle behind.
+Alpha.34 tracks collision from Sparkpaw's physical front edge and sweeps every
+crossed X pixel to the new projectile leading edge, testing solid geometry
+before enemy damage at each sample. Visual muzzle/Bob origins, speed, fire
+heights, beetle geometry and renderer remain unchanged. Host sweep and existing
+regressions pass; focused FS-UAE/HD review remains pending. No ADF gameplay or
+real-A1200 claim is made.
+Native/package validation passes. The bootable alpha.34 ADF uses 1,557 blocks
+(778 KiB), leaving 203 free; this is host package evidence only.
+MrDig's supplied FS-UAE/HD review accepts alpha.34 projectile occlusion. A new
+full run at explicit 68020 speed rejects overall timing: 2,293 of 3,015 Bob
+passes wrap and the 311-line peak exceeds the 59-line budget. Alpha.35 camera-
+culls completely off-screen projectile Bobs and adds separate raster-line
+totals/peaks for projectile, enemy, collectible, water and splash families.
+The diagnostic label is current. The HD drawer now includes and decodes the
+same four packed large assets as ADF, reducing I/O and aligning the transition
+path after supplied real-Amiga evidence showed ADF working but alpha.34 HD
+corrupting immediately after CHARGING. Alpha.35 68020 and real-HD acceptance
+remain pending. Diamond art and display/Copper contracts are unchanged.
+Packed CRC validation now uses two nibble-table steps instead of eight bit
+iterations per output byte; a host standard-vector test guards equivalence.
+Host/native/package validation passes. The alpha.35 ADF uses 1,560 blocks
+(780 KiB), leaving 200 free; this is package evidence only.
+Supplied alpha.35 FS-UAE/HD evidence rejects the packed path for the normal
+executable: LOADING never advances to CHARGING or gameplay and intermittent
+display marks occur. Alpha.36 restores raw SPBM loading and package contents
+for HD only. ADF retains SPR1 plus the verified faster CRC. Projectile culling,
+family profiling, diamond art and display/Copper contracts are unchanged.
+FS-UAE alpha.36 and real-HD acceptance remain pending.
+Host/native/package validation passes. The alpha.36 ADF uses 1,561 blocks
+(780 KiB), leaving 199 free; this is package evidence only.
+Supplied alpha.36 FS-UAE/HD evidence accepts return to gameplay but rejects
+stock-68020 performance: 3,709 of 4,139 passes wrap and the 310-line peak has
+two Striders, one projectile and one collectible. Enemy work dominates at
+354,807 accumulated raster lines and a 263-line peak. Alpha.37 normalizes every
+enemy animation frame into its exact non-transparent bounds and restores that
+same stored rectangle. Intersecting Striders merge their unequal tight bounds.
+Art pixels, animation rate, collision, family order and display/Copper contracts
+are unchanged. FS-UAE/HD review remains pending.
+Supplied FS-UAE/68020 evidence rejects alpha.37: enemy sprites are visibly
+damaged and frame rate remains unacceptable. Alpha.38 replaces the impossible
+in-place line-253 restore/draw pass with two hidden 512x256 FRONT16 viewport
+buffers. Each frame copies the camera-local 512x208 clean foreground, draws
+dynamic Bobs only into the hidden target, waits for completion, then publishes
+its Copper pointers. The displayed foreground is never written. Enemy,
+projectile and splash restore passes disappear; diamonds and water update only
+the clean world. HUD remains separate at line 252, rear playfield stays three
+planes and Sparkpaw remains an attached hardware sprite. Production diagnostics
+no longer serialize every family with WaitBlit. FS-UAE/68020, ADF gameplay and
+real-A1200 acceptance remain pending.
 Supplied FS-UAE review rejects REAR8 plus foreground v1 as the final visual
 quality target while retaining the corrected non-repeating composition, and
 accepts rb19c as a worthwhile isolated REAR16 visual proof. The source package
@@ -172,6 +259,38 @@ clean/display and staggers their updates over four frames. Supplied rd02 shows
 the next real bottleneck is a six-projectile/four-enemy combat frame. The HD
 main executable now keeps the high-water log and clean left-mouse exit, avoiding
 separate test drawers. ADF stays reset-only. Production remains 4+3.
+
+Alpha.38 hidden-viewport composition is rejected in supplied FS-UAE testing:
+3,324 of 3,722 compositions wrap and performance is worse at both 68020 and a
+separate 68030 check. Alpha.39 restores the accepted alpha.33-style resident
+foreground restore/draw path and line-253 scheduling. It removes alpha.37 tight
+enemy bounds, all alpha.38 viewport copies and invasive per-family diagnostic
+waits while retaining accepted collision fixes, culling and raw HD loading.
+Alpha.39 emulator and hardware acceptance remain pending.
+Supplied follow-up accepts alpha.39 presentation at 68030 in FS-UAE and its ADF
+on a real A1200. Both launch routes work in FS-UAE, but real-A1200 HD corrupts
+the native display immediately after CHARGING. Alpha.40 stages every raw DOS
+read through a 512-byte buffer instead of passing complete 98 KiB world planes
+or arbitrary final DMA addresses, avoiding reliance on controller/filesystem
+MaxTransfer and Mask behavior. Renderer, art, gameplay and the working packed
+ADF path are unchanged. Real-HD acceptance remains pending.
+Supplied real-A1200/68030 tests prove alpha.40 HD works with about 1.92 MB Chip
+free but fails from a normal 1,430,032-byte-free Workbench. Alpha.41 removes
+only unreachable bitmap storage: foreground rows below the line-252 HUD switch
+and rear pixels beyond the maximum quarter-scroll fetch. Complete player and
+Strider frame masters move bit-identically to Fast RAM; two player stage sets
+and four enemy stage slots remain in Chip RAM for custom-chip DMA. LOADING and
+CHARGING share the accepted floppy bitmap and replace only the status band.
+Calculated permanent Chip saving is about 642 KiB, plus about 54 KiB at the
+status-screen peak. Official HD and ADF executables are reset-to-exit and contain
+no profiler, mouse-flush or log code. Supplied real-A1200/68030 testing accepts
+the HD build from a normal Workbench with about 1.4 MB Chip RAM free. Alpha.41
+ADF regression remains pending. Alpha.40 and alpha.41 hardware evidence both
+reject the first two-Strider scene because of intermittent enemy glitches and
+apparent cadence loss; occasional beetle glitches are also reported. Focused
+presentation/deadline isolation is next, before broad stock-68020 optimization.
+Host/native/package validation passes; the DOS1/FFS ADF uses 1,177 blocks
+(588 KiB) and leaves 583 free.
 
 Requirements
 ------------
@@ -192,8 +311,10 @@ press launches a fast blue/cyan plasma pulse; rapid tapping supports several
 pulses in flight. Hold down to crouch; combine down with left/right to
 crouch-walk, and press fire to shoot from a dedicated low pose. Ten required
 plus a bounded optional set of low clockwork beetles patrol the test
-level with bounded position and speed variation. Only crouch-shots
-can hit them; fire twice to destroy each one. Beetle contact removes one of
+level with bounded position and speed variation. Standing fire naturally
+passes above floor beetles; crouch fire hits them, while an elevated beetle can
+be hit by any shot whose sample overlaps its body. Fire twice to destroy one.
+Beetle contact removes one of
 six internal half-heart health units, applies knockback and plays a short hurt
 effect. Destroyed beetles can return indefinitely after a cooldown once their
 patrol zone is safely off-screen. Reaching the far-right world edge resets the
@@ -205,8 +326,9 @@ the later game-over state is implemented. Forty-eight hovering diamonds form
 trails and original arcs throughout the level; the adjacent two-digit HUD
 counter records them up to 49. Contact invulnerability is shown by a brief
 whole-character blink.
-On HD, left mouse cleanly restores Workbench and writes `renderdiag.log` beside
-Sparkpaw. The bootable ADF remains reset-to-exit and performs no DOS log write.
+Official HD and ADF executables are reset-to-exit and perform no DOS log write.
+Focused diagnostics use the separately built renderdiag executable; its flush
+writes and closes the log, then waits for reset without reopening Workbench.
 
 What to test
 ------------
@@ -216,9 +338,9 @@ direction often, and compare the movement on HD and ADF. The rear scenery
 must move at one quarter of the foreground speed. Sparkpaw now uses fixed
 48x48, 15-colour AGA poses for idle, blink, run, jump, fall, landing and
 crouching and shooting. After two seconds at rest Sparkpaw performs an idle
-flourish. Check that all beetles remain grounded, turn cleanly, ignore standing
-and airborne shots, react to the first crouch-shot, and complete their
-destruction sequence after the second. Watch for Bob residue when plasma pulses
+flourish. Check that all beetles remain grounded and turn cleanly. Standing
+fire must still miss floor beetles, crouch fire must retain the two-hit sequence,
+and standing fire must hit an elevated beetle when geometry overlaps. Watch for Bob residue when plasma pulses
 overlap an enemy or two beetles approach the same screen edge.
 Please look for sprite flicker, apparent size changes, foot sliding, tearing,
 collision errors, camera jumps and parallax glitches.
@@ -391,6 +513,7 @@ def make_source_zip() -> Path:
         shutil.copy2(ROOT / filename, source_stage / filename)
     for directory, patterns in {
         "src": ("*.c", "*.h", "*.s"),
+        "tests": ("*.c",),
         "tools": ("*.py",),
         "docs": ("*.md", "*.txt"),
         "assets": ("*.png", "*.iff", "*.json", "*.gpl", "*.spbm", "*.bin"),
@@ -411,7 +534,11 @@ def clean_dist_releases() -> None:
     """Keep dist reviewable: one current, consistently versioned release set."""
     DIST.mkdir(exist_ok=True)
     for path in DIST.iterdir():
-        if path.is_file() and path.name.startswith("Sparkpaw-"):
+        if not path.name.startswith("Sparkpaw-"):
+            continue
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
             path.unlink()
 
 
@@ -431,12 +558,17 @@ def validate_release_identity() -> None:
 
 
 def main() -> None:
+    include_source = sys.argv[1:] == ["--include-source"]
+    if sys.argv[1:] and not include_source:
+        raise SystemExit("usage: make_release.py [--include-source]")
     validate_release_identity()
     copy_runtime()
     clean_dist_releases()
     zip_path = Path(shutil.make_archive(
         str(DIST / RELEASE_NAME), "zip", STAGE_PARENT, STAGE.name,
     ))
+    review_drawer = DIST / RELEASE_NAME
+    shutil.copytree(STAGE, review_drawer)
     lha_path = DIST / f"{RELEASE_NAME}.lha"
     with lha_path.open("wb") as output:
         for path in sorted(STAGE.rglob("*")):
@@ -445,9 +577,12 @@ def main() -> None:
                 output.write(lha_member(relative, path.read_bytes(), path.stat().st_mtime))
         output.write(b"\0")
     adf_path = make_adf()
-    source_path = make_source_zip()
-    for path in (zip_path, lha_path, adf_path, source_path):
+    paths = [zip_path, lha_path, adf_path]
+    if include_source:
+        paths.append(make_source_zip())
+    for path in paths:
         print("Wrote", path)
+    print("Prepared", review_drawer)
 
 
 if __name__ == "__main__":
