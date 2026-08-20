@@ -1,0 +1,22 @@
+Sparkpaw Stage 5H2: corrected sprite-safe AGA64 origin proof
+============================================================
+
+Stage 5H measured raw FMODE3 exactly 16 logical pixels to the right of the
+accepted FMODE1 reference. This isolated proof applies only that measured
+`+16` phase correction while retaining:
+
+- sprite-safe DDF `$30..$d0`;
+- FMODE3 64-bit bitplane fetch;
+- eight-byte bitmap alignment and a 48-byte fetch;
+- the complete 0..63 fine-delay range and 64-pixel coarse pointer.
+
+Test in FS-UAE/68030 HD. Capture a screenshot during the initial three-second
+phase-zero hold. Then allow at least eight seconds of sweep and watch the
+63-to-0 wrap for a jump, corrupt edge or moving lower reference. Click left
+mouse to write `renderbench.log`. A movie is needed only if a temporal defect
+is visible.
+
+The marker must occupy the same position as the Stage 5H FMODE1 reference
+(capture x=156..171 at the unchanged host window size). This proof does not
+contain the production Sparkpaw sprite and therefore cannot itself accept
+sprite DMA, gameplay, performance, 68020, ADF or real hardware.

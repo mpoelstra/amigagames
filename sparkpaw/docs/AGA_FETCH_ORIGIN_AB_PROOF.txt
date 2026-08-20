@@ -1,0 +1,32 @@
+Sparkpaw Stage 5D4: matched AGA fetch-origin A/B proof
+=====================================================
+
+This is an isolated display calibration, not the game. It contains two
+executables in separate drawers so each preserves its own renderbench.log:
+
+- FMODE0-Reference/Sparkpaw-Origin-Reference: accepted 16-bit fetch rules.
+- FMODE1-Candidate/Sparkpaw-Origin-Candidate: candidate 32-bit fetch rules.
+
+Both use the same $30..$d0 DDF window, DIW window, 672-pixel source artwork,
+fixed hardware-sprite marker, bitplane marker at source x=32, palette and
+structurally separate lower reference. The only intended fetch differences
+are FMODE, row fetch width and the required pointer/fine-scroll granularity.
+
+Test procedure
+--------------
+
+1. Run the FMODE0 reference in FS-UAE/68030 HD.
+2. During the first three seconds, camera phase is held at zero. Capture a
+   screenshot showing the black/cyan bitplane marker and white sprite bar.
+3. Let the sweep run for several seconds, then click left mouse to exit.
+4. Repeat unchanged with the FMODE1 candidate.
+5. Keep both renderbench.log files in their respective drawers.
+
+The comparison is relative: report how the candidate's bitplane marker moves
+relative to the reference's marker while the hardware-sprite marker stays
+fixed. Do not infer an absolute coordinate solely from host-window scaling.
+Reject either mode if it jumps at the coarse boundary, disturbs the lower
+reference or changes the visible display width.
+
+Do not spend a 68020, ADF, Analogue Pocket or real-hardware run on this proof.
+It measures display origin only and provides no gameplay-framerate evidence.

@@ -17,7 +17,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.41"
+RELEASE_VERSION = "0.6.0-alpha.43"
 ROADMAP_CHECKPOINT = "6C.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -58,7 +58,7 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} twelve-screen route integration
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} rolling-renderer migration
 MrDig Productions - Copyright 2026
 
 Phase 6B.3 adds the approved thin ground cap; 6B.3A aligns floor actors to
@@ -291,6 +291,31 @@ apparent cadence loss; occasional beetle glitches are also reported. Focused
 presentation/deadline isolation is next, before broad stock-68020 optimization.
 Host/native/package validation passes; the DOS1/FFS ADF uses 1,177 blocks
 (588 KiB) and leaves 583 free.
+
+Alpha.42 promotes the supplied FS-UAE/HD-accepted Stage 4G renderer. Two
+complete Copper lists publish atomically at a fixed PAL boundary. Two hidden
+FRONT16 targets each keep a logical 512-pixel no-copy ring repeated three times
+for seam-safe fetches and complete 64-pixel enemies. Target-local physical Bob
+history removes projectile, beetle and Strider trails. The HUD setup begins
+immediately after the preceding DDFSTOP, removing the supplied FS-UAE boundary
+flicker. REAR8 quarter-speed parallax, palettes, assets, sprites, animation,
+HUD content and gameplay are unchanged. The supplied log reports 1,952 one-
+field plus 31 two-field intervals, 49.23 effective FPS. ADF, Analogue Pocket
+and real-A1200 acceptance remain pending.
+
+Alpha.43 promotes the supplied FS-UAE/68030-HD-accepted Stage 5L renderer.
+The coherent Stage 5G 32-bit playfield fetch and four-byte left guard are kept,
+while the unchanged 48x48, 15-colour Sparkpaw pixels are transparently padded
+to one attached 64-pixel AGA sprite pair on the earliest two DMA channels.
+This replaces three 16-pixel attached pairs without changing art, palette,
+animation, grounding, collision, HUD, parallax or gameplay. The supplied proof
+reports no corruption, glitches or flicker and records 2,163 of 2,163 one-field
+intervals (50.00 FPS) with zero rolling-target ownership violations in the fast
+FS-UAE/68030 configuration. Official HD and ADF builds contain no diagnostic
+logging. Supplied real-A1200/68030 HD and physical-ADF tests, plus Analogue
+Pocket ADF, retain broad visual stability but reject cadence. Real HD also
+repeats or misses some sound events under load. A narrow intermittent pixel or
+black-line disturbance remains at the ground/HUD seam.
 
 Requirements
 ------------

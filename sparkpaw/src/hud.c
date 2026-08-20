@@ -10,7 +10,12 @@
 #include "platform_amiga.h"
 #include "player.h"
 
-#define HUD_W 336
+#define HUD_ASSET_W 336
+#ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
+#define HUD_W 352
+#else
+#define HUD_W HUD_ASSET_W
+#endif
 #define HUD_H 48
 #define HUD_PLANES 3
 #define HUD_BUFFERS 2
@@ -33,6 +38,7 @@ static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static const struct PlanarAsset *base,*healthAtlas,*livesAtlas,*diamondsAtlas;
 static struct BitMap *buffers[HUD_BUFFERS];
 static UBYTE *blankPlane;
+static UWORD hudStride;
 static UBYTE bufferHealth[HUD_BUFFERS],bufferLives[HUD_BUFFERS];
 static UBYTE bufferDiamonds[HUD_BUFFERS],current;
 
@@ -69,10 +75,16 @@ static void copyPatchBlitter(const struct PlanarAsset *source,UWORD sourceY,
 
 static void composeCpu(UBYTE index,UBYTE health,UBYTE lives,UBYTE diamonds)
 {
-    UBYTE plane;
-    for(plane=0;plane<HUD_PLANES;plane++)
-        CopyMem(base->bitmap->Planes[plane],buffers[index]->Planes[plane],
-                (LONG)base->bitmap->BytesPerRow*HUD_H);
+    UBYTE plane; UWORD row;
+    for(plane=0;plane<HUD_PLANES;plane++) {
+        for(row=0;row<HUD_H;row++) {
+            UBYTE *dest=buffers[index]->Planes[plane]+(LONG)row*
+                        buffers[index]->BytesPerRow;
+            CopyMem(base->bitmap->Planes[plane]+(LONG)row*
+                    base->bitmap->BytesPerRow,dest,
+                    base->bitmap->BytesPerRow);
+        }
+    }
     copyPatchCpu(healthAtlas,(UWORD)(health*HEALTH_H),buffers[index],
                  HEALTH_X,HEALTH_Y,HEALTH_W,HEALTH_H);
     copyPatchCpu(livesAtlas,(UWORD)((lives-1)*LIVES_H),buffers[index],
@@ -90,23 +102,26 @@ BOOL hudPrepare(void)
     livesAtlas=assetsHudLives(); diamondsAtlas=assetsHudDiamonds();
     if(base->depth!=HUD_PLANES||healthAtlas->depth!=HUD_PLANES||
        livesAtlas->depth!=HUD_PLANES||diamondsAtlas->depth!=HUD_PLANES||
-       base->width!=HUD_W||base->height!=HUD_H||
+       base->width!=HUD_ASSET_W||base->height!=HUD_H||
        healthAtlas->width!=HEALTH_W||healthAtlas->height!=HEALTH_H*HEALTH_STATES||
        livesAtlas->width!=LIVES_W||livesAtlas->height!=LIVES_H*GAME_MAX_LIVES||
        diamondsAtlas->width!=DIAMONDS_W||
        diamondsAtlas->height!=DIAMONDS_H*DIAMOND_STATES)
         return FALSE;
-    blankPlane=(UBYTE *)AllocMem((LONG)base->bitmap->BytesPerRow*HUD_H,
-                                 MEMF_CHIP|MEMF_CLEAR);
-    if(!blankPlane) return FALSE;
     for(index=0;index<HUD_BUFFERS;index++) {
         buffers[index]=AllocBitMap(HUD_W,HUD_H,HUD_PLANES,
                                   BMF_CLEAR|BMF_DISPLAYABLE,NULL);
         if(!buffers[index]) return FALSE;
-        if(buffers[index]->BytesPerRow!=base->bitmap->BytesPerRow)
+        if(buffers[index]->BytesPerRow<(HUD_W/8)||
+           (buffers[index]->BytesPerRow&3))
             return FALSE;
+        if(index==0) hudStride=buffers[index]->BytesPerRow;
+        else if(buffers[index]->BytesPerRow!=hudStride) return FALSE;
         composeCpu(index,PLAYER_MAX_HEALTH,GAME_START_LIVES,0);
     }
+    blankPlane=(UBYTE *)AllocMem((LONG)hudStride*HUD_H,
+                                 MEMF_CHIP|MEMF_CLEAR);
+    if(!blankPlane) return FALSE;
     current=0;
     return TRUE;
 }
@@ -118,9 +133,10 @@ void hudRelease(void)
         if(buffers[index]) { FreeBitMap(buffers[index]); buffers[index]=NULL; }
     }
     if(blankPlane) {
-        FreeMem(blankPlane,(LONG)base->bitmap->BytesPerRow*HUD_H);
+        FreeMem(blankPlane,(LONG)hudStride*HUD_H);
         blankPlane=NULL;
     }
+    hudStride=0;
 }
 
 void hudSetState(UBYTE health,UBYTE lives,UBYTE diamonds)
@@ -159,3 +175,15 @@ const UBYTE *hudBlankPlane(void)
 {
     return blankPlane;
 }
+
+UWORD hudBytesPerRow(void)
+{
+    return hudStride;
+}
+
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+UBYTE hudDisplayIndex(void)
+{
+    return current;
+}
+#endif

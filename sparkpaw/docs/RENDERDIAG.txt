@@ -1,27 +1,59 @@
-SPARKPAW PRODUCTION RENDER DIAGNOSTIC
-=====================================
+SPARKPAW STAGE 5C AGA 32-BIT BITPLANE-FETCH CANDIDATE
+=====================================================
 
-rd02 measures the optimized production 4+3 renderer. The ordinary HD
-`sparkpaw` now contains the same high-water logger and clean left-mouse exit,
-so a separate diagnostic drawer is no longer needed. It does not display or
-test REAR16. Active diamonds now persist in the clean/display world and retain
-their eight-position hover while movement updates are staggered over four
-frames. Start `Sparkpaw-Renderdiag` from this complete drawer, play through
-the level normally and deliberately exercise busy real situations:
+Revision 3 corrects the 32-bit fine-scroll phase to preserve the accepted
+16-bit sequence: offsets 0..31 use delays 15..0 then 31..16. Revision 2's
+31..0 mapping is rejected because it displaced the level relative to the
+hardware-sprite player.
 
-- fire rapidly while enemies and diamond trails are visible;
-- follow both Striders through their routes;
-- reach the water region and trigger the splash;
-- backtrack so parked/respawning encounters are exercised.
+Revision 2 rejects invalid graphics.library bitmap strides or pointer
+alignment before custom-chip takeover and derives the HUD modulo from the
+actual allocated stride. The initial Stage 5C transfer build is rejected.
 
-Click the left mouse button when finished. The HD build restores Workbench and
-writes `renderdiag.log` beside the executable. Return that log and, if anything
-looked abnormal, a recording. The log must identify:
+The separately named HD drawer and diagnostic ADF measure the production
+alpha.42 no-copy rolling renderer. Ordinary HD and ADF executables contain no
+logger or debug input. Start `Sparkpaw-Renderdiag` and run focused tests:
 
-  2026-08-14-rd02-staggered-diamond-high-water
+- repeatedly cross the reported HUD point in both directions;
+- compare zero, one and the first two visible Striders;
+- at the pair, kill one Strider without changing the camera scene;
+- briefly cover a later mixed-enemy/beetle scene with rapid fire.
 
-It records only the single slowest real production frame: raster duration,
-camera position, wraps and exact restore/draw counts for projectiles, beetles,
-Striders, diamonds, splash and water. No DOS writes occur during takeover.
+For the Stage 5C comparison, spend a few seconds each standing still, running,
+repeatedly jumping while running, and fighting the first two Striders. This
+gives the aggregate CIA sections comparable workloads without changing any
+gameplay behavior.
 
-The bootable ADF remains reset-to-exit and performs no DOS log write.
+Click the left mouse button when finished. The build safely stops custom-chip
+users, writes and closes `renderdiag.log`, then waits for reset without opening
+Workbench. Return the log with timestamps for any visible glitch or cadence
+drop.
+
+The fixed Fast-RAM trace retains the newest 1,024 HD frames (about 20 PAL
+seconds) or 512 ADF frames (about 10 PAL seconds, bounded by free floppy
+space), and records frame/raster
+stamps for update, publication, Bob entry and final completion; explicit
+one/two/three-plus-field cadence and effective FPS; deadline flags;
+camera/player position; every enemy slot; family counts; HUD buffer; all seven
+world and HUD pointers; Copper address/generation; and Blitter-busy samples.
+Stage 5C retains Stage 5B's bounded Blitter-priority candidate and additionally
+changes only bitplane display fetches from 16 to 32 bits. Coarse scrolling now
+uses aligned 32-pixel steps and AGA's extended 0..31-pixel fine-scroll fields.
+The visible HUD artwork remains 336 pixels; its private bitmap has 16 blank
+guard pixels so every 44-byte scanline is legal and longword-aligned. Sprite
+fetch remains 16-bit, preserving all six attached player-sprite channels.
+
+The diagnostic measures game update, player physics, enemies,
+collectibles, projectiles, Copper patching, the complete Bob pass and the wait
+to the next safe publication in CIAB Timer-B E-clock ticks. The timer is saved
+and restored around takeover; it adds no per-family Blitter waits. This
+build gives the Blitter priority only during the bounded Bob pass and
+clears it after the final wait. It changes no pixels or gameplay contracts.
+
+No DOS writes occur during takeover. This measurement does not establish
+FS-UAE, ADF, Analogue Pocket or real-hardware acceptance.
+
+Keep the diagnostic ADF image writable. After clicking the left mouse button,
+wait several seconds for the log to close, reset, and return the modified ADF
+image so `renderdiag.log` can be extracted. A write-protected image cannot
+preserve the trace.

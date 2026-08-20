@@ -1,0 +1,45 @@
+Sparkpaw Stage 5I: sprite-safe AGA64 gameplay candidate
+=======================================================
+
+This diagnostic HD build transfers the Stage 5H2-accepted corrected FMODE3
+geometry into gameplay. Scrolling playfields use FMODE3, DDF `$30..$d0`, a
+48-byte fetch, eight-byte aligned pointers, 64-pixel coarse steps and the
+measured logical `+16` phase. The HUD explicitly returns to its accepted
+FMODE1/44-byte fetch. Sparkpaw remains the unchanged 48x48, 15-colour actor
+using three attached 16-pixel hardware-sprite pairs.
+
+First gate: FS-UAE/68030 HD
+---------------------------
+
+Run in both directions through multiple 64-pixel camera boundaries. Exercise
+sprint, jump, firing, collectibles, beetles and the first Striders. Check:
+
+- Sparkpaw retains every colour and body segment in every animation;
+- no black or displaced strip appears at the left gameplay edge;
+- HUD, parallax, world alignment and collision remain correct;
+- no teleport, ghost trails, corrupt Bobs or wrap hitch appears.
+
+Click left mouse after the run to flush `renderdiag.log`. Provide screenshots
+for any static defect and a movie only for a temporal defect. Do not test
+FS-UAE/68020 or real hardware until this presentation gate is reviewed. This
+is not an ADF or release candidate.
+
+Supplied result: rejected
+-------------------------
+
+The supplied FS-UAE/68030 HD movie shows that Sparkpaw's hardware-sprite
+components are restored, but the scrolling playfield origin jumps in discrete
+steps and variable-width black strips reappear at the left edge. Small pixels
+also flicker at the left ground/HUD boundary. Sparkpaw and world objects stay
+coherent with one another while the world shifts relative to the fixed HUD;
+this is a display-origin regression, not evidence of gameplay-state teleport.
+
+The clean-exit log still reports 49.87 effective FPS over 1,172 frames, three
+ring wraps and zero target-ownership violations. Those metrics prove that the
+candidate is fast and respects its software buffer-ownership contract; they do
+not prove that the Copper displays the correct 64-pixel fetch phase.
+
+Stage 5H2 therefore remains accepted only as an isolated linear-bitmap origin
+measurement. Its coverage omitted the production rolling ring, alternating
+targets, dual playfield, hardware sprites and FMODE3-to-FMODE1 HUD transition
+acting together. Stage 5I is rejected and must not enter the main distribution.

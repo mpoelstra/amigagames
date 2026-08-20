@@ -5,6 +5,7 @@
 #include "collectibles.h"
 #include "enemies.h"
 #include "level_data.h"
+#include "performance_profile.h"
 #include "player.h"
 #include "projectiles.h"
 #include "world_config.h"
@@ -69,6 +70,7 @@ void gameInit(ULONG enemySeed)
 
 void gameUpdate(void)
 {
+    ULONG profileStart;
     BOOL left,right,down,jump,fire,wasGrounded;
     WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
@@ -80,7 +82,9 @@ void gameUpdate(void)
     playerReadInput(&left,&right,&down,&jump,&fire);
     wasGrounded=player->grounded;
     playerStartShot(fire,audioPlayShot);
+    profileStart=performanceProfileBegin();
     if(playerUpdatePhysics(left,right,down,jump)) audioPlayJump();
+    performanceProfileEnd(PERF_PLAYER,profileStart);
     playerUpdateShot();
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
     if(levelPlayerTouchesWater(playerLeft,playerRight,playerBottom)) {
@@ -98,10 +102,12 @@ void gameUpdate(void)
         audioUpdate();
         return;
     }
+    profileStart=performanceProfileBegin();
     enemiesUpdate((WORD)game.cameraX,collisionSolidAt,
                   (WORD)((playerLeft+playerRight)>>1),
                   (WORD)((playerTop+playerBottom)>>1),
                   spawnEnemyProjectile);
+    performanceProfileEnd(PERF_ENEMIES,profileStart);
     /* Temporary level exit: reaching the authored right edge reuses the
        in-memory replay path until LEVEL_COMPLETE can select a next level. */
     if(playerReachedWorldRight(WORLD_W-1)) {
@@ -114,8 +120,11 @@ void gameUpdate(void)
         if(applyEnemyDamage(enemyCenterX)) return;
     }
     {
-        UBYTE picked=collectiblesCollect(playerLeft,playerTop,
+        UBYTE picked;
+        profileStart=performanceProfileBegin();
+        picked=collectiblesCollect(playerLeft,playerTop,
                                          playerRight,playerBottom);
+        performanceProfileEnd(PERF_COLLECTIBLES,profileStart);
         if(picked) {
             UWORD total=(UWORD)game.diamonds+picked;
             while(total>=GAME_DIAMONDS_PER_LIFE&&game.lives<GAME_MAX_LIVES) {
@@ -127,11 +136,16 @@ void gameUpdate(void)
             audioPlayCollect();
         }
     }
+    profileStart=performanceProfileBegin();
     projectilesUpdate((WORD)game.cameraX,collisionSolidAt,enemiesHitProjectile,
                       audioPlayEnemyHit,audioPlayEnemyDeath);
     if(projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                                 &enemyCenterX)&&
-       applyEnemyDamage(enemyCenterX)) return;
+       applyEnemyDamage(enemyCenterX)) {
+        performanceProfileEnd(PERF_PROJECTILES,profileStart);
+        return;
+    }
+    performanceProfileEnd(PERF_PROJECTILES,profileStart);
     audioUpdate(); updateCamera();
     playerAnimate(!wasGrounded&&player->grounded,game.frameCounter);
     game.frameCounter++;

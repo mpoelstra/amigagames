@@ -1,0 +1,48 @@
+Sparkpaw Stage 5J: production rolling-ring A/B proof
+====================================================
+
+This is the missing integration proof between the isolated Stage 5H2 result
+and rejected Stage 5I gameplay candidate. Both executables use the real 512x3
+FRONT rolling ring, alternating render targets, REAR parallax, six-channel
+Sparkpaw hardware sprite, fixed HUD split and identical gameplay workload.
+
+FMODE0-Reference keeps the sprite-safe Stage 4G display geometry. It is the
+visual reference, not a performance target. FMODE3-Candidate reproduces the
+Stage 5I 64-bit fetch path. Both logs now record, per frame, the fetch mode,
+front/rear fine phase, BPLCON1 value, logical offsets and coarse byte offsets.
+
+FS-UAE/68030 HD procedure
+-------------------------
+
+1. Run FMODE0-Reference first. Move right, then left, crossing several
+   64-pixel camera boundaries. Jump and fire, then click left mouse to flush
+   renderdiag.log.
+2. Reset FS-UAE before running FMODE3-Candidate. Repeat the same route and
+   click left mouse to flush its separate log.
+3. Report black edge strips, apparent world jumps, HUD-boundary flicker and
+   Sparkpaw component loss separately for each executable.
+
+The candidate passes only if it matches the reference at the left edge, world
+origin and HUD boundary while keeping all Sparkpaw components. Performance is
+recorded but cannot override a visual failure. No FS-UAE/68020, ADF, Analogue
+Pocket or real-hardware acceptance follows from this diagnostic A/B proof.
+
+Supplied result
+---------------
+
+The FS-UAE/68030 HD reference was reported visually correct. Its log covers
+1,626 frames at 49.54 effective FPS, with 15 two-field intervals, 18 measured
+Bob-pass field wraps and zero ring-ownership violations.
+
+The FMODE3 candidate was reported to reproduce Stage 5I's world jumps and
+displaced strips. Its log covers 779 frames at 49.93 effective FPS, one
+two-field interval, one measured Bob-pass field wrap and zero ownership
+violations. The retained trace covers every front fine phase from 0 through 63.
+Automated checking found zero mismatches between logged camera positions and
+the implemented coarse offsets, fine phases or BPLCON1 values in either build.
+
+This rejects the implemented FMODE3 production mapping itself, rather than a
+missed Copper publication or rolling-target ownership error. The small cadence
+difference is not a valid performance comparison because the runs have
+different duration and gameplay load. No movie is required to establish this
+A/B result. Do not iterate the same `+16`, 64-pixel mapping in gameplay again.

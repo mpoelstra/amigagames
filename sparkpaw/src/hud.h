@@ -9,5 +9,9 @@ void hudRelease(void);
 void hudSetState(UBYTE health,UBYTE lives,UBYTE diamonds);
 const struct BitMap *hudDisplayBitmap(void);
 const UBYTE *hudBlankPlane(void);
+UWORD hudBytesPerRow(void);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+UBYTE hudDisplayIndex(void);
+#endif
 
 #endif

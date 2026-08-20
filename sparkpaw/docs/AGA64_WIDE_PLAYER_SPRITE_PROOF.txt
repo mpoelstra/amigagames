@@ -1,0 +1,36 @@
+Sparkpaw Stage 5L - isolated 64-pixel AGA player-sprite proof
+================================================================
+
+Purpose
+-------
+This candidate keeps the accepted Stage 5G playfield geometry and changes only
+Sparkpaw's hardware-DMA representation. The unchanged 48x48, 15-colour artwork
+is packed into one attached 64-pixel AGA sprite pair on channels 0/1. Pixels
+48..63 are transparent padding. No pose, palette, baseline, animation timing,
+HUD, collision, physics, enemy or gameplay contract is intentionally changed.
+
+Why this proof exists
+---------------------
+The early $20 playfield fetch can take DMA slots from later 16-pixel sprite
+channels. Stage 5G therefore retained good playfield speed and geometry but
+lost parts of the six-channel player. This proof asks AGA to fetch the same
+four player planes through the earliest attached pair instead of six channels.
+The wide stream uses the AGA 64-bit control/data layout and explicitly aligned
+Chip RAM staging buffers.
+
+Test first in FS-UAE 68030 HD
+-----------------------------
+1. Run Sparkpaw-Wide-Sprite-Proof from this drawer.
+2. Let the level load; walk and run both directions.
+3. Exercise idle, turn, jump, crouch, shoot, air-fire, hurt and ledge poses.
+4. Check that Sparkpaw is complete in both orientations, especially the white
+   right-facing half and the left-facing tail seen in Stage 5K2.
+5. Also check the left playfield edge, the ground/HUD seam, enemies, shots and
+   world position for strips, flicker, trails or jumps.
+6. Click the left mouse button once after representative play to write
+   renderdiag.log, then quit normally.
+
+Status
+------
+Host build/tests only. No FS-UAE, ADF, Analogue Pocket or real-hardware
+acceptance is claimed until the corresponding user test evidence exists.

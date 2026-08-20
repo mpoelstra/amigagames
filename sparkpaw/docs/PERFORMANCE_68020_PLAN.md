@@ -1,20 +1,39 @@
 # Sparkpaw stock-68020 performance plan
 
-Status: planning only after stable real-hardware Strider/beetle presentation.
-The alpha.41 real-HD Chip-RAM gate is accepted. Do not mix broad performance
-experiments with the focused enemy-glitch correction unless timing is proven to
-be the direct safety cause.
+Status: active on the alpha.43 Stage 5L baseline. Supplied testing accepts broad
+renderer stability in FS-UAE/68030, real-A1200/68030 HD and ADF, and Analogue
+Pocket ADF, but rejects cadence on all slower targets. Preserve Stage 5L's ring,
+fetch geometry and wide player pair; isolate measured hotspots rather than
+reopening its ownership architecture.
+
+Hardware policy: the user has authorized the supplied real A1200/68030 at
+about 34.5 MHz as the minimum release CPU if necessary. Continue using
+FS-UAE/68020 as a stress target and seek measured gains there, but do not trade
+away parallax, assets, colours, sprites, animation, HUD or gameplay contracts
+solely to claim stock-68020 acceptance.
 
 ## Known evidence
 
 - Alpha.39 restores acceptable presentation and cadence in supplied FS-UAE at
   68030.
+- Alpha.42's no-copy rolling renderer removes the observed enemy/projectile
+  trails and HUD-boundary flicker in supplied FS-UAE testing, but its cadence
+  is rejected in the supplied FS-UAE/68020 and real-A1200/68030 recordings.
 - FS-UAE at 68020 remains seriously slow. Sprinting/jumping drops more frames
   than ordinary grounded movement; Strider glitches increase under that load.
 - Alpha.39 ADF on the Analogue Pocket's Analogue-Amiga FPGA core at 68020 with
   caches disabled shows transient gameplay-field, Bob and separate-HUD
   corruption. This is timing-sensitivity evidence, not cycle-equivalent stock
   A1200 proof.
+- Stage 5L on FS-UAE/68030 holds 50.00 FPS for 2,163 intervals with no visual
+  corruption. On FS-UAE/68020 it measures 26.38 FPS: 136 one-field, 337
+  two-field and 78 three-field intervals, with 270 wraps in 552 frames.
+- Relative to Stage 5A on the same reported FS-UAE/68020 configuration, average
+  Bob-pass time falls from 34,138 to 24,357 CIA ticks (about 29%), but complete
+  cadence remains effectively unchanged at 26.30 versus 26.38 FPS.
+- Alpha.43 on the real 34.5 MHz A1200/68030 and Analogue Pocket retains broad
+  graphical stability but has similarly unacceptable cadence. Real HD also
+  exhibits repeated or missed sound events under load.
 - Alpha.37 tight Bob bounds damaged sprites and did not improve cadence.
 - Alpha.38 hidden viewport composition added a mandatory 512x208x4 copy and
   made both 68020 and 68030 worse. Neither technique may return unchanged.
@@ -83,6 +102,37 @@ Also measure before changing:
 Prefer lookup tables, shifts and tile-run queries only where profiles show a
 material cost. Keep simulation deterministic.
 
+## Static source audit after alpha.43
+
+Production and diagnostic binaries were compared before any source split. The
+normal executable contains none of the diagnostic strings or log writer and is
+7,268 bytes smaller than the Stage 5L proof. `performance_profile.c` and its
+calls compile to no-ops without `SPARKPAW_RENDER_DIAGNOSTIC`. Moving those
+blocks to `renderer_diagnostics.c` improves reviewability, not frame rate.
+
+The first concrete candidates found in the actual hot path are:
+
+1. `prototypeCopyCanonicalSpan()` can issue about 4,992 two-byte `CopyMem`
+   calls for one 16-pixel, 208-line entering-column update across three ring
+   copies, four planes and clean/display targets. Benchmark direct word copies
+   or bounded tall Blitter operations; this is the strongest periodic-hitch
+   candidate.
+2. `rendererUpdateGameplay()` copies the complete 1,536-byte Copper list to the
+   inactive list before patching a small dynamic subset every update. Benchmark
+   independently maintained lists or template-only initialization.
+3. `setHardwareSprite()` recopies about 1,600 bytes of wide-player image data
+   every update. Cache frame/facing per target stage and update only POS/CTL
+   when its image is unchanged.
+4. Bob restore/draw uses repeated plane-by-plane `WaitBlit` serialization and
+   remains the dominant measured section at 24,357 average CIA ticks.
+5. Player physics averages 4,303 ticks and still warrants a measured leading-
+   edge/tile-span candidate, but it is not the largest observed section.
+
+Refactor policy: first preserve the normal executable hash while extracting
+diagnostics, then optionally split Copper, ring, Bob and sprite internals. Do
+not mix a file-boundary refactor with a timing change, and keep all rejected
+proof targets reproducible until their compact lessons are archived.
+
 ## Stage 3: Blitter and Chip-bus candidates
 
 Use the Hardware Reference Manual's channel-cost formula to predict each exact
@@ -96,12 +146,57 @@ Candidate order:
 4. benchmark interleaved display/cache layouts as an isolated proof, because a
    single taller operation may reduce plane-by-plane setup but changes modulo
    and cache contracts;
-5. benchmark AGA 32/64-bit fetch modes with correctly aligned pointers and
-   fetch widths. Current `FMODE=0` leaves this opportunity unmeasured. Reject
-   any candidate that changes visible width, sprite availability or scrolling.
+5. retain the accepted FMODE1 bitplane fetch and 64-pixel attached player pair;
+   benchmark any additional AGA sprite use separately and reject it on any
+   priority, palette, overlap, HUD or DMA regression.
+
+Stage 5C isolates the conservative 32-bit form (`FMODE.BPL32=1`): 44 fetched
+bytes at the existing DDF window, longword-aligned 32-pixel pointer steps and
+AGA extended fine scroll. The HUD keeps its authored 336 visible pixels but
+uses a 352-pixel private stride. This must be rejected on any wrap, HUD,
+parallax, sprite or edge artifact; compilation alone is not acceptance.
+
+Stage 5C2 proved 49.96 FPS on the fast FS-UAE/68030 configuration but is
+visually rejected: its fine-scroll delay used 31..0 instead of retaining the
+accepted FMODE=0 phase. Stage 5C3 changes only that sequence to 15..0,31..16;
+it requires a fresh 68030 presentation gate before any 68020 measurement.
+
+Stages 5D through 5D5 isolate the remaining origin defect. A matched FMODE0/
+FMODE1 capture measured the candidate exactly 16 logical pixels to the right;
+the aligned `camera + 16` phase correction then returned the synthetic marker
+pixel-identically to the FMODE0 reference through the user-observed sweep.
+Stage 5E applies that relation to gameplay and the fixed HUD without changing
+DDF or using misaligned pointers. Gate it on FS-UAE/68030 presentation before
+using its diagnostic cadence log for a 68020 performance decision.
 
 Do not retry full viewport copies. Dirty work must remain proportional to
 changed visible objects.
+
+### Completed fetch/sprite branch: Stage 5L
+
+Stage 5G's early FMODE1 fetch and physical guards produced the coherent world
+but stole later DMA slots from the six-channel actor. FMODE3 production mapping
+and the FMODE0 `$28` alternative were rejected. Stage 5L resolves the branch by
+packing the unchanged actor into one transparent-padded 64-pixel attached pair
+on channels 0/1. It is accepted for broad presentation across the supplied
+emulator, real-Amiga and FPGA paths and is now the immutable performance
+baseline. Hybrid/full-player-Bob fallbacks are closed unless new hardware
+evidence invalidates the wide pair.
+
+Additional AGA sprites remain a hypothesis, not the next automatic change.
+Channels 2..7 are newly available, but early DDF can still deny later slots;
+objects overlap vertically; attached colour depth consumes pairs; and moving a
+Bob to sprites trades restore/draw work for fixed DMA and Copper scheduling.
+Measure projectiles or another small vertically bounded family in isolation
+before considering enemies or collectibles.
+
+Primary hardware basis: the Commodore Hardware Reference Manual states that
+bitplane DMA can take precedence over sprite DMA and that wider/scrolling
+displays can make higher-numbered sprites unusable. Its sprite chapters confirm
+that an attached 15-colour object consumes a channel pair and that channel
+reuse requires vertical separation. Commodore's AA/CD32 material confirms
+32/64-pixel AGA sprites, attached sprites in all resolutions, dual four-plane
+playfields and independent FMODE controls for bitplane and sprite fetch width.
 
 ## Stage 4: decision gates
 

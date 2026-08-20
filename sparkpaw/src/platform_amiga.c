@@ -24,6 +24,16 @@ static UBYTE gameKeys;
 #define CIAICRF_SP 0x08
 #define CIACRAF_SPMODE 0x40
 
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#define CIAB_TBLO (*(volatile UBYTE *)0xbfd600)
+#define CIAB_TBHI (*(volatile UBYTE *)0xbfd700)
+#define CIAB_CRB (*(volatile UBYTE *)0xbfdf00)
+static UBYTE profileOldCrb,profileOldTbLo,profileOldTbHi;
+static UWORD profileLastCounter;
+static ULONG profileTicks;
+static BOOL profileTimerActive;
+#endif
+
 #define GAMEKEY_W 0x01
 #define GAMEKEY_A 0x02
 #define GAMEKEY_S 0x04
@@ -106,7 +116,57 @@ void platformWaitBlit(void)
     while(hardware->dmaconr&DMAF_BLTDONE) { }
 }
 
+void platformSetBlitterPriority(BOOL enabled)
+{
+    hardware->dmacon=enabled?(DMAF_SETCLR|DMAF_BLITHOG):DMAF_BLITHOG;
+}
+
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
+static UWORD readProfileCounter(void)
+{
+    UBYTE high0,high1,low;
+    do {
+        high0=CIAB_TBHI; low=CIAB_TBLO; high1=CIAB_TBHI;
+    } while(high0!=high1);
+    return (UWORD)(((UWORD)high1<<8)|low);
+}
+
+void platformProfileTimerStart(void)
+{
+    profileOldCrb=CIAB_CRB;
+    profileOldTbLo=CIAB_TBLO;
+    profileOldTbHi=CIAB_TBHI;
+    CIAB_CRB=0;
+    CIAB_TBLO=0xff; CIAB_TBHI=0xff;
+    /* Continuous E-clock countdown. Diagnostics sample often enough that one
+       65536-tick period (about 92 ms PAL) cannot pass unseen. */
+    CIAB_CRB=0x11;
+    profileLastCounter=readProfileCounter();
+    profileTicks=0; profileTimerActive=TRUE;
+}
+
+ULONG platformProfileTimerTicks(void)
+{
+    UWORD current=readProfileCounter();
+    profileTicks+=(UWORD)(profileLastCounter-current);
+    profileLastCounter=current;
+    return profileTicks;
+}
+
+static void stopProfileTimer(void)
+{
+    if(!profileTimerActive) return;
+    CIAB_CRB=0;
+    CIAB_TBLO=profileOldTbLo; CIAB_TBHI=profileOldTbHi;
+    CIAB_CRB=(UBYTE)(profileOldCrb|0x10);
+    profileTimerActive=FALSE;
+}
+
+BOOL platformBlitterBusy(void)
+{
+    return (hardware->dmaconr&DMAF_BLTDONE)!=0;
+}
+
 BOOL platformLeftMouse(void)
 {
     return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
@@ -119,8 +179,13 @@ void platformPrepareDebugFlush(void)
        mask and release the OS locks.  The caller writes/closes its log and
        then waits for reset without freeing or redisplaying any bitmap. */
     if(interruptsDisabled) {
+        stopProfileTimer();
         audioSetHardwareActive(FALSE);
         hardware->dmacon=DMAF_ALL;
+        /* DOS can flush an HD log without custom-chip disk DMA, which hid
+           this omission in the first Stage 1 run. DF0 requires the saved
+           system DMA channels again before Open()/Write()/Close(). */
+        hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|oldDma;
         hardware->intena=0x7fff;
         hardware->intena=0x8000|oldIntena;
         Enable(); interruptsDisabled=FALSE;

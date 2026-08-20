@@ -1,0 +1,26 @@
+Sparkpaw Stage 5H: sprite-safe AGA64 fetch-origin A/B proof
+===========================================================
+
+Stage 5G proved that `$20` supplies the missing left fetch but steals DMA from
+Sparkpaw's attached hardware sprites. This isolated A/B proof returns to the
+sprite-safe `$30..$d0` window and tests AGA's wider FMODE3 bitplane fetch.
+
+Both executables use the same DIW, DDF, authored phase-zero marker and fixed
+lower reference. The reference is the accepted corrected FMODE1 geometry. The
+candidate changes only the bitplane fetch to FMODE3, uses an 8-byte-aligned
+704-pixel bitmap and a 48-byte row fetch, and exposes the complete 0..63 delay.
+Sprite width remains 16 pixels; this proof does not alter Sparkpaw's art or
+runtime sprite format.
+
+Test in FS-UAE/68030 HD only
+----------------------------
+
+Run each executable from its own drawer. During the initial three-second hold,
+capture one screenshot of each at phase zero, without moving or resizing the
+FS-UAE window between runs. Then allow the FMODE3 candidate to sweep for at
+least eight seconds and watch for jumps, corruption or lower-reference motion.
+Click left mouse in each run to write its separate `renderbench.log`.
+
+Return both screenshots and logs. A movie is needed only if the candidate has
+a temporal fault. Do not infer gameplay, performance, sprite-DMA, 68020, ADF,
+Analogue Pocket or real-hardware acceptance from this calibration proof.

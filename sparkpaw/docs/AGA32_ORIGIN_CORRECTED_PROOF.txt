@@ -1,0 +1,21 @@
+Sparkpaw Stage 5D5: aligned FMODE1 phase correction
+===================================================
+
+This is the final isolated origin-correction proof, not the game. Stage 5D4
+measured the FMODE1 bitplane marker exactly one 16-logical-pixel calibration
+cell to the right of the matched FMODE0 reference. D5 keeps `$30..$d0`, 44-byte
+fetches and longword-aligned pointers, but biases the logical FMODE1 fetch phase
+by +16 pixels. The 32-pixel coarse pointer changes only where the corresponding
+extended fine-delay phase wraps. No misaligned pointer or DDF shift is used.
+
+The initial phase is held for 150 PAL fields. Take one screenshot during those
+first three seconds, then let the proof sweep for at least six seconds. The
+cyan/white bitplane marker should return to the FMODE0 reference position from
+Stage 5D4. The fixed hardware-sprite marker must remain independent of the
+sweep. Look for any jump halfway through or at the 32-pixel boundary, changes
+in visible width, left-border pixels, or movement in the lower reference.
+
+Click left mouse to exit and preserve `renderbench.log`. A movie is needed only
+if a temporal jump or corruption is visible. Test only in FS-UAE/68030 HD at
+this gate; it provides no gameplay-framerate, 68020, ADF, Analogue Pocket or
+real-hardware acceptance.

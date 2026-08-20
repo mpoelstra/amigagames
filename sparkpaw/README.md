@@ -3,10 +3,12 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.41`. Roadmap checkpoint: accepted Phase 6C.1
-real-HD Chip-RAM correction, followed by a measured renderer-safety prototype;
-stock-68020 profiling/optimization follows safe enemy presentation;
-accepted Phase 6B.5 remains the player-gameplay baseline.
+Current release: `0.6.0-alpha.43`. Roadmap checkpoint: Phase 6C.1 rolling
+renderer Stage 5L. Supplied FS-UAE/68030 HD testing accepts clean presentation
+at 50 Hz. Supplied real-A1200/68030 HD and physical-ADF tests, and Analogue
+Pocket ADF testing, report no broad renderer corruption, but all slower paths
+reject cadence. Stock-68020 remains a stress target; accepted Phase 6B.5 remains
+the player-gameplay baseline.
 Supplied alpha.39 testing accepts presentation/cadence at 68030 in FS-UAE and
 the ADF on a real A1200/68030. Both packages work in FS-UAE, but real-A1200 HD
 output corrupts immediately after CHARGING. Alpha.40 changes only raw HD asset
@@ -28,17 +30,31 @@ two-Strider scene due to intermittent enemy glitches and apparent cadence loss;
 occasional beetle glitches are also reported. Stock-68020 FS-UAE performance
 remains a separate rejected/open optimization track after that presentation
 fault is isolated.
-The next renderer step deliberately does not reduce visual ambition. After one
-short diagnostic trace, it prototypes two atomically published Copper lists
-and compact double-buffered rolling gameplay targets that are never modified
-while displayed. The existing FRONT16 art, three-plane quarter-speed REAR8
-parallax, palettes, sprites, animation and separate HUD are hard invariants.
-Camera-tripwire dormancy and a possible one-visible-Strider budget may be
-measured, but the latter is not the preferred structural fix. The Analogue
-Pocket 68020/no-cache configuration is a separate stress regression after the
-prototype; it is not evidence of FS-UAE or real-A1200 acceptance.
-Host/native/package validation passes. The alpha.41 ADF uses 1,177 blocks
-(588 KiB) and leaves 583 blocks free.
+Alpha.42 promotes the Stage 4G no-copy rolling renderer: two hidden FRONT16
+targets, two atomically published Copper lists, target-local Bob histories and
+seam-safe 512x3 physical rings. Supplied FS-UAE/HD testing reports no enemy or
+projectile trails and no HUD-boundary flicker. Its log measures 49.23 effective
+FPS over 1,983 intervals. REAR8 parallax, assets, palettes, sprites, animation,
+HUD and gameplay remain unchanged. Only entering columns and changed dynamic
+regions synchronize on the inactive target; the displayed target is never
+modified. Subsequent supplied recordings retain the clean sampled presentation
+but reject cadence on FS-UAE/68020 and on a real A1200/68030 at about 34.5 MHz.
+The 49.23-FPS result therefore characterizes only the faster FS-UAE/68030
+configuration. ADF and Analogue Pocket acceptance remain pending; real-A1200
+performance is explicitly rejected.
+The bootable alpha.42 ADF package uses 1,186 blocks (593 KiB) and leaves 574
+free; this is packaging validation, not ADF gameplay acceptance.
+Alpha.43 keeps Stage 5G's coherent 32-bit playfield geometry but repacks the
+unchanged 48x48, 15-colour player into one transparent-padded 64-pixel attached
+AGA sprite pair on channels 0/1. Supplied Stage 5L FS-UAE/68030 HD testing
+reports no corruption, glitches or flicker; its log measures 2,163/2,163
+one-field intervals (50.00 FPS) and zero ownership violations. Real-A1200/68030
+HD and physical-ADF runs, and Analogue Pocket ADF, retain broad visual stability
+but reject performance. Real HD also repeats or misses some sound events under
+load. A narrow intermittent disturbance remains at the ground/HUD seam.
+The bootable alpha.43 ADF package validates at 1,190 blocks (595 KiB) with 570
+blocks free; this validates packaging. The supplied physical ADF launches and
+plays on the real A1200, but its cadence is rejected.
 Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
 also accepted. Phase 6B.6 now contains the integrated extended REAR8 parallax
 and foreground-material v1 candidates alongside the measured palette previews;
@@ -415,7 +431,7 @@ stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
 - Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots
-- Production alpha.41 HD and ADF: reset the Amiga or emulator to leave
+- Production alpha.42 HD and ADF: reset the Amiga or emulator to leave
 - Explicit debug build only: diagnostics buffer in Fast RAM; a deliberate
   flush writes/closes the log and then waits for reset without opening Workbench
 
@@ -631,10 +647,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.41.lha`
-- `dist/Sparkpaw-0.6.0-alpha.41.zip`
-- `dist/Sparkpaw-0.6.0-alpha.41.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.41/`
+- `dist/Sparkpaw-0.6.0-alpha.43.lha`
+- `dist/Sparkpaw-0.6.0-alpha.43.zip`
+- `dist/Sparkpaw-0.6.0-alpha.43.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.43/`
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

@@ -1,0 +1,37 @@
+Sparkpaw Stage 5K2: corrected FMODE0 half-step prefetch
+======================================================
+
+This replaces only the invalid Stage 5K DDF28 candidate. The malformed Copper
+MOVE is corrected: gameplay emits DDFSTRT `$0092,$0028`, fetches 44 bytes with
+real two-byte FRONT/REAR guards, and the fixed HUD emits `$0092,$0030` to
+restore its accepted 42-byte fetch. Both independently built Copper lists are
+structurally checked at runtime; gameplay preparation fails instead of showing
+an unverified display if either exact pair is absent.
+
+The previously supplied Stage 5K DDF30 reference remains the comparison and
+does not need another run.
+
+FS-UAE/68030 HD gate
+--------------------
+
+Run right and back left across several camera boundaries. Jump, fire and reach
+the first enemies. Check the complete six-channel Sparkpaw actor, left edge,
+world origin, ground/HUD boundary, parallax, enemies and projectiles. Click
+left mouse to flush renderdiag.log.
+
+This is not a main-distribution, ADF or hardware candidate. Do not test
+FS-UAE/68020 or real hardware until the corrected presentation is reviewed.
+
+Supplied result: rejected
+-------------------------
+
+The corrected candidate displays and its playfield/HUD presentation remains
+coherent, but Sparkpaw loses attached-sprite colour components. Facing right,
+large portions of the actor turn white; facing left, the defect is concentrated
+around the tail. The matching clean-exit log spans 1,971 frames at 50.00
+effective FPS with all intervals at one field and zero ring-ownership
+violations. This rejects FMODE0 `$28` with the existing six-channel actor.
+
+Do not move DDF earlier again. Preserve this playfield result as evidence and
+proceed only with the separately planned AGA-wide attached-sprite proof on the
+earliest channels.

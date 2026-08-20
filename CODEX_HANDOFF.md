@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 19 August 2026
+Last updated: 20 August 2026
 
 ## Start here
 
@@ -33,7 +33,10 @@ backups.
 
 ## Build, release and verification
 
-Target: PAL A1200/AGA, 68020, 2 MB Chip plus 8 MB Fast RAM.
+Target: PAL A1200/AGA. The supplied real A1200/68030 at about 34.5 MHz may be
+the minimum release CPU if stock-68020 50 Hz cannot be reached without visual
+or gameplay concessions; FS-UAE/68020 remains the optimization stress target.
+Memory minimum remains 2 MB Chip plus 8 MB Fast RAM.
 
 From `sparkpaw/` always run after implementation:
 
@@ -42,12 +45,12 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.41`, Phase 6C.1. A normal release contains:
+Current release is `0.6.0-alpha.43`, Phase 6C.1. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.41.lha`
-- `Sparkpaw-0.6.0-alpha.41.zip`
-- `Sparkpaw-0.6.0-alpha.41.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.41/`
+- `Sparkpaw-0.6.0-alpha.43.lha`
+- `Sparkpaw-0.6.0-alpha.43.zip`
+- `Sparkpaw-0.6.0-alpha.43.adf`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.43/`
 
 Do not create the >100 MB Source ZIP unless MrDig explicitly requests it.
 Opt-in command: `tools/make_release.py --include-source`.
@@ -83,8 +86,32 @@ behavior on a real 68020 is a hypothesis, not supplied hardware verification.
   cadence loss. Beetles are also reported to glitch occasionally. Because the
   issue predates alpha.41, do not blame its Fast-RAM masters or staging change
   without new evidence.
-- FS-UAE at 68020 still has serious performance loss, especially sprint/jump,
-  with increased Strider glitches under load.
+- Alpha.42 promotes the Stage 4G no-copy rolling renderer. Supplied FS-UAE/HD
+  testing accepts clean enemy/projectile presentation, smooth cadence and the
+  corrected HUD boundary. Its 1,983 measured intervals contain 1,952 one-field
+  and 31 two-field updates (49.23 effective FPS), with zero ownership
+  violations. New supplied recordings reject alpha.42 performance on FS-UAE
+  at 68020 and on the real A1200/68030 at about 34.5 MHz. They do not show an
+  obvious return of corruption or trails in sampled frames. The 49.23-FPS
+  result is specific to the faster FS-UAE/68030 configuration and must not be
+  extrapolated to target hardware. Alpha.42 ADF and Analogue Pocket acceptance
+  remain pending; real-A1200 performance is explicitly rejected.
+  The bootable alpha.42 ADF uses 1,186 blocks and leaves 574; this is package
+  validation only, not ADF gameplay acceptance.
+- Stage 5L keeps the coherent Stage 5G early-fetch playfield and replaces the
+  six-channel player DMA layout with the same 48x48, 15-colour pixels inside
+  one transparent-padded 64-pixel attached AGA pair on channels 0/1. Supplied
+  FS-UAE/68030 HD testing reports no corruption, glitches or flicker. Its log
+  records 2,163/2,163 one-field intervals (50.00 FPS) and zero ownership
+  violations. Alpha.43 promotes that exact route to normal HD and ADF builds.
+  Supplied real-A1200/68030 HD and physical-ADF tests, plus Analogue Pocket ADF,
+  report no broad renderer corruption. All slower paths reject cadence; real HD
+  also repeats or misses some sound events under load. A narrow intermittent
+  ground/HUD seam disturbance remains. Package validation reports a bootable
+  DOS1/FFS ADF using 1,190 blocks and leaving 570 free.
+- Stage 5L in FS-UAE/68020 measures 26.38 effective FPS (136 one-field, 337
+  two-field and 78 three-field intervals). This stress configuration is slower
+  than the supplied real 34.5 MHz 68030, while FS-UAE/68030 is much faster.
 - Alpha.39 ADF on an Analogue Pocket FPGA core shows widespread transient Bob,
   gameplay-field and HUD corruption at 68020/no-cache. Treat this as a useful
   missed-deadline stress signal, not as FS-UAE or real-A1200 equivalence.
@@ -100,11 +127,15 @@ observation from diagnosis.
 - PAL 320x256, resident 3072x256 world.
 - AGA dual playfield: four-plane FRONT16 plus three-plane REAR8 at quarter
   camera scroll.
-- Player is a 48x48 15-colour actor using three attached hardware-sprite pairs
-  (six DMA channels).
-- Gameplay foreground uses separate `frontClean` and `frontDisplay` bitmaps.
+- Player remains a 48x48 15-colour actor, transparently padded in one attached
+  64-pixel AGA hardware-sprite pair on DMA channels 0/1.
+- Gameplay foreground uses two hidden/displayed target pairs. Each target has
+  a logical 512px FRONT16 ring repeated across a 1536px physical stride; the
+  resident clean world remains the canonical source for entering columns.
+- Two complete Copper lists publish target/pointer state atomically at a fixed
+  PAL boundary. CPU and Blitter never modify the displayed target.
 - Copper switches to the separate 320x48 HUD at hardware line 252.
-- Resident-world Bob restore/draw begins at line 253.
+- Target-local Bob composition starts after update on the inactive target.
 - Active family order: projectile erase, enemy restore, collectible restore,
   splash restore, water maintenance, splash draw, collectible draw, enemy draw,
   projectile draw, final Blitter wait.
@@ -161,30 +192,18 @@ Water/route:
 
 ## Immediate work order
 
-### 1. Renderer-safety prototype
+### 1. Correct the remaining HUD seam without reopening Stage 5L
 
-Use `sparkpaw/docs/RENDERER_GLITCH_CORRECTION_PLAN.md`. Begin with one short,
-separate debug measurement of Bob completion, raster wraps, family cost and
-active-Copper publication at the repeatable HUD point and the first two-Strider
-scene. Then prototype the structural solution directly: two atomic Copper
-lists plus compact double-buffered rolling gameplay targets, hardware fine
-scroll, newly exposed tile-column construction, per-target dirty ownership and
-camera-tripwire actor dormancy. Never write the displayed gameplay target.
-
-The prototype must retain the complete current foreground, three-plane REAR8
-quarter-speed parallax, colours, sprites, animation and HUD. Max-one-visible-
-Strider is only a fallback presentation budget or level-design option, not the
-preferred renderer fix. Compare the representative slice with the existing
-alpha.41 path before migrating the full route. Alpha.40 and alpha.41 evidence
-proves the corruption predates alpha.41; do not claim its exact cause until the
-minimal trace correlates it. Treat the Analogue Pocket 68020/no-cache result as
-a separate stress gate, not as FS-UAE or real-A1200 equivalence.
+Stage 5L is the immutable renderer baseline. Move or retime only the fixed-HUD
+FMODE/pointer setup at the playfield-to-HUD boundary, then gate the isolated
+candidate in FS-UAE/68030 before slower testing. Do not change ring ownership,
+early-fetch geometry, the wide Sparkpaw pair, art or gameplay to hide the seam.
 
 The title contract is unchanged: 35 black PAL frames after display takeover,
 24 fade frames and 225 fully visible title frames. Faster loading before title
 takeover must not be confused with a shortened Indivision stabilization delay.
 
-### 2. Stock-68020 performance — after safe prototype presentation
+### 2. Optimize only the measured hotspot
 
 Use `sparkpaw/docs/PERFORMANCE_68020_PLAN.md`.
 
@@ -193,12 +212,22 @@ separate CIA-timer profiler capable of measuring multiple PAL frames. Measure
 game update, player physics states, enemy/projectile simulation, clean-world
 maintenance, each Bob family submission and final Blitter stall.
 
-Primary hypotheses to test, not assume:
+Primary hypotheses to test, in this order:
 
-- per-pixel `moveY()` plus full sole scans causes sprint/jump CPU spikes;
-- dirty Bob restore/draw and Chip-bus contention dominate loaded scenes;
-- seven bitplane DMA with `FMODE=0` leaves an AGA fetch-mode opportunity;
+- replace thousands of two-byte `CopyMem` calls during an entering-column ring
+  update with direct word copies or a bounded tall Blitter transfer;
+- avoid copying the complete inactive Copper list every update;
+- cache each target's wide-player frame/facing and avoid recopying unchanged
+  sprite image data while still updating its control words;
+- reduce serialized per-plane Bob waits while preserving accepted ordering;
+- per-pixel `moveY()` plus full sole scans may cause sprint/jump CPU spikes;
 - collectible/enemy iteration or collision sweep may contribute.
+
+The diagnostic implementation is compiled out of production already. Split it
+from `renderer.c` for auditability, and later split Copper/ring/Bob/sprite
+modules, only through small commits whose normal executable remains byte-for-
+byte identical. Source-file size and excluded `#ifdef` branches are not FPS
+costs. Do not combine this mechanical refactor with a renderer optimization.
 
 Preserve sprites, colours, 4+3 dual playfield and art. Do not retry alpha.37
 bounds or alpha.38 full viewport copies. Benchmark candidates in isolation and

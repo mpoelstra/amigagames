@@ -1,0 +1,25 @@
+Sparkpaw Stage 5F: AGA32 left prefetch guard proof
+==================================================
+
+This is an isolated display proof, not the game. Stage 5E retained exact
+FMODE0-relative origin and 50 Hz cadence but exposed phase-dependent black
+stripes at the left gameplay edge. WinUAE's FMODE model confirms that
+FMODE1/lores uses a 16-CCK, 32-pixel indivisible fetch unit. This proof adds
+exactly one complete unit before the visible data:
+
+- DDF changes from `$30..$d0`/44 bytes to `$20..$d0`/48 bytes;
+- a 4-byte physical guard precedes logical source x=0;
+- pointers remain longword aligned;
+- the accepted `camera + 16` extended-delay relation is unchanged;
+- the fixed lower reference switches back to `$30..$d0` and 44 bytes.
+
+Test in FS-UAE/68030 HD only. During the first three seconds, confirm that the
+cyan/white marker has the same position as the accepted D4 FMODE0 and D5
+screenshots. Then let the sweep run at least eight seconds and watch the left
+edge continuously: it must remain filled at every phase, with no jump, width
+change or lower-reference movement. Click left mouse to write `renderbench.log`.
+Supply a movie if any temporal left-edge defect remains; otherwise one initial
+screenshot and the log are sufficient.
+
+This proof has no gameplay, performance, 68020, ADF, Analogue Pocket or real-
+hardware acceptance.

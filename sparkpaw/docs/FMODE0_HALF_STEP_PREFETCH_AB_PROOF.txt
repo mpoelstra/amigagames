@@ -1,0 +1,45 @@
+Sparkpaw Stage 5K: FMODE0 half-step prefetch A/B proof
+=====================================================
+
+This production rolling-ring proof tests the narrowest remaining form of Stage
+5G's successful left-edge geometry while retaining Sparkpaw's current three
+attached 16-pixel pairs. Both builds use FMODE0, identical gameplay, the real
+512x3 FRONT ring, alternating targets, REAR parallax and the fixed HUD split.
+
+- DDF30-Reference uses the accepted `$30..$d0` 42-byte gameplay fetch.
+- DDF28-Candidate begins exactly one 16-pixel word earlier at `$28`, fetches
+  44 bytes and supplies real two-byte guards for FRONT and REAR. The HUD
+  explicitly returns to its accepted `$30..$d0` 42-byte fetch.
+
+FS-UAE/68030 HD procedure
+-------------------------
+
+Run the reference first. Move right and back left across several camera
+boundaries, jump, fire and reach enemies; click left mouse to flush its log.
+Reset FS-UAE, repeat with the candidate and flush its separate log.
+
+For each build report independently:
+
+- whether every colour and component of Sparkpaw remains visible;
+- black/displaced left strips or apparent world jumps;
+- pixels moving at the left ground/HUD boundary;
+- enemy, projectile, parallax or collision regressions.
+
+The candidate passes this first gate only if its entire presentation matches
+the reference. Performance is recorded but is not the purpose of this proof.
+Do not test FS-UAE/68020 or real hardware yet. This is not an ADF, release or
+main-distribution candidate.
+
+First supplied run: invalid candidate build
+-------------------------------------------
+
+The DDF30 reference was reported visually and functionally correct. After
+Charging, the DDF28 candidate showed a completely black display while gameplay
+input and firing audio continued; left mouse also flushed a 747-frame,
+50.00-FPS log with successful publications and zero ownership violations.
+
+This is not a hardware result. Source inspection found that the conditional
+candidate patch overwrote the Copper MOVE register-address word with `$28`
+instead of emitting DDFSTRT `$92,$28`. The malformed list explains the live
+simulation behind a black display. Correct and structurally verify the Copper
+pair before repeating this gate; do not mark the `$28` technique rejected.

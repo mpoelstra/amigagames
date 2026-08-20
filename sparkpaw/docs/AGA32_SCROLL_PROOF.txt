@@ -1,0 +1,30 @@
+Sparkpaw Stage 5D3: coordinated AGA 32-bit DDF calibration
+========================================================
+
+This is not the game and not a release candidate. It displays a synthetic
+16-pixel grid while sweeping camera phases 0..63, four PAL fields per phase.
+The 32-pixel boundary is deliberately crossed repeatedly. A fixed hardware
+sprite bar at screen x=32 is compared with a unique bitplane marker authored at
+source x=32. At phase zero their left edges must coincide. The lower 48 lines
+use a separate fixed bitmap, matching the production HUD split structurally.
+
+Purpose
+-------
+
+Test the measured Stage 5D2 fetch-half origin correction. The complete DDF
+window moves from $30..$d0 to $38..$d8 while retaining the same fetch count,
+44-byte modulos, longword pointers and accepted 0..31 phase sequence. Do not
+infer gameplay, ADF or real-hardware acceptance from this executable.
+
+Test first in FS-UAE/68030 HD. Record a short capture containing at least two
+complete sweeps (about 11 seconds). Look specifically for:
+
+- whether the hardware-sprite and bitplane marker coincide at phase zero;
+- a jump at the 31-to-32 transition;
+- changing width or colour of the far-left stripe;
+- any movement in the lower fixed reference area;
+- intermittent border pixels at the left edge.
+
+Click the left mouse button to exit cleanly. The program writes
+renderbench.log beside the executable. Do not spend a 68020 or real-hardware
+run on this calibration until its phase/origin result has been reviewed.

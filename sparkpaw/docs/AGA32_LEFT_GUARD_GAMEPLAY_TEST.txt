@@ -1,0 +1,29 @@
+Sparkpaw Stage 5G: guarded AGA32 gameplay candidate
+====================================================
+
+This HD diagnostic build integrates the Stage 5F-accepted left-prefetch
+geometry into the Stage 5E gameplay renderer. The scrolling playfields use
+`$20..$d0`, a 48-byte fetch and four valid physical guard bytes. FRONT reads
+the guard inside its existing middle ring copy. REAR uses a dedicated guarded
+display copy; no pointer reads before an allocation. The fixed HUD remains on
+its previously proven `$30..$d0`/44-byte fetch.
+
+The accepted `camera + 16` phase, world coordinates, collision, parallax,
+assets, palettes, sprites, Bobs, animations and gameplay rules are unchanged.
+
+First gate: FS-UAE/68030 HD
+---------------------------
+
+Traverse in both directions and repeatedly cross 16- and 32-pixel camera
+boundaries. Exercise sprint, jump, shooting, collectibles, beetles and the
+first Striders. Check particularly:
+
+- no intermittent black or displaced strip at the left gameplay edge;
+- no teleport, HUD inset or gameplay/HUD boundary regression;
+- no trails, corrupt Bobs or collision mismatch;
+- normal rear parallax and stable hardware sprites.
+
+Click left mouse after the run to flush `renderdiag.log`. Supply a movie only
+if a temporal defect remains; otherwise the log plus a short result report is
+sufficient. Do not test FS-UAE/68020 or real hardware until this presentation
+gate is reviewed. This is not an ADF or release candidate.

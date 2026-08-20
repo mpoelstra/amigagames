@@ -4379,3 +4379,640 @@ FS-UAE and real-A1200 verification.
 memory alternatives and classic/Scorpion research. This is a planning/recovery
 checkpoint on the unchanged alpha.41 executable, not a new SemVer release and
 not FS-UAE, ADF, Analogue Pocket or hardware acceptance.
+
+## 19 August 2026: bounded Stage 1 instrumentation and rolling design
+
+The separately named HD `sparkpaw-renderdiag` build buffers the newest 1,024
+complete frame records (about twenty PAL seconds) in Fast RAM. The packed ADF
+variant retains 512 frames (about ten seconds): its roughly 220 KiB text log
+fits the approximately 306 KiB remaining floppy space, while the first
+1,024-frame ADF attempt correctly failed to create a roughly 427 KiB log. Both
+write only through the established safe debug flush. The rings are derived
+from the supplied six-to-fourteen-second HUD and Strider recordings; the ADF
+run is deliberately limited to the shorter deterministic HUD crossing.
+The first two writable-ADF attempts produced no file despite a successful HD
+flush. The first exceeded free floppy space; after reducing the ring, the image
+still remained byte-identical because the debug flush restored interrupts and
+DOS scheduling but left all custom-chip DMA disabled. The debug-only flush now
+restores the saved system DMA mask before `Open`/`Write`/`Close`, allowing DF0's
+disk DMA to persist the bounded log. Production exit and renderer paths are
+unchanged.
+They sample update, live-Copper publication, Bob entry and final
+Blitter completion; retains deadline/wrap flags, camera/player and all four
+enemy slots, family restore/draw counts, both sets of seven intended bitplane
+pointers, HUD index, Copper address/generation and Blitter-busy state. The
+ordinary HD and ADF targets remain free of this code and input path. The debug
+ADF uses the identical packed alpha.41 asset route and must remain writable so
+the post-click flush can preserve `renderdiag.log` on DF0.
+
+A host-tested frame-phase helper makes skipped whole fields an explicit input
+instead of pretending line-number comparison can observe them. The current
+Stage 1 runtime trace can establish observed raster wraps; adding an independent
+timer is required before claiming exact multi-field duration from a sampling
+gap. No supplied run has yet correlated a visible fault, so the suspected live-
+Copper and displayed-Bob races remain hypotheses rather than accepted causes.
+
+The completed isolated Stage 2+4 design specified a measured 336/352-pixel
+target width, two complete Copper lists,
+per-target dirty ownership, inactive-only water/diamond maintenance, atomic
+publication and persistent camera-tripwire actor dormancy. It preserves all
+alpha.41 visual/gameplay contracts and excludes the rejected alpha.38 full
+viewport copy and a one-visible-Strider cap. No renderer implementation,
+FS-UAE, ADF, Analogue Pocket or real-hardware acceptance is claimed here.
+
+## 19 August 2026: Stage 2 atomic-Copper isolation prototype
+
+The first isolated prototype step now owns two complete Copper lists. Runtime
+updates clone the displayed list into the inactive list, patch only that
+inactive copy, and publish it through `COP1LC` only inside the pre-playfield
+deadline. A missed deadline retains the previously displayed list rather than
+publishing partially prepared state. Host tests cover the ownership,
+publication and rolling-target contracts that the subsequent compact target
+implementation must satisfy.
+
+This Stage 2 artifact isolates HUD and Copper publication only. Gameplay Bobs
+still use the alpha.41 in-place renderer, so enemy-load glitches and cadence
+drops can remain. It is packaged separately as a writable diagnostic ADF for
+the repeatable real-A1200 HUD crossing and as an HD-transfer LHA; it does not
+replace alpha.41 and carries no FS-UAE, ADF or real-hardware acceptance claim.
+
+## 20 August 2026: Stage 2 rejection and fixed-VBlank correction
+
+Supplied FS-UAE/HD and real-A1200/68030-HD evidence rejects the first Stage 2
+artifact. The recordings show widespread composite instability, alternating
+HUD damage and Bob ghosts. Its FS-UAE log reports 4,452 field crossings in
+4,576 Bob passes. The real-hardware log reports 2,593 in 2,942, with the
+retained ring also showing 497 late update entries, 106 line-252 misses, 124
+late Bob entries and 866 consecutive records retaining the same Copper address.
+The raster-only diagnostic cannot measure skipped whole fields exactly, so its
+near-full/zero multi-wrap durations remain lower-bound or ambiguous.
+
+Source inspection identifies a concrete Stage 2 scheduling error: after Bob
+completion the prototype restarted the prepared Copper list on any numerical
+line below 44. On FS-UAE the final trace completes on lines 4..39, causing the
+large Copper preamble to restart at a variable and sometimes very late point.
+On real hardware multi-field passes also skip publication and re-enter later
+phases. Stage 2B therefore waits through line 300 for one explicit new PAL
+boundary, publishes only on lines 0..4, and cannot start another simulation
+update while that generation is pending. The trace now records the actual
+boundary and publication result.
+
+Stage 2B remains a focused HUD/Copper isolation gate. It intentionally retains
+the known-unsafe alpha.41 in-place Bob path and is not the compact rolling
+target, a release, or an FS-UAE/ADF/real-hardware acceptance claim.
+
+Supplied Stage 2B FS-UAE/HD follow-up reports normal presentation again but
+worse cadence, especially while jumping and with more enemies visible. The log
+correlates that result directly: all retained publications succeed at hardware
+line 0 or 1 and the Copper addresses alternate without repetition, while 589
+of 1,023 update intervals span 624 rather than 312 raster lines. The safety
+wait therefore converts the old in-place Bob overrun into an explicit extra
+displayed field in 57.6% of the retained window. This accepts only the removal
+of Stage 2's new presentation regression in that supplied FS-UAE/HD run;
+performance is rejected. The result closes the atomic-publication experiment
+and directs the next implementation to the non-displayed gameplay target,
+rather than weakening the fixed boundary or optimizing the unsafe path.
+
+## 20 August 2026: first compact inactive-target prototype
+
+The Stage 4 test build replaces the prototype's live resident FRONT16 display
+with two compact 448x208 display targets and matching compact clean partners.
+The 448-pixel width is derived from the 336-pixel DMA fetch, fine-scroll range,
+the established 32-pixel actor margin and a complete 64-pixel Strider guard;
+only the existing 336-pixel span is fetched. REAR8 remains resident and keeps
+quarter-speed parallax.
+
+Each hidden target owns enemy, projectile and splash restore history. After
+restoring that history, an aligned camera crossing retains the overlapping
+window and imports only the newly exposed 16-pixel world strip. Current water
+and diamond patches synchronize to both the hidden clean/display pair before
+new Bobs are drawn. Composition begins immediately after simulation rather
+than at line 253, finishes on the hidden target, and publishes that target with
+its inactive Copper list at fixed VBlank line 0..4. The displayed target is not
+an intended CPU or Blitter destination.
+
+Host tests cover fixed publication bounds, world-edge origin clamping, actor
+guard bounds, both-direction word-window shifts, target ownership and existing
+gameplay contracts. Native build success alone is not FS-UAE, ADF or hardware
+acceptance; first review is deliberately FS-UAE/HD before packaging claims or
+real-machine testing.
+
+Supplied Stage 4 FS-UAE/HD review reports improved cadence and no observed
+visual glitches, with smaller remaining drops noticed mainly while jumping.
+Its retained log has zero ownership violations, 1,024 successful publications
+and uninterrupted Copper alternation. Of 1,023 update intervals, 946 remain at
+312 PAL lines and 77 take 624; every one of those 77 follows a compact-target
+recenter and no non-recenter frame misses. This accepts only that supplied
+FS-UAE/HD presentation run. ADF and real-A1200 results remain pending.
+
+## 20 August 2026: Stage 4B recenter-cost experiment
+
+The Stage 4 log isolates the remaining cadence loss to physical target shifts,
+so Stage 4B changes only that operation. The hidden target grows from 448 to
+512 pixels while the displayed fetch remains 336. The camera can move through
+a safe 64-pixel hysteresis band with complete 64-pixel Bobs at either visible
+edge; a target is therefore recentered per 64 pixels instead of per 16. The
+overlap is moved by the hardware Blitter, ascending when moving towards lower
+addresses and descending when moving towards higher addresses, before the new
+canonical strip is imported. Diagnostic flag 16 marks every actual recenter.
+
+This is a measured intermediate step, not the final no-copy ring by assertion.
+The Commodore overlap-copy contract, the reverse-engineered Speedball 2
+two-screen pitch/tile-edge refresh, and the existing Andrew Braybrook rolling-
+buffer design reference all favour eliminating physical shifts entirely if a
+periodic stall remains. Stage 4B keeps that larger seam-aware Bob/ring change
+separate. No FS-UAE, ADF or real-hardware acceptance is claimed for Stage 4B.
+
+Supplied Stage 4B FS-UAE/HD footage rejects that intermediate recenter design.
+It shows no observed foreground, Bob or HUD corruption, but steady walking in
+both directions repeatedly changes from normal roughly 2--3-pixel camera steps
+to a short hold/small step followed by an approximately 5-pixel catch-up. The
+user describes the result as a periodic hiccup, more conspicuous than Stage
+4A's softer frame-rate loss. The diagnostic log was flushed roughly three
+minutes after recording; its retained circular window covers the later idle
+period and is not correlated evidence for the movie. Do not spend another
+iteration tuning physical-shift frequency: proceed to the planned no-copy,
+seam-aware tile/ring window. ADF and real-A1200 Stage 4B remain untested.
+
+## 20 August 2026: Stage 4C no-copy tile-ring prototype
+
+Stage 4C retains the visually clean Stage 4A/4B hidden-target ownership,
+target-local enemy/projectile/splash histories and fixed-VBlank Copper
+publication, but removes the rejected physical bitmap shift. Each target now
+contains one logical 512x208 FRONT16 ring repeated three times across a
+1536-pixel physical stride. The unchanged 336-pixel Copper fetch starts in the
+middle copy, so both fetches and complete 64-pixel edge Striders cross a ring
+seam without moving retained pixels or introducing per-scanline Copper splits.
+
+World columns have fixed modulo-512 slots. At each aligned crossing only the
+new canonical 16-pixel column is copied to its three aliases in the inactive
+clean/display pair. Bob world positions map into guarded physical coordinates;
+the existing per-target histories store those physical positions, preserving
+restore unions for Striders and ordinary restore behavior for beetles,
+projectiles and splashes. Water and collectible regions synchronize only when
+their canonical state differs from that target. REAR8 parallax, HUD, player
+hardware sprites, family ordering, assets, palettes and gameplay remain
+unchanged.
+
+Host coverage sweeps all aligned cameras through both logical seams and both
+world edges, proving the 336-pixel fetch and every 64-pixel actor guard remain
+inside the 1536-pixel physical allocation with matching world/ring slots. This
+is still a separately named prototype. Build and host success imply no FS-UAE,
+ADF or real-hardware acceptance.
+
+Stage 4C's first FS-UAE HD run was rejected despite excellent apparent frame
+rate: projectiles, beetles and Striders left persistent copies at their old
+positions. Its 1307-frame log reported 47 ring updates, zero ownership
+violations and successful atomic publication, isolating the failure from the
+Copper hand-off. The cause was a coordinate-domain mismatch in Bob restore:
+histories held physical triplicated-ring X positions, but restore subtracted
+the world-window origin again. Stage 4D changes only that restore address and
+packages a separately named HD retest; it has no FS-UAE, ADF or hardware
+acceptance yet.
+
+The Stage 4D FS-UAE HD retest reports smooth cadence and no remaining moving-
+Bob trails. Its 4,925-frame log retains zero ownership violations, and every
+retained trace publication succeeds with the Blitter idle at the sampled
+boundaries. A narrow strip immediately above the HUD still flickers with
+camera motion. The Copper previously waited until line 252 horizontal 1 before
+replacing seven bitplane pointers, fine scroll and modulos for that same
+scanline. Stage 4E moves only the start of that existing setup to the preceding
+horizontal blank. It preserves the Stage 4D no-copy ring and has no supplied
+FS-UAE, ADF or hardware result yet.
+
+Stage 4E's supplied FS-UAE HD screenshot reduces the moving boundary remnant
+to the far-left pixels only. Its retained 1,023 cadence intervals contain
+1,022 one-field updates and one two-field update, about 49.95 updates/s, with
+zero ownership violations. This supports keeping the no-copy renderer and
+rejects changing ground art to mask the boundary. Stage 4F adds a narrow
+bitplane-fetch guard around the already-early HUD pointer switch, preventing a
+retained gameplay shifter word from entering the first HUD pixels. It also
+writes cadence totals and effective FPS directly to future diagnostic logs.
+
+Stage 4F is rejected by its first supplied FS-UAE HD screenshot: temporarily
+disabling and reenabling BPLCON0 corrupts and horizontally displaces the entire
+HUD. The user stopped without a meaningful gameplay traversal, so its short
+49.52-updates/s sample is not comparative gameplay-performance evidence. Its
+zero ownership violations still keep the failure localized to the fetch-phase
+experiment rather than the rolling target. Stage 4G removes both
+BPLCON0 writes, preserves Stage 4E's continuous fetch, and advances the setup
+WAIT from horizontal 0xd9 to 0xd1, immediately after the 0xd0 gameplay
+DDFSTOP. Cadence logging remains enabled.
+
+## 20 August 2026: alpha.42 rolling-renderer production migration
+
+Supplied Stage 4G FS-UAE/HD testing accepts the final prototype presentation:
+no projectile/enemy ghost trails and no remaining moving pixels at the
+gameplay/HUD boundary. Its 1,983 cadence intervals contain 1,952 one-field and
+31 two-field updates, zero three-plus-field updates and 49.23 effective FPS;
+target ownership violations remain zero. This is the accepted FS-UAE/HD gate,
+not ADF, Analogue Pocket or real-A1200 evidence.
+
+Alpha.42 compiles the same no-copy renderer into both normal HD and packed-ADF
+executables. Official builds contain no diagnostic trace, mouse exit or DOS
+log strings. The preserved contracts are FRONT16, REAR8 quarter-speed parallax,
+all palettes/assets, six-channel player sprites, animation IDs, 320x48 HUD,
+collision and gameplay behavior. The separate renderer diagnostic now profiles
+the production rolling path and writes explicit cadence totals/effective FPS.
+
+The required native and release builds, all host regressions, LHA integrity,
+ZIP integrity and bootable DOS1/FFS ADF extraction checks pass. The alpha.42
+ADF uses 1,186 of 1,760 blocks (593 KiB) and leaves 574 free. Current artifact
+SHA-256 values are: LHA cda03c46fb0a7855c8fc3d7f894817c2960b19418fca99b6713cd9081d988e3c,
+ZIP 9c47c90a4e53729e38e5d20a0d43996bf19fd1ff2a6a4b9113f1f9c1f00bf23a,
+ADF 56652e184acbcc93dbccbf3628d7616abd26dedf5126cc12a7965a0f0157f6cc.
+
+Lessons and rejected branches are consolidated in
+`sparkpaw/docs/RENDERER_GLITCH_CORRECTION_PLAN.md`. Obsolete per-stage transfer
+instructions and prototype packagers are removed after migration. Supplied
+logs/screenshots remain preserved in `sparkpaw/testresults`; generated Stage
+1..4G transfer artifacts are no longer part of `dist`.
+
+### Alpha.42 target-speed performance rejection
+
+Two subsequent supplied recordings change the performance conclusion without
+reopening the renderer-correctness result. `Renderer alpha42-rejected-fs-uae-
+68020-low-cadence.mov` shows low/uneven cadence in the 68020 emulator
+configuration. `Renderer alpha42-rejected-real-a1200-68030-low-cadence.MOV`
+shows alpha.42 running worse than the pre-session build on the real A1200/68030
+at about 34.5 MHz. Sampled frames retain an intact HUD and show no obvious
+return of the earlier widespread corruption or Bob trails.
+
+The Stage 4G 49.23-FPS log therefore proved deadline performance only on the
+faster FS-UAE/68030 configuration. It cannot be extrapolated to the target CPU
+budget. Alpha.42 performance is rejected on both newly supplied configurations;
+ADF and Analogue Pocket remain untested. The no-copy ownership architecture
+stays as the correctness baseline while the separate CIA-timed profiler from
+`sparkpaw/docs/PERFORMANCE_68020_PLAN.md` isolates update, physics, simulation,
+Bob submission, final Blitter wait and missed-publication costs. Future real-
+hardware runs are deferred until an FS-UAE/68020 candidate shows a measured
+gain without visual regression.
+
+### Stage 5 measurement and AGA-fetch candidate
+
+The CIA Timer-B profiler shows the renderer, not gameplay simulation, is the
+68020 limit. Stage 5A's supplied FS-UAE/68020 log measured 26.30 effective
+updates/s; the complete Bob pass averaged 2.406 PAL fields versus 0.511 for
+the whole game update. Stage 5B gave the Blitter priority only during that
+bounded pass. Its supplied log improved cadence to 28.27 updates/s and reduced
+the average Bob pass to 2.209 fields, but the user still rejected its visible
+framerate. Both logs report zero rolling-target ownership violations.
+
+Stage 5C therefore isolates AGA 32-bit bitplane fetch. Seven resident planes
+at the old 16-bit mode consume nearly every display DMA slot; the candidate
+uses `FMODE.BPL32`, 44-byte fetches, longword-aligned 32-pixel coarse pointer
+steps and AGA's extended 0..31 fine-scroll fields. The visible 336-pixel HUD is
+unchanged, while its private stride becomes 352 pixels so the final 44-byte
+fetch is valid. Sprite fetch remains 16-bit and all six attached player
+channels remain enabled. Host scroll/alignment contracts and both native
+production and diagnostic builds pass. Stage 5C has no supplied FS-UAE or
+real-hardware result yet and is not accepted.
+
+The initial Stage 5C transfer build is rejected before gameplay: both supplied
+FS-UAE CPU configurations remained on CHARGING and showed stray upper-left
+pixels. The defect was candidate construction, not a measured fetch result:
+it assumed `AllocBitMap(352, ..., BMF_DISPLAYABLE)` must return exactly 44
+bytes per row and still derived the HUD Copper modulo from the 42-byte source
+asset. Revision 2 accepts graphics.library padding, allocates the blank plane
+from the actual stride, derives both HUD modulos from that stride, and refuses
+custom-chip takeover unless every 32-bit-fetch pointer and row is longword
+aligned. Revision 2 still requires fresh FS-UAE evidence.
+
+Supplied Stage 5C2 FS-UAE/68030 video rejects the revised candidate: Sparkpaw
+appears to jump relative to the level during continuous traversal. The matching
+log separates presentation from simulation. Outside one reset elsewhere in
+the substantially longer diagnostic run, camera/player X advance by at most
+about one/three pixels per update. The user confirms that no water fall or
+level reset occurs in the 17.05-second MOV; the repeated visible displacement
+is therefore the 32-bit bitplane
+pointer/fine-scroll phase moving the world relative to the hardware sprite.
+The same log measures 49.96 effective updates/s (2,786 one-field, two two-field,
+zero three-plus intervals) and zero ownership violations. That demonstrates the
+potential bandwidth benefit but not an acceptable renderer. Do not spend a
+68020 or real-hardware run on this mapping.
+
+Stage 5C3 corrects only the rejected phase formula. Pointer stepping remains
+longword-aligned at 32 pixels, while fine scroll now preserves the accepted
+FMODE=0 sequence for offsets 0..15 and uses AGA's extended half for 16..31:
+delays 15..0 followed by 31..16. The fixed HUD likewise returns from delay 31
+to its accepted delay 15. No Bob, gameplay, asset, palette, sprite, HUD artwork
+or target-ownership contract changes. FS-UAE/68030 presentation is pending.
+
+Supplied Stage 5C3 FS-UAE/68030 evidence removes the periodic teleport-like
+jump but rejects the remaining absolute alignment: the left gameplay edge and
+HUD inset/border are wrong, and hit contact appears visually displaced. The
+log retains smooth camera/player coordinates, 49.84 effective updates/s and
+zero ownership violations, so gameplay hitbox edits would only mask a display
+origin error. The fixed-DDF 32-bit-fetch branch is rejected. A correct wide-
+fetch design would need dynamically coordinated DDF start, pointer move,
+modulo and scroll phase as used by established AGA display drivers; that is no
+longer a short isolated register change and should not consume a 68020 or real-
+hardware test before a separate proof.
+
+### Stage 5D isolated AGA32 scroll calibration
+
+Stage 5D does not modify or package the game. It is a standalone custom-chip
+display that paints deterministic 16-pixel vertical bands and horizontal
+reference lines, uses a structurally separate 48-line HUD bitmap, enables
+`FMODE.BPL32`, and sweeps every fine-scroll phase across the 32-pixel coarse
+pointer boundary. Four PAL fields are held per phase so a recording can
+separate a constant absolute-origin error from a phase-dependent jump.
+
+This replaces further empirical full-game pointer tweaks with a bounded proof.
+The local Blitz Basic 2 reference shows `DisplayAdjust` examples coordinating
+fetch width, DDF and display modulo, while the local WinUAE source models the
+FMODE-dependent fetch size and special unaligned pointer behavior explicitly.
+Linux `amifb.c` is used only as an additional register-calculation reference;
+no Linux component enters Sparkpaw. A phase-dependent fault rejects this
+mapping before another game, 68020 or real-hardware build is requested. No
+emulator or hardware acceptance is claimed.
+
+Supplied Stage 5D FS-UAE/68030 evidence accepts the isolated phase ordering:
+the synthetic main grid advances continuously through repeated 31-to-32
+coarse-pointer transitions, the separate lower reference stays fixed, and no
+phase-dependent border corruption is visible. The clean-exit log covers 800
+PAL fields with longword-aligned 88-byte rows and no Copper overflow. This does
+not yet solve Stage 5C3's absolute origin because the proof's allocated sprite
+streams are transparent; a second calibration must make a fixed hardware
+sprite marker and matching bitplane coordinate visible before any full-game
+integration or 68020 test.
+
+Stage 5D2 adds the missing visible hardware-sprite and bitplane markers. The
+supplied FS-UAE/68030 recording retains the accepted smooth 32-phase sequence
+but rejects absolute alignment: at phase zero the bitplane coordinate is about
+one 16-pixel fetch half left of the sprite/logical coordinate. Its clean-exit
+log covers 906 PAL fields with no Copper overflow. This confirms the C3 defect
+as a stable display-origin error rather than collision or simulation damage.
+A two-byte-misaligned wide-fetch pointer is explicitly excluded; the next
+isolated proof moves the complete DDF start/stop window together while keeping
+fetch count and modulo unchanged.
+
+Stage 5D3 tests that DDF hypothesis by moving the complete window from
+`$30..$d0` to `$38..$d8`, leaving fetch count and modulo unchanged. Supplied
+FS-UAE/68030 evidence rejects it: the 31-to-32 phase sequence remains smooth
+and the lower reference remains fixed, but the bitplane and hardware-sprite
+markers still do not coincide around the known phase resets and the left-edge
+presentation changes. The clean-exit log covers 543 PAL fields with no Copper
+overflow. Do not infer a further register offset from the scaled recording;
+the next and final bounded calibration step must be a matched FMODE=0 versus
+FMODE=1 A/B proof with a deliberately held phase-zero interval. If that does
+not yield an exact relative-origin correction, park the 32-bit-fetch branch
+rather than continue empirical DDF tuning.
+
+Stage 5D4 packages that final bounded comparison as two isolated executables.
+The FMODE=0 reference and FMODE=1 candidate share the same `$30..$d0` DDF
+window, DIW geometry, authored markers, fixed hardware sprite and lower
+reference; only fetch width and its required pointer/fine-scroll granularity
+differ. Both hold phase zero for 150 PAL fields before sweeping. They live in
+separate drawers so their logs cannot overwrite one another. FS-UAE/68030 A/B
+evidence is pending; this proof carries no gameplay-performance claim.
+
+The first supplied D4 package did not reach custom-chip takeover: both modes
+reported a missing `renderbench-rear16.raw` and returned code 11. One legacy
+production-benchmark loading branch still tested the old proof macro instead
+of the shared calibration macro. This was a controlled construction failure,
+not an FMODE crash or measurement. The branch guard is corrected and both
+standalone binaries are rebuilt without an external-art dependency.
+
+Supplied screenshots and clean-exit logs from the rebuilt D4 pair resolve the
+relative origin. In identically sized host captures, the FMODE0 bitplane marker
+occupies x=172..187 and FMODE1 x=242..257: a 70-capture-pixel displacement,
+exactly one visible 16-logical-pixel calibration cell. This accepts D4 as an
+FS-UAE/68030 measurement and rejects the current FMODE1 mapping as production-
+ready. The conspicuous cyan/white bar is the bitplane marker; the fixed sprite
+uses a dark palette entry and is not distinct enough for absolute-coordinate
+acceptance. A follow-up, if authorized, should test one aligned longword plus
+extended-delay 16-pixel phase bias and improve sprite-marker contrast. Do not
+use a two-byte-misaligned wide-fetch pointer.
+
+Stage 5D5 implements only that measured correction in the isolated proof. Its
+FMODE1 mapping evaluates scroll at `camera + 16`, so the 32-pixel coarse pointer
+remains longword aligned and advances at the matching extended-delay wrap. DDF,
+DIW, fetch width and authored bitplane marker remain unchanged. Calibration-
+only sprite colour 17 is made orange so the fixed hardware marker is now
+visually independent of the cyan/white bitplane marker. The AmigaOS executable
+builds and packages successfully; FS-UAE/68030 evidence is pending, and no
+gameplay or performance conclusion follows from the host build.
+
+Supplied D5 FS-UAE/68030 evidence accepts the phase-zero correction: automated
+image measurement places its bitplane marker at capture x=172..187 and
+y=164..841, exactly matching the D4 FMODE0 reference. Its clean-exit log spans
+993 fields with the declared 16-pixel aligned phase bias and no Copper overflow.
+The later orange left-edge area reported by the user is palette instrumentation,
+not origin drift: calibration colour 17 is also REAR8 colour 1 under `PF2OF=16`
+and therefore scrolls with the rear grid. The sprite marker remains hidden
+behind the opaque playfields at the proof's priority, so absolute sprite-marker
+visibility was not achieved. Accept the relative origin only; the screenshot
+does not independently validate all temporal transitions or gameplay.
+
+Stage 5E transfers the accepted D5 phase relation into one diagnostic gameplay
+candidate. FRONT16 and REAR8 derive both their longword coarse pointers and
+extended fine delay from logical scroll `+16`; the fixed FMODE1 HUD uses the
+matching delay-31 encoding (`$44ff`). World camera, parallax rate, physical
+ring coordinates, Bob coordinates, sprites and collision/gameplay state are
+unchanged. New host assertions cover corrected offsets and both 16/32-pixel
+phase boundaries. All host tests pass and the AmigaOS HD drawer builds with the
+complete runtime assets. Supplied FS-UAE/68030 presentation evidence remains
+the next gate; do not infer it from compilation.
+
+Supplied Stage 5E FS-UAE/68030 video rejects the first gameplay integration.
+The D5 phase bias fixes the prior global alignment: the HUD, player/world
+relation and right edge remain correctly placed, with no reviewed teleport.
+However, consecutive frames expose a phase-dependent black strip at the left
+gameplay edge, varying from absent to roughly one 16-pixel cell. The log reports
+zero rolling-target ownership violations and 1,983 of 1,983 one-field cadence
+intervals (50.00 effective FPS on this fast emulator configuration). This is
+therefore a left fetch-coverage defect, not gameplay offset, Bob corruption or
+a performance rejection. The current `$30..$d0`/44-byte FMODE1 fetch does not
+provide enough pre-visible data for every corrected extended-delay phase.
+Reject Stage 5E presentation and do not spend a 68020 or hardware run yet.
+
+Stage 5F isolates the remaining coverage correction before another gameplay
+build. WinUAE's display model gives FMODE1/lores a 16-CCK, 32-pixel indivisible
+fetch unit; `$30..$d0` therefore stores 44 bytes, while moving start to the
+next valid earlier unit at `$20` stores 48. The proof supplies the matching
+4-byte physical guard before logical x=0, retains the accepted `camera + 16`
+phase and longword pointers, and restores `$30..$d0`/44-byte fetching for its
+fixed lower reference. This is a coordinated DDF/fetch/modulo/source-layout
+test, not another origin tweak. The AmigaOS proof builds; FS-UAE/68030 evidence
+is pending before any gameplay integration.
+
+Supplied Stage 5F FS-UAE/68030 evidence accepts that isolated geometry. Exact
+image measurement puts the guarded candidate marker at capture x=172..187,
+identical to the accepted D4 FMODE0 reference, while the captured left edge is
+fully covered. Its clean-exit log spans 1,116 PAL fields and declares
+`$20..$d0`, 48 fetched bytes, four physical guard bytes, the retained 16-pixel
+bias, zero Copper overflow and within-frame work. This authorizes a bounded
+gameplay integration with real physical guards for both playfields; it does
+not authorize pointing before an unguarded allocation, changing the fixed HUD
+fetch, or claiming 68020, ADF or real-hardware acceptance.
+
+Stage 5G is the bounded gameplay transfer of that accepted geometry. Gameplay
+fetching changes to `$20..$d0`/48 bytes while the fixed HUD explicitly restores
+`$30..$d0`/44 bytes. FRONT obtains its four-byte prefetch guard from the
+existing middle ring copy. REAR is copied once into a slightly wider guarded
+Chip-RAM bitmap with logical x=0 four bytes into every row, avoiding an invalid
+pointer before the original asset allocation. The accepted `camera + 16`
+mapping and all gameplay coordinates remain unchanged. Host/build verification
+and FS-UAE/68030 presentation evidence are required before slower targets.
+
+Supplied Stage 5G FS-UAE/68030 evidence rejects that transfer. The guarded
+playfields fix the reported left edge and the diagnostic run maintains 49.95
+effective FPS across 2,308 frames with zero target-ownership violations, but
+Sparkpaw's six attached hardware-sprite channels lose multiple component
+planes at different camera positions. Playfields, HUD and enemy Bobs remain
+coherent. The isolated Stage 5F proof used null/calibration sprites and therefore
+did not expose the production sprite-DMA budget. Moving DDFSTRT from `$30` to
+`$20` lets higher-priority bitplane DMA occupy sprite fetch slots; Stage 5G's
+early-DDF geometry is not production-safe. Retain the Stage 5F measurement as
+useful but reject its direct gameplay integration. The next candidate must keep
+the sprite-safe `$30` start and solve edge coverage without stealing those DMA
+slots.
+
+Stage 5H explores the bounded AGA-native alternative: keep `$30..$d0` and test
+FMODE3's 64-bit bitplane fetch, whose eight-byte unit can provide wider aligned
+prefetch without moving DDF into the sprite-DMA region. An isolated FMODE1
+corrected-reference versus raw FMODE3 candidate holds phase zero before a
+0..63 sweep. The candidate validates eight-byte bitmap alignment and uses a
+48-byte fetch; sprite width stays at 16 bits. This stage measures relative
+origin only and cannot yet prove production sprite DMA or gameplay.
+
+Supplied Stage 5H FS-UAE/68030 A/B evidence yields an exact calibration. At
+identical host size the corrected FMODE1 reference marker occupies x=156..171
+and raw FMODE3 x=226..241: 70 capture pixels, exactly one 16-logical-pixel
+cell. The candidate log spans 839 fields, reports eight-byte alignment, a
+48-byte fetch, clean exit and no Copper overflow; no temporal defect was
+reported. Accept this as a relative-origin measurement only. The next isolated
+proof should apply logical `+16` to the FMODE3 64-pixel coarse pointer and full
+0..63 delay, then verify phase zero and the 63-to-0 wrap before gameplay.
+
+Stage 5H2 applies exactly that measured correction in isolation. FMODE3 remains
+at sprite-safe `$30..$d0`; logical scroll is evaluated at `x + 16`, with an
+eight-byte coarse pointer and complete 0..63 delay. The phase-zero marker and
+63-to-0 transition are the only acceptance targets. Because the proof does not
+carry the production six-channel actor, a successful result permits a focused
+gameplay build but does not itself close the Stage 5G sprite regression.
+
+Supplied Stage 5H2 FS-UAE/68030 evidence accepts the isolated correction.
+Automated measurement places both the corrected FMODE3 marker and Stage 5H
+FMODE1 reference at capture x=156..171 and y=172..849. The clean-exit log spans
+896 fields with eight-byte alignment, a 48-byte fetch and no Copper overflow,
+covering repeated 63-to-0 sweeps; no temporal defect was reported. This permits
+a focused gameplay transfer but does not yet accept production sprite DMA,
+left-edge presentation, performance or any slower/hardware target.
+
+Stage 5I transfers that exact geometry into one diagnostic gameplay candidate.
+The scrolling playfields use FMODE3 at sprite-safe `$30..$d0`, 48 fetched bytes,
+eight-byte pointer alignment, 64-pixel coarse steps and logical `+16`; the HUD
+switches back to its accepted FMODE1/44-byte path. Sparkpaw's three attached
+16-pixel pairs, art and staging remain unchanged, making the Stage 5G sprite
+regression an explicit gate alongside left-edge coverage. No slower-target or
+hardware claim follows from the build.
+
+Supplied Stage 5I FS-UAE/68030 evidence rejects that integration. Sparkpaw's
+three attached sprite pairs render correctly again and the log records 49.87
+effective FPS, three wraps and zero ownership violations, but the playfield
+origin visibly jumps, variable black strips recur at the left edge and pixels
+flicker at the left ground/HUD boundary. World objects remain mutually aligned
+while shifting against the fixed HUD, identifying a display-fetch-origin
+regression rather than gameplay teleportation. The earlier Stage 5H2 result
+covered only an isolated linear bitmap; it did not validate FMODE3 across the
+production rolling ring, target alternation, dual playfield and HUD mode split.
+Keep Stage 5I and Stage 5G rejected: the former breaks playfield presentation,
+while the latter presents the playfield correctly only by stealing DMA slots
+from Sparkpaw's hardware sprites.
+
+Stage 5J closes that coverage gap with a production rolling-ring A/B proof
+rather than another release candidate. Its FMODE0 reference and FMODE3
+candidate run the same real ring, alternating targets, dual playfield,
+six-channel Sparkpaw sprite, HUD split and gameplay workload. Diagnostic traces
+now include the fetch mode, both fine phases, BPLCON1 and both logical/coarse
+offsets on every retained frame. This allows a supplied temporal defect to be
+matched to an exact 64-pixel transition. Stage 5J is host-tested and packaged
+for the first FS-UAE/68030 HD gate; no presentation result is claimed yet.
+
+Supplied Stage 5J FS-UAE/68030 HD testing accepts the FMODE0 reference's visual
+presentation and rejects the FMODE3 candidate with the same world jumps and
+displaced strips as Stage 5I. The candidate trace spans all 64 front phases;
+offline verification finds zero disagreement between every logged camera,
+coarse pointer, fine phase and BPLCON1 value and the implemented formula. Ring
+ownership also remains clean. Consequently the production FMODE3 mapping
+assumption—not Copper publication or target ownership—is rejected. The 49.54
+versus 49.93 FPS figures came from unequal workloads and are not comparative
+performance evidence. A repeated gameplay tweak to the same `+16`/64-pixel
+formula is explicitly ruled out.
+
+Stage 5K starts the first alternative derived from the wider hardware review.
+It keeps FMODE0 and the unchanged six-channel 48x48 Sparkpaw actor, but compares
+the accepted `$30..$d0`/42-byte production ring against a single-word-earlier
+`$28..$d0`/44-byte candidate. FRONT reads through the middle ring's real
+two-byte predecessor and REAR is copied into a guarded display bitmap with the
+same two-byte physical prefix; the fixed HUD explicitly restores its accepted
+`$30..$d0` fetch. Host tests and both AmigaOS builds pass. This is an
+FS-UAE/68030 HD presentation A/B gate only; no result or slower/hardware
+acceptance is claimed yet.
+
+The first supplied Stage 5K FS-UAE/68030 run accepts the DDF30 reference's
+presentation but cannot evaluate the DDF28 candidate. The candidate reached
+gameplay with working input/audio and logged 747 frames at 50.00 FPS, yet its
+display remained completely black. Inspection identified a local build defect:
+the candidate changed the emitted Copper MOVE's register-address word rather
+than its DDFSTRT value, producing a malformed list. Record this as an invalid
+test artifact—not a rejection of the FMODE0 `$28` hypothesis—and require a
+structural Copper pair check before the corrected rerun.
+
+Stage 5K2 corrects only that invalid artifact. The candidate now emits the
+playfield pair `$0092,$0028` directly and restores `$0092,$0030` for the fixed
+HUD. Each of the two independently generated rolling Copper lists is scanned
+at runtime for exactly one occurrence of each pair; renderer preparation fails
+if the structural contract is absent. All host tests and the AmigaOS diagnostic
+build pass. The earlier DDF30 reference remains valid, so only this corrected
+FS-UAE/68030 HD candidate requires retesting.
+
+Supplied Stage 5K2 FS-UAE/68030 HD evidence rejects the valid `$28` candidate
+with the current six-channel actor. The display, world and HUD are coherent and
+the log records 1,971 one-field intervals at 50.00 effective FPS with zero
+ownership violations, but Sparkpaw loses attached-sprite colour components.
+Right-facing frames show extensive white regions; left-facing frames retain
+more of the body but lose the tail component. This orientation dependence is
+consistent with the same later sprite data contributing to different authored
+pixels, while the clean renderer trace rules against ring ownership or Copper
+publication. Do not move DDF earlier again with the existing actor. The next
+isolated option is an AGA-wide attached Sparkpaw using the earliest channels,
+with playfield geometry held fixed.
+
+### 20 August 2026 - Stage 5L AGA-wide player accepted in FS-UAE and promoted as alpha.43
+
+Stage 5L returns to Stage 5G's visually coherent FMODE1 `$20..$d0` playfield
+geometry and changes only the player DMA representation. All authored 48x48,
+15-colour pixels and all 62 append-only frames are packed into one attached
+64-pixel AGA sprite pair on channels 0/1, with transparent pixels 48..63. The
+wide streams use separate eight-byte POS/CTL fetch blocks, four DATA plus four
+DATB words per row, zero termination blocks and explicitly eight-byte-aligned
+Chip staging allocations. Art, palette, facings, animation selection,
+grounding, collision, parallax, HUD and gameplay remain unchanged.
+
+MrDig's supplied FS-UAE/68030 HD run reports no corruption, glitches, flicker
+or player component loss. `renderdiag.log` records 2,164 frames, 2,163 one-field
+intervals, no longer intervals, 50.00 effective FPS and zero rolling-target
+ownership violations. This accepts Stage 5L only for the supplied FS-UAE/68030
+HD configuration. Alpha.43 promotes the same non-diagnostic renderer flags to
+the normal HD and packed-asset ADF executables for real-A1200/68030 testing;
+neither real-hardware launch path is accepted before that evidence is supplied.
+Host tests, native HD/ADF compilation, ZIP/LHA inspection and independent ADF
+round-trip validation pass. The bootable DOS1/FFS alpha.43 ADF uses 1,190
+blocks (595 KiB) and leaves 570 free.
+
+Follow-up supplied testing accepts broad alpha.43 renderer stability on the
+real 34.5 MHz A1200/68030 from both HD and physical ADF, and on Analogue Pocket
+from ADF: no general corruption, trails or broken Sparkpaw components were
+reported. It rejects cadence on all three slower paths. Real HD additionally
+repeats or misses some sound events under load. A narrow intermittent disturbance
+remains at the ground/HUD boundary; the preserved recording is
+`Renderer alpha43-rejected-real-a1200-hd-performance-and-hud-seam-flicker.MOV`.
+FS-UAE/68020 records 26.38 effective FPS even though Stage 5L reduces average
+Bob-pass time by about 29% versus Stage 5A. The accepted rolling ownership,
+early-fetch geometry and wide player pair are therefore frozen while HUD seam
+timing, entering-column micro-copies, Copper/sprite recopying, serialized
+Blitter waits and measured player collision work become the next isolated
+optimization subjects.

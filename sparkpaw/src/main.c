@@ -6,6 +6,7 @@
 #include "audio.h"
 #include "collision.h"
 #include "game.h"
+#include "performance_profile.h"
 #include "platform_amiga.h"
 #include "renderer.h"
 #include "title.h"
@@ -65,6 +66,9 @@ int main(void)
     ULONG phase6BeforeFree,phase6BeforeLargest;
 #endif
     BOOL loadingShown;
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    BOOL prototypePublished;
+#endif
     BOOL platformReady=platformOpen();
     state=APP_TITLE_LOADING;
     if(!platformReady||!titleShow()) {
@@ -111,25 +115,66 @@ int main(void)
     rendererUpdateGameplay();
     platformBeginTakeover();
     platformFinishTakeover(rendererCopperList());
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    platformProfileTimerStart();
+#endif
     titleRelease();
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
-        UWORD diagnosticStart,diagnosticEnd;
-#endif
+        ULONG profileStart;
         while(platformRasterLine()<100) { }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticUpdateEntry(platformRasterLine());
+#endif
+        profileStart=performanceProfileBegin();
         gameUpdate();
+        performanceProfileEnd(PERF_GAME_UPDATE,profileStart);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticPublicationEntry(platformRasterLine());
+#endif
+        profileStart=performanceProfileBegin();
         rendererUpdateGameplay();
+        performanceProfileEnd(PERF_COPPER_PATCH,profileStart);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticPublicationExit(platformRasterLine());
+#endif
+#ifndef SPARKPAW_ROLLING_PROTOTYPE
         while(platformRasterLine()<253) { }
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
-        rendererDiagnosticBeginFrame(); diagnosticStart=platformRasterLine();
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticBobEntry(platformRasterLine());
+#endif
+        profileStart=performanceProfileBegin();
         rendererDrawGameplayBobs();
+        performanceProfileEnd(PERF_BOB_PASS,profileStart);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
-        diagnosticEnd=platformRasterLine();
-        rendererDiagnosticEndFrame(diagnosticStart,diagnosticEnd);
+        rendererDiagnosticBobExit(platformRasterLine());
 #endif
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+        /* A Bob pass may have crossed one or several fields. Never interpret
+           its final line number as belonging to the original frame. Wait for
+           one explicit new PAL boundary and restart the complete inactive
+           Copper list at line zero, leaving its full pre-display setup time. */
+        profileStart=performanceProfileBegin();
+        do {
+            while(platformRasterLine()<300) { }
+            while(platformRasterLine()>=300) { }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+            prototypePublished=rendererPublishGameplay(platformRasterLine());
+#else
+            prototypePublished=rendererPublishGameplay(platformRasterLine());
+#endif
+        } while(!prototypePublished);
+        performanceProfileEnd(PERF_PUBLISH_WAIT,profileStart);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticBoundary(platformRasterLine(),prototypePublished);
+#endif
+#else
         while(platformRasterLine()>=253) { }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        rendererDiagnosticBoundary(platformRasterLine(),TRUE);
+#endif
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         if(platformLeftMouse()) state=APP_BOOT;
 #endif

@@ -1,0 +1,27 @@
+Sparkpaw Stage 5E: corrected AGA32 gameplay candidate
+=====================================================
+
+This HD diagnostic build integrates only the Stage 5D5-accepted aligned
+16-pixel FMODE1 phase correction into the Stage 4G rolling renderer. Gameplay
+and rear playfields use the coordinated `camera + 16` fetch phase; the fixed
+HUD uses the matching extended delay. All bitplane pointers remain longword
+aligned. DDF, DIW, parallax rate, assets, palettes, hardware sprites, Bob
+composition, animations, HUD artwork, collisions and gameplay contracts are
+unchanged.
+
+First gate: FS-UAE/68030 HD
+---------------------------
+
+Run `Sparkpaw-Renderdiag`, traverse in both directions and exercise sprint,
+jump, shooting, collectibles, beetles and the first Striders. Check especially:
+
+- no teleport-like world/player displacement;
+- correct left edge, HUD inset and gameplay/HUD boundary;
+- visual contact still agrees with platforms, walls, collectibles and enemies;
+- no trails, corrupt Bobs or 16/32-pixel phase jumps;
+- normal rear parallax and stable hardware sprites.
+
+Click left mouse only after the run so `renderdiag.log` is flushed beside the
+executable. Preserve that log. A movie is useful only for a visible temporal
+fault. Do not test FS-UAE/68020 or real hardware until this presentation gate
+is reviewed. This drawer is not an ADF or release candidate.

@@ -10,9 +10,13 @@ void platformFinishTakeover(UWORD *copper);
 void platformRestore(void);
 UWORD platformRasterLine(void);
 void platformWaitBlit(void);
+void platformSetBlitterPriority(BOOL enabled);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
+BOOL platformBlitterBusy(void);
 BOOL platformLeftMouse(void);
 void platformPrepareDebugFlush(void);
+void platformProfileTimerStart(void);
+ULONG platformProfileTimerTicks(void);
 #endif
 void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
                           BOOL *jump,BOOL *fire);
