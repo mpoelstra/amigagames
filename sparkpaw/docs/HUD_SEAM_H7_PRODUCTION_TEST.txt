@@ -1,0 +1,16 @@
+Sparkpaw Stage 5L-H7 FRONT16 seam fix, production-shaped HD
+
+This executable contains the H6A FRONT16 final-transition-scanline palette
+mask accepted by the user in FS-UAE/68030. It contains no render diagnostics,
+log writer or test input. All Stage 5L geometry, DMA, pointers, sprites, HUD,
+assets and gameplay remain unchanged.
+
+Run Sparkpaw. Move left and right for at least 30 seconds and traverse far
+enough to exercise changing camera phases. Confirm:
+- no pixels flicker in the narrow ground/HUD seam;
+- the ground edge and complete HUD remain intact;
+- no broad corruption, sprite or Bob regression appears.
+
+This drawer intentionally produces no renderdiag.log because it is compiled
+with production flags. Report only the visible FS-UAE/68030 result. Do not
+infer ADF, Pocket or real-hardware acceptance.

@@ -52,6 +52,19 @@ Current release is `0.6.0-alpha.43`, Phase 6C.1. A normal release contains:
 - `Sparkpaw-0.6.0-alpha.43.adf`
 - extracted review drawer `Sparkpaw-0.6.0-alpha.43/`
 
+MrDig mounts `sparkpaw/dist/` directly as an FS-UAE HD volume. Every
+user-facing FS-UAE HD test or diagnostic drawer must therefore be created
+directly under `sparkpaw/dist/`, following the established clearly named
+stage/checkpoint structure and including its executable, `ReadMe.txt` and
+complete required `assets/runtime/` subtree. Do not deliver such drawers only
+under `build/` or `build/test/`; those are internal build intermediates and are
+not visible in the mounted HD.
+
+For every future A/B test, create one fully self-contained subdrawer per
+variant. Each subdrawer must contain its own executable, complete runtime
+assets and ReadMe, so `PROGDIR:renderdiag.log` is naturally unique. Never ask
+MrDig to rename or move a log between variants.
+
 Do not create the >100 MB Source ZIP unless MrDig explicitly requests it.
 Opt-in command: `tools/make_release.py --include-source`.
 
@@ -198,6 +211,22 @@ Stage 5L is the immutable renderer baseline. Move or retime only the fixed-HUD
 FMODE/pointer setup at the playfield-to-HUD boundary, then gate the isolated
 candidate in FS-UAE/68030 before slower testing. Do not change ring ownership,
 early-fetch geometry, the wide Sparkpaw pair, art or gameplay to hide the seam.
+
+H5 established bitplane rather than sprite origin. H6A then removed the seam
+by masking FRONT16 colours on only the final transition scanline; H6B's REAR8
+mask did not. The user explicitly accepts H6A in FS-UAE/68030 with no other
+visible corruption; its log records 49.93 FPS and zero ownership violations.
+The same operation is now production-compiled in
+`sparkpaw/dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/`. Await the user's
+visual H7 result before claiming the non-diagnostic build accepted or starting
+the Stage 2 performance audit. H7 intentionally creates no log.
+
+The user subsequently reports that this exact production-shaped H7 drawer
+looks good in FS-UAE/68030 HD. The seam fix is therefore accepted only for
+FS-UAE/68030 HD. No ADF, Pocket or real-A1200 acceptance is claimed. Stage 2 of
+`sparkpaw/docs/PERFORMANCE_68020_PLAN.md` is now active: complete the broad
+whole-codebase C/assembly/profiler audit and ranked hotspot table before making
+any optimization.
 
 The title contract is unchanged: 35 black PAL frames after display takeover,
 24 fade frames and 225 fully visible title frames. Faster loading before title

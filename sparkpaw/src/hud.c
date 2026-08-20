@@ -11,7 +11,9 @@
 #include "player.h"
 
 #define HUD_ASSET_W 336
-#ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
+#ifdef SPARKPAW_HUD_RIGHT_FETCH_GUARD
+#define HUD_W 384
+#elif defined(SPARKPAW_AGA32_FETCH_CANDIDATE)
 #define HUD_W 352
 #else
 #define HUD_W HUD_ASSET_W

@@ -1,0 +1,40 @@
+Sparkpaw Stage 5L-H5 seam source-isolation A/B (FS-UAE/68030 HD only)
+
+Purpose
+-------
+This is not a seam fix. Both executables start from the exact alpha.43 Stage
+5L renderer state and alter output only at the two scanlines around the fixed
+HUD transition. Do not assess general art quality in B: its black two-line gap
+is intentional.
+
+Run from this mounted drawer, in this exact order
+------------------------------------------------
+1. Run A-Sprites-Off.
+2. Move left and right for at least 20 seconds while watching the original
+   far-left flickering pixels in the narrow line between ground and HUD.
+3. Exit with the left mouse button. Wait for the frozen diagnostic screen.
+4. Return to Workbench and rename renderdiag.log to A-Sprites-Off.log.
+5. Run B-Bitplanes-Off.
+6. Repeat the same movement for at least 20 seconds. A two-scanline black gap
+   is expected. Judge only whether any changing coloured/pale pixels remain in
+   that gap at the far-left edge.
+7. Exit with the left mouse button and keep renderdiag.log as
+   B-Bitplanes-Off.log.
+
+Report exactly
+--------------
+- A: original left flicker PRESENT or ABSENT.
+- B: changing pixels in intentional black gap PRESENT or ABSENT.
+- Attach both logs. A short MOV is useful only if either answer is uncertain.
+
+Interpretation (not acceptance)
+-------------------------------
+- Present in A, absent in B: playfield bitplane/shifter source.
+- Absent in A, present in B: hardware-sprite source.
+- Absent in both: both tests suppress the source; a narrower follow-up is
+  required.
+- Present in both: source is outside normal bitplane and sprite output, or the
+  observed row is not the scanline currently isolated.
+
+No production, ADF, Pocket or real-hardware acceptance may be inferred from
+this diagnostic drawer.

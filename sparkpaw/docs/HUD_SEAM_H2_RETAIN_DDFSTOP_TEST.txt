@@ -1,0 +1,27 @@
+Sparkpaw Stage 5L-H2 HUD-seam retained-DDFSTOP diagnostic
+=========================================================
+
+Purpose
+-------
+H1 proved that making FMODE1 the first MOVE after WAIT `$fbd1` does not remove
+the intermittent left ground/HUD seam pixels. H2 keeps that ordering and omits
+only the redundant HUD DDFSTOP MOVE: Stage 5L gameplay already leaves DDFSTOP
+at `$d0`, exactly the value required by the fixed HUD. DDFSTRT still changes
+from `$20` to `$30`; all seven HUD pointers, BPLCON1, modulos and palettes keep
+their existing values. This advances the pointer sequence by one Copper MOVE.
+
+Test gate: FS-UAE/68030 HD only
+--------------------------------
+1. Run Sparkpaw-HUD-Seam-Diagnostic directly from this complete dist drawer.
+2. Scroll left and right through the opening ground section while running and
+   jumping. Also include rapid fire and the first/two-Strider scenes.
+3. Watch the black line between the ground and HUD, especially its left side.
+   Report whether the intermittent line fragment/pixels are absent, unchanged,
+   worse or moved.
+4. Report any wider HUD/playfield corruption, HUD displacement, Sparkpaw
+   component loss, Bob trails, parallax change or gameplay difference.
+5. Press the left mouse button once to flush PROGDIR:renderdiag.log, wait for
+   the closed-log message, then reset. Return the log with the result.
+
+This is an isolated HD diagnostic, not a production build. It carries no ADF,
+real-A1200, Analogue Pocket or seam-fix acceptance claim.

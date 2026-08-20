@@ -8,13 +8,24 @@ CC = $(VBCC_ROOT)/bin/vc
 HOST_CC ?= cc
 PYTHON ?= python3
 CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
-RELEASE_RENDERER_FLAGS = -DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
+STAGE5L_RENDERER_FLAGS = -DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
 	-DSPARKPAW_AGA32_FETCH_CANDIDATE -DSPARKPAW_AGA32_ORIGIN_CORRECTED \
 	-DSPARKPAW_AGA32_LEFT_GUARD -DSPARKPAW_AGA64_PLAYER_SPRITE
+RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) \
+	-DSPARKPAW_HUD_SEAM_FRONT_BLACK
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
+HUD_SEAM_DIAG_TARGET = build/sparkpaw-hud-seam-fmode-first
+HUD_SEAM_H2_DIAG_TARGET = build/sparkpaw-hud-seam-h2-retain-ddfstop
+HUD_SEAM_H3_DIAG_TARGET = build/sparkpaw-hud-seam-h3-native-3plane
+HUD_SEAM_H4_DIAG_TARGET = build/sparkpaw-hud-seam-h4-right-fetch-guard
+HUD_SEAM_H5_SPRITE_ISOLATION_TARGET = build/sparkpaw-hud-seam-h5-sprites-off
+HUD_SEAM_H5_BITPLANE_ISOLATION_TARGET = build/sparkpaw-hud-seam-h5-bitplanes-off
+HUD_SEAM_H6_FRONT_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-front16-black
+HUD_SEAM_H6_REAR_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-rear8-black
+HUD_SEAM_H7_PRODUCTION_TARGET = build/sparkpaw-hud-seam-h7-production
 RENDER_DIAG_ADF_TARGET = build/sparkpaw-renderdiag-adf
 ADF_FRONT_ASSET = build/adf-assets/storm-front.spr1
 ADF_REAR_ASSET = build/adf-assets/storm-rear.spr1
@@ -69,7 +80,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean test assets release bench bench-package aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package renderdiag renderdiag-package renderdiag-adf-package visual-slice-proof adf-report phase6-memory
+.PHONY: all clean test assets release bench bench-package aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package renderdiag renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package visual-slice-proof adf-report phase6-memory
 
 all: assets $(TARGET)
 
@@ -356,6 +367,53 @@ renderdiag-package: renderdiag
 	cp $(RUNTIME_ASSETS) build/renderdiag-stage1-hd/assets/runtime/
 	cp docs/RENDERDIAG.txt build/renderdiag-stage1-hd/ReadMe.txt
 
+hud-seam-diagnostic-package: assets $(HUD_SEAM_DIAG_TARGET)
+	@mkdir -p dist/Stage5L-H1-HUD-Seam-FMODE-First-HD/assets/runtime
+	cp $(HUD_SEAM_DIAG_TARGET) dist/Stage5L-H1-HUD-Seam-FMODE-First-HD/Sparkpaw-HUD-Seam-Diagnostic
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H1-HUD-Seam-FMODE-First-HD/assets/runtime/
+	cp docs/HUD_SEAM_FMODE_FIRST_TEST.txt dist/Stage5L-H1-HUD-Seam-FMODE-First-HD/ReadMe.txt
+
+hud-seam-h2-diagnostic-package: assets $(HUD_SEAM_H2_DIAG_TARGET)
+	@mkdir -p dist/Stage5L-H2-HUD-Seam-Retain-DDFSTOP-HD/assets/runtime
+	cp $(HUD_SEAM_H2_DIAG_TARGET) dist/Stage5L-H2-HUD-Seam-Retain-DDFSTOP-HD/Sparkpaw-HUD-Seam-Diagnostic
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H2-HUD-Seam-Retain-DDFSTOP-HD/assets/runtime/
+	cp docs/HUD_SEAM_H2_RETAIN_DDFSTOP_TEST.txt dist/Stage5L-H2-HUD-Seam-Retain-DDFSTOP-HD/ReadMe.txt
+
+hud-seam-h3-diagnostic-package: assets $(HUD_SEAM_H3_DIAG_TARGET)
+	@mkdir -p dist/Stage5L-H3-HUD-Native-3Plane-HD/assets/runtime
+	cp $(HUD_SEAM_H3_DIAG_TARGET) dist/Stage5L-H3-HUD-Native-3Plane-HD/Sparkpaw-HUD-Seam-Diagnostic
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H3-HUD-Native-3Plane-HD/assets/runtime/
+	cp docs/HUD_SEAM_H3_NATIVE_3PLANE_TEST.txt dist/Stage5L-H3-HUD-Native-3Plane-HD/ReadMe.txt
+
+hud-seam-h4-diagnostic-package: assets $(HUD_SEAM_H4_DIAG_TARGET)
+	@mkdir -p dist/Stage5L-H4-HUD-Right-Fetch-Guard-HD/assets/runtime
+	cp $(HUD_SEAM_H4_DIAG_TARGET) dist/Stage5L-H4-HUD-Right-Fetch-Guard-HD/Sparkpaw-HUD-Seam-Diagnostic
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H4-HUD-Right-Fetch-Guard-HD/assets/runtime/
+	cp docs/HUD_SEAM_H4_RIGHT_FETCH_GUARD_TEST.txt dist/Stage5L-H4-HUD-Right-Fetch-Guard-HD/ReadMe.txt
+
+hud-seam-h5-source-isolation-package: assets $(HUD_SEAM_H5_SPRITE_ISOLATION_TARGET) $(HUD_SEAM_H5_BITPLANE_ISOLATION_TARGET)
+	@mkdir -p dist/Stage5L-H5-Seam-Source-Isolation-AB-HD/assets/runtime
+	cp $(HUD_SEAM_H5_SPRITE_ISOLATION_TARGET) dist/Stage5L-H5-Seam-Source-Isolation-AB-HD/A-Sprites-Off
+	cp $(HUD_SEAM_H5_BITPLANE_ISOLATION_TARGET) dist/Stage5L-H5-Seam-Source-Isolation-AB-HD/B-Bitplanes-Off
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H5-Seam-Source-Isolation-AB-HD/assets/runtime/
+	cp docs/HUD_SEAM_H5_SOURCE_ISOLATION_TEST.txt dist/Stage5L-H5-Seam-Source-Isolation-AB-HD/ReadMe.txt
+
+hud-seam-h6-playfield-isolation-package: assets $(HUD_SEAM_H6_FRONT_ISOLATION_TARGET) $(HUD_SEAM_H6_REAR_ISOLATION_TARGET)
+	@mkdir -p dist/Stage5L-H6A-FRONT16-Palette-Isolation-HD/assets/runtime
+	@mkdir -p dist/Stage5L-H6B-REAR8-Palette-Isolation-HD/assets/runtime
+	cp $(HUD_SEAM_H6_FRONT_ISOLATION_TARGET) dist/Stage5L-H6A-FRONT16-Palette-Isolation-HD/Sparkpaw-H6A-FRONT16-Black
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H6A-FRONT16-Palette-Isolation-HD/assets/runtime/
+	cp docs/HUD_SEAM_H6A_FRONT16_TEST.txt dist/Stage5L-H6A-FRONT16-Palette-Isolation-HD/ReadMe.txt
+	cp $(HUD_SEAM_H6_REAR_ISOLATION_TARGET) dist/Stage5L-H6B-REAR8-Palette-Isolation-HD/Sparkpaw-H6B-REAR8-Black
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H6B-REAR8-Palette-Isolation-HD/assets/runtime/
+	cp docs/HUD_SEAM_H6B_REAR8_TEST.txt dist/Stage5L-H6B-REAR8-Palette-Isolation-HD/ReadMe.txt
+
+hud-seam-h7-production-package: assets $(HUD_SEAM_H7_PRODUCTION_TARGET)
+	@mkdir -p dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/assets/runtime
+	cp $(HUD_SEAM_H7_PRODUCTION_TARGET) dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/Sparkpaw
+	cp $(RUNTIME_ASSETS) dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/assets/runtime/
+	cp docs/HUD_SEAM_H7_PRODUCTION_TEST.txt dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/ReadMe.txt
+
 aga32-gameplay-corrected-package: renderdiag
 	@mkdir -p dist/Stage5E-AGA32-Corrected-Gameplay-HD/assets/runtime
 	cp $(RENDER_DIAG_TARGET) dist/Stage5E-AGA32-Corrected-Gameplay-HD/Sparkpaw-Renderdiag
@@ -385,6 +443,85 @@ $(RENDER_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 		-DSPARKPAW_AGA32_FETCH_CANDIDATE \
 		-DSPARKPAW_AGA32_ORIGIN_CORRECTED \
 		-DSPARKPAW_AGA64_FETCH_CANDIDATE -o $@ $(SOURCES)
+
+$(HUD_SEAM_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
+		-DSPARKPAW_AGA32_FETCH_CANDIDATE \
+		-DSPARKPAW_AGA32_ORIGIN_CORRECTED \
+		-DSPARKPAW_AGA32_LEFT_GUARD \
+		-DSPARKPAW_AGA64_PLAYER_SPRITE \
+		-DSPARKPAW_HUD_SEAM_FMODE_FIRST -o $@ $(SOURCES)
+
+$(HUD_SEAM_H2_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
+		-DSPARKPAW_AGA32_FETCH_CANDIDATE \
+		-DSPARKPAW_AGA32_ORIGIN_CORRECTED \
+		-DSPARKPAW_AGA32_LEFT_GUARD \
+		-DSPARKPAW_AGA64_PLAYER_SPRITE \
+		-DSPARKPAW_HUD_SEAM_FMODE_FIRST \
+		-DSPARKPAW_HUD_SEAM_KEEP_DDFSTOP -o $@ $(SOURCES)
+
+$(HUD_SEAM_H3_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
+		-DSPARKPAW_AGA32_FETCH_CANDIDATE \
+		-DSPARKPAW_AGA32_ORIGIN_CORRECTED \
+		-DSPARKPAW_AGA32_LEFT_GUARD \
+		-DSPARKPAW_AGA64_PLAYER_SPRITE \
+		-DSPARKPAW_HUD_SEAM_FMODE_FIRST \
+		-DSPARKPAW_HUD_SEAM_KEEP_DDFSTOP \
+		-DSPARKPAW_HUD_NATIVE_3PLANE -o $@ $(SOURCES)
+
+$(HUD_SEAM_H4_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
+		-DSPARKPAW_AGA32_FETCH_CANDIDATE \
+		-DSPARKPAW_AGA32_ORIGIN_CORRECTED \
+		-DSPARKPAW_AGA32_LEFT_GUARD \
+		-DSPARKPAW_AGA64_PLAYER_SPRITE \
+		-DSPARKPAW_HUD_SEAM_FMODE_FIRST \
+		-DSPARKPAW_HUD_SEAM_KEEP_DDFSTOP \
+		-DSPARKPAW_HUD_NATIVE_3PLANE \
+		-DSPARKPAW_HUD_RIGHT_FETCH_GUARD -o $@ $(SOURCES)
+
+$(HUD_SEAM_H5_SPRITE_ISOLATION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_ISOLATE_SPRITES -o $@ $(SOURCES)
+
+$(HUD_SEAM_H5_BITPLANE_ISOLATION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_ISOLATE_BITPLANES -o $@ $(SOURCES)
+
+$(HUD_SEAM_H6_FRONT_ISOLATION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_ISOLATE_FRONT_PALETTE -o $@ $(SOURCES)
+
+$(HUD_SEAM_H6_REAR_ISOLATION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_ISOLATE_REAR_PALETTE -o $@ $(SOURCES)
+
+$(HUD_SEAM_H7_PRODUCTION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
 $(RENDER_DIAG_ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"

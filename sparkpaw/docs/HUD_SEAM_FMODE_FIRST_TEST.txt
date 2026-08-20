@@ -1,0 +1,27 @@
+Sparkpaw Stage 5L HUD-seam FMODE-first diagnostic
+=================================================
+
+Purpose
+-------
+This HD-only diagnostic keeps the alpha.43 Stage 5L renderer unchanged except
+for the order of the existing Copper moves at the fixed-HUD transition. After
+the final gameplay fetch and the existing WAIT at hardware line 251, hpos d1,
+FMODE is restored to the fixed HUD's FMODE1 before BPLCON1, DDFSTRT/DDFSTOP and
+the seven HUD bitplane pointers are programmed.
+
+Test gate: FS-UAE/68030 HD only
+--------------------------------
+1. Copy the complete drawer to an HD directory and run
+   Sparkpaw-HUD-Seam-Diagnostic from that drawer.
+2. Traverse far enough to combine continuous left/right camera scrolling with
+   running, jumping, rapid fire, water, the first Strider and two Striders.
+3. Watch the one-pixel boundary directly between the ground and the fixed HUD.
+   Report whether the intermittent pixel/black-line disturbance is absent,
+   unchanged, worse, or replaced by any wider HUD/playfield defect.
+4. Also report any broad corruption, flicker, wrong HUD alignment, damaged
+   Sparkpaw components, Bob trails, parallax change or gameplay difference.
+5. Press the left mouse button once to flush PROGDIR:renderdiag.log, then reset
+   after the program says the log is closed. Return that log with the result.
+
+This drawer is not a production build and carries no ADF, real-A1200, Analogue
+Pocket or seam-fix acceptance claim.

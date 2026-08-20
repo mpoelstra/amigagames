@@ -1,0 +1,12 @@
+Sparkpaw Stage 5L-H6B REAR8 palette isolation (FS-UAE/68030 HD)
+
+This is diagnostic, not a fix. It preserves alpha.43 DMA, pointers, fetch,
+sprites and HUD setup. Only REAR8 colours are black on the final gameplay
+scanline.
+
+Run Sparkpaw-H6B-REAR8-Black from this drawer. Move left and right for at least
+20 seconds and report whether the original far-left changing seam pixels are
+PRESENT or ABSENT. Exit with the left mouse button. Leave renderdiag.log in
+this directory; no rename is necessary.
+
+Do not infer production, ADF, Pocket or real-hardware acceptance.

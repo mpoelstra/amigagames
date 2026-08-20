@@ -1,0 +1,29 @@
+Sparkpaw Stage 5L-H4 native HUD right-fetch guard diagnostic
+============================================================
+
+REJECTED: supplied FS-UAE/68030 testing shows broad HUD corruption. Do not run
+or use this drawer as a baseline. The guessed wider fetch geometry is invalid.
+
+Purpose
+-------
+H3's native three-plane HUD removes the original left seam symptom but exposes
+a small gameplay-coloured gap at the far right. H4 changes only the fixed HUD's
+right fetch coverage: DDFSTOP moves from `$d0` to `$d8`, the fetch grows from
+44 to 48 bytes and the private zero-filled HUD stride grows from 352 to 384
+pixels. The authored 336 HUD pixels, left origin, BPLCON0, FMODE, BPLCON1,
+palette, visible dimensions and all gameplay remain unchanged.
+
+Test gate: FS-UAE/68030 HD only
+--------------------------------
+1. Run Sparkpaw-HUD-Seam-Diagnostic directly from this dist drawer.
+2. Inspect the complete HUD for unchanged alignment, colours, counters, top
+   border and bottom edge.
+3. Walk continuously in both directions. Inspect both the formerly flickering
+   left seam and H3's far-right colour-changing gap.
+4. Include jumping, rapid fire and the first/two-Strider scenes; report any
+   playfield, Sparkpaw, parallax, Bob or gameplay regression separately.
+5. Press left mouse once to flush PROGDIR:renderdiag.log, wait for the closed
+   message, then reset and return the log.
+
+This is an isolated HD diagnostic, not a production build. It carries no ADF,
+real-A1200, Analogue Pocket or seam-fix acceptance claim.

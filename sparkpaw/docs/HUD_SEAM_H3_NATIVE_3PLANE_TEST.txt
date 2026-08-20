@@ -1,0 +1,30 @@
+Sparkpaw Stage 5L-H3 native three-plane HUD diagnostic
+======================================================
+
+REJECTED: supplied FS-UAE/68030 testing removes the left symptom but introduces
+a new far-right colour-changing seam gap. Do not use as a baseline or fix.
+
+Purpose
+-------
+H1 and H2 retained the seven-plane dual-playfield HUD setup and did not remove
+the intermittent left seam pixels. The authored HUD bitmap itself has exactly
+three planes. H3 switches the fixed line-252 section to a native three-plane
+single playfield (`BPLCON0=$3200`) and loads only those three real pointers,
+instead of three real plus four blank-plane pointers. HUD pixels, palette,
+dimensions, DDF, FMODE1, modulos and gameplay are otherwise unchanged.
+
+Test gate: FS-UAE/68030 HD only
+--------------------------------
+1. Run Sparkpaw-HUD-Seam-Diagnostic directly from this dist drawer.
+2. First inspect the complete HUD: alignment, colours, hearts, lives, diamond
+   counter, top border and bottom edge must match alpha.43.
+3. Scroll left and right while running/jumping and watch the black seam,
+   especially the formerly flickering left pixels. Include rapid fire and the
+   first/two-Strider scenes.
+4. Report the seam as absent, unchanged, worse or moved, and report any HUD,
+   playfield, Sparkpaw, parallax, Bob or gameplay regression separately.
+5. Press the left mouse button once to flush PROGDIR:renderdiag.log, wait for
+   the closed-log message, then reset. Return the log with the result.
+
+This is an isolated HD diagnostic, not a production build. It carries no ADF,
+real-A1200, Analogue Pocket or seam-fix acceptance claim.

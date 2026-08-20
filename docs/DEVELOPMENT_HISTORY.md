@@ -5016,3 +5016,153 @@ early-fetch geometry and wide player pair are therefore frozen while HUD seam
 timing, entering-column micro-copies, Copper/sprite recopying, serialized
 Blitter waits and measured player collision work become the next isolated
 optimization subjects.
+
+### Stage 5L-H1 isolated ground/HUD seam diagnostic
+
+The first post-alpha.43 seam candidate changes only the order of one existing
+Copper MOVE in the fixed-HUD transition. The WAIT remains at hardware line 251,
+horizontal position `$d1`, immediately after the gameplay `$d0` DDFSTOP. The
+fixed HUD's FMODE1 restore is now the first MOVE after that WAIT, before the
+unchanged BPLCON1, `$30..$d0` HUD fetch geometry, seven HUD pointers, modulos
+and palette moves. Line 252 remains the HUD switch and line 253 remains the Bob
+pass. Stage 5L rolling ownership, early-fetch geometry, four-byte guards, wide
+attached player pair, Bobs, assets, gameplay and production flags are unchanged.
+
+The separately named HD diagnostic drawer is
+`sparkpaw/dist/Stage5L-H1-HUD-Seam-FMODE-First-HD/`. Its log identifies the
+candidate and exact transition order. Host tests, native production/diagnostic
+builds and release-package validation pass; the rebuilt production executable
+retains SHA-256
+`32fed6e8b0b9a2cbc2050fb1fb17a72ca9f8dc1b327652e115c6368a71365d62`.
+Supplied FS-UAE/68030 HD testing rejects H1: the same intermittent short line
+fragment or pixels remain in the black seam at the left ground/HUD boundary.
+Its log records 913/913 one-field intervals (50.00 FPS), zero rolling ownership
+violations and normal Copper alternation. This rejects FMODE ordering as the
+cause and separates the seam from missed updates, late target publication and
+displayed-target writes. The log is catalogued as `Renderer Stage 5L-H1-
+rejected-fs-uae-68030-hud-seam-flicker-renderdiag.log` with a matching sidecar.
+
+Stage 5L-H2 keeps H1's FMODE-first ordering but omits only the redundant HUD
+DDFSTOP MOVE. Gameplay already leaves DDFSTOP at `$d0`, exactly the fixed HUD
+value; DDFSTRT still changes from `$20` to `$30`. This advances all seven HUD
+pointer moves by one Copper MOVE without changing any register value, line-252
+HUD ownership, line-253 Bob timing, renderer geometry or production build. The
+new FS-UAE/68030 HD drawer is `sparkpaw/dist/Stage5L-H2-HUD-Seam-Retain-
+DDFSTOP-HD/`. Construction checks do not accept H2; the Stage 2 hot-path audit
+has not begun.
+
+Supplied FS-UAE/68030 HD testing also rejects H2 with no visible improvement.
+Its log records 877/877 one-field intervals (50.00 FPS), zero rolling ownership
+violations and normal Copper alternation. It is catalogued as `Renderer Stage
+5L-H2-rejected-fs-uae-68030-hud-seam-flicker-renderdiag.log` with a matching
+sidecar. Native-frame inspection of the earlier real-A1200 MOV confirms the
+stable boundary zone but cannot attribute the few scaled/intermittent pixels
+reliably to either the last FRONT16 scanline or first HUD scanline.
+
+Stage 5L-H3 therefore tests the split state rather than assuming HUD artwork is
+faulty. The authored HUD is natively three planes, but alpha.43 carries it as a
+seven-plane dual playfield by inserting four blank-plane pointers. H3 switches
+the line-252 section to `BPLCON0=$3200` single-playfield three-plane display and
+loads only the three authored HUD pointers. Dimensions, pixels, palette, FMODE,
+DDF, modulos, line-253 Bob pass and all Stage 5L/gameplay contracts remain. This
+both terminates the gameplay dual-playfield state explicitly and removes eight
+pointer MOVEs from the critical boundary. The isolated drawer is `sparkpaw/
+dist/Stage5L-H3-HUD-Native-3Plane-HD/`; FS-UAE/68030 acceptance is pending.
+
+Supplied H3 FS-UAE/68030 evidence reports the former left symptom appears
+corrected, but rejects the candidate because a small far-right gap now exposes
+pixels whose colours change with gameplay scrolling. The screenshot and log
+are catalogued as `Renderer Stage 5L-H3-rejected-fs-uae-68030-right-seam-
+scroll-pixels.*`. The log measures 3,561/3,561 one-field intervals (50.00 FPS),
+zero ownership violations, normal Copper alternation and the intended three
+HUD pointers. This isolates the new symptom to horizontal split/fetch coverage,
+not cadence or target publication.
+
+Stage 5L-H4 retains H3's native three-plane split and adds exactly one complete
+32-bit HUD fetch unit at the right: HUD DDFSTOP becomes `$d8`, fetch size 48
+bytes and the private zero-filled HUD stride 384 pixels. The authored 336 HUD
+pixels, origin, palette, visible dimensions and gameplay are unchanged. Its
+isolated FS-UAE/68030 drawer is `sparkpaw/dist/Stage5L-H4-HUD-Right-Fetch-
+Guard-HD/`; construction checks do not constitute presentation acceptance.
+
+Supplied FS-UAE/68030 testing immediately rejects H4: the complete HUD region
+is broadly corrupted across many lines. No H4 log was present when reviewed.
+The screenshot is catalogued as `Renderer Stage 5L-H4-rejected-fs-uae-68030-
+broad-hud-corruption.png` with matching sidecar. The H4 DDF/fetch-size relation
+was an invalid uncalibrated guess. More importantly, H3/H4 moved from an
+unknown boundary source to a HUD-fetch attribution that the evidence did not
+establish. Return to byte-identical alpha.43 Stage 5L. H1 and H2 only reject
+their narrow ordering/margin hypotheses; H3 and H4 are rejected branches, not
+progressively better baselines. Before another fix, use an isolated A/B
+localisation proof to distinguish final FRONT16/REAR8 shifter data, hardware
+sprite contribution and first-HUD-row state.
+
+Workspace delivery rule: MrDig mounts `sparkpaw/dist/` as the FS-UAE HD.
+Consequently every future user-facing HD proof or diagnostic drawer belongs
+directly under that directory, following the existing stage/checkpoint naming
+and including its executable, test ReadMe and required runtime assets. A drawer
+under `build/` or `build/test/` is an internal intermediate, not a deliverable.
+
+The user then supplied a 19.67-second FS-UAE/68030 MOV of the exact alpha.43
+production baseline while moving through the level. It is catalogued as
+`Renderer alpha43-rejected-fs-uae-68030-intermittent-left-transition-scanline-
+pixels.mov` with a matching sidecar. Consecutive-frame inspection localises the
+remaining symptom to a fixed far-left segment in the narrow dark transition/
+top-border scanline zone: Sparkpaw and the world scroll independently of it.
+This is not evidence of corruption in the authored HUD panel bitmap. It is
+consistent with residual or undercovered display data at the split, but the MOV
+cannot by itself identify FRONT16, REAR8, sprite-shifter or other Copper state.
+H3/H4 remain rejected; the next candidate must start from byte-identical
+alpha.43 and perform a source-isolation A/B proof before another geometry fix.
+
+Stage 5L-H5 implements that source-isolation proof as one HD drawer with two
+diagnostic executables. A neutralises all eight sprite control registers before
+the final gameplay scanline while leaving the alpha.43 bitplane/HUD split
+unchanged. B suppresses bitplane output across only the final gameplay and
+first HUD scanlines, leaves sprites live, and restores the original seven-plane
+dual-playfield state in the following horizontal blank. B's two-line black gap
+is intentional and is not a candidate presentation. Both use the exact release
+renderer flags plus diagnostics; no H1-H4 macro is enabled. Host tests pass,
+both outputs are AmigaOS executables, and the rebuilt production executable is
+still byte-identical with SHA-256
+`32fed6e8b0b9a2cbc2050fb1fb17a72ca9f8dc1b327652e115c6368a71365d62`.
+FS-UAE/68030 evidence is pending; H5 is not a fix or acceptance candidate.
+
+Supplied H5 FS-UAE/68030 testing reports that A (sprites off on the final
+playfield line) retains the original flickering pixels, while B (bitplanes off
+across the split) removes them but broadly corrupts the HUD. A logs 449/451
+one-field intervals (49.77 FPS); B logs 561/562 (49.91 FPS); both record zero
+ownership violations. This excludes normal hardware-sprite output and confirms
+that bitplane output is necessary, but B's BPLCON0 blackout also interrupts DMA
+and pointer progression, so it cannot separate FRONT16 from REAR8.
+
+H6 performs that separation without touching DMA, pointers, fetch or the HUD
+split. H6A blacks only palette entries 0..15 (FRONT16) on the final gameplay
+scanline; H6B blacks only entries 16..23 (REAR8). The standard alpha.43 HUD
+palette writes restore the fixed HUD. Each variant is packaged in its own
+self-contained `sparkpaw/dist/` drawer so each writes its own renderdiag.log.
+Host tests pass and production remains byte-identical at SHA-256
+`32fed6e8b0b9a2cbc2050fb1fb17a72ca9f8dc1b327652e115c6368a71365d62`.
+H6 FS-UAE/68030 evidence is pending.
+
+The user reports H6A seam flicker absent with no other visible corruption and
+H6B flicker present. H6A records 1,610/1,612 one-field intervals (49.93 FPS)
+and zero ownership violations; H6B records 418/418 (50.00 FPS) and zero
+violations. This accepts the FRONT16 final-transition-scanline palette mask as
+the FS-UAE/68030 seam solution and rejects REAR8 as the source. It does not
+claim ADF, Pocket or real-hardware acceptance.
+
+H7 promotes exactly that mask into `RELEASE_RENDERER_FLAGS`, with the original
+Stage 5L flags retained separately so rebuilding H5/H6 cannot contaminate their
+A/B meaning. The production-shaped H7 executable contains no diagnostic code,
+log writer or test input. Host tests pass; the normal build, H7 build product
+and packaged executable are byte-identical at SHA-256
+`b8c578c536ddc60728bcf4c4124a8a569a2cfbc01b5da91ac61263255f9ae544`.
+FS-UAE/68030 presentation of this non-diagnostic executable remains pending.
+
+The user then explicitly reports that the exact production-shaped H7 drawer
+looks good in FS-UAE/68030 HD. This accepts H7 presentation and the seam fix for
+that configuration only. ADF, Analogue Pocket and real-A1200 results remain
+unclaimed. The renderer seam phase is closed and Stage 2 of the whole-codebase
+68020 performance plan may begin; no hotspot optimization is authorized before
+the broad comparison table is complete.

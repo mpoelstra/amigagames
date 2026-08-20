@@ -50,7 +50,11 @@
 #define PLAYFIELD_FETCH_BYTES 44
 #define PLAYFIELD_GUARD_BYTES 0
 #endif
+#ifdef SPARKPAW_HUD_RIGHT_FETCH_GUARD
+#define HUD_FETCH_BYTES 48
+#else
 #define HUD_FETCH_BYTES 44
+#endif
 #else
 #define PLAYFIELD_FETCH_BYTES 42
 #define PLAYFIELD_GUARD_BYTES 0
@@ -375,6 +379,38 @@ static void buildCopper(void)
         cop[copPos++]=0xfffe;
         copperRearPalette(1,2,(UBYTE)i,8);
     }
+#if defined(SPARKPAW_HUD_SEAM_FRONT_BLACK)||defined(SPARKPAW_HUD_SEAM_ISOLATE_FRONT_PALETTE)||defined(SPARKPAW_HUD_SEAM_ISOLATE_REAR_PALETTE)
+    /* H6 changes colour lookup only after line 250's final fetch. Bitplane
+       DMA, shifters, pointers, modulos and the alpha.43 HUD split keep running
+       normally. The standard HUD palette writes below restore its colours. */
+    cop[copPos++]=(UWORD)(((44+HUD_TOP-2)<<8)|0xd1); cop[copPos++]=0xfffe;
+    cmove(0x106,0x1020);
+#if defined(SPARKPAW_HUD_SEAM_FRONT_BLACK)||defined(SPARKPAW_HUD_SEAM_ISOLATE_FRONT_PALETTE)
+    for(i=0;i<16;i++) cmove((UWORD)(0x180+i*2),0);
+#else
+    for(i=16;i<24;i++) cmove((UWORD)(0x180+i*2),0);
+#endif
+    cmove(0x106,0x1220);
+#if defined(SPARKPAW_HUD_SEAM_FRONT_BLACK)||defined(SPARKPAW_HUD_SEAM_ISOLATE_FRONT_PALETTE)
+    for(i=0;i<16;i++) cmove((UWORD)(0x180+i*2),0);
+#else
+    for(i=16;i<24;i++) cmove((UWORD)(0x180+i*2),0);
+#endif
+    cmove(0x106,0x1020);
+#endif
+#ifdef SPARKPAW_HUD_SEAM_ISOLATE_SPRITES
+    /* Diagnostic A: neutralise all sprite comparators before the final
+       gameplay scanline becomes visible. The next frame's normal Copper and
+       sprite DMA setup restores Stage 5L without touching the HUD split. */
+    cop[copPos++]=(UWORD)(((44+HUD_TOP-1)<<8)|0x01); cop[copPos++]=0xfffe;
+    for(i=0;i<TOTAL_SPRITE_CHANNELS;i++) cmove((UWORD)(0x142+i*8),0);
+#elif defined(SPARKPAW_HUD_SEAM_ISOLATE_BITPLANES)
+    /* Diagnostic B: suppress only bitplane output across the final gameplay
+       and first HUD scanlines. Sprite output remains live. Restore BPLCON0 in
+       the following horizontal blank, after the unmodified alpha.43 split. */
+    cop[copPos++]=(UWORD)(((44+HUD_TOP-1)<<8)|0x01); cop[copPos++]=0xfffe;
+    cmove(0x100,0x0000);
+#endif
     /* Switch before the PAL line-255 boundary to a fixed bottom HUD bitmap.
        The gameplay list restarts normally next frame, restoring the scrolling
        world pointers above it without a vertical-counter wrap sequence. */
@@ -384,6 +420,17 @@ static void buildCopper(void)
     /* DDFSTOP is 0xd0. Start immediately after that final gameplay fetch;
        Stage 4E's 0xd9 start left the last pointer change marginally late. */
     cop[copPos++]=(UWORD)(((44+HUD_TOP-1)<<8)|0xd1); cop[copPos++]=0xfffe;
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+    /* The authored HUD is a single three-plane bitmap. Stop carrying four
+       blank dual-playfield planes across the timing-critical split. */
+    cmove(0x100,0x3200);
+#endif
+#if defined(SPARKPAW_HUD_SEAM_FMODE_FIRST) && defined(SPARKPAW_AGA32_LEFT_GUARD)
+    /* Stage 5L's playfield-to-HUD transition has only the horizontal blank
+       after the final gameplay fetch. Restore the fixed HUD fetch mode as the
+       first MOVE in that window, before scroll, DDF and pointer state. */
+    cmove(0x1fc,0x0001);
+#endif
     /* Match the proven zero-world-offset fetch alignment. The candidate uses
        the equivalent 31-pixel AGA delay with a 44-byte longword fetch. */
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
@@ -399,11 +446,18 @@ static void buildCopper(void)
 #ifdef SPARKPAW_AGA32_LEFT_GUARD
     /* The HUD has no prefetch guard and already passed its boundary proof.
        Restore its original complete 44-byte fetch before replacing pointers. */
-    cmove(0x092,0x0030); cmove(0x094,0x00d0);
+    cmove(0x092,0x0030);
+#ifdef SPARKPAW_HUD_RIGHT_FETCH_GUARD
+    cmove(0x094,0x00d8);
+#elif !defined(SPARKPAW_HUD_SEAM_KEEP_DDFSTOP)
+    cmove(0x094,0x00d0);
+#endif
 #ifdef SPARKPAW_AGA64_PLAYER_SPRITE
     /* Sparkpaw stops above the fixed HUD. Restore the HUD's proven bitplane
        mode after the gameplay sprite DMA region has completed. */
+#ifndef SPARKPAW_HUD_SEAM_FMODE_FIRST
     cmove(0x1fc,0x0001);
+#endif
 #endif
 #endif
 #else
@@ -413,10 +467,20 @@ static void buildCopper(void)
     /* The fixed HUD keeps its accepted FMODE0 `$30..$d0` 42-byte fetch. */
     cmove(0x092,0x0030); cmove(0x094,0x00d0);
 #endif
-    for(i=0;i<WORLD_PLANES;i++) {
+    for(i=0;i<
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+        3
+#else
+        WORLD_PLANES
+#endif
+        ;i++) {
         const struct BitMap *display=hudDisplayBitmap();
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+        APTR value=(APTR)display->Planes[i];
+#else
         APTR value=(i&1)||(i==6)?(APTR)hudBlankPlane():
                     (APTR)display->Planes[i>>1];
+#endif
         ULONG p=(ULONG)value;
         UWORD reg=(UWORD)(0x0e0+i*4);
         cmove(reg,(UWORD)(p>>16)); hudPtrValue[i]=copPos-1;
@@ -437,6 +501,10 @@ static void buildCopper(void)
         cmove((UWORD)(0x180+i*2),amiga);
     }
     cmove(0x106,0x1020);
+#ifdef SPARKPAW_HUD_SEAM_ISOLATE_BITPLANES
+    cop[copPos++]=(UWORD)(((44+HUD_TOP)<<8)|0xd1); cop[copPos++]=0xfffe;
+    cmove(0x100,0x7600);
+#endif
     cop[copPos++]=0xffff; cop[copPos++]=0xfffe;
 }
 
@@ -943,9 +1011,19 @@ static void setHudPointers(void)
     WORD plane;
     hudSetState(health,game->lives,game->diamonds);
     display=hudDisplayBitmap();
-    for(plane=0;plane<WORLD_PLANES;plane++) {
+    for(plane=0;plane<
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+        3
+#else
+        WORLD_PLANES
+#endif
+        ;plane++) {
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+        APTR value=(APTR)display->Planes[plane];
+#else
         APTR value=(plane&1)||(plane==6)?(APTR)hudBlankPlane():
                     (APTR)display->Planes[plane>>1];
+#endif
         ULONG p=(ULONG)value; UWORD hi=hudPtrValue[plane];
         cop[hi]=(UWORD)(p>>16); cop[hi+2]=(UWORD)p;
     }
@@ -2001,7 +2079,12 @@ void rendererDiagnosticPublicationExit(UWORD line)
     diagnosticCurrent.hudIndex=hudDisplayIndex();
     for(i=0;i<WORLD_PLANES;i++) {
         diagnosticCurrent.worldPointers[i]=diagnosticPointer(ptrValue[i]);
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+        diagnosticCurrent.hudPointers[i]=i<3?
+            diagnosticPointer(hudPtrValue[i]):0;
+#else
         diagnosticCurrent.hudPointers[i]=diagnosticPointer(hudPtrValue[i]);
+#endif
     }
     for(i=0;i<MAX_ENEMIES;i++) {
         const struct Enemy *enemy=enemyAt(i);
@@ -2076,6 +2159,30 @@ void rendererWriteDiagnosticLog(void)
 #elif defined(SPARKPAW_AGA32_LEFT_GUARD)
 #ifdef SPARKPAW_AGA64_PLAYER_SPRITE
     FPrintf(file,"aga_fetch_candidate=stage5l-bpl32-left-guard-wide-player fmode=$0d ddf=$20..$d0 playfield_fetch_bytes=48 guard_bytes=4 sprite_width=64 sprite_channels=2 hud_fmode=1 hud_fetch_bytes=44\n");
+#ifdef SPARKPAW_HUD_SEAM_FMODE_FIRST
+#ifdef SPARKPAW_HUD_SEAM_KEEP_DDFSTOP
+#ifdef SPARKPAW_HUD_NATIVE_3PLANE
+#ifdef SPARKPAW_HUD_RIGHT_FETCH_GUARD
+    FPrintf(file,"hud_seam_candidate=stage5l-h4-native-three-plane-right-fetch-guard wait=$fbd1 bplcon0=$3200 sequence=bplcon0,fmode1,bplcon1,ddfstart30,ddfstopd8,three-hud-pointers hud_fetch_bytes=48 hud_line=252 bob_line=253\n");
+#else
+    FPrintf(file,"hud_seam_candidate=stage5l-h3-native-three-plane-hud wait=$fbd1 bplcon0=$3200 sequence=bplcon0,fmode1,bplcon1,ddfstart30,three-hud-pointers inherited_ddfstop=d0 hud_line=252 bob_line=253\n");
+#endif
+#else
+    FPrintf(file,"hud_seam_candidate=stage5l-h2-fmode-first-retain-ddfstop wait=$fbd1 sequence=fmode1,bplcon1,ddfstart30,hud-pointers inherited_ddfstop=d0 hud_line=252 bob_line=253\n");
+#endif
+#else
+    FPrintf(file,"hud_seam_candidate=fmode-first wait=$fbd1 sequence=fmode1,bplcon1,ddfstart30,ddfstopd0,hud-pointers hud_line=252 bob_line=253\n");
+#endif
+#endif
+#ifdef SPARKPAW_HUD_SEAM_ISOLATE_SPRITES
+    FPrintf(file,"hud_seam_isolation=h5-a-sprites-off final_playfield_line=251 hud_line=252 alpha43_split_unchanged\n");
+#elif defined(SPARKPAW_HUD_SEAM_ISOLATE_BITPLANES)
+    FPrintf(file,"hud_seam_isolation=h5-b-bitplanes-off blank_lines=251/252 restore_after_252 sprites_live alpha43_split_unchanged\n");
+#elif defined(SPARKPAW_HUD_SEAM_ISOLATE_FRONT_PALETTE)
+    FPrintf(file,"hud_seam_isolation=h6-a-front16-palette-black final_playfield_line=251 dma_and_pointers_unchanged\n");
+#elif defined(SPARKPAW_HUD_SEAM_ISOLATE_REAR_PALETTE)
+    FPrintf(file,"hud_seam_isolation=h6-b-rear8-palette-black final_playfield_line=251 dma_and_pointers_unchanged\n");
+#endif
 #else
     FPrintf(file,"aga_fetch_candidate=stage5g-bpl32-left-guard phase_plus16 fmode=1 playfield_fetch_bytes=48 guard_bytes=4 hud_fetch_bytes=44\n");
 #endif
