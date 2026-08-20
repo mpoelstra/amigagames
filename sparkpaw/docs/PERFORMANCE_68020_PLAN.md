@@ -83,7 +83,66 @@ Use repeatable scenes: empty grounded run, repeated jump/sprint, two Striders,
 two intersecting Striders, projectile maximum and water/collectible peak. Store
 median, 95th percentile and maximum rather than only one worst frame.
 
-## Stage 2: CPU/gameplay candidates
+## Stage 2: whole-codebase C hot-path audit
+
+Audit every C path that can run during loading-to-gameplay transition, a game
+tick, frame preparation or display publication. Do not assume `renderer.c` is
+the only or largest source of lost cadence. Cover at minimum:
+
+- `main.c`: loop cadence, repeated service calls, phase waits and publication;
+- `game.c`: update ordering, active/offscreen entity work and event dispatch;
+- `player.c`: physics, animation selection, collision and input state;
+- enemy, projectile, collectible and water simulation and collision paths;
+- `renderer.c`: ring maintenance, Copper patching, sprite staging and Bobs;
+- HUD updates, audio request/playback paths, input and Amiga platform helpers;
+- asset/cache preparation that may unexpectedly recur after `CHARGING`.
+
+For each runtime function, record or estimate call frequency per game tick and
+per presented frame. Inspect nested loops, maximum iteration counts, tiny or
+repeated memory copies, Chip-RAM versus Fast-RAM access, redundant calculations,
+offscreen/inactive scans, and CPU work that could overlap safely with the
+Blitter. Specifically search for multiplication, division and modulo, variable
+shifts, structure copies, signed widening, indirect calls and library/compiler
+runtime helpers that are disproportionately expensive on 68020/68030.
+
+Do not judge cost from C syntax alone. Compile representative production and
+diagnostic objects with the actual VBCC flags, inspect the generated 68k
+assembly and symbol sizes for suspicious functions, and confirm hypotheses with
+CIA-timer scopes. Add only narrowly targeted profiler slots; production must
+remain free of diagnostics. Record median, 95th percentile, maximum, calls per
+frame, target memory domain and whether cost is CPU time, Blitter wait or Chip-
+bus contention.
+
+Produce a ranked audit table before optimizing anything. Each entry must state:
+
+1. source/function and triggering scene;
+2. measured or bounded frequency and cost;
+3. evidence versus inference;
+4. proposed optimization and expected saving;
+5. visual/gameplay/timing risk and required regression gates.
+
+The five already identified candidates remain mandatory audit entries, but
+their final order is decided by comparable measurements across the whole game:
+
+1. up to about 4,992 two-byte `CopyMem` calls during one entering-column ring
+   update;
+2. the complete 1,536-byte inactive Copper-list copy on every game update;
+3. about 1,600 bytes of wide-player sprite image data recopied even when frame
+   and facing are unchanged;
+4. serialized per-plane Bob restore/draw operations and `WaitBlit` calls;
+5. player physics and collision work, including per-pixel `moveY()` and full-
+   sole/span scans.
+
+Also compare audio request generation with Paula playback. Repeated or absent
+effects under load may originate in input/update/event scheduling rather than
+the autonomous DMA playback itself. Instrument logical requests separately
+from channel starts without changing priority or sound contracts.
+
+An optimization may start outside `renderer.c` when the ranked evidence shows
+greater savings in gameplay, collision, audio, input or platform code. Change
+one measured cause per prototype so its effect remains attributable.
+
+## Stage 3: CPU/gameplay candidates
 
 The first measured hypothesis is vertical player collision. `moveY()` advances
 one pixel at a time and each step scans the 24-pixel sole through
@@ -102,7 +161,7 @@ Also measure before changing:
 Prefer lookup tables, shifts and tile-run queries only where profiles show a
 material cost. Keep simulation deterministic.
 
-## Static source audit after alpha.43
+### Initial static renderer findings after alpha.43
 
 Production and diagnostic binaries were compared before any source split. The
 normal executable contains none of the diagnostic strings or log writer and is
@@ -110,7 +169,8 @@ normal executable contains none of the diagnostic strings or log writer and is
 calls compile to no-ops without `SPARKPAW_RENDER_DIAGNOSTIC`. Moving those
 blocks to `renderer_diagnostics.c` improves reviewability, not frame rate.
 
-The first concrete candidates found in the actual hot path are:
+The first concrete renderer candidates found before the whole-codebase audit
+are:
 
 1. `prototypeCopyCanonicalSpan()` can issue about 4,992 two-byte `CopyMem`
    calls for one 16-pixel, 208-line entering-column update across three ring
@@ -133,7 +193,7 @@ diagnostics, then optionally split Copper, ring, Bob and sprite internals. Do
 not mix a file-boundary refactor with a timing change, and keep all rejected
 proof targets reproducible until their compact lessons are archived.
 
-## Stage 3: Blitter and Chip-bus candidates
+## Stage 4: Blitter and Chip-bus candidates
 
 Use the Hardware Reference Manual's channel-cost formula to predict each exact
 blit, then validate on the production display with seven bitplanes and sprites.
@@ -198,7 +258,7 @@ reuse requires vertical separation. Commodore's AA/CD32 material confirms
 32/64-pixel AGA sprites, attached sprites in all resolutions, dual four-plane
 playfields and independent FMODE controls for bitplane and sprite fetch width.
 
-## Stage 4: decision gates
+## Stage 5: decision gates
 
 - Gate A: bit-identical/visually accepted 68030 presentation.
 - Gate B: no new Strider, beetle, projectile, diamond, water or HUD corruption.
