@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 dynamic synchronization B: 68020 unrolled candidate
+
+Run Sparkpaw-B-Unrolled-68020 in FS-UAE/68020 and repeat the A route as closely
+as practical: opening area, diamonds, first water, fall and level reload. Check
+for any visual or gameplay difference and exit with the left mouse button.
+Leave renderdiag.log in this drawer.
+
+Compare ring_dynamic median, p95, average and maximum. Whole-run FPS is only a
+fair comparison if the routes and loads are similar. This is not ADF, Pocket,
+real-hardware or production acceptance.

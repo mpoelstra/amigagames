@@ -1,0 +1,13 @@
+Sparkpaw Stage 2 entering-column B: direct word-copy candidate
+
+B replaces only the thousands of tiny two-byte CopyMem calls used to populate
+new 16px ring columns. It reads each canonical word once and writes the same
+value to the same three clean and three display destinations. Ring geometry,
+origin, camera formulas, ownership and publication do not change.
+
+Run Sparkpaw-B-Word-Copy in FS-UAE/68030. Repeat A's long bidirectional scroll
+through many camera boundaries. Check for vertical strips, stale columns,
+wraps, jumps, corruption, HUD-seam changes and all objects. Exit with the left
+mouse button.
+
+FS-UAE/68030 presentation gate only; no production or hardware acceptance.

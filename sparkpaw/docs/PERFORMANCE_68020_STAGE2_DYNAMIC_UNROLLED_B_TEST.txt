@@ -1,0 +1,20 @@
+Sparkpaw Stage 2 dynamic synchronization B: unrolled fixed destinations
+
+Purpose
+-------
+B writes every canonical dynamic word to exactly the same three clean and
+three display ring destinations as A. Only the fixed three-copy inner loop is
+unrolled so the 68020 can avoid repeated loop, multiply and indexed-address
+work. Geometry, timing, ownership, animation and draw order are unchanged.
+
+Test
+----
+Run Sparkpaw-B-Unrolled in the normal FS-UAE/68030 configuration. Repeat the A
+route: opening area, hovering/collected diamonds and animated water. Check for
+any missing, stale, torn or duplicated pixels, plus the HUD seam, Sparkpaw,
+enemies and scrolling. Exit with the left mouse button.
+
+Acceptance boundary
+-------------------
+This is the FS-UAE/68030 presentation gate only. Do not infer 68020, ADF,
+Pocket, real-hardware or production acceptance.

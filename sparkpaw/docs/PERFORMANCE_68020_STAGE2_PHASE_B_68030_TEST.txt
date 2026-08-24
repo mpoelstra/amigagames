@@ -1,0 +1,14 @@
+Sparkpaw Stage 2 phase-start B — FS-UAE/68030 HD
+
+Candidate. This removes only the wait from the fixed publication boundary to
+PAL raster line 100. Update, Copper patching and inactive-target Bob composition
+start immediately after publication. Target ownership, publication, render
+order, assets, physics and gameplay are unchanged.
+
+Run from this drawer and repeat the same route as A for at least two minutes:
+both directions, jumps, enemies, projectiles, diamonds and animated water.
+Check all graphics, the HUD seam, animation, audio and controls especially
+carefully. Press the left mouse button once to finish and write
+PROGDIR:renderdiag.log.
+
+This is an FS-UAE/68030 presentation gate only. It claims no acceptance.

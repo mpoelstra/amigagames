@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 phase-start A — FS-UAE/68030 HD
+
+Reference. This keeps the accepted main-loop gate at PAL raster line 100.
+
+Run from this drawer, play for at least two minutes, run in both directions,
+jump, meet enemies, fire projectiles, pass diamonds and reach animated water.
+Check all graphics, the HUD seam, animation, audio and controls. Press the left
+mouse button once to finish and write PROGDIR:renderdiag.log.
+
+This is an FS-UAE/68030 presentation gate only. It claims no acceptance.

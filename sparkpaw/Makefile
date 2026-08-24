@@ -12,7 +12,7 @@ STAGE5L_RENDERER_FLAGS = -DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
 	-DSPARKPAW_AGA32_FETCH_CANDIDATE -DSPARKPAW_AGA32_ORIGIN_CORRECTED \
 	-DSPARKPAW_AGA32_LEFT_GUARD -DSPARKPAW_AGA64_PLAYER_SPRITE
 RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) \
-	-DSPARKPAW_HUD_SEAM_FRONT_BLACK
+	-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
@@ -26,6 +26,34 @@ HUD_SEAM_H5_BITPLANE_ISOLATION_TARGET = build/sparkpaw-hud-seam-h5-bitplanes-off
 HUD_SEAM_H6_FRONT_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-front16-black
 HUD_SEAM_H6_REAR_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-rear8-black
 HUD_SEAM_H7_PRODUCTION_TARGET = build/sparkpaw-hud-seam-h7-production
+STAGE2_PROFILE_TARGET = build/sparkpaw-stage2-profile
+STAGE2_DYNAMIC_REFERENCE_TARGET = build/sparkpaw-stage2-dynamic-reference
+STAGE2_DYNAMIC_WORD_COPY_TARGET = build/sparkpaw-stage2-dynamic-word-copy
+STAGE2_DYNAMIC_UNROLLED_TARGET = build/sparkpaw-stage2-dynamic-unrolled
+STAGE2_CANONICAL_REFERENCE_TARGET = build/sparkpaw-stage2-canonical-reference
+STAGE2_CANONICAL_WORD_TARGET = build/sparkpaw-stage2-canonical-word-copy
+STAGE2_COLLISION_REFERENCE_TARGET = build/sparkpaw-stage2-collision-pixel
+STAGE2_COLLISION_TILE_TARGET = build/sparkpaw-stage2-collision-tile
+STAGE2_ENEMY_CACHE_WORD_TARGET = build/sparkpaw-stage2-enemy-cache-word
+STAGE2_PLAYER_SPRITE_WORD_TARGET = build/sparkpaw-stage2-player-sprite-word
+STAGE2_SPRITE_STAGE_REFERENCE_TARGET = build/sparkpaw-stage2-sprite-stage-reference
+STAGE2_SPRITE_STAGE_CACHE_TARGET = build/sparkpaw-stage2-sprite-stage-cache
+STAGE2_RING_REACH_REFERENCE_TARGET = build/sparkpaw-stage2-ring-all-copies
+STAGE2_RING_REACH_CANDIDATE_TARGET = build/sparkpaw-stage2-ring-fetch-copies
+STAGE2_COPPER_COPY_REFERENCE_TARGET = build/sparkpaw-stage2-copper-full-copy
+STAGE2_COPPER_PATCH_TARGET = build/sparkpaw-stage2-copper-patch-only
+STAGE2_COLUMN_CPU_TARGET = build/sparkpaw-stage2-column-cpu
+STAGE2_COLUMN_BLIT_TARGET = build/sparkpaw-stage2-column-multiplane-blit
+STAGE2_CANONICAL_RESTORE_TARGET = build/sparkpaw-stage2-canonical-restore
+STAGE2_TARGET_CLEAN_REFERENCE_TARGET = build/sparkpaw-stage2-target-clean-reference
+STAGE2_ENEMY_COPY_REFERENCE_TARGET = build/sparkpaw-stage2-enemy-copy-reference
+STAGE2_ENEMY_COPY_ON_UNLOAD_TARGET = build/sparkpaw-stage2-enemy-copy-on-unload
+STAGE2_HAZARD_SCAN_REFERENCE_TARGET = build/sparkpaw-stage2-hazard-scan-reference
+STAGE2_HAZARD_CACHE_TARGET = build/sparkpaw-stage2-hazard-cache
+STAGE2_PHASE_LINE100_TARGET = build/sparkpaw-stage2-phase-line100
+STAGE2_PHASE_IMMEDIATE_TARGET = build/sparkpaw-stage2-phase-immediate
+STAGE2_COLLECTIBLE_CANONICAL_TARGET = build/sparkpaw-stage2-collectible-canonical
+STAGE2_COLLECTIBLE_H4_TARGET = build/sparkpaw-stage2-collectible-h4
 RENDER_DIAG_ADF_TARGET = build/sparkpaw-renderdiag-adf
 ADF_FRONT_ASSET = build/adf-assets/storm-front.spr1
 ADF_REAR_ASSET = build/adf-assets/storm-rear.spr1
@@ -53,7 +81,7 @@ SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/colli
 	src/title.c
 HEADERS = src/assets.h src/audio.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
-	src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
+	src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \
@@ -80,7 +108,21 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean test assets release bench bench-package aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package renderdiag renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package visual-slice-proof adf-report phase6-memory
+.PHONY: all clean test assets release bench bench-package renderdiag
+.PHONY: aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package
+.PHONY: aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package
+.PHONY: renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package
+.PHONY: stage2-profile-package stage2-profile-68020-package stage2-loading-profile-package stage2-setup-breakdown-package stage2-enemy-cache-word-68030-package stage2-enemy-cache-word-68020-package stage2-player-sprite-word-68030-package stage2-player-sprite-word-68020-package
+.PHONY: stage2-dynamic-word-copy-ab-package stage2-dynamic-word-copy-68020-ab-package stage2-dynamic-unrolled-68030-ab-package stage2-dynamic-unrolled-68020-ab-package stage2-canonical-word-68030-ab-package stage2-canonical-word-68020-ab-package stage2-collision-tile-68030-ab-package stage2-collision-tile-68020-ab-package stage2-sprite-stage-cache-68030-ab-package stage2-sprite-stage-cache-68020-ab-package stage2-ring-reach-68030-ab-package stage2-ring-reach-68020-ab-package stage2-ring-reach-h3-68030-package
+.PHONY: stage2-copper-patch-68030-ab-package stage2-copper-patch-68020-ab-package
+.PHONY: stage2-column-blit-68030-ab-package stage2-column-blit-68020-ab-package
+.PHONY: stage2-column-layout-probe-package
+.PHONY: stage2-canonical-restore-68030-ab-package stage2-canonical-restore-68020-ab-package stage2-canonical-restore-production-68030-package
+.PHONY: stage2-enemy-copy-on-unload-68030-ab-package stage2-enemy-copy-on-unload-68020-ab-package
+.PHONY: stage2-hazard-cache-68030-ab-package stage2-hazard-cache-68020-ab-package
+.PHONY: stage2-phase-start-68030-ab-package stage2-phase-start-68020-ab-package
+.PHONY: stage2-collectible-h4-68030-ab-package stage2-collectible-h4-68020-ab-package
+.PHONY: visual-slice-proof adf-report phase6-memory
 
 all: assets $(TARGET)
 
@@ -105,6 +147,16 @@ test:
 	build/host-tests/test-frame-phase
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-rolling-renderer-contract tests/test_rolling_renderer_contract.c
 	build/host-tests/test-rolling-renderer-contract
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-enemy-cache-word-conversion tests/test_enemy_cache_word_conversion.c
+	build/host-tests/test-enemy-cache-word-conversion
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-player-sprite-word-conversion tests/test_player_sprite_word_conversion.c
+	build/host-tests/test-player-sprite-word-conversion
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-collision-tile-spans tests/test_collision_tile_spans.c
+	build/host-tests/test-collision-tile-spans
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-sprite-stage-cache tests/test_sprite_stage_cache.c
+	build/host-tests/test-sprite-stage-cache
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-collision-hazard-cache tests/test_collision_hazard_cache.c
+	build/host-tests/test-collision-hazard-cache
 
 bench: $(BENCH_TARGETS)
 
@@ -414,6 +466,322 @@ hud-seam-h7-production-package: assets $(HUD_SEAM_H7_PRODUCTION_TARGET)
 	cp $(RUNTIME_ASSETS) dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/assets/runtime/
 	cp docs/HUD_SEAM_H7_PRODUCTION_TEST.txt dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/ReadMe.txt
 
+stage2-profile-package: assets $(STAGE2_PROFILE_TARGET)
+	@mkdir -p dist/Stage2-Whole-Codebase-Profiler-HD/assets/runtime
+	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-Whole-Codebase-Profiler-HD/Sparkpaw-Stage2-Profiler
+	cp $(RUNTIME_ASSETS) dist/Stage2-Whole-Codebase-Profiler-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PROFILE_TEST.txt dist/Stage2-Whole-Codebase-Profiler-HD/ReadMe.txt
+
+stage2-profile-68020-package: assets $(STAGE2_PROFILE_TARGET)
+	@mkdir -p dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/Sparkpaw-Stage2-Profiler-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PROFILE_68020_TEST.txt dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-loading-profile-package: assets $(STAGE2_PROFILE_TARGET)
+	@mkdir -p dist/Stage2-CHARGING-Profiler-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-CHARGING-Profiler-FS-UAE-68020-HD/Sparkpaw-CHARGING-Profiler
+	cp $(RUNTIME_ASSETS) dist/Stage2-CHARGING-Profiler-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_LOADING_PROFILE_TEST.txt dist/Stage2-CHARGING-Profiler-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-setup-breakdown-package: assets $(STAGE2_PROFILE_TARGET)
+	@mkdir -p dist/Stage2-CHARGING-Setup-Breakdown-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-CHARGING-Setup-Breakdown-FS-UAE-68020-HD/Sparkpaw-Setup-Breakdown
+	cp $(RUNTIME_ASSETS) dist/Stage2-CHARGING-Setup-Breakdown-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_SETUP_BREAKDOWN_TEST.txt dist/Stage2-CHARGING-Setup-Breakdown-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-enemy-cache-word-68030-package: assets $(STAGE2_ENEMY_CACHE_WORD_TARGET)
+	@mkdir -p dist/Stage2-Enemy-Cache-H2-Guard-Corrected-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_ENEMY_CACHE_WORD_TARGET) dist/Stage2-Enemy-Cache-H2-Guard-Corrected-FS-UAE-68030-HD/Sparkpaw-Enemy-Cache-H2
+	cp $(RUNTIME_ASSETS) dist/Stage2-Enemy-Cache-H2-Guard-Corrected-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_ENEMY_CACHE_WORD_68030_TEST.txt dist/Stage2-Enemy-Cache-H2-Guard-Corrected-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-enemy-cache-word-68020-package: assets $(STAGE2_ENEMY_CACHE_WORD_TARGET)
+	@mkdir -p dist/Stage2-Enemy-Cache-H2-Loading-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_ENEMY_CACHE_WORD_TARGET) dist/Stage2-Enemy-Cache-H2-Loading-FS-UAE-68020-HD/Sparkpaw-Enemy-Cache-H2-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Enemy-Cache-H2-Loading-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_ENEMY_CACHE_WORD_68020_TEST.txt dist/Stage2-Enemy-Cache-H2-Loading-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-player-sprite-word-68030-package: assets $(STAGE2_PLAYER_SPRITE_WORD_TARGET)
+	@mkdir -p dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_PLAYER_SPRITE_WORD_TARGET) dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68030-HD/Sparkpaw-Player-Sprite-Cache-Word
+	cp $(RUNTIME_ASSETS) dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PLAYER_SPRITE_WORD_68030_TEST.txt dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-player-sprite-word-68020-package: assets $(STAGE2_PLAYER_SPRITE_WORD_TARGET)
+	@mkdir -p dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_PLAYER_SPRITE_WORD_TARGET) dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68020-HD/Sparkpaw-Player-Sprite-Cache-Word-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PLAYER_SPRITE_WORD_68020_TEST.txt dist/Stage2-Player-Sprite-Cache-Word-Copy-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-dynamic-unrolled-68030-ab-package: assets $(STAGE2_DYNAMIC_WORD_COPY_TARGET) $(STAGE2_DYNAMIC_UNROLLED_TARGET)
+	@mkdir -p dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_DYNAMIC_WORD_COPY_TARGET) dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68030-HD/Sparkpaw-A-Indexed
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_UNROLLED_A_TEST.txt dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_DYNAMIC_UNROLLED_TARGET) dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68030-HD/Sparkpaw-B-Unrolled
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_UNROLLED_B_TEST.txt dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-dynamic-unrolled-68020-ab-package: assets $(STAGE2_DYNAMIC_WORD_COPY_TARGET) $(STAGE2_DYNAMIC_UNROLLED_TARGET)
+	@mkdir -p dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_DYNAMIC_WORD_COPY_TARGET) dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68020-HD/Sparkpaw-A-Indexed-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_UNROLLED_68020_A_TEST.txt dist/Stage2-Dynamic-Sync-A-Indexed-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_DYNAMIC_UNROLLED_TARGET) dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68020-HD/Sparkpaw-B-Unrolled-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_UNROLLED_68020_B_TEST.txt dist/Stage2-Dynamic-Sync-B-Unrolled-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-canonical-word-68030-ab-package: assets $(STAGE2_CANONICAL_REFERENCE_TARGET) $(STAGE2_CANONICAL_WORD_TARGET)
+	@mkdir -p dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_CANONICAL_REFERENCE_TARGET) dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68030-HD/Sparkpaw-A-CopyMem
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_COPYMEM_68030_TEST.txt dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_CANONICAL_WORD_TARGET) dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68030-HD/Sparkpaw-B-Word-Copy
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_WORD_68030_TEST.txt dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-canonical-word-68020-ab-package: assets $(STAGE2_CANONICAL_REFERENCE_TARGET) $(STAGE2_CANONICAL_WORD_TARGET)
+	@mkdir -p dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_CANONICAL_REFERENCE_TARGET) dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68020-HD/Sparkpaw-A-CopyMem-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_COPYMEM_68020_TEST.txt dist/Stage2-Ring-Roll-A-CopyMem-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_CANONICAL_WORD_TARGET) dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68020-HD/Sparkpaw-B-Word-Copy-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_WORD_68020_TEST.txt dist/Stage2-Ring-Roll-B-Word-Copy-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-collision-tile-68030-ab-package: assets $(STAGE2_COLLISION_REFERENCE_TARGET) $(STAGE2_COLLISION_TILE_TARGET)
+	@mkdir -p dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_COLLISION_REFERENCE_TARGET) dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68030-HD/Sparkpaw-A-Pixel-Spans
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLISION_PIXEL_68030_TEST.txt dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_COLLISION_TILE_TARGET) dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68030-HD/Sparkpaw-B-Tile-Spans
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLISION_TILE_68030_TEST.txt dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-collision-tile-68020-ab-package: assets $(STAGE2_COLLISION_REFERENCE_TARGET) $(STAGE2_COLLISION_TILE_TARGET)
+	@mkdir -p dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_COLLISION_REFERENCE_TARGET) dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68020-HD/Sparkpaw-A-Pixel-Spans-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLISION_PIXEL_68020_TEST.txt dist/Stage2-Collision-A-Pixel-Spans-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_COLLISION_TILE_TARGET) dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68020-HD/Sparkpaw-B-Tile-Spans-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLISION_TILE_68020_TEST.txt dist/Stage2-Collision-B-Tile-Spans-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-sprite-stage-cache-68030-ab-package: assets $(STAGE2_SPRITE_STAGE_REFERENCE_TARGET) $(STAGE2_SPRITE_STAGE_CACHE_TARGET)
+	@mkdir -p dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_SPRITE_STAGE_REFERENCE_TARGET) dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68030-HD/Sparkpaw-A-Always-Copy
+	cp $(RUNTIME_ASSETS) dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_SPRITE_STAGE_REFERENCE_68030_TEST.txt dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_SPRITE_STAGE_CACHE_TARGET) dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68030-HD/Sparkpaw-B-Pose-Cache
+	cp $(RUNTIME_ASSETS) dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_SPRITE_STAGE_CACHE_68030_TEST.txt dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-sprite-stage-cache-68020-ab-package: assets $(STAGE2_SPRITE_STAGE_REFERENCE_TARGET) $(STAGE2_SPRITE_STAGE_CACHE_TARGET)
+	@mkdir -p dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_SPRITE_STAGE_REFERENCE_TARGET) dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68020-HD/Sparkpaw-A-Always-Copy-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_SPRITE_STAGE_REFERENCE_68020_TEST.txt dist/Stage2-Sprite-Stage-A-Always-Copy-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_SPRITE_STAGE_CACHE_TARGET) dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68020-HD/Sparkpaw-B-Pose-Cache-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_SPRITE_STAGE_CACHE_68020_TEST.txt dist/Stage2-Sprite-Stage-B-Pose-Cache-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-ring-reach-68030-ab-package: assets $(STAGE2_RING_REACH_REFERENCE_TARGET) $(STAGE2_RING_REACH_CANDIDATE_TARGET)
+	@mkdir -p dist/Stage2-Ring-Reach-A-All-Copies-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Ring-Reach-B-Fetch-Copies-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_RING_REACH_REFERENCE_TARGET) dist/Stage2-Ring-Reach-A-All-Copies-FS-UAE-68030-HD/Sparkpaw-A-All-Copies
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Reach-A-All-Copies-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RING_REACH_REFERENCE_68030_TEST.txt dist/Stage2-Ring-Reach-A-All-Copies-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_RING_REACH_CANDIDATE_TARGET) dist/Stage2-Ring-Reach-B-Fetch-Copies-FS-UAE-68030-HD/Sparkpaw-B-Fetch-Copies
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Reach-B-Fetch-Copies-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RING_REACH_CANDIDATE_68030_TEST.txt dist/Stage2-Ring-Reach-B-Fetch-Copies-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-ring-reach-h3-68030-package: assets $(STAGE2_RING_REACH_CANDIDATE_TARGET)
+	@mkdir -p dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_RING_REACH_CANDIDATE_TARGET) dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68030-HD/Sparkpaw-H3-B-Postincrement-68030
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RING_REACH_H3_68030_TEST.txt dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-copper-patch-68030-ab-package: assets $(STAGE2_COPPER_COPY_REFERENCE_TARGET) $(STAGE2_COPPER_PATCH_TARGET)
+	@mkdir -p dist/Stage2-Copper-A-Full-Copy-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Copper-B-Patch-Only-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_COPPER_COPY_REFERENCE_TARGET) dist/Stage2-Copper-A-Full-Copy-FS-UAE-68030-HD/Sparkpaw-A-Full-Copper-Copy
+	cp $(RUNTIME_ASSETS) dist/Stage2-Copper-A-Full-Copy-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COPPER_COPY_68030_TEST.txt dist/Stage2-Copper-A-Full-Copy-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_COPPER_PATCH_TARGET) dist/Stage2-Copper-B-Patch-Only-FS-UAE-68030-HD/Sparkpaw-B-Copper-Patch-Only
+	cp $(RUNTIME_ASSETS) dist/Stage2-Copper-B-Patch-Only-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COPPER_PATCH_68030_TEST.txt dist/Stage2-Copper-B-Patch-Only-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-copper-patch-68020-ab-package: assets $(STAGE2_COPPER_COPY_REFERENCE_TARGET) $(STAGE2_COPPER_PATCH_TARGET)
+	@mkdir -p dist/Stage2-Copper-A-Full-Copy-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Copper-B-Patch-Only-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_COPPER_COPY_REFERENCE_TARGET) dist/Stage2-Copper-A-Full-Copy-FS-UAE-68020-HD/Sparkpaw-A-Full-Copper-Copy-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Copper-A-Full-Copy-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COPPER_COPY_68020_TEST.txt dist/Stage2-Copper-A-Full-Copy-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_COPPER_PATCH_TARGET) dist/Stage2-Copper-B-Patch-Only-FS-UAE-68020-HD/Sparkpaw-B-Copper-Patch-Only-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Copper-B-Patch-Only-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COPPER_PATCH_68020_TEST.txt dist/Stage2-Copper-B-Patch-Only-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-column-blit-68030-ab-package: assets $(STAGE2_COLUMN_CPU_TARGET) $(STAGE2_COLUMN_BLIT_TARGET)
+	@mkdir -p dist/Stage2-Column-H3-A-CPU-Words-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Column-H3-B-Split-Blit-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_COLUMN_CPU_TARGET) dist/Stage2-Column-H3-A-CPU-Words-FS-UAE-68030-HD/Sparkpaw-H3-A-CPU-Words
+	cp $(RUNTIME_ASSETS) dist/Stage2-Column-H3-A-CPU-Words-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLUMN_CPU_68030_TEST.txt dist/Stage2-Column-H3-A-CPU-Words-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_COLUMN_BLIT_TARGET) dist/Stage2-Column-H3-B-Split-Blit-FS-UAE-68030-HD/Sparkpaw-H3-B-Split-Blit
+	cp $(RUNTIME_ASSETS) dist/Stage2-Column-H3-B-Split-Blit-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLUMN_SPLIT_BLIT_68030_TEST.txt dist/Stage2-Column-H3-B-Split-Blit-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-column-layout-probe-package: assets $(STAGE2_COLUMN_BLIT_TARGET)
+	@mkdir -p dist/Stage2-Column-H2-Plane-Layout-Probe-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_COLUMN_BLIT_TARGET) dist/Stage2-Column-H2-Plane-Layout-Probe-FS-UAE-68030-HD/Sparkpaw-H2-Plane-Layout-Probe
+	cp $(RUNTIME_ASSETS) dist/Stage2-Column-H2-Plane-Layout-Probe-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLUMN_LAYOUT_PROBE.txt dist/Stage2-Column-H2-Plane-Layout-Probe-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-canonical-restore-68030-ab-package: assets $(STAGE2_TARGET_CLEAN_REFERENCE_TARGET) $(STAGE2_CANONICAL_RESTORE_TARGET)
+	@mkdir -p dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_TARGET_CLEAN_REFERENCE_TARGET) dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68030-HD/Sparkpaw-A-Clean-Targets
+	cp $(RUNTIME_ASSETS) dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_RESTORE_A_68030_TEST.txt dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_CANONICAL_RESTORE_TARGET) dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68030-HD/Sparkpaw-B-Display-Only
+	cp $(RUNTIME_ASSETS) dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_RESTORE_B_68030_TEST.txt dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-canonical-restore-68020-ab-package: assets $(STAGE2_TARGET_CLEAN_REFERENCE_TARGET) $(STAGE2_CANONICAL_RESTORE_TARGET)
+	@mkdir -p dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_TARGET_CLEAN_REFERENCE_TARGET) dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68020-HD/Sparkpaw-A-Clean-Targets-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_RESTORE_A_68020_TEST.txt dist/Stage2-Canonical-Restore-A-Clean-Targets-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_CANONICAL_RESTORE_TARGET) dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68020-HD/Sparkpaw-B-Display-Only-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_RESTORE_B_68020_TEST.txt dist/Stage2-Canonical-Restore-B-Display-Only-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-canonical-restore-production-68030-package: assets $(STAGE2_CANONICAL_RESTORE_TARGET)
+	@mkdir -p dist/Stage2-Canonical-Restore-Production-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_CANONICAL_RESTORE_TARGET) dist/Stage2-Canonical-Restore-Production-FS-UAE-68030-HD/Sparkpaw-Canonical-Restore-Production
+	cp $(RUNTIME_ASSETS) dist/Stage2-Canonical-Restore-Production-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_CANONICAL_RESTORE_PRODUCTION_68030_TEST.txt dist/Stage2-Canonical-Restore-Production-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-enemy-copy-on-unload-68030-ab-package: assets $(STAGE2_ENEMY_COPY_REFERENCE_TARGET) $(STAGE2_ENEMY_COPY_ON_UNLOAD_TARGET)
+	@mkdir -p dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_ENEMY_COPY_REFERENCE_TARGET) dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68030-HD/Sparkpaw-A-Copy-Every-Tick
+	cp $(RUNTIME_ASSETS) dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_ENEMY_COPY_A_68030_TEST.txt dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_ENEMY_COPY_ON_UNLOAD_TARGET) dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68030-HD/Sparkpaw-B-Copy-On-Unload
+	cp $(RUNTIME_ASSETS) dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_ENEMY_COPY_B_68030_TEST.txt dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-enemy-copy-on-unload-68020-ab-package: assets $(STAGE2_ENEMY_COPY_REFERENCE_TARGET) $(STAGE2_ENEMY_COPY_ON_UNLOAD_TARGET)
+	@mkdir -p dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_ENEMY_COPY_REFERENCE_TARGET) dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68020-HD/Sparkpaw-A-Copy-Every-Tick-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_ENEMY_COPY_A_68020_TEST.txt dist/Stage2-Enemy-State-A-Copy-Every-Tick-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_ENEMY_COPY_ON_UNLOAD_TARGET) dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68020-HD/Sparkpaw-B-Copy-On-Unload-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_ENEMY_COPY_B_68020_TEST.txt dist/Stage2-Enemy-State-B-Copy-On-Unload-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-hazard-cache-68030-ab-package: assets $(STAGE2_HAZARD_SCAN_REFERENCE_TARGET) $(STAGE2_HAZARD_CACHE_TARGET)
+	@mkdir -p dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_HAZARD_SCAN_REFERENCE_TARGET) dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68030-HD/Sparkpaw-A-Boundary-Scan
+	cp $(RUNTIME_ASSETS) dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_HAZARD_CACHE_A_68030_TEST.txt dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_HAZARD_CACHE_TARGET) dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68030-HD/Sparkpaw-B-Column-Cache
+	cp $(RUNTIME_ASSETS) dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_HAZARD_CACHE_B_68030_TEST.txt dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-hazard-cache-68020-ab-package: assets $(STAGE2_HAZARD_SCAN_REFERENCE_TARGET) $(STAGE2_HAZARD_CACHE_TARGET)
+	@mkdir -p dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_HAZARD_SCAN_REFERENCE_TARGET) dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68020-HD/Sparkpaw-A-Boundary-Scan-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_HAZARD_CACHE_A_68020_TEST.txt dist/Stage2-Hazard-A-Boundary-Scan-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_HAZARD_CACHE_TARGET) dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68020-HD/Sparkpaw-B-Column-Cache-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_HAZARD_CACHE_B_68020_TEST.txt dist/Stage2-Hazard-B-Column-Cache-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-phase-start-68030-ab-package: assets $(STAGE2_PHASE_LINE100_TARGET) $(STAGE2_PHASE_IMMEDIATE_TARGET)
+	@mkdir -p dist/Stage2-Phase-A-Line100-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Phase-B-Immediate-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_PHASE_LINE100_TARGET) dist/Stage2-Phase-A-Line100-FS-UAE-68030-HD/Sparkpaw-A-Line100
+	cp $(RUNTIME_ASSETS) dist/Stage2-Phase-A-Line100-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PHASE_A_68030_TEST.txt dist/Stage2-Phase-A-Line100-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_PHASE_IMMEDIATE_TARGET) dist/Stage2-Phase-B-Immediate-FS-UAE-68030-HD/Sparkpaw-B-Immediate
+	cp $(RUNTIME_ASSETS) dist/Stage2-Phase-B-Immediate-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PHASE_B_68030_TEST.txt dist/Stage2-Phase-B-Immediate-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-phase-start-68020-ab-package: assets $(STAGE2_PHASE_LINE100_TARGET) $(STAGE2_PHASE_IMMEDIATE_TARGET)
+	@mkdir -p dist/Stage2-Phase-A-Line100-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Phase-B-Immediate-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_PHASE_LINE100_TARGET) dist/Stage2-Phase-A-Line100-FS-UAE-68020-HD/Sparkpaw-A-Line100-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Phase-A-Line100-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PHASE_A_68020_TEST.txt dist/Stage2-Phase-A-Line100-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_PHASE_IMMEDIATE_TARGET) dist/Stage2-Phase-B-Immediate-FS-UAE-68020-HD/Sparkpaw-B-Immediate-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Phase-B-Immediate-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_PHASE_B_68020_TEST.txt dist/Stage2-Phase-B-Immediate-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-collectible-h4-68030-ab-package: assets $(STAGE2_COLLECTIBLE_CANONICAL_TARGET) $(STAGE2_COLLECTIBLE_H4_TARGET)
+	@mkdir -p dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_COLLECTIBLE_CANONICAL_TARGET) dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68030-HD/Sparkpaw-H4-A-Canonical
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLECTIBLE_H4_A_68030_TEST.txt dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_COLLECTIBLE_H4_TARGET) dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68030-HD/Sparkpaw-H4-B-Always-Redraw
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLECTIBLE_H4_B_68030_TEST.txt dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-collectible-h4-68020-ab-package: assets $(STAGE2_COLLECTIBLE_CANONICAL_TARGET) $(STAGE2_COLLECTIBLE_H4_TARGET)
+	@mkdir -p dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_COLLECTIBLE_CANONICAL_TARGET) dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68020-HD/Sparkpaw-H4-A-Canonical-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLECTIBLE_H4_A_68020_TEST.txt dist/Stage2-Collectible-H4-A-Canonical-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_COLLECTIBLE_H4_TARGET) dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68020-HD/Sparkpaw-H4-B-Always-Redraw-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_COLLECTIBLE_H4_B_68020_TEST.txt dist/Stage2-Collectible-H4-B-Always-Redraw-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-ring-reach-68020-ab-package: assets $(STAGE2_RING_REACH_REFERENCE_TARGET) $(STAGE2_RING_REACH_CANDIDATE_TARGET)
+	@mkdir -p dist/Stage2-Ring-Reach-H3-A-All-Copies-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_RING_REACH_REFERENCE_TARGET) dist/Stage2-Ring-Reach-H3-A-All-Copies-FS-UAE-68020-HD/Sparkpaw-H3-A-All-Copies-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Reach-H3-A-All-Copies-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RING_REACH_REFERENCE_68020_TEST.txt dist/Stage2-Ring-Reach-H3-A-All-Copies-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_RING_REACH_CANDIDATE_TARGET) dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68020-HD/Sparkpaw-H3-B-Postincrement-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RING_REACH_H3_68020_TEST.txt dist/Stage2-Ring-Reach-H3-B-Postincrement-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-dynamic-word-copy-ab-package: assets $(STAGE2_DYNAMIC_REFERENCE_TARGET) $(STAGE2_DYNAMIC_WORD_COPY_TARGET)
+	@mkdir -p dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68030-HD/assets/runtime
+	cp $(STAGE2_DYNAMIC_REFERENCE_TARGET) dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68030-HD/Sparkpaw-A-Reference
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_REFERENCE_TEST.txt dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_DYNAMIC_WORD_COPY_TARGET) dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68030-HD/Sparkpaw-B-Word-Copy
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_WORD_COPY_TEST.txt dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68030-HD/ReadMe.txt
+
+stage2-dynamic-word-copy-68020-ab-package: assets $(STAGE2_DYNAMIC_REFERENCE_TARGET) $(STAGE2_DYNAMIC_WORD_COPY_TARGET)
+	@mkdir -p dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68020-HD/assets/runtime
+	@mkdir -p dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_DYNAMIC_REFERENCE_TARGET) dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68020-HD/Sparkpaw-A-Reference-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_REFERENCE_68020_TEST.txt dist/Stage2-Dynamic-Sync-A-Reference-FS-UAE-68020-HD/ReadMe.txt
+	cp $(STAGE2_DYNAMIC_WORD_COPY_TARGET) dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68020-HD/Sparkpaw-B-Word-Copy-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_DYNAMIC_WORD_COPY_68020_TEST.txt dist/Stage2-Dynamic-Sync-B-Word-Copy-FS-UAE-68020-HD/ReadMe.txt
+
 aga32-gameplay-corrected-package: renderdiag
 	@mkdir -p dist/Stage5E-AGA32-Corrected-Gameplay-HD/assets/runtime
 	cp $(RENDER_DIAG_TARGET) dist/Stage5E-AGA32-Corrected-Gameplay-HD/Sparkpaw-Renderdiag
@@ -521,6 +889,184 @@ $(HUD_SEAM_H6_REAR_ISOLATION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_A
 $(HUD_SEAM_H7_PRODUCTION_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_PROFILE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC $(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+$(STAGE2_DYNAMIC_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+$(STAGE2_DYNAMIC_WORD_COPY_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_DYNAMIC_RING_INDEXED_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_DYNAMIC_UNROLLED_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_CANONICAL_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_CANONICAL_RING_COPYMEM_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_CANONICAL_WORD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COLLISION_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_COLLISION_PIXEL_SPAN_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COLLISION_TILE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_ENEMY_CACHE_WORD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_PLAYER_SPRITE_WORD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_SPRITE_STAGE_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_SPRITE_STAGE_CACHE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_RING_REACH_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_RING_REACH_CANDIDATE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_FETCH_RELEVANT_RING_COPIES \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COPPER_COPY_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_COPPER_FULL_COPY_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COPPER_PATCH_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COLUMN_CPU_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COLUMN_BLIT_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_CANONICAL_MULTIPLANE_BLIT \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_CANONICAL_RESTORE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_TARGET_CLEAN_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_TARGET_CLEAN_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_ENEMY_COPY_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_ENEMY_COPY_EVERY_TICK_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_ENEMY_COPY_ON_UNLOAD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_HAZARD_SCAN_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_COLLISION_HAZARD_SCAN_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_HAZARD_CACHE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_PHASE_LINE100_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_UPDATE_LINE100_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_PHASE_IMMEDIATE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COLLECTIBLE_CANONICAL_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(STAGE2_COLLECTIBLE_H4_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
 $(RENDER_DIAG_ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)

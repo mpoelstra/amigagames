@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 column B: four-plane column Blitter (68030)
+
+Repeat A's route in FS-UAE/68030 HD. Concentrate on continuous scrolling and
+direction reversals across multiple 512-pixel boundaries. Reject any corrupt,
+stale or delayed 16-pixel column, edge glitch, Bob trail, water/diamond fault,
+HUD seam, flicker or gameplay difference. Exit with the left mouse button.
+
+The log must report canonical_multiplane_blit=1; otherwise the safe fallback
+ran and this test did not exercise the candidate.

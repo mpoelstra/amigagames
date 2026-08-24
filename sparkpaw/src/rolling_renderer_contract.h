@@ -15,6 +15,15 @@
 #define ROLLING_RUNTIME_W 512
 #define ROLLING_RING_COPIES 3
 #define ROLLING_PHYSICAL_W (ROLLING_RUNTIME_W*ROLLING_RING_COPIES)
+#define ROLLING_PLAYFIELD_GUARD_BYTES 4
+#define ROLLING_PLAYFIELD_FETCH_BYTES 48
+#define ROLLING_FETCH_PHYSICAL_MIN \
+    (ROLLING_RUNTIME_W-ROLLING_PLAYFIELD_GUARD_BYTES*8)
+#define ROLLING_FETCH_PHYSICAL_MAX \
+    (ROLLING_RUNTIME_W*2+ROLLING_AGA32_FETCH_BYTES*8)
+#define ROLLING_COPY0_REACH_START ROLLING_FETCH_PHYSICAL_MIN
+#define ROLLING_COPY2_REACH_END \
+    (ROLLING_FETCH_PHYSICAL_MAX-ROLLING_RUNTIME_W*2)
 #define ROLLING_CAMERA_LOCAL_MIN 64
 #define ROLLING_CAMERA_LOCAL_MAX 128
 
@@ -97,6 +106,11 @@ static int rollingRingFetchFits(long cameraX,long ringWidth,long fetchWidth)
     long start=ringWidth+(cameraX&(ringWidth-1));
     return start>=0&&start+fetchWidth<=ringWidth*ROLLING_RING_COPIES;
 }
+
+#define ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(copyValue,slotValue) \
+    (((copyValue)*ROLLING_RUNTIME_W+(slotValue)+ROLLING_TILE_W> \
+      ROLLING_FETCH_PHYSICAL_MIN)&& \
+     ((copyValue)*ROLLING_RUNTIME_W+(slotValue)<ROLLING_FETCH_PHYSICAL_MAX))
 
 static int rollingRectFits(long x,long width,long origin,long targetWidth)
 {

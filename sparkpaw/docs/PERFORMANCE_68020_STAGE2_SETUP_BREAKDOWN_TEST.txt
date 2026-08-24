@@ -1,0 +1,20 @@
+Sparkpaw Stage 2 CHARGING setup breakdown: FS-UAE/68020
+
+Purpose
+-------
+The accepted enemy-cache word conversion saves about 13.3 seconds. This build
+subdivides the remaining broad setup time into rolling-target allocation,
+Copper allocation, HUD preparation, player hardware-sprite conversion, guarded
+rear preparation and diagnostic trace allocation. Both proven word-copy
+optimizations are active.
+
+Test
+----
+Run Sparkpaw-Setup-Breakdown with the same FS-UAE/68020 configuration. Let
+CHARGING finish, enter gameplay for a few seconds and exit with the left mouse
+button. Leave renderdiag.log here. No long route is required.
+
+Acceptance boundary
+-------------------
+This is diagnostic loading attribution only. It is not production, ADF, Pocket
+or real-hardware acceptance and does not establish gameplay FPS.

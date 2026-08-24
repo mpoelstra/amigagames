@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 ring-reach A: current all-copies reference (68020)
+
+Use the FS-UAE/68020 configuration. Run right through the first water and then
+return all the way left. Cross several 512-pixel boundaries, reverse near
+water and diamonds, jump, shoot and fight a Strider. Aim for roughly two
+minutes and exit with the left mouse button to complete renderdiag.log.
+
+This is the unchanged reference. Each drawer writes its own log; do not rename
+or move files.

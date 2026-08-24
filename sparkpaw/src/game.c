@@ -71,15 +71,31 @@ void gameInit(ULONG enemySeed)
 void gameUpdate(void)
 {
     ULONG profileStart;
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    ULONG detailProfileStart;
+#endif
     BOOL left,right,down,jump,fire,wasGrounded;
     WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
     if(game.waterSplashTimer) {
-        audioUpdate(); game.frameCounter++;
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        detailProfileStart=performanceProfileBegin();
+        audioUpdate();
+        performanceProfileEnd(PERF_AUDIO_UPDATE,detailProfileStart);
+#else
+        audioUpdate();
+#endif
+        game.frameCounter++;
         if(!--game.waterSplashTimer) resetLevelRuntime();
         return;
     }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    detailProfileStart=performanceProfileBegin();
     playerReadInput(&left,&right,&down,&jump,&fire);
+    performanceProfileEnd(PERF_INPUT,detailProfileStart);
+#else
+    playerReadInput(&left,&right,&down,&jump,&fire);
+#endif
     wasGrounded=player->grounded;
     playerStartShot(fire,audioPlayShot);
     profileStart=performanceProfileBegin();
@@ -115,8 +131,16 @@ void gameUpdate(void)
         audioUpdate();
         return;
     }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    detailProfileStart=performanceProfileBegin();
+    left=enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
+                              &enemyCenterX);
+    performanceProfileEnd(PERF_ENEMY_CONTACT,detailProfileStart);
+    if(left) {
+#else
     if(enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                             &enemyCenterX)) {
+#endif
         if(applyEnemyDamage(enemyCenterX)) return;
     }
     {
@@ -139,15 +163,36 @@ void gameUpdate(void)
     profileStart=performanceProfileBegin();
     projectilesUpdate((WORD)game.cameraX,collisionSolidAt,enemiesHitProjectile,
                       audioPlayEnemyHit,audioPlayEnemyDeath);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    detailProfileStart=performanceProfileBegin();
+    left=projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
+                                  &enemyCenterX);
+    performanceProfileEnd(PERF_PROJECTILE_CONTACT,detailProfileStart);
+    if(left&&applyEnemyDamage(enemyCenterX)) {
+#else
     if(projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
                                 &enemyCenterX)&&
        applyEnemyDamage(enemyCenterX)) {
+#endif
         performanceProfileEnd(PERF_PROJECTILES,profileStart);
         return;
     }
     performanceProfileEnd(PERF_PROJECTILES,profileStart);
-    audioUpdate(); updateCamera();
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    detailProfileStart=performanceProfileBegin();
+    audioUpdate();
+    performanceProfileEnd(PERF_AUDIO_UPDATE,detailProfileStart);
+#else
+    audioUpdate();
+#endif
+    updateCamera();
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    detailProfileStart=performanceProfileBegin();
     playerAnimate(!wasGrounded&&player->grounded,game.frameCounter);
+    performanceProfileEnd(PERF_PLAYER_ANIMATE,detailProfileStart);
+#else
+    playerAnimate(!wasGrounded&&player->grounded,game.frameCounter);
+#endif
     game.frameCounter++;
 }
 

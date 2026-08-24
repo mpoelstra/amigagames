@@ -15,6 +15,9 @@
 #include <string.h>
 
 #include "assets.h"
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#include "audio.h"
+#endif
 #include "collectibles.h"
 #include "enemies.h"
 #include "frame_phase.h"
@@ -31,6 +34,14 @@
 #endif
 #include "renderer.h"
 #include "world_config.h"
+
+/* Production restores inactive-target Bobs directly from the canonical clean
+   world and therefore needs only the two display rings. Keep the former full
+   clean-target architecture available solely for matched regression builds. */
+#if defined(SPARKPAW_ROLLING_PROTOTYPE) && \
+    !defined(SPARKPAW_TARGET_CLEAN_REFERENCE)
+#define SPARKPAW_CANONICAL_BOB_RESTORE
+#endif
 
 #define SCREEN_W 320
 #define SCREEN_H 256
@@ -80,6 +91,7 @@
 #define TOTAL_SPRITE_CHANNELS 8
 #include "enemy_vertical_order.h"
 #include "strider_restore_union.h"
+#include "sprite_stage_cache.h"
 #include "water_update_visibility.h"
 #define HUD_TOP 208
 #define HUD_H (SCREEN_H-HUD_TOP)
@@ -126,12 +138,12 @@ static struct BitMap *rearDisplay;
 static UWORD *cop,copPos,ptrValue[WORLD_PLANES],scrollValue;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 struct PrototypeEnemyHistory {
-    WORD x,y;
+    WORD x,worldX,y;
     UBYTE type;
     BOOL drawn;
 };
 struct PrototypeProjectileHistory {
-    WORD x,y;
+    WORD x,worldX,y;
     BOOL drawn;
 };
 struct PrototypeTarget {
@@ -140,9 +152,10 @@ struct PrototypeTarget {
     struct PrototypeEnemyHistory enemy[MAX_ENEMIES];
     struct PrototypeProjectileHistory projectile[MAX_PROJECTILES];
     BOOL splashDrawn;
-    WORD splashX,splashY;
+    WORD splashX,splashWorldX,splashY;
     UBYTE waterFrame[LEVEL_WATER_COUNT];
     BOOL collectibleDrawn[MAX_COLLECTIBLES];
+    WORD collectibleX[MAX_COLLECTIBLES];
     WORD collectibleY[MAX_COLLECTIBLES];
 };
 static UWORD *prototypeCopper[2];
@@ -151,6 +164,11 @@ static BOOL prototypeCopperReady;
 static struct PrototypeTarget prototypeTarget[2];
 static WORD prototypeBuildOrigin,prototypeDesiredOrigin;
 static ULONG prototypeOwnershipViolations;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+static WORD prototypeEnemyWorldX[MAX_ENEMIES];
+static WORD prototypeProjectileWorldX[MAX_PROJECTILES];
+static WORD prototypeSplashWorldX;
+#endif
 #endif
 static UWORD *hwSprites[2][ANIM_FRAMES][SPRITE_CHANNELS];
 static UWORD *hwSpriteStage[2][SPRITE_CHANNELS];
@@ -159,6 +177,7 @@ static UBYTE *hwSpriteStageAllocation[2][SPRITE_CHANNELS];
 static UBYTE *nullSpriteAllocation;
 #endif
 static UBYTE hwSpriteStageIndex;
+static struct SpriteStageCacheState hwSpriteStageCache[2];
 static UWORD hudPtrValue[WORLD_PLANES];
 static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
@@ -221,6 +240,27 @@ static BOOL diagnosticHasPreviousUpdate;
 static LONG diagnosticFrames,diagnosticWraps,diagnosticWorstElapsed;
 static LONG diagnosticWorstFrame,diagnosticWorstCamera;
 static UWORD diagnosticWorstStart,diagnosticWorstEnd;
+enum {
+    DIAG_LOAD_SETUP,
+    DIAG_LOAD_TARGET_ALLOC,
+    DIAG_LOAD_COPPER_ALLOC,
+    DIAG_LOAD_HUD,
+    DIAG_LOAD_PLAYER_SPRITES,
+    DIAG_LOAD_REAR_GUARD,
+    DIAG_LOAD_TRACE_ALLOC,
+    DIAG_LOAD_BEETLE,
+    DIAG_LOAD_STRIDER,
+    DIAG_LOAD_STRIDER_STAGE,
+    DIAG_LOAD_PLASMA,
+    DIAG_LOAD_DIAMOND,
+    DIAG_LOAD_STATIC_COLLECTIBLES,
+    DIAG_LOAD_WATER,
+    DIAG_LOAD_SPLASH,
+    DIAG_LOAD_RING_TARGETS,
+    DIAG_LOAD_COPPER,
+    DIAG_LOAD_COUNT
+};
+static ULONG diagnosticLoadingFrames[DIAG_LOAD_COUNT];
 #endif
 
 #if defined(PHASE6_MEMORY_TEST)||defined(SPARKPAW_RENDER_DIAGNOSTIC)
@@ -650,19 +690,82 @@ static void prototypeCopyCanonicalSpan(struct PrototypeTarget *target,
         WORD chunk=(WORD)(PROTOTYPE_RING_W-slot);
         WORD row,copy; UBYTE plane;
         if(chunk>remaining) chunk=remaining;
+#ifdef SPARKPAW_FETCH_RELEVANT_RING_COPIES
+        /* Split once at the two global fetch-union boundaries. Every word in
+           the resulting chunk then has the same physical-copy destinations,
+           avoiding reachability comparisons in the inner Chip-RAM loop. */
+        if(slot<ROLLING_COPY2_REACH_END&&
+           slot+chunk>ROLLING_COPY2_REACH_END)
+            chunk=(WORD)(ROLLING_COPY2_REACH_END-slot);
+        else if(slot<ROLLING_COPY0_REACH_START&&
+                slot+chunk>ROLLING_COPY0_REACH_START)
+            chunk=(WORD)(ROLLING_COPY0_REACH_START-slot);
+#endif
+#ifndef SPARKPAW_CANONICAL_RING_COPYMEM_REFERENCE
+        for(plane=0;plane<FRONT_PLANES;plane++)
+            for(row=0;row<height;row++) {
+                const UWORD *source=(const UWORD *)(
+                    frontClean->bitmap->Planes[plane]+
+                    (LONG)(y+row)*frontClean->bitmap->BytesPerRow+
+                    (worldX>>3));
+                UWORD *display=(UWORD *)(target->display->Planes[plane]+
+                    (LONG)(y+row)*target->display->BytesPerRow+(slot>>3));
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+                UWORD *clean=(UWORD *)(target->clean->Planes[plane]+
+                    (LONG)(y+row)*target->clean->BytesPerRow+(slot>>3));
+                UWORD *clean1=clean+(PROTOTYPE_RING_W/16);
+                UWORD *clean2=clean1+(PROTOTYPE_RING_W/16);
+#endif
+                UWORD *display1=display+(PROTOTYPE_RING_W/16);
+                UWORD *display2=display1+(PROTOTYPE_RING_W/16);
+                WORD words=(WORD)(chunk>>4);
+                WORD word;
+#ifdef SPARKPAW_FETCH_RELEVANT_RING_COPIES
+                if(slot>=ROLLING_COPY0_REACH_START) {
+                    for(word=0;word<words;word++) {
+                        UWORD value=*source++;
+                        *clean++=value; *display++=value;
+                        *clean1++=value; *display1++=value;
+                    }
+                } else if(slot<ROLLING_COPY2_REACH_END) {
+                    for(word=0;word<words;word++) {
+                        UWORD value=*source++;
+                        *clean1++=value; *display1++=value;
+                        *clean2++=value; *display2++=value;
+                    }
+                } else {
+                    for(word=0;word<words;word++) {
+                        UWORD value=*source++;
+                        *clean1++=value; *display1++=value;
+                    }
+                }
+#else
+                for(word=0;word<words;word++) {
+                    UWORD value=*source++;
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+                    *clean++=value; *clean1++=value; *clean2++=value;
+#endif
+                    *display++=value; *display1++=value; *display2++=value;
+                }
+#endif
+            }
+#else
         for(copy=0;copy<PROTOTYPE_RING_COPIES;copy++)
             for(plane=0;plane<FRONT_PLANES;plane++)
                 for(row=0;row<height;row++) {
                     const UBYTE *source=frontClean->bitmap->Planes[plane]+
                         (LONG)(y+row)*frontClean->bitmap->BytesPerRow+
                         (worldX>>3);
-                    LONG at=(LONG)(y+row)*target->clean->BytesPerRow+
+                    LONG at=(LONG)(y+row)*target->display->BytesPerRow+
                         (slot>>3)+(LONG)copy*(PROTOTYPE_RING_W/8);
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
                     CopyMem((APTR)source,target->clean->Planes[plane]+at,
                             chunk>>3);
+#endif
                     CopyMem((APTR)source,target->display->Planes[plane]+at,
                             chunk>>3);
                 }
+#endif
         worldX=(WORD)(worldX+chunk);
         remaining=(WORD)(remaining-chunk);
     }
@@ -682,6 +785,111 @@ static void prototypeCopyCanonicalRect(struct PrototypeTarget *target,
     prototypeCopyCanonicalSpan(target,left,y,(WORD)(right-left),height);
 }
 
+#ifndef SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE
+/* Dynamic patches are narrow, word-aligned rectangles replicated into three
+   physical ring copies in both clean and display. CopyMem call overhead and
+   six repeated source reads dominate these patches on a 68020. Read each
+   canonical word once and publish that value to the six inactive destinations.
+   The target has already passed WaitBlit and is never the displayed target. */
+static void prototypeCopyDynamicSpan(struct PrototypeTarget *target,
+                                     WORD worldX,WORD y,WORD width,WORD height)
+{
+    WORD remaining=width;
+    while(remaining>0) {
+        WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+        WORD chunk=(WORD)(PROTOTYPE_RING_W-slot);
+        WORD row,word,words; UBYTE plane;
+        if(chunk>remaining) chunk=remaining;
+#ifdef SPARKPAW_FETCH_RELEVANT_RING_COPIES
+        if(slot<ROLLING_COPY2_REACH_END&&
+           slot+chunk>ROLLING_COPY2_REACH_END)
+            chunk=(WORD)(ROLLING_COPY2_REACH_END-slot);
+        else if(slot<ROLLING_COPY0_REACH_START&&
+                slot+chunk>ROLLING_COPY0_REACH_START)
+            chunk=(WORD)(ROLLING_COPY0_REACH_START-slot);
+#endif
+        words=(WORD)(chunk>>4);
+        for(plane=0;plane<FRONT_PLANES;plane++)
+            for(row=0;row<height;row++) {
+                const UWORD *source=(const UWORD *)(
+                    frontClean->bitmap->Planes[plane]+
+                    (LONG)(y+row)*frontClean->bitmap->BytesPerRow+
+                    (worldX>>3));
+                UWORD *display=(UWORD *)(target->display->Planes[plane]+
+                    (LONG)(y+row)*target->display->BytesPerRow+(slot>>3));
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+                UWORD *clean=(UWORD *)(target->clean->Planes[plane]+
+                    (LONG)(y+row)*target->clean->BytesPerRow+(slot>>3));
+#endif
+#ifndef SPARKPAW_DYNAMIC_RING_INDEXED_REFERENCE
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+                UWORD *clean1=clean+(PROTOTYPE_RING_W/16);
+                UWORD *clean2=clean1+(PROTOTYPE_RING_W/16);
+#endif
+                UWORD *display1=display+(PROTOTYPE_RING_W/16);
+                UWORD *display2=display1+(PROTOTYPE_RING_W/16);
+#ifdef SPARKPAW_FETCH_RELEVANT_RING_COPIES
+                if(slot>=ROLLING_COPY0_REACH_START) {
+                    for(word=0;word<words;word++) {
+                        UWORD value=*source++;
+                        *clean++=value; *display++=value;
+                        *clean1++=value; *display1++=value;
+                    }
+                } else if(slot<ROLLING_COPY2_REACH_END) {
+                    for(word=0;word<words;word++) {
+                        UWORD value=*source++;
+                        *clean1++=value; *display1++=value;
+                        *clean2++=value; *display2++=value;
+                    }
+                } else {
+                    for(word=0;word<words;word++) {
+                        UWORD value=*source++;
+                        *clean1++=value; *display1++=value;
+                    }
+                }
+#else
+                for(word=0;word<words;word++) {
+                    UWORD value=*source++;
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+                    *clean++=value; *clean1++=value; *clean2++=value;
+#endif
+                    *display++=value; *display1++=value; *display2++=value;
+                }
+#endif
+#else
+                for(word=0;word<words;word++) {
+                    UWORD value=source[word];
+                    WORD copy;
+                    for(copy=0;copy<PROTOTYPE_RING_COPIES;copy++) {
+                        LONG at=(LONG)copy*(PROTOTYPE_RING_W/16)+word;
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+                        clean[at]=value;
+#endif
+                        display[at]=value;
+                    }
+                }
+#endif
+            }
+        worldX=(WORD)(worldX+chunk);
+        remaining=(WORD)(remaining-chunk);
+    }
+}
+
+static void prototypeCopyDynamicRect(struct PrototypeTarget *target,
+                                     WORD worldX,WORD y,WORD width,WORD height)
+{
+    WORD left=(WORD)(worldX&~15);
+    WORD right=(WORD)((worldX+width+15)&~15);
+    WORD windowRight=(WORD)(target->origin+PROTOTYPE_RING_W);
+    if(y<0) { height=(WORD)(height+y); y=0; }
+    if(y+height>WORLD_H) height=(WORD)(WORLD_H-y);
+    if(left<target->origin) left=target->origin;
+    if(right>windowRight) right=windowRight;
+    if(right<=left||height<=0) return;
+    prototypeCopyDynamicSpan(target,left,y,(WORD)(right-left),height);
+}
+#endif
+
 static void prototypeCopyInitial(struct PrototypeTarget *target)
 {
     WORD i;
@@ -690,50 +898,81 @@ static void prototypeCopyInitial(struct PrototypeTarget *target)
     for(i=0;i<LEVEL_WATER_COUNT;i++) target->waterFrame[i]=waterDrawnFrame[i];
     for(i=0;i<MAX_COLLECTIBLES;i++) {
         struct Collectible *item=collectibleAt(i);
+#ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
+        target->collectibleDrawn[i]=FALSE;
+        target->collectibleX[i]=0;
+#else
         target->collectibleDrawn[i]=item->drawn;
+#endif
         target->collectibleY[i]=item->drawnY;
     }
 }
 
 static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
 {
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    ULONG profileStart=performanceProfileBegin();
+#endif
     WORD pixels=(WORD)(newOrigin-target->origin);
-    if(!pixels) return;
+    if(!pixels) {
+        performanceProfileEnd(PERF_RING_ROLL,profileStart);
+        return;
+    }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticCurrent.flags|=DIAG_RING_COLUMN;
 #endif
     if(pixels>=PROTOTYPE_RING_W||pixels<=-PROTOTYPE_RING_W) {
-        target->origin=newOrigin; prototypeCopyInitial(target); return;
+        target->origin=newOrigin; prototypeCopyInitial(target);
+        performanceProfileEnd(PERF_RING_ROLL,profileStart);
+        return;
     }
     {
         WORD oldOrigin=target->origin;
         target->origin=newOrigin;
-        if(pixels>0)
+        if(pixels>0) {
             prototypeCopyCanonicalRect(target,
                 (WORD)(oldOrigin+PROTOTYPE_RING_W),0,pixels,WORLD_H);
-        else
+        } else {
             prototypeCopyCanonicalRect(target,newOrigin,0,(WORD)-pixels,WORLD_H);
+        }
     }
+    performanceProfileEnd(PERF_RING_ROLL,profileStart);
 }
 
 static void prototypeSynchronizeDynamic(struct PrototypeTarget *target)
 {
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    ULONG profileStart=performanceProfileBegin();
+#endif
     WORD i;
     for(i=0;i<LEVEL_WATER_COUNT;i++) {
         if(target->waterFrame[i]==waterDrawnFrame[i]) continue;
+#ifdef SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE
         prototypeCopyCanonicalRect(target,levelWaterLeft(i),WATER_Y,
                                    WATER_W,WATER_H);
+#else
+        prototypeCopyDynamicRect(target,levelWaterLeft(i),WATER_Y,
+                                 WATER_W,WATER_H);
+#endif
         target->waterFrame[i]=waterDrawnFrame[i];
     }
+#ifdef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
     for(i=0;i<MAX_COLLECTIBLES;i++) {
         struct Collectible *item=collectibleAt(i);
         if(target->collectibleDrawn[i]==item->drawn&&
            (!item->drawn||target->collectibleY[i]==item->drawnY)) continue;
+#ifdef SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE
         prototypeCopyCanonicalRect(target,(WORD)(item->x-2),(WORD)(item->y-2),
                                    COLLECTIBLE_W+4,DIAMOND_PATCH_H);
+#else
+        prototypeCopyDynamicRect(target,(WORD)(item->x-2),(WORD)(item->y-2),
+                                 COLLECTIBLE_W+4,DIAMOND_PATCH_H);
+#endif
         target->collectibleDrawn[i]=item->drawn;
         target->collectibleY[i]=item->drawnY;
     }
+#endif
+    performanceProfileEnd(PERF_RING_DYNAMIC,profileStart);
 }
 
 static void prototypePrepareCompactTarget(struct PrototypeTarget *target)
@@ -752,6 +991,9 @@ static void prototypeLoadHistory(UBYTE index)
         struct Enemy *enemy=enemyAt(i);
         enemy->drawn=target->enemy[i].drawn;
         enemy->drawnX=target->enemy[i].x; enemy->drawnY=target->enemy[i].y;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+        prototypeEnemyWorldX[i]=target->enemy[i].worldX;
+#endif
         enemy->drawnType=target->enemy[i].type;
     }
     for(i=0;i<MAX_PROJECTILES;i++) {
@@ -759,9 +1001,15 @@ static void prototypeLoadHistory(UBYTE index)
         projectile->drawn=target->projectile[i].drawn;
         projectile->drawnX=target->projectile[i].x;
         projectile->drawnY=target->projectile[i].y;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+        prototypeProjectileWorldX[i]=target->projectile[i].worldX;
+#endif
     }
     splashDrawn=target->splashDrawn;
     splashDrawnX=target->splashX; splashDrawnY=target->splashY;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+    prototypeSplashWorldX=target->splashWorldX;
+#endif
 }
 
 static void prototypeSaveHistory(UBYTE index)
@@ -772,6 +1020,9 @@ static void prototypeSaveHistory(UBYTE index)
         struct Enemy *enemy=enemyAt(i);
         target->enemy[i].drawn=enemy->drawn;
         target->enemy[i].x=enemy->drawnX; target->enemy[i].y=enemy->drawnY;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+        target->enemy[i].worldX=prototypeEnemyWorldX[i];
+#endif
         target->enemy[i].type=enemy->drawnType;
     }
     for(i=0;i<MAX_PROJECTILES;i++) {
@@ -779,9 +1030,15 @@ static void prototypeSaveHistory(UBYTE index)
         target->projectile[i].drawn=projectile->drawn;
         target->projectile[i].x=projectile->drawnX;
         target->projectile[i].y=projectile->drawnY;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+        target->projectile[i].worldX=prototypeProjectileWorldX[i];
+#endif
     }
     target->splashDrawn=splashDrawn;
     target->splashX=splashDrawnX; target->splashY=splashDrawnY;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+    target->splashWorldX=prototypeSplashWorldX;
+#endif
 }
 
 static void prototypeExposeHistoryUnion(void)
@@ -863,6 +1120,32 @@ static BOOL buildEnemyPatterns(struct EnemyBobCache *cache,BOOL fastMaster)
     cache->mask=(UWORD *)AllocMem(maskWords*2,memory);
     cache->bits=(UWORD *)AllocMem(bitsWords*2,memory);
     if(!cache->mask||!cache->bits) return FALSE;
+#ifndef SPARKPAW_ENEMY_CACHE_PIXEL_REFERENCE
+    for(facing=0;facing<2;facing++) for(frame=0;frame<cache->frames;frame++)
+        for(y=0;y<cache->height;y++) {
+            UBYTE sourceFacing=
+                cache->sourceLeftFirst?facing:(UBYTE)(1-facing);
+            LONG sourceY=(LONG)frame*cache->height+y;
+            LONG maskAt=sourceY*cache->source->rowBytes+
+                (LONG)sourceFacing*cache->width/8;
+            LONG bitmapAt=sourceY*cache->source->bitmap->BytesPerRow+
+                (LONG)sourceFacing*cache->width/8;
+            /* sourceWords includes one zero guard word required by the shifted
+               cookie-cut Blit. Only width/16 words contain authored pixels. */
+            for(x=0;x<(cache->width>>4);x++) {
+                UWORD sourceMask=((const UWORD *)(cache->source->mask+maskAt))[x];
+                UWORD opaque=0;
+                for(plane=0;plane<FRONT_PLANES;plane++) {
+                    UWORD bits=((const UWORD *)(
+                        cache->source->bitmap->Planes[plane]+bitmapAt))[x]&
+                        sourceMask;
+                    enemyBitsRow(cache,facing,frame,plane,y)[x]=bits;
+                    opaque|=bits;
+                }
+                enemyMaskRow(cache,facing,frame,y)[x]=opaque;
+            }
+        }
+#else
     for(facing=0;facing<2;facing++) for(frame=0;frame<cache->frames;frame++)
         for(y=0;y<cache->height;y++) for(x=0;x<cache->width;x++) {
             UBYTE sourceFacing=cache->sourceLeftFirst?facing:(UBYTE)(1-facing);
@@ -875,6 +1158,7 @@ static BOOL buildEnemyPatterns(struct EnemyBobCache *cache,BOOL fastMaster)
                 if(pen&(1<<plane))
                     enemyBitsRow(cache,facing,frame,plane,y)[at]|=bit;
         }
+#endif
     return TRUE;
 }
 
@@ -947,6 +1231,19 @@ static BOOL buildHardwareSprites(void)
         WORD cellY=(frame>>2)*SPRITE_H;
         if(!data) return FALSE;
         hwSprites[facing][frame][pairPlane]=data;
+#ifndef SPARKPAW_PLAYER_SPRITE_PIXEL_REFERENCE
+        for(y=0;y<SPRITE_H;y++) for(chunk=0;chunk<3;chunk++) {
+            LONG maskAt=(LONG)(cellY+y)*sprites->rowBytes+
+                (cellX>>3)+chunk*2;
+            LONG bitmapAt=(LONG)(cellY+y)*sprites->bitmap->BytesPerRow+
+                (cellX>>3)+chunk*2;
+            UWORD sourceMask=*(const UWORD *)(sprites->mask+maskAt);
+            data[8+y*8+chunk]=*(const UWORD *)(
+                sprites->bitmap->Planes[pairPlane*2]+bitmapAt)&sourceMask;
+            data[8+y*8+4+chunk]=*(const UWORD *)(
+                sprites->bitmap->Planes[pairPlane*2+1]+bitmapAt)&sourceMask;
+        }
+#else
         for(y=0;y<SPRITE_H;y++) for(chunk=0;chunk<4;chunk++) {
             UWORD a=0,b=0;
             for(x=0;x<16;x++) {
@@ -958,6 +1255,7 @@ static BOOL buildHardwareSprites(void)
             data[8+y*8+chunk]=a;
             data[8+y*8+4+chunk]=b;
         }
+#endif
     }
     for(stage=0;stage<2;stage++) for(pairPlane=0;pairPlane<2;pairPlane++) {
         UBYTE *raw=(UBYTE *)AllocMem(SPRITE_ALLOC_BYTES,MEMF_CHIP|MEMF_CLEAR);
@@ -999,6 +1297,8 @@ static BOOL buildHardwareSprites(void)
     }
 #endif
     hwSpriteStageIndex=0;
+    SPRITE_STAGE_CACHE_COMMIT(&hwSpriteStageCache[0],0,0);
+    SPRITE_STAGE_CACHE_COMMIT(&hwSpriteStageCache[1],0,0);
     return TRUE;
 }
 
@@ -1053,6 +1353,14 @@ static void setHardwareSprite(void)
        word is copied unchanged from the Fast-RAM master before its position
        control words and next-frame Copper pointer are published. */
     hwSpriteStageIndex^=1;
+    {
+        BOOL copyImage=TRUE;
+#if defined(SPARKPAW_SPRITE_STAGE_CACHE) && \
+    !defined(SPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE)
+        copyImage=(BOOL)SPRITE_STAGE_CACHE_NEEDS_COPY(
+            &hwSpriteStageCache[hwSpriteStageIndex],(UBYTE)facing,
+            (UBYTE)player->animFrame);
+#endif
     for(channel=0;channel<SPRITE_CHANNELS;channel++) {
         UWORD *data=hwSpriteStage[hwSpriteStageIndex][channel];
 #ifdef SPARKPAW_AGA64_PLAYER_SPRITE
@@ -1061,8 +1369,9 @@ static void setHardwareSprite(void)
         WORD x=screenX+(channel>>1)*16;
 #endif
         ULONG p=(ULONG)data; UWORD hi=spritePtrValue[channel];
-        CopyMem(hwSprites[facing][player->animFrame][channel],data,
-                SPRITE_WORDS*2);
+        if(copyImage)
+            CopyMem(hwSprites[facing][player->animFrame][channel],data,
+                    SPRITE_WORDS*2);
         data[0]=(UWORD)((screenY<<8)|((x>>1)&0xff));
 #ifdef SPARKPAW_AGA64_PLAYER_SPRITE
         data[4]=(UWORD)((stopY<<8)|((screenY&0x100)>>6)|
@@ -1072,6 +1381,14 @@ static void setHardwareSprite(void)
                         ((stopY&0x100)>>7)|(x&1)|((channel&1)?0x0080:0));
 #endif
         cop[hi]=(UWORD)(p>>16); cop[hi+2]=(UWORD)p;
+    }
+#if defined(SPARKPAW_SPRITE_STAGE_CACHE) && \
+    !defined(SPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE)
+        if(copyImage)
+            SPRITE_STAGE_CACHE_COMMIT(
+                &hwSpriteStageCache[hwSpriteStageIndex],(UBYTE)facing,
+                (UBYTE)player->animFrame);
+#endif
     }
 }
 
@@ -1149,25 +1466,30 @@ static BOOL buildPlasmaPatterns(void)
     return TRUE;
 }
 
-static void blitRestoreRect(WORD x,WORD y,WORD width,WORD height)
+static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
 {
     UBYTE plane; WORD localX=x;
     const struct BitMap *clean=frontClean->bitmap;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     /* Target-local histories already store physical triplicated-ring X. */
     localX=x;
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
     clean=prototypeTarget[prototypePreparedCopper].clean;
+#else
+    clean=frontClean->bitmap;
+#endif
 #endif
     {
     UWORD words=(UWORD)(((localX&15)+width+15)>>4);
     LONG at=(LONG)y*frontDisplay->BytesPerRow+(localX>>4)*2;
+    LONG sourceAt=(LONG)y*clean->BytesPerRow+(sourceX>>4)*2;
     for(plane=0;plane<FRONT_PLANES;plane++) {
         platformWaitBlit();
         hw->bltcon0=0x09f0; hw->bltcon1=0;
         hw->bltafwm=0xffff; hw->bltalwm=0xffff;
         hw->bltamod=(UWORD)(clean->BytesPerRow-words*2);
         hw->bltdmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
-        hw->bltapt=clean->Planes[plane]+at;
+        hw->bltapt=clean->Planes[plane]+sourceAt;
         hw->bltdpt=frontDisplay->Planes[plane]+at;
         hw->bltsize=(UWORD)((height<<6)|words);
     }
@@ -1296,7 +1618,9 @@ static BOOL prepareStaticCollectibles(void)
                             row*DIAMOND_WIDE_WORDS,
                             DIAMOND_WIDE_WORDS*2);
         item->drawnX=item->x; item->drawnY=(WORD)(item->y+hover[index&7]);
+#ifdef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
         drawDiamondToWorld(frontClean->bitmap,index,item->drawnY);
+#endif
 #ifndef SPARKPAW_ROLLING_PROTOTYPE
         drawDiamondToWorld(frontDisplay,index,item->drawnY);
 #endif
@@ -1417,7 +1741,13 @@ static void restoreSplashBob(void)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticFrame.splashRestore++;
 #endif
-    blitRestoreRect(splashDrawnX,splashDrawnY,SPLASH_W,SPLASH_H);
+    blitRestoreRect(
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+                    prototypeSplashWorldX,
+#else
+                    splashDrawnX,
+#endif
+                    splashDrawnX,splashDrawnY,SPLASH_W,SPLASH_H);
     splashDrawn=FALSE;
 }
 
@@ -1432,6 +1762,9 @@ static void drawSplashBob(void)
     if(frame>=SPLASH_FRAMES) frame=SPLASH_FRAMES-1;
     splashDrawnX=(WORD)(game->waterSplashX-(SPLASH_W>>1));
     splashDrawnY=184;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+    prototypeSplashWorldX=splashDrawnX;
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     if(!prototypeRectFits(splashDrawnX,SPLASH_W)) return;
     splashDrawnX=prototypePhysicalX(splashDrawnX);
@@ -1487,6 +1820,35 @@ static void restoreCollectibleBobs(void)
 {
     static const BYTE hover[8]={0,-1,-2,-1,0,1,2,1};
     WORD index;
+#ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
+    struct PrototypeTarget *target=&prototypeTarget[prototypePreparedCopper];
+    for(index=0;index<MAX_COLLECTIBLES;index++) {
+        struct Collectible *item=collectibleAt(index);
+        if(target->collectibleDrawn[index]) {
+            WORD sourceX=(WORD)(item->x&~15);
+            WORD targetX=(WORD)(target->collectibleX[index]&~15);
+            WORD width=index==DIAMOND_WIDE_INDEX?32:16;
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+            diagnosticFrame.collectibleRestore++;
+#endif
+            blitRestoreRect(sourceX,targetX,(WORD)(item->y-2),width,
+                            DIAMOND_PATCH_H);
+            target->collectibleDrawn[index]=FALSE;
+        }
+        if(!item->active) { item->drawn=FALSE; continue; }
+        {
+            WORD desiredY=(WORD)(item->y+
+                hover[((game->frameCounter>>2)+index)&7]);
+            BOOL visible=item->x+COLLECTIBLE_W>=
+                         (WORD)game->cameraX-16&&
+                         item->x<=(WORD)game->cameraX+SCREEN_W+16;
+            if(visible&&desiredY!=item->drawnY&&
+               ((game->frameCounter&3)==(index&3)))
+                item->drawnY=desiredY;
+            item->drawn=TRUE;
+        }
+    }
+#else
     for(index=0;index<MAX_COLLECTIBLES;index++) {
         struct Collectible *item=collectibleAt(index);
         WORD desiredY;
@@ -1507,12 +1869,34 @@ static void restoreCollectibleBobs(void)
 #endif
         item->drawn=FALSE;
     }
+#endif
 }
 
 static void drawCollectibleBobs(void)
 {
     static const BYTE hover[8]={0,-1,-2,-1,0,1,2,1};
     WORD index;
+#ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
+    struct PrototypeTarget *target=&prototypeTarget[prototypePreparedCopper];
+    for(index=0;index<MAX_COLLECTIBLES;index++) {
+        struct Collectible *item=collectibleAt(index);
+        WORD physicalX;
+        if(!item->active||
+           item->x+COLLECTIBLE_W<(WORD)game->cameraX-16||
+           item->x>(WORD)game->cameraX+SCREEN_W+16||
+           !prototypeRectFits(item->x,COLLECTIBLE_W)) continue;
+        physicalX=prototypePhysicalX(item->x);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        diagnosticFrame.collectibleDraw++;
+#endif
+        blitMaskedBobTarget(frontDisplay,diamondMask,diamondBits,
+                            DIAMOND_SOURCE_WORDS,COLLECTIBLE_W,COLLECTIBLE_H,
+                            physicalX,item->drawnY);
+        target->collectibleDrawn[index]=TRUE;
+        target->collectibleX[index]=physicalX;
+        target->collectibleY[index]=item->drawnY;
+    }
+#else
     for(index=0;index<MAX_COLLECTIBLES;index++) {
         struct Collectible *item=collectibleAt(index);
         if(!item->active||item->drawn||
@@ -1530,6 +1914,7 @@ static void drawCollectibleBobs(void)
 #endif
         item->drawn=TRUE;
     }
+#endif
 }
 
 static void eraseProjectileBobs(void)
@@ -1541,7 +1926,13 @@ static void eraseProjectileBobs(void)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         diagnosticFrame.projectileRestore++;
 #endif
-        blitRestoreRect(projectile->drawnX,projectile->drawnY,
+        blitRestoreRect(
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+                        prototypeProjectileWorldX[i],
+#else
+                        projectile->drawnX,
+#endif
+                        projectile->drawnX,projectile->drawnY,
                         PROJECTILE_W,PROJECTILE_H);
         projectile->drawn=FALSE;
     }
@@ -1570,6 +1961,9 @@ static void drawProjectileBobs(void)
                                 (UBYTE)((game->frameCounter>>1)&1);
         if(p->hostile) pattern+=PLAYER_PLASMA_PATTERNS;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+        prototypeProjectileWorldX[i]=worldX;
+#endif
         p->drawnX=prototypePhysicalX(worldX);
 #else
         p->drawnX=worldX;
@@ -1607,7 +2001,16 @@ static void restoreEnemyBob(void)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                 diagnosticFrame.striderRestore+=2;
 #endif
-                blitRestoreRect(unionX,unionY,unionW,unionH);
+                blitRestoreRect(
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+                    prototypeEnemyWorldX[order[i]]<
+                    prototypeEnemyWorldX[order[j]]?
+                    prototypeEnemyWorldX[order[i]]:
+                    prototypeEnemyWorldX[order[j]],
+#else
+                    unionX,
+#endif
+                    unionX,unionY,unionW,unionH);
                 enemy->drawn=FALSE; other->drawn=FALSE;
                 break;
             }
@@ -1617,7 +2020,13 @@ static void restoreEnemyBob(void)
             diagnosticFrame.striderRestore++;
         else diagnosticFrame.beetleRestore++;
 #endif
-        blitRestoreRect(enemy->drawnX,enemy->drawnY,
+        blitRestoreRect(
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+                        prototypeEnemyWorldX[order[i]],
+#else
+                        enemy->drawnX,
+#endif
+                        enemy->drawnX,enemy->drawnY,
                         cache->width,cache->height);
         enemy->drawn=FALSE;
     }
@@ -1673,6 +2082,9 @@ static void drawEnemyBob(void)
             bits=enemyBitsRow(cache,facing,enemy->animFrame,0,0);
         }
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+        prototypeEnemyWorldX[slot]=worldX;
+#endif
         enemy->drawnX=prototypePhysicalX(worldX);
 #else
         enemy->drawnX=worldX;
@@ -1756,14 +2168,26 @@ static BOOL prepareRearGuardedDisplay(void)
 BOOL rendererPrepareGameplay(void)
 {
     UBYTE p;
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    ULONG diagnosticLoadStart=GfxBase->VBCounter;
+#define DIAG_LOAD(index,expression) do { \
+    ULONG before=GfxBase->VBCounter; \
+    if(!(expression)) return FALSE; \
+    diagnosticLoadingFrames[index]=GfxBase->VBCounter-before; \
+} while(0)
+#endif
     game=gameState();
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
     prototypeTarget[0].clean=AllocBitMap(PROTOTYPE_TARGET_W,WORLD_H,
         FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+#endif
     prototypeTarget[0].display=AllocBitMap(PROTOTYPE_TARGET_W,WORLD_H,
         FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
     prototypeTarget[1].clean=AllocBitMap(PROTOTYPE_TARGET_W,WORLD_H,
         FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+#endif
     prototypeTarget[1].display=AllocBitMap(PROTOTYPE_TARGET_W,WORLD_H,
         FRONT_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     prototypeTarget[0].origin=prototypeTarget[1].origin=0;
@@ -1773,15 +2197,32 @@ BOOL rendererPrepareGameplay(void)
     frontDisplay=AllocBitMap(WORLD_W,WORLD_H,FRONT_PLANES,
                              BMF_CLEAR|BMF_DISPLAYABLE,NULL);
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadingFrames[DIAG_LOAD_TARGET_ALLOC]=
+        GfxBase->VBCounter-diagnosticLoadStart;
+    diagnosticLoadStart=GfxBase->VBCounter;
+#endif
     cop=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     prototypeCopper[0]=cop;
     prototypeCopper[1]=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadingFrames[DIAG_LOAD_COPPER_ALLOC]=
+        GfxBase->VBCounter-diagnosticLoadStart;
+    if(!frontDisplay||!cop) return FALSE;
+    DIAG_LOAD(DIAG_LOAD_HUD,hudPrepare());
+    DIAG_LOAD(DIAG_LOAD_PLAYER_SPRITES,buildHardwareSprites());
+#else
     if(!frontDisplay||!cop||!hudPrepare()||!buildHardwareSprites())
         return FALSE;
+#endif
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    DIAG_LOAD(DIAG_LOAD_REAR_GUARD,prepareRearGuardedDisplay());
+#else
     if(!prepareRearGuardedDisplay()) return FALSE;
+#endif
 #endif
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
     /* Never hand an invalid wide-fetch layout to Alice. Graphics.library may
@@ -1789,19 +2230,44 @@ BOOL rendererPrepareGameplay(void)
     if(!aga32DisplayLayoutValid()) return FALSE;
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
-    if(!prototypeCopper[1]||!prototypeTarget[0].clean||
-       !prototypeTarget[1].clean||!prototypeTarget[1].display) return FALSE;
+    if(!prototypeCopper[1]||!prototypeTarget[1].display
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
+       ||!prototypeTarget[0].clean||!prototypeTarget[1].clean
+#endif
+       ) return FALSE;
 #endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadStart=GfxBase->VBCounter;
     diagnosticTrace=(struct RenderDiagnosticTrace *)AllocMem(
         sizeof(*diagnosticTrace)*DIAGNOSTIC_TRACE_FRAMES,MEMF_FAST|MEMF_CLEAR);
     if(!diagnosticTrace) return FALSE;
+    diagnosticLoadingFrames[DIAG_LOAD_TRACE_ALLOC]=
+        GfxBase->VBCounter-diagnosticLoadStart;
+    diagnosticLoadingFrames[DIAG_LOAD_SETUP]=
+        diagnosticLoadingFrames[DIAG_LOAD_TARGET_ALLOC]+
+        diagnosticLoadingFrames[DIAG_LOAD_COPPER_ALLOC]+
+        diagnosticLoadingFrames[DIAG_LOAD_HUD]+
+        diagnosticLoadingFrames[DIAG_LOAD_PLAYER_SPRITES]+
+        diagnosticLoadingFrames[DIAG_LOAD_REAR_GUARD]+
+        diagnosticLoadingFrames[DIAG_LOAD_TRACE_ALLOC];
 #endif
 #ifndef SPARKPAW_ROLLING_PROTOTYPE
     for(p=0;p<FRONT_PLANES;p++)
         CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                 (LONG)frontDisplay->BytesPerRow*WORLD_H);
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    DIAG_LOAD(DIAG_LOAD_BEETLE,
+        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE));
+    DIAG_LOAD(DIAG_LOAD_STRIDER,
+        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE));
+    DIAG_LOAD(DIAG_LOAD_STRIDER_STAGE,prepareStriderStages());
+    DIAG_LOAD(DIAG_LOAD_PLASMA,buildPlasmaPatterns());
+    DIAG_LOAD(DIAG_LOAD_DIAMOND,buildDiamondPattern());
+    DIAG_LOAD(DIAG_LOAD_STATIC_COLLECTIBLES,prepareStaticCollectibles());
+    DIAG_LOAD(DIAG_LOAD_WATER,buildWaterPatterns());
+    DIAG_LOAD(DIAG_LOAD_SPLASH,buildSplashPatterns());
+#else
     if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)||
        !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)||
        !prepareStriderStages()||
@@ -1809,9 +2275,17 @@ BOOL rendererPrepareGameplay(void)
        !prepareStaticCollectibles()||!buildWaterPatterns()||
        !buildSplashPatterns())
         return FALSE;
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadStart=GfxBase->VBCounter;
+#endif
     prototypeCopyInitial(&prototypeTarget[0]);
     prototypeCopyInitial(&prototypeTarget[1]);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadingFrames[DIAG_LOAD_RING_TARGETS]=
+        GfxBase->VBCounter-diagnosticLoadStart;
+#endif
 #endif
     for(p=0;p<LEVEL_WATER_COUNT;p++) waterDrawnFrame[p]=255;
 #if defined(PHASE6_MEMORY_TEST)||defined(SPARKPAW_RENDER_DIAGNOSTIC)
@@ -1822,6 +2296,9 @@ BOOL rendererPrepareGameplay(void)
 #endif
     /* buildCopper still consumes the player palette from the conversion
        source; finish that final read before releasing the source sheets. */
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadStart=GfxBase->VBCounter;
+#endif
     buildCopper();
 #ifdef SPARKPAW_FMODE0_EARLY_WORD_GUARD
     if(!earlyWordCopperLayoutValid()) return FALSE;
@@ -1836,11 +2313,19 @@ BOOL rendererPrepareGameplay(void)
     prototypeActiveCopper=0; prototypePreparedCopper=1;
     prototypeCopperReady=FALSE;
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    diagnosticLoadingFrames[DIAG_LOAD_COPPER]=
+        GfxBase->VBCounter-diagnosticLoadStart;
+#endif
     assetsUnloadGameplayConversionSources();
     sprites=NULL; diamondSprite=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE].source=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER].source=NULL;
-    setScroll(0,0); return TRUE;
+    setScroll(0,0);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#undef DIAG_LOAD
+#endif
+    return TRUE;
 }
 
 void rendererCleanup(void)
@@ -1905,9 +2390,13 @@ void rendererCleanup(void)
     if(splashMask) FreeMem(splashMask,SPLASH_FRAMES*SPLASH_H*
                            SPLASH_SOURCE_WORDS*2);
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
     if(prototypeTarget[0].clean) FreeBitMap(prototypeTarget[0].clean);
+#endif
     if(prototypeTarget[0].display) FreeBitMap(prototypeTarget[0].display);
+#ifndef SPARKPAW_CANONICAL_BOB_RESTORE
     if(prototypeTarget[1].clean) FreeBitMap(prototypeTarget[1].clean);
+#endif
     if(prototypeTarget[1].display) FreeBitMap(prototypeTarget[1].display);
 #else
     if(frontDisplay) FreeBitMap(frontDisplay);
@@ -1929,16 +2418,39 @@ UWORD *rendererCopperList(void)
 
 void rendererUpdateGameplay(void)
 {
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    ULONG profileStart;
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     prototypePreparedCopper=(UBYTE)(prototypeActiveCopper^1);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    profileStart=performanceProfileBegin();
+#endif
+#ifdef SPARKPAW_COPPER_FULL_COPY_REFERENCE
     CopyMem(prototypeCopper[prototypeActiveCopper],
             prototypeCopper[prototypePreparedCopper],COP_WORDS*2);
+#endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    performanceProfileEnd(PERF_COPPER_COPY,profileStart);
+#endif
     cop=prototypeCopper[prototypePreparedCopper];
     frontDisplay=prototypeTarget[prototypePreparedCopper].display;
     prototypeDesiredOrigin=prototypeOriginForCamera((WORD)game->cameraX);
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    profileStart=performanceProfileBegin();
+    setHardwareSprite();
+    performanceProfileEnd(PERF_SPRITE_STAGE,profileStart);
+    profileStart=performanceProfileBegin();
+    setHudPointers();
+    performanceProfileEnd(PERF_HUD_UPDATE,profileStart);
+    profileStart=performanceProfileBegin();
+    setScroll(game->cameraX,game->cameraX>>2);
+    performanceProfileEnd(PERF_SCROLL_PATCH,profileStart);
+#else
     setHardwareSprite(); setHudPointers();
     setScroll(game->cameraX,game->cameraX>>2);
+#endif
 }
 
 BOOL rendererPublishGameplay(UWORD rasterLine)
@@ -1964,14 +2476,16 @@ BOOL rendererPublishGameplay(UWORD rasterLine)
 void rendererDrawGameplayBobs(void)
 {
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
-    UWORD before,after;
-#define DIAG_CALL(slot,call) do { \
-    before=platformRasterLine(); call; after=platformRasterLine(); \
+    UWORD before,after; ULONG profileStart;
+#define DIAG_CALL(slot,perf,call) do { \
+    before=platformRasterLine(); profileStart=performanceProfileBegin(); \
+    call; performanceProfileEnd(perf,profileStart); \
+    after=platformRasterLine(); \
     diagnosticCurrent.familyLines[slot]+=(UWORD)( \
         (after<before?SPARKPAW_PAL_LINES:0)+after-before); \
 } while(0)
 #else
-#define DIAG_CALL(slot,call) do { call; } while(0)
+#define DIAG_CALL(slot,perf,call) do { call; } while(0)
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     {
@@ -1989,17 +2503,28 @@ void rendererDrawGameplayBobs(void)
            display, sprite and audio DMA keep their higher hardware priority. */
         platformSetBlitterPriority(TRUE);
 #endif
-        DIAG_CALL(0,eraseProjectileBobs());
-        DIAG_CALL(1,restoreEnemyBob());
-        DIAG_CALL(2,restoreCollectibleBobs());
-        DIAG_CALL(4,restoreSplashBob());
-        DIAG_CALL(3,animateWater());
-        DIAG_CALL(2,drawCollectibleBobs());
-        DIAG_CALL(3,prototypePrepareCompactTarget(target));
-        DIAG_CALL(4,drawSplashBob());
-        DIAG_CALL(1,drawEnemyBob());
-        DIAG_CALL(0,drawProjectileBobs());
+        DIAG_CALL(0,PERF_BOB_PROJECTILE_RESTORE,eraseProjectileBobs());
+        DIAG_CALL(1,PERF_BOB_ENEMY_RESTORE,restoreEnemyBob());
+        DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCollectibleBobs());
+        DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
+        DIAG_CALL(3,PERF_BOB_WATER,animateWater());
+#ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
+        DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,prototypePrepareCompactTarget(target));
+        DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
+#else
+        DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
+        DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,prototypePrepareCompactTarget(target));
+#endif
+        DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
+        DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
+        DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        profileStart=performanceProfileBegin();
+#endif
         platformWaitBlit();
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+        performanceProfileEnd(PERF_BOB_FINAL_WAIT,profileStart);
+#endif
 #ifdef SPARKPAW_BLITTER_PRIORITY_CANDIDATE
         platformSetBlitterPriority(FALSE);
 #endif
@@ -2008,19 +2533,25 @@ void rendererDrawGameplayBobs(void)
         prototypeCopperReady=TRUE;
     }
 #else
-    DIAG_CALL(0,eraseProjectileBobs());
-    DIAG_CALL(1,restoreEnemyBob());
-    DIAG_CALL(2,restoreCollectibleBobs());
-    DIAG_CALL(4,restoreSplashBob());
-    DIAG_CALL(3,animateWater());
-    DIAG_CALL(4,drawSplashBob());
-    DIAG_CALL(2,drawCollectibleBobs());
-    DIAG_CALL(1,drawEnemyBob());
-    DIAG_CALL(0,drawProjectileBobs());
+    DIAG_CALL(0,PERF_BOB_PROJECTILE_RESTORE,eraseProjectileBobs());
+    DIAG_CALL(1,PERF_BOB_ENEMY_RESTORE,restoreEnemyBob());
+    DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCollectibleBobs());
+    DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
+    DIAG_CALL(3,PERF_BOB_WATER,animateWater());
+    DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
+    DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
+    DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
+    DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
 #endif
 #undef DIAG_CALL
 #ifndef SPARKPAW_ROLLING_PROTOTYPE
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    profileStart=performanceProfileBegin();
+#endif
     platformWaitBlit();
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    performanceProfileEnd(PERF_BOB_FINAL_WAIT,profileStart);
+#endif
 #endif
 }
 
@@ -2235,7 +2766,26 @@ void rendererWriteDiagnosticLog(void)
             (LONG)diagnosticWorst.splashDraw,
             (LONG)diagnosticWorst.waterUpdates);
     FPrintf(file,"family_profile=disabled_in_production_to_preserve_cpu_blitter_overlap\n");
+    FPrintf(file,"loading_frames setup=%ld target_alloc=%ld copper_alloc=%ld hud=%ld player_sprites=%ld rear_guard=%ld trace_alloc=%ld beetle=%ld strider=%ld strider_stage=%ld plasma=%ld diamond=%ld static_collectibles=%ld water=%ld splash=%ld ring_targets=%ld copper=%ld\n",
+            diagnosticLoadingFrames[DIAG_LOAD_SETUP],
+            diagnosticLoadingFrames[DIAG_LOAD_TARGET_ALLOC],
+            diagnosticLoadingFrames[DIAG_LOAD_COPPER_ALLOC],
+            diagnosticLoadingFrames[DIAG_LOAD_HUD],
+            diagnosticLoadingFrames[DIAG_LOAD_PLAYER_SPRITES],
+            diagnosticLoadingFrames[DIAG_LOAD_REAR_GUARD],
+            diagnosticLoadingFrames[DIAG_LOAD_TRACE_ALLOC],
+            diagnosticLoadingFrames[DIAG_LOAD_BEETLE],
+            diagnosticLoadingFrames[DIAG_LOAD_STRIDER],
+            diagnosticLoadingFrames[DIAG_LOAD_STRIDER_STAGE],
+            diagnosticLoadingFrames[DIAG_LOAD_PLASMA],
+            diagnosticLoadingFrames[DIAG_LOAD_DIAMOND],
+            diagnosticLoadingFrames[DIAG_LOAD_STATIC_COLLECTIBLES],
+            diagnosticLoadingFrames[DIAG_LOAD_WATER],
+            diagnosticLoadingFrames[DIAG_LOAD_SPLASH],
+            diagnosticLoadingFrames[DIAG_LOAD_RING_TARGETS],
+            diagnosticLoadingFrames[DIAG_LOAD_COPPER]);
     performanceProfileWrite(file);
+    audioDiagnosticWrite(file);
     FPrintf(file,"trace_fields=game epoch_line(update,patch_in,patch_out,bob_in,bob_done,boundary) flags camera player hud copper generation published busy(patch,bob_in,bob_done) fetch(mode,front_phase,rear_phase,bplcon1,front_logical,rear_logical,front_coarse,rear_coarse) world_ptrs hud_ptrs enemies counts\n");
     {
         UWORD n;

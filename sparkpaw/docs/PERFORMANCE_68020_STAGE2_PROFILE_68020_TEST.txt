@@ -1,0 +1,28 @@
+Sparkpaw Stage 2 whole-codebase profiler: FS-UAE/68020 stress run
+
+Purpose
+-------
+This is the same profiler executable and H7 presentation baseline as the
+preserved FS-UAE/68030 run. This separate self-contained drawer ensures that
+its PROGDIR:renderdiag.log cannot overwrite the 68030 result.
+
+FS-UAE configuration
+--------------------
+Select the same configuration used for the existing Sparkpaw 68020 stress
+tests. Change only the emulated CPU from the supplied 68030 comparison run to
+68020. Do not enable a faster CPU or alter the gameplay assets.
+
+Test
+----
+Run Sparkpaw-Stage2-Profiler-68020 from this drawer. Reproduce approximately
+the same workload: move, sprint, jump, fire repeatedly and reach at least the
+first Strider. Play for at least 30 seconds, then exit with the left mouse
+button and wait for the frozen diagnostic screen.
+
+Leave renderdiag.log in this drawer. No rename or move is needed.
+
+Acceptance boundary
+-------------------
+This is a performance stress measurement, not acceptance of production,
+ADF, Analogue Pocket or real hardware. Visual observations remain specific to
+this supplied FS-UAE/68020 run.

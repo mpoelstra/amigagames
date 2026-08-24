@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 ring-reach B: fetch-relevant copies only
+
+Repeat the same roughly two-minute FS-UAE/68030 HD route as A. Run right at
+least to the first water and back left, cross several 512-pixel boundaries,
+reverse near water and diamonds, jump, shoot and fight a Strider. Exit with
+the left mouse button so renderdiag.log is complete.
+
+Reject B for any stale or corrupt 16-pixel column, edge pixel, water or
+diamond corruption, Bob trail, HUD-seam regression, flicker or gameplay
+difference.

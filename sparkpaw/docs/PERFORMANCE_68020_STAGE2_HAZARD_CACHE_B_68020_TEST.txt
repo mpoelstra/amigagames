@@ -1,0 +1,8 @@
+Sparkpaw Stage 2 hazard lookup B - FS-UAE 68020 HD
+
+Candidate build: immutable hazard columns are cached in 3 KiB of non-Chip BSS.
+Run from this drawer and use the same FS-UAE 68020 configuration and route as A.
+
+Run to the first water, interact with enemies/projectiles, fall into the water,
+wait for the level reload, and continue briefly. Check collision and presentation.
+Do not rename the log.

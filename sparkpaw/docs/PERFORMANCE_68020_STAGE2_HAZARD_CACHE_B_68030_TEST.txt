@@ -1,0 +1,6 @@
+Sparkpaw Stage 2 hazard collision B: cached world columns (68030)
+
+Repeat A's route. Every world X column has the exact precomputed water/dry-gap
+classification. Reject any changed floor support, water/death boundary,
+platform collision, projectile impact, enemy patrol/support, reload behavior or
+presentation. Exit with the left mouse button.

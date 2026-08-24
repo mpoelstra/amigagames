@@ -1,0 +1,15 @@
+SPARKPAW STAGE 2 - SPRITE STAGING B (POSE CACHE)
+FS-UAE/68030 HD diagnostic candidate
+
+Run Sparkpaw-B-Pose-Cache from this drawer. Repeat the same roughly 90-second
+route and actions as build A:
+
+1. Stand still for 10 seconds.
+2. Run left and right and reverse direction repeatedly.
+3. Jump while running, crouch, shoot and take enemy damage.
+4. Continue through the first Strider and toward the water if practical.
+5. Exit with the left mouse button so renderdiag.log is completed here.
+
+Check for stale/wrong Sparkpaw frames, delayed facing changes, blinking errors,
+sprite corruption, HUD seam flicker and any other visual difference from A.
+Do not rename or move files before running.

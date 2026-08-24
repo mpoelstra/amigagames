@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 entering-column B: 68020 direct word-copy candidate
+
+Run Sparkpaw-B-Word-Copy-68020 and repeat A's route as closely as practical.
+Check both screen edges for vertical strips, stale data, jumps or corruption,
+and inspect objects, water and the HUD seam. Exit with the left mouse button
+and leave renderdiag.log here.
+
+Compare ring_roll median, p95, average and maximum. Whole-run FPS requires
+comparable routes. No ADF, Pocket, real-hardware or production acceptance.

@@ -1,0 +1,11 @@
+Sparkpaw Stage 2 phase-start B — FS-UAE/68020 HD
+
+Candidate. Update and inactive-target composition start immediately after the
+fixed publication boundary instead of waiting until PAL raster line 100. No
+renderer data, draw order, assets, physics or gameplay contract changes.
+
+Use the identical FS-UAE/68020 stress configuration and repeat A's route for at
+least two minutes. Check presentation and perceived cadence carefully. Press
+left mouse once to write PROGDIR:renderdiag.log.
+
+This test claims no acceptance beyond the supplied FS-UAE result.

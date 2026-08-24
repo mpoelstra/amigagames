@@ -5,6 +5,10 @@
 
 #include <string.h>
 
+#ifndef SPARKPAW_ENEMY_COPY_EVERY_TICK_REFERENCE
+#define SPARKPAW_ENEMY_COPY_ON_UNLOAD
+#endif
+
 #define INVALID_SPAWN 255
 #define SCREEN_W 320
 #define ACTIVATE_MARGIN 96
@@ -585,7 +589,9 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
             }
             tryStartStriderShot(enemy,cameraX,playerCenterX,playerCenterY);
         }
+#ifndef SPARKPAW_ENEMY_COPY_ON_UNLOAD
         state->enemy=*enemy; state->enemy.drawn=FALSE;
+#endif
         if(!enemy->active&&!state->respawnPending&&!state->exhausted) {
             if(spawns[enemy->spawnIndex].policy==ENEMY_POLICY_RESPAWN) {
                 state->respawnPending=TRUE;
@@ -595,6 +601,12 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
         } else if(enemy->active&&
                   (enemy->patrolRight<cameraX-UNLOAD_MARGIN||
                    enemy->patrolLeft>cameraX+SCREEN_W+UNLOAD_MARGIN)) {
+#ifdef SPARKPAW_ENEMY_COPY_ON_UNLOAD
+            /* While a runtime slot is loaded, it is the authoritative state.
+               The persistent copy is unread until parking, so copying the
+               complete Enemy every tick only burns 68020 memory traffic. */
+            state->enemy=*enemy; state->enemy.drawn=FALSE;
+#endif
             state->loadedSlot=INVALID_SPAWN;
             enemy->active=FALSE;
             enemy->spawnIndex=INVALID_SPAWN;

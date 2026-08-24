@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 ring-reach A: current all-copies reference
+
+Run this drawer in FS-UAE/68030 HD for about two minutes. Run right at least
+to the first water, then return left. Cross several 512-pixel boundaries,
+reverse direction near water and diamonds, jump, shoot and fight a Strider.
+Exit with the left mouse button so renderdiag.log is complete.
+
+Check especially the left and right playfield edges, entering 16-pixel
+columns, water, diamonds, Bob trails and the ground/HUD seam.

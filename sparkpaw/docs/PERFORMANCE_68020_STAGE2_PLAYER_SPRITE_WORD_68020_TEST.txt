@@ -1,0 +1,27 @@
+Sparkpaw Stage 2 player-sprite cache word conversion: FS-UAE/68020 measurement
+
+Purpose
+-------
+This is the same isolated player hardware-sprite cache candidate that passed
+the FS-UAE/68030 diagnostic gate. It replaces only CHARGING-time per-pixel
+conversion with masked planar word transfers. The 48px artwork remains in the
+same transparent-padded 64px attached sprite pair on channels 0/1.
+
+Test
+----
+Run Sparkpaw-Player-Sprite-Cache-Word-68020 with the normal FS-UAE/68020 setup.
+Let CHARGING finish, play for roughly 20 seconds, then exit with the left mouse
+button so renderdiag.log is written here. Check both facings, running, jumping,
+turning and shooting. Report any missing tail, feet, detached pixels, padding
+artifacts, renderer glitches or gameplay differences.
+
+Measurement
+-----------
+The primary comparison is loading_frames player_sprites against the measured
+68020 reference of 1,098 PAL frames. Also retain setup and cadence results, but
+do not interpret this loading-only change as a runtime-FPS optimization.
+
+Acceptance boundary
+-------------------
+This is an FS-UAE/68020 diagnostic measurement. It is not production, ADF,
+Pocket or real-hardware acceptance.

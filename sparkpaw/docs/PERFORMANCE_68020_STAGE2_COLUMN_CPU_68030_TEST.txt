@@ -1,0 +1,6 @@
+Sparkpaw Stage 2 column A: CPU word-copy reference (68030)
+
+Run in FS-UAE/68030 HD. Sprint continuously right past multiple 512-pixel
+boundaries and through the first water, then sprint back left. Reverse several
+times while the camera scrolls. Also jump, shoot and fight normally. Exit with
+the left mouse button after roughly one to two minutes.

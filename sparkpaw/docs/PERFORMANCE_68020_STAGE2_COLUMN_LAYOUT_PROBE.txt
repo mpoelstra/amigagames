@@ -1,0 +1,6 @@
+Sparkpaw Stage 2 column H2: plane-layout probe
+
+Use FS-UAE/68030 HD. This is only a memory-layout probe: launch the game,
+enter gameplay, wait a few seconds and exit with the left mouse button. No
+route or extended play is required. The drawer writes its own renderdiag.log
+with the expected plane size and all actual plane-to-plane address deltas.

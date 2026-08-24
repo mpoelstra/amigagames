@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 collision A: pixel-span reference
+
+Run Sparkpaw-A-Pixel-Spans in FS-UAE/68030. Test running, repeated jumps,
+crouching/standing under and beside platforms, landing on edges, wall contact,
+water and a level reload. Exit with the left mouse button.
+
+FS-UAE/68030 HD diagnostic reference only.

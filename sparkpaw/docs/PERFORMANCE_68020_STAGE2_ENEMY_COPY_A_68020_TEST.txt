@@ -1,0 +1,6 @@
+Sparkpaw Stage 2 enemy state A: copy every tick (68020)
+
+Reference build. Run through beetles and the first Strider, fight normally,
+then move far enough away and back to exercise camera parking and reactivation.
+Keep route and duration as similar as practical in B. Exit with the left mouse
+button.

@@ -1,0 +1,19 @@
+Sparkpaw Stage 2 dynamic synchronization A: indexed reference
+
+Purpose
+-------
+This is the retained direct-word synchronization route. It is the visual and
+timing reference for the isolated B candidate. All previously accepted loading
+optimizations are active.
+
+Test
+----
+Run Sparkpaw-A-Indexed in the normal FS-UAE/68030 configuration. Walk and run
+through the opening area, collect diamonds and observe their hovering, then
+cross or approach animated water. Check the HUD seam, Sparkpaw, enemies,
+collectibles, water and scrolling. Exit with the left mouse button.
+
+Acceptance boundary
+-------------------
+This is an FS-UAE/68030 HD diagnostic reference, not production or hardware
+acceptance.

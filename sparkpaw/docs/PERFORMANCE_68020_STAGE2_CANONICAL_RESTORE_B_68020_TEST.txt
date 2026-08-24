@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 canonical Bob restore B: display-only targets (68020)
+
+Repeat A's route and duration. B removes both target-local clean bitmaps and
+restores old Bobs from the canonical clean world. Reject trails, cut-off Bobs,
+wrong overlap order, damaged water or diamonds, corrupt entering columns,
+HUD/seam flicker, reload faults or gameplay differences. Exercise direction
+changes near a 512-pixel boundary. Exit with the left mouse button.

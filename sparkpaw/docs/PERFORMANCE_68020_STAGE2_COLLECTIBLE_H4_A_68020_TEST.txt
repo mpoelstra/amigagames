@@ -1,0 +1,14 @@
+Sparkpaw Stage 2 collectible H4 A — FS-UAE/68020 HD
+
+Reference: accepted canonical diamond synchronization, with immediate
+post-publication phase start enabled.
+
+Run in both directions past several diamonds, a beetle and a Strider. Force
+enemies through or beside diamonds, scroll diamonds off/on screen, collect
+several and reach the water. Keep playing for at least 30 seconds after
+CHARGING. Check diamonds, enemies, all other Bobs, HUD and seam.
+
+Press left mouse once at the end to write renderdiag.log in this drawer.
+Do not rename or move anything before both runs are complete.
+
+FS-UAE/68020 stress measurement only; no broader acceptance is claimed.

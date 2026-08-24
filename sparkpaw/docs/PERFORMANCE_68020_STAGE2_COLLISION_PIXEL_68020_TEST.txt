@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 collision A: 68020 pixel-span reference
+
+Run Sparkpaw-A-Pixel-Spans-68020. Test running, repeated jumps, platform edges,
+walls, crouch/stand near ceilings, water and level reload. Exit with the left
+mouse button and leave renderdiag.log here.
+
+FS-UAE/68020 HD diagnostic reference only.

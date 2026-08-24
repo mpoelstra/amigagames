@@ -1,0 +1,5 @@
+Sparkpaw Stage 2 canonical Bob restore A: clean targets (68030)
+
+Reference build. Run right through several ring boundaries, fight beetles and
+the first Strider, fire repeatedly, collect diamonds, enter the first water,
+reload the level and run left/right again. Exit with the left mouse button.

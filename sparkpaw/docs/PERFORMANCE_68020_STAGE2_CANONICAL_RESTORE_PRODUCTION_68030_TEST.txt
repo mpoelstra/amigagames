@@ -1,0 +1,8 @@
+Sparkpaw Stage 2 canonical Bob restore: production-default gate (68030)
+
+This is the promoted display-only rolling-target route with diagnostics. Run
+through beetles, the first Strider, diamonds and water; fire repeatedly, die in
+water, reload, and reverse across scroll boundaries. Reject trails, damaged
+Bobs, overlap/order faults, corrupt water or diamonds, entering-column errors,
+HUD/seam flicker, reload faults or gameplay differences. Exit with the left
+mouse button.

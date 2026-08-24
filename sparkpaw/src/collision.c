@@ -1,4 +1,10 @@
 #include "collision.h"
+#ifndef SPARKPAW_COLLISION_HAZARD_SCAN_REFERENCE
+#define SPARKPAW_COLLISION_HAZARD_CACHE
+#endif
+#ifdef SPARKPAW_COLLISION_HAZARD_CACHE
+#include "collision_hazard_cache.h"
+#endif
 #include "level_data.h"
 #include "world_config.h"
 
@@ -11,6 +17,14 @@
 #define MAP_ROWS 14
 
 static UBYTE collision[MAP_COLS*MAP_ROWS];
+#ifdef SPARKPAW_COLLISION_HAZARD_CACHE
+static UBYTE hazardColumns[WORLD_W];
+
+static int collisionHazardPredicate(short x)
+{
+    return levelHazardColumnAt((WORD)x);
+}
+#endif
 
 BOOL collisionLoad(void)
 {
@@ -19,7 +33,11 @@ BOOL collisionLoad(void)
     if(Read(file,collision,sizeof(collision))!=sizeof(collision)) {
         Close(file); return FALSE;
     }
-    Close(file); return TRUE;
+    Close(file);
+#ifdef SPARKPAW_COLLISION_HAZARD_CACHE
+    collisionBuildHazardCache(hazardColumns,WORLD_W,collisionHazardPredicate);
+#endif
+    return TRUE;
 }
 
 BOOL collisionSolidAt(WORD x,WORD y)
@@ -28,8 +46,19 @@ BOOL collisionSolidAt(WORD x,WORD y)
     if(x<0||x>=WORLD_W||y<0) return TRUE;
     /* Phase 6B.3A moves the continuous floor top to the visible cap while the
        accepted water columns remain open through the bottom death region. */
-    if(y>=LEVEL_FLOOR_Y&&!levelHazardColumnAt(x)) return TRUE;
-    if(y>=GAME_H) return !levelHazardColumnAt(x);
+    if(y>=LEVEL_FLOOR_Y&&!
+#ifdef SPARKPAW_COLLISION_HAZARD_CACHE
+       collisionHazardCached(hazardColumns,x)
+#else
+       levelHazardColumnAt(x)
+#endif
+       ) return TRUE;
+    if(y>=GAME_H) return !
+#ifdef SPARKPAW_COLLISION_HAZARD_CACHE
+        collisionHazardCached(hazardColumns,x);
+#else
+        levelHazardColumnAt(x);
+#endif
     tileX=x/TILE_SIZE; tileY=y/TILE_SIZE;
     return collision[tileY*MAP_COLS+tileX]!=0;
 }
@@ -37,13 +66,28 @@ BOOL collisionSolidAt(WORD x,WORD y)
 BOOL collisionSolidHorizontal(WORD left,WORD right,WORD y)
 {
     WORD x;
+#ifndef SPARKPAW_COLLISION_PIXEL_SPAN_REFERENCE
+    for(x=left;x<=right;x=(WORD)((x&~(TILE_SIZE-1))+TILE_SIZE))
+        if(collisionSolidAt(x,y)) return TRUE;
+#else
     for(x=left;x<=right;x++) if(collisionSolidAt(x,y)) return TRUE;
+#endif
     return FALSE;
 }
 
 BOOL collisionSolidVertical(WORD x,WORD top,WORD bottom)
 {
     WORD y;
+#ifndef SPARKPAW_COLLISION_PIXEL_SPAN_REFERENCE
+    for(y=top;y<=bottom;) {
+        WORD next;
+        if(collisionSolidAt(x,y)) return TRUE;
+        next=(WORD)((y&~(TILE_SIZE-1))+TILE_SIZE);
+        if(y<LEVEL_FLOOR_Y&&next>LEVEL_FLOOR_Y) next=LEVEL_FLOOR_Y;
+        y=next;
+    }
+#else
     for(y=top;y<=bottom;y++) if(collisionSolidAt(x,y)) return TRUE;
+#endif
     return FALSE;
 }

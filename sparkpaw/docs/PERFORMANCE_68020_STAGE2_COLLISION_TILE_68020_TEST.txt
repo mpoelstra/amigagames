@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 collision B: 68020 tile-span candidate
+
+Run Sparkpaw-B-Tile-Spans-68020 and repeat A's collision route as closely as
+practical. Look for changed grounding, hovering, sinking, tunnelling, blocked
+jumps, crouch-clearance differences or ledge errors. Exit with the left mouse
+button and leave renderdiag.log here.
+
+Compare player median, p95, average and maximum. Whole-run FPS requires similar
+workloads. No ADF, Pocket, real-hardware or production acceptance.

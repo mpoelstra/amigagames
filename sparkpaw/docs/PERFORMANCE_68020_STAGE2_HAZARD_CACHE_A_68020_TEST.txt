@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 hazard lookup A - FS-UAE 68020 HD
+
+Reference build: collision checks scan the fixed water and dry-gap boundaries.
+Run from this drawer and use an FS-UAE 68020 configuration.
+
+Run to the first water, interact with enemies/projectiles, fall into the water,
+wait for the level reload, and continue briefly. Do not rename the log.

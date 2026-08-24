@@ -1,0 +1,6 @@
+Sparkpaw Stage 2 Copper B: patch inactive dynamic fields only (68020)
+
+Repeat A's route as closely as practical in the same FS-UAE/68020 setup.
+Check Sparkpaw, parallax, enemies, projectiles, HUD values, colours and seam.
+Report perceived cadence and any stale pointer, wrong frame, flicker or
+corruption. Exit with the left mouse button to complete renderdiag.log.

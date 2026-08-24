@@ -1,0 +1,5 @@
+Sparkpaw Stage 2 Copper A: full inactive-list copy (68020)
+
+Run in FS-UAE/68020 HD for roughly two minutes. Run right through the first
+water and back left, jump, shoot, collect diamonds and fight a Strider. Exit
+with the left mouse button. This drawer writes its own renderdiag.log.

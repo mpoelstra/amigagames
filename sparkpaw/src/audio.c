@@ -36,6 +36,27 @@ static UBYTE collectCooldown;
 static UBYTE waterSplashCooldown;
 static BOOL hardwareActive;
 
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+enum AudioDiagnosticEvent {
+    AUDIO_DIAG_SHOT,
+    AUDIO_DIAG_HURT,
+    AUDIO_DIAG_ENEMY_HIT,
+    AUDIO_DIAG_ENEMY_DEATH,
+    AUDIO_DIAG_STRIDER_SHOT,
+    AUDIO_DIAG_JUMP,
+    AUDIO_DIAG_COLLECT,
+    AUDIO_DIAG_WATER,
+    AUDIO_DIAG_COUNT
+};
+static ULONG diagnosticRequests[AUDIO_DIAG_COUNT];
+static ULONG diagnosticStarts[AUDIO_DIAG_COUNT];
+#define AUDIO_REQUEST(event) diagnosticRequests[event]++
+#define AUDIO_START(event) diagnosticStarts[event]++
+#else
+#define AUDIO_REQUEST(event) do { } while(0)
+#define AUDIO_START(event) do { } while(0)
+#endif
+
 #define GAMEPLAY_CHANNEL 1
 #define PLAYER_HURT_PRIORITY 9
 #define PLAYER_HURT_TICKS 12
@@ -161,6 +182,7 @@ void audioSetHardwareActive(BOOL active)
 
 void audioPlayShot(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_SHOT);
     if(!shotSample||!hardwareActive) return;
     hardware->dmacon=DMAF_AUD0;
     hardware->aud[0].ac_ptr=(UWORD *)shotSample;
@@ -168,12 +190,17 @@ void audioPlayShot(void)
     hardware->aud[0].ac_per=322;
     hardware->aud[0].ac_vol=60;
     hardware->dmacon=DMAF_SETCLR|DMAF_AUD0;
+    AUDIO_START(AUDIO_DIAG_SHOT);
     shotDmaTicks=9;
 }
 
 static void playGameplaySample(UBYTE *sample,LONG sampleBytes,UBYTE priority,
                                UBYTE ticks,UBYTE *cooldown,UBYTE cooldownTicks,
-                               UBYTE volume)
+                               UBYTE volume
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                               ,UBYTE diagnosticEvent
+#endif
+                               )
 {
     /* Paula 0 remains dedicated to rapid plasma. Paula 1 is the prioritized
        gameplay-effect voice; channels 2-3 stay free for future music. */
@@ -185,55 +212,93 @@ static void playGameplaySample(UBYTE *sample,LONG sampleBytes,UBYTE priority,
     hardware->aud[GAMEPLAY_CHANNEL].ac_per=322;
     hardware->aud[GAMEPLAY_CHANNEL].ac_vol=volume;
     hardware->dmacon=DMAF_SETCLR|DMAF_AUD1;
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    AUDIO_START(diagnosticEvent);
+#endif
     gameplayDmaTicks=ticks; gameplayPriority=priority;
     *cooldown=cooldownTicks;
 }
 
 void audioPlayPlayerHurt(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_HURT);
     playGameplaySample(hurtSample,hurtSampleBytes,PLAYER_HURT_PRIORITY,
                        PLAYER_HURT_TICKS,&hurtCooldown,
-                       PLAYER_HURT_COOLDOWN,64);
+                       PLAYER_HURT_COOLDOWN,64
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_HURT
+#endif
+                       );
 }
 
 void audioPlayEnemyHit(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_ENEMY_HIT);
     playGameplaySample(enemyHitSample,enemyHitSampleBytes,ENEMY_HIT_PRIORITY,
                        ENEMY_HIT_TICKS,&enemyHitCooldown,
-                       ENEMY_HIT_COOLDOWN,60);
+                       ENEMY_HIT_COOLDOWN,60
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_ENEMY_HIT
+#endif
+                       );
 }
 
 void audioPlayEnemyDeath(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_ENEMY_DEATH);
     playGameplaySample(enemyDeathSample,enemyDeathSampleBytes,
                        ENEMY_DEATH_PRIORITY,ENEMY_DEATH_TICKS,
-                       &enemyDeathCooldown,ENEMY_DEATH_COOLDOWN,64);
+                       &enemyDeathCooldown,ENEMY_DEATH_COOLDOWN,64
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_ENEMY_DEATH
+#endif
+                       );
 }
 
 void audioPlayStriderShot(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_STRIDER_SHOT);
     playGameplaySample(striderShotSample,striderShotSampleBytes,
                        STRIDER_SHOT_PRIORITY,STRIDER_SHOT_TICKS,
-                       &striderShotCooldown,STRIDER_SHOT_COOLDOWN,64);
+                       &striderShotCooldown,STRIDER_SHOT_COOLDOWN,64
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_STRIDER_SHOT
+#endif
+                       );
 }
 
 void audioPlayJump(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_JUMP);
     playGameplaySample(jumpSample,jumpSampleBytes,JUMP_PRIORITY,JUMP_TICKS,
-                       &jumpCooldown,JUMP_COOLDOWN,58);
+                       &jumpCooldown,JUMP_COOLDOWN,58
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_JUMP
+#endif
+                       );
 }
 
 void audioPlayCollect(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_COLLECT);
     playGameplaySample(collectSample,collectSampleBytes,COLLECT_PRIORITY,
-                       COLLECT_TICKS,&collectCooldown,COLLECT_COOLDOWN,58);
+                       COLLECT_TICKS,&collectCooldown,COLLECT_COOLDOWN,58
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_COLLECT
+#endif
+                       );
 }
 
 void audioPlayWaterSplash(void)
 {
+    AUDIO_REQUEST(AUDIO_DIAG_WATER);
     playGameplaySample(waterSplashSample,waterSplashSampleBytes,
                        WATER_SPLASH_PRIORITY,WATER_SPLASH_TICKS,
-                       &waterSplashCooldown,WATER_SPLASH_COOLDOWN,64);
+                       &waterSplashCooldown,WATER_SPLASH_COOLDOWN,64
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_WATER
+#endif
+                       );
 }
 
 void audioUpdate(void)
@@ -252,3 +317,18 @@ void audioUpdate(void)
     if(collectCooldown) collectCooldown--;
     if(waterSplashCooldown) waterSplashCooldown--;
 }
+
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+void audioDiagnosticWrite(BPTR file)
+{
+    static const char *const names[AUDIO_DIAG_COUNT]={
+        "shot","hurt","enemy_hit","enemy_death",
+        "strider_shot","jump","collect","water"
+    };
+    UWORD event;
+    for(event=0;event<AUDIO_DIAG_COUNT;event++)
+        FPrintf(file,"audio event=%s requests=%ld paula_starts=%ld suppressed=%ld\n",
+                names[event],diagnosticRequests[event],diagnosticStarts[event],
+                diagnosticRequests[event]-diagnosticStarts[event]);
+}
+#endif

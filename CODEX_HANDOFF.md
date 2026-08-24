@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 20 August 2026
+Last updated: 24 August 2026
 
 ## Start here
 
@@ -45,12 +45,12 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.43`, Phase 6C.1. A normal release contains:
+Current release is `0.6.0-alpha.44`, Phase 6C.1. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.43.lha`
-- `Sparkpaw-0.6.0-alpha.43.zip`
-- `Sparkpaw-0.6.0-alpha.43.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.43/`
+- `Sparkpaw-0.6.0-alpha.44.lha`
+- `Sparkpaw-0.6.0-alpha.44.zip`
+- `Sparkpaw-0.6.0-alpha.44.adf`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.44/`
 
 MrDig mounts `sparkpaw/dist/` directly as an FS-UAE HD volume. Every
 user-facing FS-UAE HD test or diagnostic drawer must therefore be created
@@ -64,6 +64,15 @@ For every future A/B test, create one fully self-contained subdrawer per
 variant. Each subdrawer must contain its own executable, complete runtime
 assets and ReadMe, so `PROGDIR:renderdiag.log` is naturally unique. Never ask
 MrDig to rename or move a log between variants.
+
+Keep the mounted `sparkpaw/dist/` root uncluttered. It should contain only the
+current alpha release artifact set and the single currently active diagnostic
+or A/B test set; `my-files/` and `older-builds/` remain as fixed storage
+drawers. As soon as a diagnostic set is superseded or its evidence has been
+preserved in `sparkpaw/testresults/`, move its complete self-contained drawers
+and matching FS-UAE `.uaem` metadata intact into `sparkpaw/dist/older-builds/`.
+Do not leave multiple generations of debug/test drawers in the mounted root,
+and never delete their logs while tidying it.
 
 Do not create the >100 MB Source ZIP unless MrDig explicitly requests it.
 Opt-in command: `tools/make_release.py --include-source`.
@@ -125,6 +134,11 @@ behavior on a real 68020 is a hypothesis, not supplied hardware verification.
 - Stage 5L in FS-UAE/68020 measures 26.38 effective FPS (136 one-field, 337
   two-field and 78 three-field intervals). This stress configuration is slower
   than the supplied real 34.5 MHz 68030, while FS-UAE/68030 is much faster.
+- Alpha.44 packages the supplied FS-UAE/68030-HD-accepted H7 seam correction
+  and accepted Stage2 defaults without changing Stage 5L geometry, assets or
+  gameplay. Its DOS1/FFS ADF validates at 1,195 blocks used and 565 free.
+  Alpha.44 HD/ADF gameplay on the real A1200 and ADF gameplay on Analogue
+  Pocket remain pending supplied tests; package validation is not acceptance.
 - Alpha.39 ADF on an Analogue Pocket FPGA core shows widespread transient Bob,
   gameplay-field and HUD corruption at 68020/no-cache. Treat this as a useful
   missed-deadline stress signal, not as FS-UAE or real-A1200 equivalence.
@@ -262,6 +276,115 @@ Preserve sprites, colours, 4+3 dual playfield and art. Do not retry alpha.37
 bounds or alpha.38 full viewport copies. Benchmark candidates in isolation and
 gate first on unchanged 68030 presentation, then FS-UAE 68020 timing.
 
+Accepted Stage2 Sprite Stage result: A retains the unconditional
+two-channel 1,600-byte Fast-to-Chip sprite image copy. B caches facing/frame per
+alternating Chip stage and skips only identical image copies; position/control
+words and Copper pointers remain per-update. The cache state-machine host test
+and full host suite pass, and actual VBCC 68020 assembly confirms a direct
+conditional branch around `CopyMem`. Gate the two self-contained drawers in
+FS-UAE/68030 and FS-UAE/68020 testing reports both visually correct. On 68020,
+sprite-stage median falls 423 to 74 CIA ticks and average 407 to 236; unmatched
+whole-run cadence is 28.73 versus 29.92 FPS and is not attributed wholly to the
+cache. B is now production default, with A preserved behind
+`SPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE`. Overall 68020 cadence remains
+rejected; continue with a larger measured hotspot.
+
+Accepted Stage2 canonical-restore result: production rolling targets now keep
+only their display bitmaps. Target-local history retains canonical world X as
+well as physical ring X, so old Bobs restore directly from the canonical clean
+world without changing draw order or bounds. Supplied FS-UAE/68030 and
+FS-UAE/68020 HD testing reports the A/B variants visually correct with zero
+ownership violations. On 68020, `ring_roll`, `ring_dynamic` and
+`bob_compact_target` averages fall by about 39--41%, and the complete Bob pass
+falls 26.2% in the supplied runs. Prepared-peak free Chip rises by exactly
+319,488 bytes in the A/B gate. The final production-default FS-UAE/68030 log
+records 49.95 FPS (1,147 one-field and one two-field interval), zero ownership
+violations and 785,872 bytes free Chip at prepared peak; the user reports clean
+presentation. Preserve the old architecture behind
+`SPARKPAW_TARGET_CLEAN_REFERENCE`. Overall 68020 cadence remains rejected. No
+ADF, Analogue Pocket or real-A1200 acceptance is claimed for this Stage2
+change.
+
+Accepted Stage2 enemy-state result: loaded runtime enemies are authoritative;
+their complete state is copied to persistent spawn storage only when camera
+parking occurs. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing reports
+normal presentation and correct parking/reactivation. On 68020, `enemies`
+average falls 1,860 to 1,762 CIA ticks (-5.3%) and `game_update` average falls
+3,865 to 3,707 (-4.1%). Retain this as default and keep the former per-tick
+copy behind `SPARKPAW_ENEMY_COPY_EVERY_TICK_REFERENCE`. No ADF, Pocket or
+real-hardware acceptance is inferred.
+
+Accepted Stage2 phase-start result: the rolling main loop now starts its next
+game update and inactive-target composition immediately after fixed-boundary
+publication instead of idling until PAL raster line 100. Supplied FS-UAE/68030
+and FS-UAE/68020 HD A/B testing reports both variants visually normal with zero
+ownership violations. On 68020, effective cadence rises from 27.45 to 35.81 FPS
+(+30.5%); one-field intervals rise from 17.9% to 60.4%, two-field intervals
+fall from 853 to 428 and wraps from 875 to 466 under comparable measured work.
+Immediate start is the production default; preserve the old gate only behind
+`SPARKPAW_UPDATE_LINE100_REFERENCE`. Overall 68020 cadence remains below 50 Hz.
+No ADF, Pocket or real-A1200 acceptance is inferred.
+
+Supplied FS-UAE/68030 H3 conclusively rejects target-local collectibles.
+Diamonds are stable away from enemies and collection is stable, but enemy Bob
+restores erase overlapping target-local diamonds because canonical restore
+sources are intentionally diamond-free. Performance no longer favors the
+corrected route: `ring_dynamic` is 108 to 1 tick, but collectible restore+draw
+rises roughly 544 to 772 and Bob-pass average is 3459 for A versus 3878 for B.
+Further overlap invalidation would add redraws. H1/H2/H3 implementation, tests
+and build targets are removed; retain canonical synchronization. No MOV,
+FS-UAE/68020, ADF, Pocket or real-hardware acceptance is needed or inferred.
+
+Current Stage2 hazard-cache candidate: supplied FS-UAE/68030 HD A/B testing
+reports normal presentation, collision, water death/reload and enemy behavior.
+Both runs sustain 50.00 FPS. B's `game_update` average is 192 versus 211 CIA
+ticks for A, but scene/projectile load is not matched closely enough to claim
+that difference. The candidate uses 3 KiB non-Chip BSS and awaits a matched
+FS-UAE/68020 A/B decision; no ADF, Pocket or real-hardware claim is inferred.
+
+The subsequent supplied FS-UAE/68020 HD A/B test reports both variants normal.
+Cadence is effectively identical at 27.07 versus 27.05 FPS under unmatched
+projectile load. Scoped results favor the cache: `player` average 922 to 875
+ticks (-5.1%), median 756 to 599 (-20.8%), and `enemies` average 1760 to 1748
+(-0.7%). Retain the cache as default and the prior scan behind
+`SPARKPAW_COLLISION_HAZARD_SCAN_REFERENCE`; classify this as a small CPU win,
+not a whole-game FPS gain. No ADF, Pocket or real-hardware claim is inferred.
+
+Current Stage2 projectile-sweep candidate: supplied FS-UAE/68030 HD testing
+reports both variants visually and functionally normal at exactly 50.00 FPS.
+Both issue 82 shot requests. Candidate B reduces `projectiles` average 20 to 12
+CIA ticks, p95 91 to 46 and maximum 174 to 91; A has one additional hit and
+kill, so scene load is close but not identical. Proceed to FS-UAE/68020 A/B
+before deciding promotion. No ADF, Pocket or real-hardware claim is inferred.
+
+The subsequent supplied FS-UAE/68020 HD result rejects that projectile-only
+enemy prepass. Presentation remains correct, but `projectiles` average is flat
+at 362 versus 366 ticks and median regresses 106 to 234. P95 improves 1291 to
+847 and maximum 3529 to 1614, so spikes shrink, but ordinary frames pay for the
+extra scan and total FPS does not improve. The implementation and build targets
+were removed; retain the original pixel-ordered dispatcher. A future swept
+candidate must coalesce geometry and enemy work together. No ADF, Pocket or
+real-hardware claim is inferred.
+
+Current Stage2 collectible H1 is visually rejected in supplied FS-UAE/68030
+HD testing: target-local diamonds flicker visible/invisible despite zero Copper
+ownership violations. H1 did reduce `ring_dynamic` average 91 to 1 CIA tick
+and Bob-pass average 3575 to 3081 (-13.8%). Root cause: entering roll columns
+can overwrite a target-local diamond while its history still says drawn. H2
+invalidates exactly those histories using an exhaustively tested entering-strip
+overlap predicate and awaits a fresh FS-UAE/68030 gate. Do not infer H2, ADF,
+Pocket or real-hardware acceptance.
+
+Supplied FS-UAE/68030 H2 also rejects target-local collectibles: A is correct,
+but B still flickers and trembles between diamond Y positions despite zero
+ownership violations. H2 retains a Bob-pass average reduction of about 13.2%.
+Cause: the canonical `(frameCounter&3)==(index&3)` stagger is incompatible with
+per-target history because alternating targets own opposite tick parities; an
+index group can update one buffer but not the other. H3 removes that stagger
+only for target-local mode and converges each target whenever its stored hover
+Y is stale. H1/H2 remain rejected; H3 awaits FS-UAE/68030. No ADF, Pocket or
+real-hardware acceptance is inferred.
+
 ### 3. Deferred visual work
 
 Only after HD and performance acceptance, replace the world diamond as a
@@ -280,5 +403,14 @@ Consider a sequential ADF-only container only if layout changes are insufficient
 Keep this file concise and current. Append implementation narrative and rejected
 experiments to `docs/DEVELOPMENT_HISTORY.md`. Update README, handoff, history,
 packaged notes and SemVer together for every release candidate.
+
+Accepted Stage2 collectible H4 result: target-local diamond composition is the
+production default. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing reports
+normal diamonds including enemy overlap, with zero ownership violations. On
+68020, cadence rises from 35.31 to 42.15 FPS (+19.4%), `ring_dynamic` average
+falls 3,940 to 101 ticks and Bob-pass average 11,086 to 8,499. Preserve the old
+canonical diamond synchronization only behind
+`SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE`. Overall stock-68020 cadence
+remains below 50 Hz. No ADF, Pocket or real-A1200 claim is inferred.
 
 My request is:

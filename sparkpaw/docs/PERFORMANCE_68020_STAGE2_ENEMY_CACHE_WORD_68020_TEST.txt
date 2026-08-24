@@ -1,0 +1,21 @@
+Sparkpaw Stage 2 enemy-cache H2 loading measurement: FS-UAE/68020
+
+Purpose
+-------
+H2 passed the FS-UAE/68030 presentation gate. This build measures its beetle
+and Strider cache-build time on the same FS-UAE/68020 stress configuration as
+the preserved CHARGING reference. The direct dynamic-ring word-copy optimization
+also remains active.
+
+Test
+----
+Run Sparkpaw-Enemy-Cache-H2-68020. Let CHARGING finish, enter gameplay, inspect
+at least a beetle and one Strider, then exit with the left mouse button. A long
+gameplay route is unnecessary. Leave renderdiag.log here.
+
+Report any enemy corruption and whether CHARGING is noticeably shorter.
+
+Acceptance boundary
+-------------------
+This is an FS-UAE/68020 diagnostic loading measurement. It is not production,
+ADF, Pocket or real-hardware acceptance.

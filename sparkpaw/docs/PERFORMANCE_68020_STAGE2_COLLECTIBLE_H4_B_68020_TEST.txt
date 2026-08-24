@@ -1,0 +1,14 @@
+Sparkpaw Stage 2 collectible H4 B — FS-UAE/68020 HD
+
+Candidate: every inactive target restores its previous diamonds, performs
+ring/water maintenance, redraws every visible diamond and then draws enemies.
+This removes diamond traffic from broad canonical dynamic synchronization.
+
+Repeat A's route as closely as practical and for a similar duration. Force
+beetles and Striders through/beside diamonds, scroll diamonds off/on screen,
+collect several and reach water. Check diamonds, enemies, all Bobs, HUD and
+seam. Watch overall cadence as well as entering-column scroll moments.
+
+Press left mouse once at the end to write renderdiag.log in this drawer.
+
+FS-UAE/68020 stress measurement only; no broader acceptance is claimed.

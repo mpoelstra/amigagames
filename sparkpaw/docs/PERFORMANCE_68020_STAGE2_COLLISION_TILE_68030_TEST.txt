@@ -1,0 +1,13 @@
+Sparkpaw Stage 2 collision B: tile-span candidate
+
+B checks each distinct 16px collision tile once instead of checking every pixel
+in a horizontal or vertical span. It explicitly retains the y=200 floor edge
+and all word-aligned water/chasm boundaries. Physics constants, hitboxes and
+movement order are unchanged.
+
+Run Sparkpaw-B-Tile-Spans in FS-UAE/68030 and repeat A's test: run, jump,
+crouch/stand around ceilings, platform edges, walls, water and reload. Look for
+hovering, sinking, tunnelling, blocked jumps, ledge errors or changed grounding.
+Exit with the left mouse button.
+
+FS-UAE/68030 gameplay gate only; no production or hardware acceptance.

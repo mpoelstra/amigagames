@@ -5166,3 +5166,36 @@ that configuration only. ADF, Analogue Pocket and real-A1200 results remain
 unclaimed. The renderer seam phase is closed and Stage 2 of the whole-codebase
 68020 performance plan may begin; no hotspot optimization is authorized before
 the broad comparison table is complete.
+
+### 24 August 2026 - Stage 2 performance checkpoint promoted as alpha.44
+
+Alpha.44 retains the immutable Stage 5L display geometry and packages H7's
+supplied FS-UAE/68030-HD-accepted final-transition-scanline FRONT16 palette
+mask. The whole-codebase audit promoted only isolated candidates that passed
+their required host, FS-UAE/68030 and FS-UAE/68020 gates: display-only rolling
+targets, patch-only Copper publication, word-level enemy and player loading
+conversion, direct and unrolled ring maintenance, tile-span collision, cached
+player-sprite staging, cached hazard columns, enemy-state copy on unload, and
+immediate post-publication update start. Display-only targets reclaim 319,488
+Chip bytes. Loading conversion cuts measured 68020 renderer preparation from
+about 40.2 to 5.9 seconds.
+
+The final target-local collectible H4 route keeps diamonds out of broad
+canonical dynamic synchronization and redraws them on each inactive target
+before later Bobs. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing reports
+normal diamonds including enemy overlap and zero ownership violations. On the
+68020 stress configuration it raises cadence from 35.31 to 42.15 FPS (+19.4%),
+reduces `ring_dynamic` average from 3,940 to 101 CIA ticks and reduces Bob-pass
+average from 11,086 to 8,499. Together with immediate update start's earlier
+27.45 to 35.81 FPS result, this is material but still below the 50 Hz target.
+Canonical diamond synchronization remains available only as a diagnostic
+reference. Official HD and ADF executables contain no profiler, logger or test
+input. Alpha.44 ADF, Analogue Pocket and real-A1200 results remain pending and
+must come from supplied tests; no emulator result is promoted into a hardware
+claim.
+
+The alpha.44 native HD and packed-asset ADF builds, ZIP/LHA construction and
+independent ADF round-trip validation pass. The bootable DOS1/FFS ADF uses
+1,195 blocks (597 KiB) and leaves 565 free. This records construction only;
+real-A1200 HD/ADF and Analogue Pocket ADF presentation and cadence remain
+pending supplied tests.

@@ -1,0 +1,22 @@
+Sparkpaw Stage 2 CHARGING profiler: FS-UAE/68020
+
+Purpose
+-------
+This diagnostic measures the separate cache/preparation stages shown behind
+CHARGING in whole PAL-frame units. It also contains the accepted direct dynamic
+word-copy optimization. The normal status presentation and intentional minimum
+100-frame CHARGING visibility remain unchanged.
+
+Test
+----
+Run Sparkpaw-CHARGING-Profiler with the same FS-UAE/68020 configuration. Let it
+finish CHARGING and enter gameplay. Play for a few seconds, then exit with the
+left mouse button and wait for the frozen diagnostic screen.
+
+Leave renderdiag.log in this drawer. Report approximately how long CHARGING
+felt, but no stopwatch or long gameplay route is required.
+
+Acceptance boundary
+-------------------
+This measures loading only. It is not production, ADF, Pocket or real-hardware
+acceptance and does not establish total gameplay FPS.

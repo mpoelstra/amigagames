@@ -1,0 +1,13 @@
+SPARKPAW STAGE 2 - SPRITE STAGING A (ALWAYS COPY)
+FS-UAE/68030 HD diagnostic reference
+
+Run Sparkpaw-A-Always-Copy from this drawer. Play for about 90 seconds:
+
+1. Stand still for 10 seconds.
+2. Run left and right and reverse direction repeatedly.
+3. Jump while running, crouch, shoot and take enemy damage.
+4. Continue through the first Strider and toward the water if practical.
+5. Exit with the left mouse button so renderdiag.log is completed here.
+
+Check Sparkpaw especially during pose changes and invulnerability blinking.
+Do not rename or move files before running.

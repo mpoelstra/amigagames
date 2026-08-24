@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 ring-reach H3-B: post-increment stores (68020)
+
+Repeat H3-A's route as closely as practical in the same FS-UAE/68020
+configuration. Run through the first water and back left, cross several
+512-pixel boundaries, reverse near water and diamonds, jump, shoot and fight a
+Strider. Aim for roughly two minutes and exit with the left mouse button.
+
+H3 uses straight post-increment pointer stores after selecting reachable ring
+copies once per span. Report perceived cadence and any stale/corrupt column,
+edge pixel, water/diamond corruption, Bob trail or gameplay difference.

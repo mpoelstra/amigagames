@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 ring-reach H3-B: post-increment stores (68030 visual gate)
+
+This is a short FS-UAE/68030 HD presentation gate. Run right through the first
+water, cross several 512-pixel boundaries, reverse direction a few times and
+return left. Check both screen edges, entering 16-pixel columns, water,
+diamonds and Bob trails. Exit with the left mouse button.
+
+H3 changes only the candidate's destination addressing from scaled indexed
+stores to post-increment pointers. Report any visual or gameplay difference.

@@ -1,0 +1,11 @@
+Sparkpaw Stage 2 collectible H4 A — FS-UAE/68030 HD
+
+Reference: accepted canonical diamond synchronization, with the new immediate
+post-publication phase start enabled.
+
+Play past several diamonds and at least one beetle and Strider. Make enemies
+walk through or immediately beside diamonds, scroll diamonds off/on screen,
+collect several, run in both directions and reach water. Check diamond hover,
+enemy overlap, all Bobs, HUD and seam. Press left mouse to write the local log.
+
+FS-UAE/68030 presentation gate only; no broader acceptance is claimed.

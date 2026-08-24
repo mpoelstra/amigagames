@@ -1,0 +1,8 @@
+Sparkpaw Stage 2 entering-column A: CopyMem reference
+
+Run Sparkpaw-A-CopyMem in FS-UAE/68030. Move continuously right through many
+16px camera boundaries, then back left. Include diamonds, enemies and water if
+practical. Check every newly entering strip, the opposite edge, HUD seam and
+all animation. Exit with the left mouse button. This is the current reference.
+
+FS-UAE/68030 HD diagnostic reference only.

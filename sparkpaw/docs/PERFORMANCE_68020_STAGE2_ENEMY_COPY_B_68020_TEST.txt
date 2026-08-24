@@ -1,0 +1,5 @@
+Sparkpaw Stage 2 enemy state B: copy only on unload (68020)
+
+Repeat A's route. Reject changed patrol positions, animation, firing,
+traversal, damage/death, respawn, camera parking/reactivation, Bob presentation
+or gameplay. Exit with the left mouse button.

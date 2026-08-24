@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 phase-start A — FS-UAE/68020 HD
+
+Reference. This retains the accepted wait until PAL raster line 100.
+
+Use the FS-UAE/68020 stress configuration. Run from this drawer and play the
+same route as B for at least two minutes: both directions, repeated running and
+jumping, enemies, projectiles, diamonds and animated water. Note presentation
+and perceived cadence. Press left mouse once to write PROGDIR:renderdiag.log.
+
+This test claims no acceptance beyond the supplied FS-UAE result.

@@ -1,0 +1,5 @@
+Sparkpaw Stage 2 hazard collision A: boundary scan (68030)
+
+Reference build. Run and jump over ordinary floor, around platform edges and
+into the first water. Fire while moving and fight nearby enemies. Let the level
+reload after water death, then exit with the left mouse button.

@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 dynamic synchronization A: reference
+
+Run this self-contained drawer in the same FS-UAE/68030 configuration as the
+accepted H7 presentation gate. This is the unchanged H7 profiler path.
+
+Play at least 30 seconds. Move, sprint, jump, fire and reach at least the first
+Strider. Exit with the left mouse button and leave renderdiag.log here.
+
+Check that presentation remains intact. This reference does not accept any new
+68020, production, ADF, Pocket or real-hardware result.

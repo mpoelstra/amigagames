@@ -1,0 +1,27 @@
+Sparkpaw Stage 2 enemy-cache H2 guard-corrected conversion: FS-UAE/68030 gate
+
+Purpose
+-------
+H1 was rejected because it filled the extra cache guard word with adjacent
+source data, fragmenting beetles and Striders. H2 keeps that guard word zero
+and converts only the authored width. It converts the already planar sheets in
+16-pixel words instead of reconstructing every pixel. It also retains the
+accepted dynamic-ring word-copy optimization. Gameplay geometry, masks, source
+art, palettes, animation and Bob ordering are unchanged.
+
+Test
+----
+Run Sparkpaw-Enemy-Cache-H2 with the normal FS-UAE/68030 configuration.
+Let CHARGING finish, then reach beetles and at least the first Strider. Shoot,
+move around them and inspect both facings and animation frames. Also check the
+ground/HUD seam and general presentation. Exit with the left mouse button and
+leave renderdiag.log here.
+
+Report whether beetles or Striders show any missing pixels, mirrored frames,
+blocks, mask noise, trails or flicker. A clean result is required before the
+68020 loading measurement.
+
+Acceptance boundary
+-------------------
+This is an FS-UAE/68030 diagnostic presentation gate only. It is not production,
+68020, ADF, Pocket or real-hardware acceptance.

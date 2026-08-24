@@ -1,0 +1,5 @@
+Sparkpaw Stage 2 Copper A: full inactive-list copy (68030)
+
+Current reference. Run in FS-UAE/68030 HD for about one minute. Move in both
+directions, jump, shoot, encounter an enemy and watch the HUD and parallax.
+Exit with the left mouse button to complete renderdiag.log.

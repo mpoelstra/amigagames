@@ -1,0 +1,12 @@
+Sparkpaw Stage 2 collectible H4 B — FS-UAE/68030 HD
+
+Candidate: diamonds are target-local Bobs. Every inactive-target pass restores
+its previous diamonds, performs ring/water maintenance, redraws every visible
+diamond, then draws enemies. This is deliberately different from rejected H3:
+no target history may suppress a redraw after a roll or enemy restore.
+
+Repeat A's route. Especially force beetles and Striders through/beside diamonds
+and scroll repeatedly across them. Check hover, collection, enemy overlap, all
+Bobs, HUD and seam. Press left mouse to write the local renderdiag.log.
+
+FS-UAE/68030 presentation gate only; no broader acceptance is claimed.

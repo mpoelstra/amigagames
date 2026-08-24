@@ -1,0 +1,8 @@
+Sparkpaw Stage 2 dynamic synchronization A: 68020 indexed reference
+
+Run Sparkpaw-A-Indexed-68020 in FS-UAE/68020. Travel from the opening area to
+the first water, interact with several diamonds, fall into the water and allow
+the level to reload. Then exit with the left mouse button. Leave renderdiag.log
+in this drawer. This is the current direct-word reference.
+
+This is an FS-UAE/68020 HD diagnostic reference only.

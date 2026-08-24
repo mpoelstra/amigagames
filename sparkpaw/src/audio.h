@@ -2,6 +2,9 @@
 #define SPARKPAW_AUDIO_H
 
 #include <exec/types.h>
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#include <dos/dos.h>
+#endif
 
 BOOL audioLoad(void);
 void audioUnload(void);
@@ -15,5 +18,8 @@ void audioPlayJump(void);
 void audioPlayCollect(void);
 void audioPlayWaterSplash(void);
 void audioUpdate(void);
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+void audioDiagnosticWrite(BPTR file);
+#endif
 
 #endif

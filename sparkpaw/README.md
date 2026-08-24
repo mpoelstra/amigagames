@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.43`. Roadmap checkpoint: Phase 6C.1 rolling
+Current release: `0.6.0-alpha.44`. Roadmap checkpoint: Phase 6C.1 rolling
 renderer Stage 5L. Supplied FS-UAE/68030 HD testing accepts clean presentation
 at 50 Hz. Supplied real-A1200/68030 HD and physical-ADF tests, and Analogue
 Pocket ADF testing, report no broad renderer corruption, but all slower paths
@@ -55,6 +55,24 @@ load. A narrow intermittent disturbance remains at the ground/HUD seam.
 The bootable alpha.43 ADF package validates at 1,190 blocks (595 KiB) with 570
 blocks free; this validates packaging. The supplied physical ADF launches and
 plays on the real A1200, but its cadence is rejected.
+Stage 2 performance work after alpha.43 now uses display-only rolling targets:
+Bob histories retain canonical source coordinates and restore directly from
+the clean world, eliminating both target-local clean bitmaps. Supplied
+FS-UAE/68030 and FS-UAE/68020 HD tests report clean presentation. The measured
+68020 rolling/dynamic target scopes improve by about 39--41%, the Bob-pass
+average by 26.2%, and prepared-peak free Chip improves by 319,488 bytes. The
+production-default 68030 diagnostic records 49.95 FPS and zero ownership
+violations. This is not yet an alpha release, ADF/Pocket validation or
+real-A1200 acceptance; overall 68020 cadence remains insufficient.
+Subsequent accepted Stage2 target-local diamond composition removes diamonds
+from broad canonical dynamic synchronization. Supplied FS-UAE/68020 HD A/B
+testing reports normal presentation and raises effective cadence from 35.31 to
+42.15 FPS (+19.4%), while `ring_dynamic` average falls from 3,940 to 101 CIA
+ticks. Alpha.44 packages this work together with the FS-UAE/68030-HD-accepted
+H7 seam correction. Alpha.44 ADF, Pocket and real-A1200 acceptance remain
+pending.
+Its bootable DOS1/FFS ADF package uses 1,195 blocks (597 KiB) and leaves 565
+free. This is package validation only.
 Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
 also accepted. Phase 6B.6 now contains the integrated extended REAR8 parallax
 and foreground-material v1 candidates alongside the measured palette previews;
@@ -647,10 +665,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.43.lha`
-- `dist/Sparkpaw-0.6.0-alpha.43.zip`
-- `dist/Sparkpaw-0.6.0-alpha.43.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.43/`
+- `dist/Sparkpaw-0.6.0-alpha.44.lha`
+- `dist/Sparkpaw-0.6.0-alpha.44.zip`
+- `dist/Sparkpaw-0.6.0-alpha.44.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.44/`
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

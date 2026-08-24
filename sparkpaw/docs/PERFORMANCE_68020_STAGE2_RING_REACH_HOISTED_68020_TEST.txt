@@ -1,0 +1,10 @@
+Sparkpaw Stage 2 ring-reach H2-B: hoisted fetch-copy selection (68020)
+
+Repeat H2-A's route as closely as practical in the same FS-UAE/68020
+configuration. Run through the first water and back left, cross several
+512-pixel boundaries, reverse near water and diamonds, jump, shoot and fight a
+Strider. Aim for roughly two minutes and exit with the left mouse button.
+
+This version chooses the reachable physical copies once per span; there are no
+reachability checks inside the word-store loop. Report perceived cadence and
+any stale/corrupt column, edge pixel, water/diamond corruption or Bob trail.

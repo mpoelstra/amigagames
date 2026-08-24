@@ -1,0 +1,22 @@
+Sparkpaw Stage 2 whole-codebase profiler (H7 presentation baseline)
+
+Purpose
+-------
+This diagnostic build measures CPU sections with the CIA E-clock and records
+median, p95, average, maximum and call counts. It also records logical audio
+requests separately from actual Paula channel starts. It contains the accepted
+H7 seam fix. It is not an optimization candidate or production build.
+
+Current use
+-----------
+This drawer is ready for profiler validation in FS-UAE/68030. Run normally,
+move through gameplay for at least 30 seconds, then exit with the left mouse
+button. Wait for the frozen diagnostic screen. The log remains here as
+renderdiag.log; no rename or move is needed.
+
+Check only that presentation remains intact and that renderdiag.log contains
+`median_ticks`, `p95_ticks` and `audio event=` lines. Matched performance-scene
+drawers will be supplied separately after this instrumentation gate.
+
+No production, 68020, ADF, Pocket or real-hardware acceptance may be inferred
+from this diagnostic validation.

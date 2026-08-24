@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 entering-column A: 68020 CopyMem reference
+
+Run Sparkpaw-A-CopyMem-68020. Run from the opening area to the first water and
+back, crossing many 16px camera boundaries in both directions. Exit with the
+left mouse button. Leave renderdiag.log in this drawer.
+
+FS-UAE/68020 HD diagnostic reference only.

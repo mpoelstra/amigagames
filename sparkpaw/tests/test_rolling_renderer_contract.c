@@ -37,8 +37,35 @@ int main(void)
     assert(rollingRingPhysicalX(864,512,ROLLING_RUNTIME_W)==864);
     assert(rollingRingPhysicalX(927,1023,ROLLING_RUNTIME_W)==927);
     assert(rollingRingPhysicalX(1375,1023,ROLLING_RUNTIME_W)==1375);
+    assert((rollingRingPhysicalX(511,510,ROLLING_RUNTIME_W)&15)==(511&15));
+    assert((rollingRingPhysicalX(512,511,ROLLING_RUNTIME_W)&15)==(512&15));
+    assert((rollingRingPhysicalX(513,512,ROLLING_RUNTIME_W)&15)==(513&15));
     assert(rollingRingFetchFits(0,ROLLING_RUNTIME_W,ROLLING_MIN_W));
     assert(rollingRingFetchFits(511,ROLLING_RUNTIME_W,ROLLING_MIN_W));
+    assert(!ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(0,464));
+    assert(ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(0,480));
+    assert(ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(0,496));
+    assert(ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(1,0));
+    assert(ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(1,496));
+    assert(ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(2,336));
+    assert(!ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(2,352));
+    {
+        long phase,byteAt,byteEnd,physicalWord;
+        for(phase=0;phase<ROLLING_RUNTIME_W;phase++) {
+            byteAt=rollingAga32CorrectedByteOffset(
+                ROLLING_RUNTIME_W+phase)-ROLLING_PLAYFIELD_GUARD_BYTES;
+            byteEnd=byteAt+ROLLING_PLAYFIELD_FETCH_BYTES;
+            for(physicalWord=byteAt*8;physicalWord<byteEnd*8;
+                physicalWord+=ROLLING_TILE_W) {
+                unsigned short copy=(unsigned short)(
+                    physicalWord/ROLLING_RUNTIME_W);
+                unsigned short slot=(unsigned short)(
+                    physicalWord&(ROLLING_RUNTIME_W-1));
+                assert(copy<ROLLING_RING_COPIES);
+                assert(ROLLING_PHYSICAL_WORD_MAY_BE_FETCHED(copy,slot));
+            }
+        }
+    }
     assert(rollingRectFits(416,64,416,ROLLING_RUNTIME_W));
     assert(rollingRectFits(864,64,416,ROLLING_RUNTIME_W));
     for(camera=0;camera<=3072-ROLLING_VIEW_W;camera+=16) {

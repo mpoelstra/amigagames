@@ -17,7 +17,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.43"
+RELEASE_VERSION = "0.6.0-alpha.44"
 ROADMAP_CHECKPOINT = "6C.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -316,6 +316,21 @@ logging. Supplied real-A1200/68030 HD and physical-ADF tests, plus Analogue
 Pocket ADF, retain broad visual stability but reject cadence. Real HD also
 repeats or misses some sound events under load. A narrow intermittent pixel or
 black-line disturbance remains at the ground/HUD seam.
+
+Alpha.44 retains Stage 5L and promotes the supplied FS-UAE/68030-HD-accepted
+H7 seam correction: FRONT16 colours are masked only on the final transition
+scanline before the unchanged fixed HUD. It also packages the accepted Stage 2
+CPU/memory work: display-only rolling targets, word-level loading conversion,
+patch-only Copper publication, direct/unrolled ring maintenance, tile-span
+collision, cached sprite staging and hazard columns, copy-on-unload enemy
+state, immediate post-publication updates and target-local diamonds. Supplied
+FS-UAE/68020 HD A/B evidence measures the two largest cadence steps at 27.45 to
+35.81 FPS for immediate phase start and 35.31 to 42.15 FPS for target-local
+diamond composition. Assets, colours, FRONT16+REAR8, parallax, wide attached
+Sparkpaw pair, HUD content, animation, collision geometry, object placement,
+draw order and gameplay contracts remain unchanged. Official builds contain no
+diagnostic logger or test input. Alpha.44 ADF, Analogue Pocket and real-A1200
+presentation/performance acceptance remain pending supplied tests.
 
 Requirements
 ------------

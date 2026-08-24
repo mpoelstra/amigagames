@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 ring-reach B: fetch-relevant copies only (68020)
+
+Repeat A's route as closely as practical using the same FS-UAE/68020
+configuration. Run through the first water and back left, cross several
+512-pixel boundaries, reverse near water and diamonds, jump, shoot and fight a
+Strider. Aim for roughly two minutes and exit with the left mouse button.
+
+Report both perceived cadence and any stale/corrupt 16-pixel column, edge
+pixel, water/diamond corruption, Bob trail, flicker or gameplay difference.

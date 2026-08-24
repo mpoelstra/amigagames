@@ -122,7 +122,9 @@ int main(void)
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
         ULONG profileStart;
+#ifdef SPARKPAW_UPDATE_LINE100_REFERENCE
         while(platformRasterLine()<100) { }
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         rendererDiagnosticUpdateEntry(platformRasterLine());
 #endif

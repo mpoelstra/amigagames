@@ -1,0 +1,12 @@
+Sparkpaw Stage 2 dynamic synchronization B: FS-UAE/68020 word-copy candidate
+
+Run this self-contained drawer with the identical FS-UAE/68020 configuration
+and approximately the same workload as A. Candidate B already passed its
+FS-UAE/68030 visual gate and changes only inactive-target dynamic copies.
+
+Play at least 30 seconds. Move, sprint, jump, fire and reach at least the first
+Strider. Exit with the left mouse button and leave renderdiag.log here.
+
+Also report any visible water, diamond, Bob, seam, trail or flicker regression.
+This is a stress measurement, not production, ADF, Pocket or real-hardware
+acceptance.
