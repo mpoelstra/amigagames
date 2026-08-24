@@ -1,0 +1,12 @@
+Sparkpaw Stage 2 - Bob setup B: hoisted invariant registers (FS-UAE/68030 HD)
+
+Candidate variant. Run Sparkpaw-B-Hoisted-Setup from this drawer.
+
+Repeat A's busy route as closely as practical: beetles, Striders, diamonds,
+projectiles, water if practical, and a return through an earlier enemy area.
+Check every Bob for intact pixels, masks, colours, restore behavior and draw
+order. Also check Sparkpaw, parallax, HUD and the ground/HUD seam.
+
+Click the left mouse button once at the end to flush this drawer's own
+renderdiag.log. Do not rename or move it. This is a 68030 presentation gate;
+it is not yet production or hardware acceptance.

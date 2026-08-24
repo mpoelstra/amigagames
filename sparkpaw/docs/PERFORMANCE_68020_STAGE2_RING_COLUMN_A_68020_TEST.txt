@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 - ring column A: generic copy (FS-UAE/68020 HD)
+
+Run Sparkpaw-A-Generic-Column with the normal FS-UAE/68020 configuration.
+Sprint continuously right across many camera boundaries, reach at least the
+first water, then run far back left. Include jumping, enemies and projectiles.
+
+Watch both playfield edges for corrupt or stale columns, trails, flicker,
+parallax errors, Bob damage or HUD disturbance. Click left mouse once at the
+end to flush this drawer's own renderdiag.log.

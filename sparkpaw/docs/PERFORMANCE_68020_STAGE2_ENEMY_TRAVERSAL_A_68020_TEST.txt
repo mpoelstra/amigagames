@@ -1,0 +1,16 @@
+Sparkpaw Stage 2 - enemy traversal A: linear search (FS-UAE/68020 HD)
+
+Reference variant. Run Sparkpaw-A-Linear-Search from this drawer with the
+normal FS-UAE/68020 configuration.
+
+Test route:
+1. Play long enough to pass several Striders and traverse platforms in both
+   directions.
+2. Run far enough away that earlier Striders are parked, then return toward
+   them. Include jumping, shooting and at least one busy enemy section.
+3. Check that Strider movement, platform traversal, firing, enemy graphics,
+   diamonds, HUD and the ground/HUD seam remain normal.
+4. Click the left mouse button once at the end to flush renderdiag.log in this
+   drawer, then quit or reset.
+
+Do not rename or move the log. Variant B has its own drawer and log.

@@ -5199,3 +5199,28 @@ independent ADF round-trip validation pass. The bootable DOS1/FFS ADF uses
 1,195 blocks (597 KiB) and leaves 565 free. This records construction only;
 real-A1200 HD/ADF and Analogue Pocket ADF presentation and cadence remain
 pending supplied tests.
+
+### 25 August 2026 - Stage 2 traversal and ring-column checkpoint promoted as alpha.45
+
+Alpha.45 retains Stage 5L, H7, FRONT16 + REAR8, the attached 64px Sparkpaw
+pair, assets, palettes, animation, collision and gameplay contracts. Three
+isolated follow-up optimizations passed supplied FS-UAE/68030 and FS-UAE/68020
+HD presentation gates. A 25-surface by two-direction Fast-RAM traversal lookup
+replaces repeated grounded-Strider scans, with invalid or duplicate future data
+falling back safely. On 68020 it raises cadence 44.35 to 45.09 FPS, reduces
+`enemy_parked` average 792 to 601 ticks and `enemies` 2,036 to 1,784.
+
+Generic restore and masked-Bob helpers now write invariant BLTCON, word-mask
+and modulo registers once per four-plane Bob. Jobs, waits, pointers and family
+order remain unchanged. Average cadence is flat, but Bob p95 falls 17,282 to
+14,752 ticks, so this is retained as a tail reduction rather than an FPS claim.
+
+The normal aligned 16px entering-column roll now uses advancing pointers: one
+canonical word is published to the same three physical copies per row. Every
+other roll size retains the generic fallback. Matched FS-UAE/68020 testing
+raises cadence 44.47 to 45.55 FPS. `ring_roll` average falls 1,691 to 483,
+p95 9,878 to 2,782 and maximum 9,941 to 2,815; Bob-pass p95 falls 16,308 to
+9,142. Stock-68020 50 Hz remains open. Alpha.45 ADF gameplay, Analogue Pocket
+and real-A1200 acceptance require new explicit supplied results. Native HD,
+ZIP/LHA and packed-asset ADF construction pass; the bootable DOS1/FFS image
+uses 1,197 blocks (598 KiB) and leaves 563 free. This validates packaging only.

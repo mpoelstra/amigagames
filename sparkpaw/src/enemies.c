@@ -2,6 +2,7 @@
 #include "beetle_hitbox.h"
 
 #include "level_data.h"
+#include "performance_profile.h"
 
 #include <string.h>
 
@@ -65,6 +66,10 @@ static struct Enemy enemies[MAX_ENEMIES];
 static struct EnemySpawnState spawnStates[MAX_LEVEL_ENEMY_SPAWNS];
 static UBYTE spawnCount;
 static ULONG randomState;
+#ifndef SPARKPAW_ENEMY_TRAVERSAL_LINEAR_REFERENCE
+static UBYTE traversalLookup[ENEMY_SURFACE_COUNT][2];
+static BOOL traversalLookupValid;
+#endif
 
 static ULONG nextRandom(void)
 {
@@ -134,6 +139,18 @@ static const struct EnemyTraversalLink *readyTraversalLinkForEnemy(
     UWORD count,index;
     WORD x=(WORD)(enemy->x>>8);
     links=levelEnemyTraversalLinks(&count);
+#ifndef SPARKPAW_ENEMY_TRAVERSAL_LINEAR_REFERENCE
+    if(traversalLookupValid&&enemy->surfaceId<ENEMY_SURFACE_COUNT) {
+        index=traversalLookup[enemy->surfaceId][enemy->vx<0?0:1];
+        if(index==INVALID_TRAVERSAL_LINK) return NULL;
+        if(index<count&&x>=links[index].launchLeft&&
+           x<=links[index].launchRight) {
+            *linkIndex=(UBYTE)index;
+            return &links[index];
+        }
+        return NULL;
+    }
+#endif
     for(index=0;index<count;index++)
         if(links[index].sourceSurfaceId==enemy->surfaceId&&
            (links[index].launchDirection<0)==(enemy->vx<0)&&
@@ -143,6 +160,27 @@ static const struct EnemyTraversalLink *readyTraversalLinkForEnemy(
         }
     return NULL;
 }
+
+#ifndef SPARKPAW_ENEMY_TRAVERSAL_LINEAR_REFERENCE
+static void prepareTraversalLookup(void)
+{
+    const struct EnemyTraversalLink *links;
+    UWORD count,index;
+    memset(traversalLookup,0xff,sizeof(traversalLookup));
+    traversalLookupValid=TRUE;
+    links=levelEnemyTraversalLinks(&count);
+    for(index=0;index<count;index++) {
+        UBYTE surface=links[index].sourceSurfaceId;
+        UBYTE direction=links[index].launchDirection<0?0:1;
+        if(surface>=ENEMY_SURFACE_COUNT||
+           traversalLookup[surface][direction]!=INVALID_TRAVERSAL_LINK) {
+            traversalLookupValid=FALSE;
+            return;
+        }
+        traversalLookup[surface][direction]=(UBYTE)index;
+    }
+}
+#endif
 
 static BOOL traversalLandingAvailable(const struct EnemyTraversalLink *link,
                                       EnemySolidAt solidAt)
@@ -306,6 +344,9 @@ static void generateLevelEnemies(ULONG seed)
     UWORD candidateCount,index;
     UBYTE type;
     randomState=seed?seed:0x53504157UL;
+#ifndef SPARKPAW_ENEMY_TRAVERSAL_LINEAR_REFERENCE
+    prepareTraversalLookup();
+#endif
     memset(spawnStates,0,sizeof(spawnStates));
     spawns=levelEnemySpawnCandidates(&candidateCount);
     if(candidateCount>MAX_LEVEL_ENEMY_SPAWNS)
@@ -557,11 +598,23 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
     const struct EnemySpawnCandidate *spawns;
     UWORD candidateCount;
     UBYTE slot,spawnIndex;
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+    ULONG detailProfileStart;
+#define ENEMY_PROFILE_START() do { \
+    detailProfileStart=performanceProfileBegin(); \
+} while(0)
+#define ENEMY_PROFILE_END(slot) \
+    performanceProfileEnd(slot,detailProfileStart)
+#else
+#define ENEMY_PROFILE_START() do { } while(0)
+#define ENEMY_PROFILE_END(slot) do { } while(0)
+#endif
     spawns=levelEnemySpawnCandidates(&candidateCount);
     /* Camera parking removes only the bounded runtime/Bob slot. Keep each
        persistent encounter's world-space route alive exactly once per frame so
        it may approach and re-enter from either side without a camera-edge
        reset. No rendering or Chip-RAM work occurs on this parked path. */
+    ENEMY_PROFILE_START();
     for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
         struct EnemySpawnState *state=&spawnStates[spawnIndex];
         if(state->selected&&
@@ -573,6 +626,8 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
            cooldown/recovery, but never materialize that unseen shot later. */
         if(state->loadedSlot==INVALID_SPAWN) state->enemy.shotPending=FALSE;
     }
+    ENEMY_PROFILE_END(PERF_ENEMY_PARKED);
+    ENEMY_PROFILE_START();
     for(slot=0;slot<MAX_ENEMIES;slot++) {
         struct Enemy *enemy=&enemies[slot];
         struct EnemySpawnState *state;
@@ -618,6 +673,8 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
             enemy->spawnIndex=INVALID_SPAWN;
         }
     }
+    ENEMY_PROFILE_END(PERF_ENEMY_ACTIVE);
+    ENEMY_PROFILE_START();
     for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++) {
         struct EnemySpawnState *state=&spawnStates[spawnIndex];
         const struct EnemyPatrolSurface *surface=
@@ -631,7 +688,12 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
             initializeSpawnState(state,&spawns[spawnIndex],spawnIndex,TRUE);
         }
     }
+    ENEMY_PROFILE_END(PERF_ENEMY_RESPAWN);
+    ENEMY_PROFILE_START();
     activateVisibleSpawns(cameraX,FALSE);
+    ENEMY_PROFILE_END(PERF_ENEMY_ACTIVATE);
+#undef ENEMY_PROFILE_START
+#undef ENEMY_PROFILE_END
 }
 
 UBYTE enemiesHitProjectile(WORD x,WORD y)

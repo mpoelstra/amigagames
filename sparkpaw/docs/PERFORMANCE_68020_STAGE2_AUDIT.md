@@ -255,6 +255,128 @@ Bob and scroll activity, so its higher ring averages do not prove a regression
 or a win. Continue to the intended FS-UAE/68020 A/B cadence gate; no ADF,
 Pocket or real-hardware acceptance is inferred.
 
+## Candidate: direct enemy traversal lookup
+
+The traversal direct-lookup candidate passes the supplied FS-UAE/68030 visual
+gate: both the linear-search reference and direct-lookup candidate look and
+play normally. Both logs record exactly 50.00 FPS and zero ownership
+violations. The retained windows do not show a meaningful timing separation:
+`enemies` averages 76 ticks in A and 75 in B, while `enemy_parked` averages
+21 ticks in both. This fast-68030 result therefore proves presentation only,
+not a performance win. The earlier FS-UAE/68020 breakdown measured
+`enemy_parked` at 751 ticks average, so proceed to a matched 68020 A/B gate
+before retaining or rejecting the lookup.
+
+Supplied FS-UAE/68020 HD testing reports both variants visually normal. The
+direct lookup raises effective cadence from 44.35 to 45.09 FPS (+0.74 FPS,
++1.7%). Its targeted `enemy_parked` average falls from 792 to 601 CIA ticks
+(-24.1%), p95 from 1,066 to 723 (-32.2%) and maximum from 1,084 to 807
+(-25.6%). Complete `enemies` average falls from 2,036 to 1,784 (-12.4%) and
+`game_update` average from 4,295 to 4,042 (-5.9%). B's Bob-pass average is
+higher (7,722 versus 7,108), so a lighter render workload does not explain the
+measured update saving. Retain direct traversal lookup as production default
+and preserve the linear scan behind
+`SPARKPAW_ENEMY_TRAVERSAL_LINEAR_REFERENCE`. Overall 45.09 FPS remains below
+the stock-68020 target; no ADF, Pocket or real-A1200 acceptance is inferred.
+
+The next isolated Bob candidate keeps every restore/draw job, plane order,
+`WaitBlit`, pointer, mask, modulo and draw-family order unchanged. The generic
+restore and masked-Bob helpers currently rewrite identical BLTCON, first/last
+word mask and modulo registers before each of four planes. Candidate B writes
+those invariant registers after the first wait only, then changes only the
+source/destination pointers and BLTSIZE for later planes. This targets CPU and
+custom-register bus setup rather than Blitter execution. Require a busy
+FS-UAE/68030 presentation gate before any 68020 timing test.
+
+Supplied FS-UAE/68030 HD testing reports both Bob-setup variants visually
+normal and both sustain exactly 50.00 FPS with zero ownership violations.
+Hoisted B lowers complete Bob-pass average from 3,368 to 3,184 CIA ticks
+(-5.5%). Directly affected projectile restore falls 109 to 85 (-22.0%), enemy
+restore 677 to 594 (-12.3%) and enemy draw 1,498 to 1,370 (-8.5%). The retained
+windows have different family load—collectible draw is higher in B—so this is
+a positive presentation gate rather than production proof. Proceed to matched
+FS-UAE/68020 A/B testing; infer no ADF, Pocket or real-hardware acceptance.
+
+Supplied FS-UAE/68020 HD testing also reports both variants visually normal.
+Effective cadence is statistically flat and slightly lower in B, 43.98 versus
+43.83 FPS, so no average-FPS gain is claimed. Complete Bob-pass average is
+also flat at 7,466 versus 7,443 CIA ticks. The deadline-facing tail improves:
+Bob p95 falls from 17,282 to 14,752 (-14.6%) and maximum from 21,577 to 20,511
+(-4.9%). B carries higher enemy-draw average (1,720 versus 1,603), while its
+collectible restore and draw averages fall 879 to 838 and 956 to 893. Retain
+the low-risk invariant-register hoist as a p95/hitch reduction, make it the
+production default, and preserve the old writes behind
+`SPARKPAW_BOB_PER_PLANE_SETUP_REFERENCE`. This does not close overall 68020
+performance acceptance; no ADF, Pocket or real-A1200 acceptance is inferred.
+
+The next isolated entering-column candidate specializes only the normal aligned
+16px camera roll. The generic routine currently executes a one-iteration word
+loop and recomputes row addresses for every one of 208 rows and four planes.
+Candidate B instead advances one canonical and one display pointer per row,
+loads one word and writes the same three physical ring-copy offsets. Any roll
+other than exactly +16 or -16 pixels retains the accepted generic fallback.
+Ring geometry, origin, guards, fetch, ownership and content are unchanged.
+Require the bidirectional FS-UAE/68030 edge/wrap presentation gate first.
+
+Supplied bidirectional FS-UAE/68030 HD testing reports both variants visually
+normal at exactly 50.00 FPS with zero ownership violations. Specialized B
+reduces `ring_roll` average from 40 to 12 CIA ticks (-70.0%), p95 from 273 to
+91 (-66.7%) and maximum from 343 to 151 (-56.0%). `bob_compact_target` follows
+from 43 to 13 average ticks. B's complete Bob-pass is heavier (3,295 versus
+2,827), so the scoped win is not caused by a lighter overall scene. Proceed to
+the matched FS-UAE/68020 gate; infer no ADF, Pocket or hardware acceptance.
+
+Supplied FS-UAE/68020 HD testing reports both variants visually normal with
+zero ownership violations. The closely matched runs raise effective cadence
+from 44.47 to 45.55 FPS (+1.08 FPS, +2.4%). Specialized B lowers `ring_roll`
+average from 1,691 to 483 CIA ticks (-71.4%), p95 from 9,878 to 2,782 (-71.8%)
+and maximum from 9,941 to 2,815 (-71.7%). `bob_compact_target` average falls
+1,856 to 654 and p95 9,979 to 2,882; complete Bob-pass p95 falls 16,308 to
+9,142 (-43.9%). Player and enemy averages remain closely matched, supporting
+causal attribution to the column routine. Retain the specialized aligned-16px
+route as production default and preserve all other roll sizes behind the same
+generic fallback; expose the old all-generic path through
+`SPARKPAW_RING_COLUMN_GENERIC_REFERENCE`. Overall stock-68020 cadence remains
+below 50 Hz; no ADF, Pocket or real-A1200 acceptance is inferred.
+
+The next isolated enemy-update candidate gates only the 24-entry respawn-state
+scan. Production currently walks every authored spawn each tick even when no
+enemy is pending respawn. Candidate B tracks whether any pending state exists;
+the original loop runs unchanged from the first respawn request until the last
+pending state is cleared, and is otherwise skipped. Parked-Strider simulation,
+active slots, spawn priority, RNG, policies and renderer behavior are unchanged.
+Require a 68030 lifecycle gate including death, parking and actual reactivation
+before measuring the scoped `enemies` cost on 68020.
+
+The supplied long FS-UAE/68030 HD runs report both variants visually and
+functionally correct and each contains 19 enemy deaths. Both sustain exactly
+50.00 FPS with zero ownership violations. The scoped `enemies` average is 74
+CIA ticks for always-scan A and 76 for gated B; median and p95 are identical at
+90 and 136. The fixed scan is negligible on this configuration and the added
+state branch does not produce a saving. Reject and remove the candidate before
+a 68020 gate; no ADF, Pocket or real-hardware acceptance is inferred.
+
+Before another enemy optimization, diagnostic-only CIA scopes now decompose
+`enemiesUpdate` into parked persistent simulation, active runtime slots,
+respawn maintenance and camera activation. The production build remains
+byte-identical. One long mixed FS-UAE/68020 run will rank these subpaths before
+selecting any further prototype.
+
+The supplied FS-UAE/68020 breakdown run records 44.40 FPS with zero ownership
+violations. `enemiesUpdate` averages 1,992 CIA ticks: parked persistent
+simulation contributes 751, camera/spawn activation 598, active slots 256 and
+respawn maintenance 257. The largest cost is therefore not onscreen enemy
+physics. Assembly inspection of parked Strider simulation shows that every
+grounded update linearly scans all 12 authored traversal links, including a
+`muls #22` per candidate.
+
+The next isolated candidate precomputes a 25-surface by two-direction Fast-RAM
+lookup from the immutable traversal data. Current data has at most one link per
+source surface and direction; a duplicate or invalid future layout disables
+the table and falls back to the exact linear search. Launch ranges, destination
+validation, collision probes and state transitions remain unchanged. Gate all
+Strider traversal, parking and reactivation first on FS-UAE/68030.
+
 ## Collectible H4 FS-UAE/68030 gate
 
 Corrected H4 removes every history-based redraw suppression: each inactive
@@ -285,6 +407,81 @@ projectile load. Retain H4 as the production default and preserve canonical
 diamond synchronization behind `SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE`.
 Overall stock-68020 cadence remains below 50 Hz. No ADF, Pocket or real-A1200
 acceptance is inferred.
+
+Current collectible H5 candidate keeps an unchanged diamond resident in each
+target and invalidates it only for a target-origin roll, hover or collection
+change, possible water overlap, or overlap with the complete word-rounded
+restore footprint of that target's prior enemy, projectile or splash Bobs.
+Host contract tests cover horizontal word expansion and exact touching edges.
+The accepted H4 always-restore/redraw route remains A; H5 requires the supplied
+FS-UAE/68030 overlap/scroll/reload presentation gate before any 68020 timing
+test or production decision.
+
+Supplied FS-UAE/68030 HD testing reports both H5 variants visually correct.
+Both sustain 50.00 FPS with zero wraps and ownership violations. Dirty B lowers
+collectible restore average from 893 to 472 CIA ticks (-47.1%) and draw from
+1,235 to 609 (-50.7%), a combined 2,128 to 1,081 (-49.2%). Total Bob-pass is
+4,031 versus 4,011, but B's enemy restore+draw load is much higher at 2,615
+versus 1,644, masking the scoped saving. Proceed to a matched FS-UAE/68020 A/B
+gate; do not promote from the 68030 result alone.
+
+The supplied FS-UAE/68020 HD H5 result rejects promotion. Both variants remain
+visually correct with zero ownership violations, but cadence falls from 43.37
+to 42.51 FPS. Collectible restore+draw is flat at 2,250 versus 2,259 CIA ticks:
+saved draws are consumed by repeatedly scanning prior Bob histories for every
+diamond retained in a target, including offscreen residents. H6 makes only the
+evidence-directed correction: after mandatory origin/hover/collection checks,
+perform overlap scans solely inside the current camera margin. Require a fresh
+FS-UAE/68030 presentation gate before 68020 timing; abandon this branch if H6
+does not recover scoped cost.
+
+Supplied FS-UAE/68030 HD H6 testing reports both variants visually correct at
+50.00 FPS with zero wraps and ownership violations. Visible-only dirty B lowers
+collectible restore average from 769 to 442 CIA ticks and draw from 981 to 560,
+a combined 1,750 to 1,002 (-42.7%). B simultaneously carries substantially
+higher enemy/projectile Bob load, explaining its flat total Bob-pass. Proceed
+to the decisive matched FS-UAE/68020 A/B gate; do not promote from this result.
+
+The supplied FS-UAE/68020 HD H6 gate rejects promotion. Both variants are
+reported visually correct and both retain zero ownership violations, but B
+reduces effective cadence from 44.87 to 44.19 FPS. Its one-field share falls
+from 860/971 (88.6%) to 946/1,089 (86.9%). Collectible restore+draw changes
+only from 2,335 to 2,272 CIA ticks (-2.7%); restore itself rises from 1,080 to
+1,273. Although total Bob-pass average falls from 8,395 to 7,794 (-7.2%), B's
+different enemy/projectile workload and worse cadence prevent attributing a
+frame-rate win. Reject H5/H6 persistent-diamond scanning and retain the simpler
+accepted H4 always-restore/redraw route. No ADF, Pocket or real-hardware
+acceptance is inferred.
+
+Collectible H7 keeps H5/H6's useful goal but removes their expensive search
+shape. A 192-column Fast-RAM lookup maps 16-pixel world columns directly to at
+most two collectible indices. Before restore, prior projectile, enemy and
+splash rectangles plus pending water updates mark only intersecting target
+diamonds dirty; exact vertical overlap is still checked. Origin, hover and
+collection changes remain mandatory invalidations. Unchanged target-local
+diamonds therefore persist without scanning 48 diamonds against every Bob
+history. H4 remains the reference. Require the FS-UAE/68030 overlap, scroll,
+water and reload presentation gate before any 68020 timing claim.
+
+Supplied FS-UAE/68030 HD testing reports H7 A and B visually correct through
+the requested overlap, traversal, collection and water workload. Both sustain
+50.00 FPS with only one-field intervals and zero ownership violations. Spatial
+dirty B lowers collectible restore average from 690 to 507 CIA ticks and draw
+from 895 to 645, a combined 1,585 to 1,152 (-27.3%). Complete Bob-pass average
+also falls from 4,539 to 4,428 (-2.4%) even though B carries substantially
+higher enemy/projectile restore and draw load. Proceed to matched FS-UAE/68020
+A/B testing; no ADF, Pocket or real-hardware acceptance is inferred.
+
+The supplied FS-UAE/68020 HD H7 result rejects promotion. Both variants are
+reported visually correct with zero ownership violations, but effective
+cadence falls from 43.00 FPS in A to 41.50 in B; the one-field share falls
+from 813/971 (83.7%) to 766/963 (79.5%). The directly affected collectible
+restore+draw total improves only from 2,291 to 2,181 CIA ticks (-4.8%), while
+the complete Bob-pass is effectively identical at 9,285 versus 9,284. B does
+carry heavier projectile update/draw work, so the top-line loss is not wholly
+attributed to H7, but the small scoped saving does not justify its lookup and
+dirty-state complexity. Reject H7, remove it, and retain accepted H4. No ADF,
+Pocket or real-hardware acceptance is inferred.
 
 The supplied FS-UAE/68020 HD A/B gate reports both variants visually normal
 and zero target-ownership violations. B raises effective cadence from 27.45 to

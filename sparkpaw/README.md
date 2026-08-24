@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.44`. Roadmap checkpoint: Phase 6C.1 rolling
+Current release: `0.6.0-alpha.45`. Roadmap checkpoint: Phase 6C.1 rolling
 renderer Stage 5L. Supplied FS-UAE/68030 HD testing accepts clean presentation
 at 50 Hz. Supplied real-A1200/68030 HD and physical-ADF tests, and Analogue
 Pocket ADF testing, report no broad renderer corruption, but all slower paths
@@ -73,6 +73,15 @@ H7 seam correction. Alpha.44 ADF, Pocket and real-A1200 acceptance remain
 pending.
 Its bootable DOS1/FFS ADF package uses 1,195 blocks (597 KiB) and leaves 565
 free. This is package validation only.
+Alpha.45 adds three supplied-FS-UAE-tested Stage 2 defaults: direct Strider
+traversal lookup, invariant Bob-register setup and a specialized aligned 16px
+entering-column copy. The latest matched 68020 A/B raises cadence from 44.47
+to 45.55 FPS and lowers ring-roll p95 from 9,878 to 2,782 CIA ticks; complete
+Bob-pass p95 falls from 16,308 to 9,142. Presentation remains normal in the
+supplied 68030 and 68020 HD tests. Stock-68020 50 Hz, alpha.45 ADF/Pocket
+gameplay and real-A1200 acceptance remain open.
+The bootable alpha.45 DOS1/FFS ADF validates at 1,197 blocks (598 KiB), leaving
+563 free. This is package construction evidence, not ADF gameplay acceptance.
 Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
 also accepted. Phase 6B.6 now contains the integrated extended REAR8 parallax
 and foreground-material v1 candidates alongside the measured palette previews;
@@ -665,10 +674,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.44.lha`
-- `dist/Sparkpaw-0.6.0-alpha.44.zip`
-- `dist/Sparkpaw-0.6.0-alpha.44.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.44/`
+- `dist/Sparkpaw-0.6.0-alpha.45.lha`
+- `dist/Sparkpaw-0.6.0-alpha.45.zip`
+- `dist/Sparkpaw-0.6.0-alpha.45.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.45/`
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

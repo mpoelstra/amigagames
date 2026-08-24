@@ -1,0 +1,16 @@
+Sparkpaw Stage 2 - enemy traversal B: direct lookup (FS-UAE/68020 HD)
+
+Candidate variant. Run Sparkpaw-B-Direct-Lookup from this drawer with the
+same normal FS-UAE/68020 configuration used for A.
+
+Repeat the same route as closely as practical:
+1. Pass several Striders and traverse platforms in both directions.
+2. Run far enough away that earlier Striders are parked, then return toward
+   them. Include jumping, shooting and at least one busy enemy section.
+3. Check that Strider movement, platform traversal, firing, enemy graphics,
+   diamonds, HUD and the ground/HUD seam remain normal.
+4. Click the left mouse button once at the end to flush renderdiag.log in this
+   drawer, then quit or reset.
+
+Do not rename or move the log. Acceptance requires both normal presentation
+and a measured 68020 improvement over A.

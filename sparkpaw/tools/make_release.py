@@ -17,7 +17,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.44"
+RELEASE_VERSION = "0.6.0-alpha.45"
 ROADMAP_CHECKPOINT = "6C.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -60,6 +60,14 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} rolling-renderer migration
 MrDig Productions - Copyright 2026
+
+Alpha.45 continues measured Stage 2 optimization without changing Stage 5L
+geometry, art or gameplay. Direct Strider traversal lookup reduces the 68020
+enemy update, invariant Bob-register setup reduces tail latency, and a
+specialized aligned 16px entering-column loop raises supplied FS-UAE/68020
+stress cadence from 44.47 to 45.55 FPS while reducing ring-roll p95 by 71.8%.
+Stock-68020 50 Hz remains open. ADF gameplay, Analogue Pocket and real-A1200
+testing remain pending explicit supplied results.
 
 Phase 6B.3 adds the approved thin ground cap; 6B.3A aligns floor actors to
 y=200 and 6B.3B adds synchronized sixteen-frame blue water. The HUD todo is open.

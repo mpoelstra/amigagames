@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 enemy traversal A - linear-link reference
+FS-UAE 68030 HD diagnostic only
+
+Run through the first Strider and the two-Strider area. Exercise complete jump
+routes in both directions, turn around repeatedly, move far enough to park and
+reactivate Striders, and verify patrol, landing, shooting and animation remain
+normal. Left-click at the end to write this drawer's renderdiag.log.

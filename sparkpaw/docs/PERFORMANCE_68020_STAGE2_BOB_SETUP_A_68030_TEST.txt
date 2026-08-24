@@ -1,0 +1,11 @@
+Sparkpaw Stage 2 - Bob setup A: per-plane registers (FS-UAE/68030 HD)
+
+Reference variant. Run Sparkpaw-A-Per-Plane-Setup from this drawer.
+
+Play a busy route with beetles, Striders, diamonds and projectiles. Reach the
+water if practical, then run back through an earlier enemy area. Check every
+Bob for intact pixels, masks, colours, restore behavior and draw order. Also
+check Sparkpaw, parallax, HUD and the ground/HUD seam.
+
+Click the left mouse button once at the end to flush this drawer's own
+renderdiag.log. Do not rename or move it.

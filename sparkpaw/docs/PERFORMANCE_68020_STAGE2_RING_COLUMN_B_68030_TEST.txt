@@ -1,0 +1,9 @@
+Sparkpaw Stage 2 - ring column B: specialized 16px copy (FS-UAE/68030 HD)
+
+Run Sparkpaw-B-Specialized-Column and repeat A's route as closely as possible:
+continuous sprinting right across many camera boundaries, at least to the
+first water area, then far back left, with jumps, enemies and projectiles.
+
+Watch both playfield edges for stale or corrupt columns, trails, flicker,
+seams, wrong parallax, Bob damage or HUD disturbance. Click the left mouse
+button once at the end to flush this drawer's renderdiag.log.

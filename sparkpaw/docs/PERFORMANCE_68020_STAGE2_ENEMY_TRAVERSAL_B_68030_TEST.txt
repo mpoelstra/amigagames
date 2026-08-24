@@ -1,0 +1,7 @@
+Sparkpaw Stage 2 enemy traversal B - direct-link lookup
+FS-UAE 68030 HD diagnostic only
+
+Use the same route and approximate duration as A. Exercise complete Strider
+jump routes in both directions, repeated turns, camera parking/reactivation,
+patrol, landing, shooting and animation. Left-click at the end to write this
+drawer's own renderdiag.log.

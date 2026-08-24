@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 24 August 2026
+Last updated: 25 August 2026
 
 ## Start here
 
@@ -45,12 +45,12 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.44`, Phase 6C.1. A normal release contains:
+Current release is `0.6.0-alpha.45`, Phase 6C.1. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.44.lha`
-- `Sparkpaw-0.6.0-alpha.44.zip`
-- `Sparkpaw-0.6.0-alpha.44.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.44/`
+- `Sparkpaw-0.6.0-alpha.45.lha`
+- `Sparkpaw-0.6.0-alpha.45.zip`
+- `Sparkpaw-0.6.0-alpha.45.adf`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.45/`
 
 MrDig mounts `sparkpaw/dist/` directly as an FS-UAE HD volume. Every
 user-facing FS-UAE HD test or diagnostic drawer must therefore be created
@@ -139,6 +139,15 @@ behavior on a real 68020 is a hypothesis, not supplied hardware verification.
   gameplay. Its DOS1/FFS ADF validates at 1,195 blocks used and 565 free.
   Alpha.44 HD/ADF gameplay on the real A1200 and ADF gameplay on Analogue
   Pocket remain pending supplied tests; package validation is not acceptance.
+- Alpha.45 packages three more isolated Stage2 defaults accepted in supplied
+  FS-UAE/68030 and FS-UAE/68020 HD tests: direct Strider traversal lookup,
+  invariant Bob-register setup and a specialized aligned 16px entering-column
+  copy. The latest matched 68020 A/B raises cadence 44.47 to 45.55 FPS and
+  lowers ring-roll p95 9,878 to 2,782 CIA ticks; Bob-pass p95 falls 16,308 to
+  9,142. Stock-68020 50 Hz remains open. Alpha.45 ADF/Pocket gameplay and
+  real-A1200 acceptance remain pending explicit supplied results. Its bootable
+  DOS1/FFS ADF validates at 1,197 blocks used and 563 free; this is package
+  construction evidence only.
 - Alpha.39 ADF on an Analogue Pocket FPGA core shows widespread transient Bob,
   gameplay-field and HUD corruption at 68020/no-cache. Treat this as a useful
   missed-deadline stress signal, not as FS-UAE or real-A1200 equivalence.
@@ -412,5 +421,14 @@ falls 3,940 to 101 ticks and Bob-pass average 11,086 to 8,499. Preserve the old
 canonical diamond synchronization only behind
 `SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE`. Overall stock-68020 cadence
 remains below 50 Hz. No ADF, Pocket or real-A1200 claim is inferred.
+
+Accepted Stage2 alpha.45 results: direct traversal lookup raises matched
+FS-UAE/68020 cadence 44.35 to 45.09 FPS and lowers `enemy_parked` average 792
+to 601 ticks. Hoisted invariant Bob registers leave average cadence flat but
+lower Bob p95 17,282 to 14,752. The specialized aligned-16px ring-column route
+raises cadence 44.47 to 45.55 FPS and lowers `ring_roll` average 1,691 to 483
+and p95 9,878 to 2,782 ticks. All supplied FS-UAE/68030 and FS-UAE/68020 HD
+gates report normal presentation. Preserve the former routes behind explicit
+reference flags. No ADF, Pocket or real-A1200 claim is inferred.
 
 My request is:

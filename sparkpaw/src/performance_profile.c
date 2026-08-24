@@ -26,7 +26,8 @@ static const char *const names[PERF_SLOT_COUNT]={
     "bob_projectile_restore","bob_enemy_restore",
     "bob_collectible_restore","bob_splash_restore","bob_water",
     "bob_compact_target","bob_splash_draw","bob_collectible_draw",
-    "bob_enemy_draw","bob_projectile_draw","bob_final_wait"
+    "bob_enemy_draw","bob_projectile_draw","bob_final_wait",
+    "enemy_parked","enemy_active","enemy_respawn","enemy_activate"
 };
 
 ULONG performanceProfileBegin(void)

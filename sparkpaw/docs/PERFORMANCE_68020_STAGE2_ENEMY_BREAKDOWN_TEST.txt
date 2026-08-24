@@ -1,0 +1,8 @@
+Sparkpaw Stage 2 enemy-update breakdown profiler
+FS-UAE 68020 HD diagnostic only
+
+This is not an optimization candidate; it measures the accepted alpha.44 path.
+Play a long mixed run. Traverse beetles, the first Strider, the two-Strider
+area and overlapping Striders. Fire repeatedly, kill several enemies, move far
+enough to park encounters, reverse direction and revisit them. If practical,
+allow one respawn lifecycle. Left-click once at the end to write renderdiag.log.

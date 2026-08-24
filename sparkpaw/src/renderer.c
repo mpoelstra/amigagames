@@ -785,6 +785,35 @@ static void prototypeCopyCanonicalRect(struct PrototypeTarget *target,
     prototypeCopyCanonicalSpan(target,left,y,(WORD)(right-left),height);
 }
 
+#ifndef SPARKPAW_RING_COLUMN_GENERIC_REFERENCE
+/* The ordinary camera roll admits one aligned 16px column. Avoid the generic
+   one-iteration word loop and repeated row-address multiplication: each row
+   reads one canonical word and publishes it to the same three physical ring
+   copies as prototypeCopyCanonicalSpan(). */
+static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
+                                         WORD worldX)
+{
+    WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+    WORD sourceStep=(WORD)(frontClean->bitmap->BytesPerRow>>1);
+    WORD displayStep=(WORD)(target->display->BytesPerRow>>1);
+    UBYTE plane;
+    for(plane=0;plane<FRONT_PLANES;plane++) {
+        const UWORD *source=(const UWORD *)(
+            frontClean->bitmap->Planes[plane]+(worldX>>3));
+        UWORD *display=(UWORD *)(target->display->Planes[plane]+(slot>>3));
+        WORD row;
+        for(row=0;row<WORLD_H;row++) {
+            UWORD value=*source;
+            display[0]=value;
+            display[PROTOTYPE_RING_W/16]=value;
+            display[(PROTOTYPE_RING_W/16)*2]=value;
+            source+=sourceStep;
+            display+=displayStep;
+        }
+    }
+}
+#endif
+
 #ifndef SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE
 /* Dynamic patches are narrow, word-aligned rectangles replicated into three
    physical ring copies in both clean and display. CopyMem call overhead and
@@ -930,9 +959,20 @@ static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
         WORD oldOrigin=target->origin;
         target->origin=newOrigin;
         if(pixels>0) {
+#ifndef SPARKPAW_RING_COLUMN_GENERIC_REFERENCE
+            if(pixels==16)
+                prototypeCopyCanonicalColumn(target,
+                    (WORD)(oldOrigin+PROTOTYPE_RING_W));
+            else
+#endif
             prototypeCopyCanonicalRect(target,
                 (WORD)(oldOrigin+PROTOTYPE_RING_W),0,pixels,WORLD_H);
         } else {
+#ifndef SPARKPAW_RING_COLUMN_GENERIC_REFERENCE
+            if(pixels==-16)
+                prototypeCopyCanonicalColumn(target,newOrigin);
+            else
+#endif
             prototypeCopyCanonicalRect(target,newOrigin,0,(WORD)-pixels,WORLD_H);
         }
     }
@@ -1485,10 +1525,16 @@ static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
     LONG sourceAt=(LONG)y*clean->BytesPerRow+(sourceX>>4)*2;
     for(plane=0;plane<FRONT_PLANES;plane++) {
         platformWaitBlit();
+#ifndef SPARKPAW_BOB_PER_PLANE_SETUP_REFERENCE
+        if(!plane) {
+#endif
         hw->bltcon0=0x09f0; hw->bltcon1=0;
         hw->bltafwm=0xffff; hw->bltalwm=0xffff;
         hw->bltamod=(UWORD)(clean->BytesPerRow-words*2);
         hw->bltdmod=(UWORD)(frontDisplay->BytesPerRow-words*2);
+#ifndef SPARKPAW_BOB_PER_PLANE_SETUP_REFERENCE
+        }
+#endif
         hw->bltapt=clean->Planes[plane]+sourceAt;
         hw->bltdpt=frontDisplay->Planes[plane]+at;
         hw->bltsize=(UWORD)((height<<6)|words);
@@ -1505,6 +1551,9 @@ static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
     LONG at=(LONG)y*target->BytesPerRow+(x>>4)*2;
     for(plane=0;plane<FRONT_PLANES;plane++) {
         platformWaitBlit();
+#ifndef SPARKPAW_BOB_PER_PLANE_SETUP_REFERENCE
+        if(!plane) {
+#endif
         hw->bltcon0=(UWORD)((shift<<12)|0x0fca);
         hw->bltcon1=(UWORD)(shift<<12);
         hw->bltafwm=0xffff; hw->bltalwm=0xffff;
@@ -1512,6 +1561,9 @@ static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
         hw->bltbmod=(UWORD)((sourceWords-words)*2);
         hw->bltcmod=(UWORD)(target->BytesPerRow-words*2);
         hw->bltdmod=(UWORD)(target->BytesPerRow-words*2);
+#ifndef SPARKPAW_BOB_PER_PLANE_SETUP_REFERENCE
+        }
+#endif
         hw->bltapt=mask;
         hw->bltbpt=bits+(LONG)plane*height*sourceWords;
         hw->bltcpt=target->Planes[plane]+at;
