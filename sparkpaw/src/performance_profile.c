@@ -1,3 +1,4 @@
+#define SPARKPAW_PERFORMANCE_PROFILE_IMPLEMENTATION
 #include "performance_profile.h"
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -27,7 +28,8 @@ static const char *const names[PERF_SLOT_COUNT]={
     "bob_collectible_restore","bob_splash_restore","bob_water",
     "bob_compact_target","bob_splash_draw","bob_collectible_draw",
     "bob_enemy_draw","bob_projectile_draw","bob_final_wait",
-    "enemy_parked","enemy_active","enemy_respawn","enemy_activate"
+    "enemy_parked","enemy_active","enemy_respawn","enemy_activate",
+    "blitter_wait"
 };
 
 ULONG performanceProfileBegin(void)
@@ -81,9 +83,9 @@ void performanceProfileWrite(BPTR file)
             median=sorted[total->retained>>1];
             p95=sorted[p95Index];
         }
-        FPrintf(file,"cia section=%s calls=%ld retained=%ld median_ticks=%ld p95_ticks=%ld avg_ticks=%ld max_ticks=%ld avg_frame_x1000=%ld max_frame_x1000=%ld\n",
-                names[slot],total->samples,(LONG)total->retained,median,p95,
-                average,total->maximum,
+        FPrintf(file,"cia section=%s calls=%ld retained=%ld total_ticks=%ld median_ticks=%ld p95_ticks=%ld avg_ticks=%ld max_ticks=%ld avg_frame_x1000=%ld max_frame_x1000=%ld\n",
+                names[slot],total->samples,(LONG)total->retained,total->total,
+                median,p95,average,total->maximum,
                 (average*1000UL)/14188UL,
                 (total->maximum*1000UL)/14188UL);
         if(sorted) FreeMem(sorted,(ULONG)total->retained*sizeof(*sorted));

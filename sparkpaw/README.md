@@ -5,10 +5,13 @@ MrDig Productions.
 
 Current release: `0.6.0-alpha.45`. Roadmap checkpoint: Phase 6C.1 rolling
 renderer Stage 5L. Supplied FS-UAE/68030 HD testing accepts clean presentation
-at 50 Hz. Supplied real-A1200/68030 HD and physical-ADF tests, and Analogue
-Pocket ADF testing, report no broad renderer corruption, but all slower paths
-reject cadence. Stock-68020 remains a stress target; accepted Phase 6B.5 remains
-the player-gameplay baseline.
+at 50 Hz. Final supplied alpha.45 testing also accepts presentation and cadence
+on the real A1200/68030 at about 34.5 MHz from both HD and physical ADF, and on
+the Analogue Pocket 68020 ADF path. The low-overhead FS-UAE/68020 diagnostic
+records 48.58 effective FPS with no three-field misses or ownership violations.
+This near-50-Hz result is now a protected regression baseline: future features
+must not casually reintroduce per-frame copies, broad scans or serialized Chip
+work. Accepted Phase 6B.5 remains the player-gameplay baseline.
 Supplied alpha.39 testing accepts presentation/cadence at 68030 in FS-UAE and
 the ADF on a real A1200/68030. Both packages work in FS-UAE, but real-A1200 HD
 output corrupts immediately after CHARGING. Alpha.40 changes only raw HD asset
@@ -62,8 +65,9 @@ FS-UAE/68030 and FS-UAE/68020 HD tests report clean presentation. The measured
 68020 rolling/dynamic target scopes improve by about 39--41%, the Bob-pass
 average by 26.2%, and prepared-peak free Chip improves by 319,488 bytes. The
 production-default 68030 diagnostic records 49.95 FPS and zero ownership
-violations. This is not yet an alpha release, ADF/Pocket validation or
-real-A1200 acceptance; overall 68020 cadence remains insufficient.
+violations. This architecture is now included in alpha.44 and alpha.45;
+ADF/Pocket gameplay and real-A1200 acceptance for those releases remain
+unsupplied, and overall 68020 cadence remains insufficient.
 Subsequent accepted Stage2 target-local diamond composition removes diamonds
 from broad canonical dynamic synchronization. Supplied FS-UAE/68020 HD A/B
 testing reports normal presentation and raises effective cadence from 35.31 to
@@ -78,10 +82,26 @@ traversal lookup, invariant Bob-register setup and a specialized aligned 16px
 entering-column copy. The latest matched 68020 A/B raises cadence from 44.47
 to 45.55 FPS and lowers ring-roll p95 from 9,878 to 2,782 CIA ticks; complete
 Bob-pass p95 falls from 16,308 to 9,142. Presentation remains normal in the
-supplied 68030 and 68020 HD tests. Stock-68020 50 Hz, alpha.45 ADF/Pocket
-gameplay and real-A1200 acceptance remain open.
+supplied 68030 and 68020 HD tests. Subsequent supplied testing accepts alpha.45
+on the real A1200/68030 at about 34.5 MHz from HD and physical ADF, including
+good cadence, and accepts the Analogue Pocket 68020 ADF path.
 The bootable alpha.45 DOS1/FFS ADF validates at 1,197 blocks (598 KiB), leaving
 563 free. This is package construction evidence, not ADF gameplay acceptance.
+The Stage 2 performance checkpoint is complete. The residual profiler split
+CPU work, custom-register setup and `WaitBlit` cost and triggered a complete
+C/assembly/Fast-versus-Chip recheck. It found no forgotten continuous large
+copy or post-CHARGING asset work worth another speculative prototype.
+The resulting minimal-cadence check compiles out nested CIA and Bob-family
+measurements but retains boundary cadence. Supplied FS-UAE HD testing reports
+normal presentation: 68030 remains at 50.00 FPS, while 68020 reaches 48.58 FPS
+(1,104 one-field and 33 two-field intervals, no three-field misses). This shows
+that most of the apparent remaining diagnostic deficit was profiler observer
+cost. It does not establish alpha.45 ADF, Pocket or real-A1200 cadence.
+Those hardware acceptances were subsequently supplied explicitly as described
+above. Future optimization remains possible, but only behind a new measured
+need: coarse hardware-facing scopes, safe reduction of actual Bob jobs/waits,
+or a proven CPU-read-heavy Fast-RAM mirror. Rejected diamond persistence,
+pointer precompute and inline-wait experiments must not be repeated unchanged.
 Phase 6B.2 through 6B.4 water mechanics, presentation and impact feedback are
 also accepted. Phase 6B.6 now contains the integrated extended REAR8 parallax
 and foreground-material v1 candidates alongside the measured palette previews;

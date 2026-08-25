@@ -2527,7 +2527,8 @@ BOOL rendererPublishGameplay(UWORD rasterLine)
 
 void rendererDrawGameplayBobs(void)
 {
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+    !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
     UWORD before,after; ULONG profileStart;
 #define DIAG_CALL(slot,perf,call) do { \
     before=platformRasterLine(); profileStart=performanceProfileBegin(); \
@@ -2570,11 +2571,13 @@ void rendererDrawGameplayBobs(void)
         DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
         DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
         DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+    !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
         profileStart=performanceProfileBegin();
 #endif
         platformWaitBlit();
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+    !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
         performanceProfileEnd(PERF_BOB_FINAL_WAIT,profileStart);
 #endif
 #ifdef SPARKPAW_BLITTER_PRIORITY_CANDIDATE

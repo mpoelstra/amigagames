@@ -1,10 +1,14 @@
 # Sparkpaw renderer-glitch correction — completed checkpoint
 
-Status: completed through Stage 5L and promoted as `0.6.0-alpha.43`.
+Status: completed through Stage 5L and its H7 seam correction, packaged in the
+current `0.6.0-alpha.45` baseline.
 The broad rolling-renderer corruption is fixed in supplied FS-UAE/68030,
 real-A1200/68030 HD, real-A1200/68030 ADF and Analogue Pocket ADF testing.
-Performance is not accepted. One narrow ground/HUD boundary flicker remains a
-separate Copper-split follow-up.
+The earlier alpha.43 performance result was not accepted. The narrow ground/HUD disturbance was isolated to
+FRONT16 output on the final transition scanline and corrected by H7; supplied
+FS-UAE/68030 HD review accepts that production-shaped correction. Final
+alpha.45 testing subsequently accepts the complete Stage 5L/H7 result on the
+real A1200/68030 from both HD and physical ADF and on Analogue Pocket ADF.
 
 ## Accepted architecture
 
@@ -38,6 +42,12 @@ separate Copper-split follow-up.
 - All tested paths retain a small intermittent disturbance at the fixed
   ground/HUD boundary. `Renderer alpha43-rejected-real-a1200-hd-performance-
   and-hud-seam-flicker.MOV` records it on real hardware.
+
+The bullets above preserve the rejected alpha.43 evidence. They are superseded
+for the current alpha.45 baseline by supplied real-A1200/68030 HD and physical
+ADF acceptance, plus supplied Analogue Pocket ADF acceptance. Alpha.45 runs
+with good cadence on the approximately 34.5 MHz A1200 and no recurrence was
+reported during the accepted final tests.
 
 Do not convert these results into stock-68020 acceptance. FS-UAE/68020 Stage
 5L measures 26.38 effective FPS: 136 one-field, 337 two-field and 78 three-field
@@ -83,12 +93,11 @@ Detailed chronology and exact evidence remain in `docs/DEVELOPMENT_HISTORY.md`.
 
 ## Remaining work, routed elsewhere
 
-1. Fix only the narrow HUD-boundary timing regression. Stage 5L adds an FMODE
-   restore MOVE to the already tight pre-HUD Copper setup; verify scheduling
-   rather than reopening ring or sprite geometry.
-2. Continue measured cadence work in `PERFORMANCE_68020_PLAN.md`, using the
-   supplied 34.5 MHz 68030 as the allowed minimum if stock 68020 cannot reach
-   the target without visual/gameplay loss.
-3. Measure prepared and steady Chip free/largest blocks on real alpha.43 HD.
-4. Instrument logical audio-event requests separately from Paula playback;
-   repeated and absent effects under load are not yet isolated.
+1. Preserve H7 and the Stage 5L renderer contracts during further work; do not
+   treat the resolved FS-UAE/68030 seam as an invitation to retune geometry.
+2. Preserve the completed 48.58-FPS FS-UAE/68020 low-overhead cadence baseline
+   and the accepted 34.5 MHz A1200 HD/ADF and Pocket ADF behavior.
+3. Reopen performance only for a measured regression or a new feature budget;
+   use coarse hardware-facing scopes before invasive renderer work.
+4. Keep logical audio-event requests separately measurable from Paula starts
+   if missing or repeated effects return in future hardware testing.

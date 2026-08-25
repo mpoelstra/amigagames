@@ -9,6 +9,7 @@
 #include <proto/graphics.h>
 
 #include "audio.h"
+#include "performance_profile.h"
 
 struct GfxBase *GfxBase;
 
@@ -112,8 +113,16 @@ UWORD platformRasterLine(void)
 
 void platformWaitBlit(void)
 {
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+    !defined(SPARKPAW_DISABLE_WAIT_PROFILE)
+    ULONG profileStart=performanceProfileBegin();
+#endif
     (void)hardware->dmaconr;
     while(hardware->dmaconr&DMAF_BLTDONE) { }
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+    !defined(SPARKPAW_DISABLE_WAIT_PROFILE)
+    performanceProfileEnd(PERF_BLITTER_WAIT,profileStart);
+#endif
 }
 
 void platformSetBlitterPriority(BOOL enabled)

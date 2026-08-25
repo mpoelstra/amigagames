@@ -39,10 +39,21 @@ enum PerformanceProfileSlot {
     PERF_ENEMY_ACTIVE,
     PERF_ENEMY_RESPAWN,
     PERF_ENEMY_ACTIVATE,
+    PERF_BLITTER_WAIT,
     PERF_SLOT_COUNT
 };
 
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+    !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
+ULONG performanceProfileBegin(void);
+void performanceProfileEnd(enum PerformanceProfileSlot slot,ULONG start);
+void performanceProfileWrite(BPTR file);
+#elif defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
+      !defined(SPARKPAW_PERFORMANCE_PROFILE_IMPLEMENTATION)
+#define performanceProfileBegin() 0UL
+#define performanceProfileEnd(slot,start) do { } while(0)
+void performanceProfileWrite(BPTR file);
+#elif defined(SPARKPAW_RENDER_DIAGNOSTIC)
 ULONG performanceProfileBegin(void);
 void performanceProfileEnd(enum PerformanceProfileSlot slot,ULONG start);
 void performanceProfileWrite(BPTR file);

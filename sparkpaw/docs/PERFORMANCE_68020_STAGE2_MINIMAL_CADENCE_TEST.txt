@@ -1,0 +1,25 @@
+Sparkpaw Stage 2 minimal-cadence diagnostic
+
+Purpose
+-------
+Measure presentation cadence with the alpha.45 production gameplay and
+renderer while removing the many nested CIA profiler samples. This is not a
+new optimization candidate. It estimates how much the full diagnostic build
+itself costs.
+
+Test order
+----------
+1. Run the 68030 drawer first and confirm that graphics, HUD, diamonds,
+   enemies, water and reload still look normal.
+2. Run the 68020 drawer with the same route: run to the water, fall in, let the
+   level reload, then run back through the Strider/diamond area.
+3. Keep each run around 30-60 seconds and use the same FS-UAE settings as the
+   previous Stage 2 tests.
+4. Press the left mouse button once to exit cleanly and write renderdiag.log
+   inside that drawer.
+
+Expected log
+------------
+The cadence and renderer-boundary sections remain valid. Detailed performance
+profile rows are intentionally zero: their per-call CIA timing was compiled
+out. Do not compare those zero rows with the residual-cost profiler.

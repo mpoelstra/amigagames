@@ -1,0 +1,23 @@
+Sparkpaw Stage 2 post-alpha.45 residual-cost profiler
+
+Purpose
+-------
+This is alpha.45 gameplay and presentation with diagnostic-only timing added
+around every existing WaitBlit. It does not change Bob order, Blitter jobs,
+renderer geometry, assets or gameplay. Its absolute cadence may be slightly
+lower because the diagnostic samples every wait.
+
+Test order
+----------
+1. First run only the FS-UAE-68030 drawer with the usual 68030 configuration.
+2. Play from the opening through both Striders, continue to the first water,
+   fall in once, let the level reload, then run left and right for a while.
+3. Look specifically for enemy, diamond, projectile, water, HUD or seam
+   corruption. Do not judge a small profiler-induced FPS difference yet.
+4. Exit with the left mouse button so PROGDIR:renderdiag.log is flushed.
+5. Leave the log in this drawer.
+6. Run the separate FS-UAE-68020 drawer only after the 68030 presentation gate
+   is accepted. Repeat the same route and exit with the left mouse button.
+
+The separate drawers are self-contained and keep their own renderdiag.log.
+No ADF, Analogue Pocket or real-hardware acceptance is inferred from them.

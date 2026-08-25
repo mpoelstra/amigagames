@@ -1,16 +1,40 @@
 # Sparkpaw stock-68020 performance plan
 
-Status: active on the alpha.43 Stage 5L baseline. Supplied testing accepts broad
-renderer stability in FS-UAE/68030, real-A1200/68030 HD and ADF, and Analogue
-Pocket ADF, but rejects cadence on all slower targets. Preserve Stage 5L's ring,
-fetch geometry and wide player pair; isolate measured hotspots rather than
-reopening its ownership architecture.
+Status: completed performance checkpoint on the alpha.45 Stage 5L/H7 baseline.
+The whole-codebase Stage 2 audit, isolated prototypes and post-checkpoint review
+are complete. A low-overhead FS-UAE/68020 diagnostic reaches 48.58 effective
+FPS with no three-field misses or ownership violations. Supplied final testing
+accepts alpha.45 on the approximately 34.5 MHz real A1200/68030 from HD and
+physical ADF and on Analogue Pocket 68020 ADF. Preserve this near-50-Hz stress
+result and the Stage 5L renderer as explicit regression baselines.
+
+Historical residual split: `game_update` and `bob_pass` were separated into
+CPU work, custom-register setup, `WaitBlit`, Blitter execution and Chip-bus
+contention. Their latest averages are approximately 4,056 and 5,840 CIA ticks;
+their p95 values are 5,215 and 9,142, whose 14,357-tick sum already exceeds the
+roughly 14,188-tick PAL-field budget before publication overhead. Verify actual
+Fast/Chip placement from linker/allocation evidence and inspect current VBCC
+68020/68030 assembly before selecting the next candidate. The leading route is
+safe CPU/Blitter overlap in the serialized Bob chain, followed by Strider/Bob
+preparation and proven CPU-read-heavy Fast-RAM mirrors. Re-rank if new evidence
+points elsewhere. The subsequent minimal-cadence run showed that most of the
+apparent remaining 4--5 FPS deficit was profiler observer cost, not production
+work. No further prototype is active.
 
 Hardware policy: the user has authorized the supplied real A1200/68030 at
 about 34.5 MHz as the minimum release CPU if necessary. Continue using
 FS-UAE/68020 as a stress target and seek measured gains there, but do not trade
 away parallax, assets, colours, sprites, animation, HUD or gameplay contracts
 solely to claim stock-68020 acceptance.
+
+Future performance work is optional and evidence-triggered. Candidate ideas
+that remain technically plausible are coarse real-hardware scopes, eliminating
+an actual Bob job or wait rather than rearranging pointer arithmetic, combining
+geometry and enemy work in a genuinely coalesced projectile sweep, and a
+Fast-RAM mirror only when repeated CPU reads from Chip are measured. Preserve
+the rejected-results ledger: H5--H7 diamond persistence, Bob pointer
+precomputation, inline `WaitBlit`, fetch-union pruning and small Blitter column
+copies did not improve 68020 cadence enough to retain.
 
 ## Known evidence
 
@@ -84,6 +108,10 @@ two intersecting Striders, projectile maximum and water/collectible peak. Store
 median, 95th percentile and maximum rather than only one worst frame.
 
 ## Stage 2: whole-codebase C hot-path audit
+
+Status: completed as the broad static/dynamic inventory and maintained as a
+living measured audit in `PERFORMANCE_68020_STAGE2_AUDIT.md`. New measurements
+must update its ranking before another optimization is promoted.
 
 Audit every C path that can run during loading-to-gameplay transition, a game
 tick, frame preparation or display publication. Do not assume `renderer.c` is

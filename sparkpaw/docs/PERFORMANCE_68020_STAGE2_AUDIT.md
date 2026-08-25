@@ -1,8 +1,10 @@
 # Sparkpaw Stage 2 whole-codebase 68020 audit
 
-Status: active. H7 is the accepted FS-UAE/68030 HD presentation baseline. This
-document records audit evidence only; no hotspot has yet been optimized or
-selected as the first prototype.
+Status: completed living audit on the alpha.45 Stage 5L/H7 baseline. The broad
+whole-codebase inventory and initial ranking are complete, and multiple
+measured candidates have since been accepted or rejected below. It remains the
+authority for selecting the next isolated prototype; production diagnostics
+remain compiled out.
 
 ## Measurement basis
 
@@ -875,3 +877,158 @@ exactly 50.00 FPS: A records 1,239/1,239 one-field intervals and B records
 the fixed safe boundary. Differing scene load prevents comparing Bob-family
 averages. Proceed to the decisive matched FS-UAE/68020 A/B gate; no ADF,
 Pocket or real-hardware acceptance is inferred.
+
+## Post-alpha.45 residual-cost decision
+
+Alpha.44/45 incorporate the accepted seam, collision, phase-start, rolling,
+diamond, sprite-stage, enemy-state, traversal, Bob-register and aligned-column
+work documented above. The latest matched FS-UAE/68020 A/B result reaches
+45.55 effective FPS with 1,598 one-field and 173 two-field intervals over 1,771
+presentations. This leaves about 4.45 FPS to the 50 Hz target for that workload;
+it is not ADF, Pocket or real-A1200 acceptance.
+
+The remaining continuous aggregates are approximately:
+
+| Scope | Average | p95 | Current interpretation |
+| --- | ---: | ---: | --- |
+| `game_update` | 4,056 ticks | 5,215 ticks | CPU/game-state aggregate; leaf work and memory domain need a current split |
+| `bob_pass` | 5,840 ticks | 9,142 ticks | Mix of CPU setup, custom writes, Blitter execution, `WaitBlit` and Chip contention |
+
+The p95 sum is 14,357 CIA ticks, above the approximately 14,188-tick PAL-field
+budget before publication and miscellaneous overhead. The next diagnostic must
+therefore distinguish CPU-active time from `WaitBlit`, Blitter-active time and
+Chip-bus pressure instead of treating both aggregates as ordinary C cost.
+
+Before changing code, regenerate actual production and diagnostic VBCC
+68020/68030 assembly and symbol sizes for Bob restore/draw, Strider frame
+staging, collectible/projectile Bobs, enemy activation/update, ring/Copper
+patching and compiler helpers. Verify linker and runtime memory domains:
+CPU-only state, lookup tables, caches and profiler buffers should be Fast RAM;
+Agnus/Blitter/Paula-visible data must remain Chip RAM. A mirror is justified
+only by measured CPU reads and must not introduce recurring Chip-to-Fast copy
+work.
+
+Provisional ranking after that measurement split:
+
+1. reduce serialized Bob waits through safe CPU preparation during an active
+   Blit, waiting only before registers or data are actually reused;
+2. isolate Strider preparation/staging from its Blitter execution cost;
+3. prepare or bundle restore/draw jobs without changing draw order, planes,
+   pixels, ownership or H7 timing;
+4. add Fast-RAM mirrors for proven CPU-read-heavy Chip data;
+5. consider unchanged-Bob persistence only with complete overlap invalidation;
+6. select smaller gameplay/input/audio candidates only if the new profile
+   ranks them higher.
+
+Every candidate remains an isolated A/B: host/assembly verification,
+FS-UAE/68030 presentation, then matched FS-UAE/68020 cadence. Research is
+targeted at a measured 68020/AGA scheduling or memory question. Mechanical
+source splitting remains a separate byte-identical refactor. Fixed 25 Hz game
+updates with 50 Hz display service remain a last-resort standalone prototype;
+uncontrolled frameskipping is forbidden.
+
+## Rejected post-alpha.45 Bob pointer-precompute prototype
+
+The residual-cost profiler measures roughly fifty `WaitBlit` calls per
+FS-UAE/68020 frame. It records 2,900 wait ticks per frame; subtracting the
+approximately 19-tick empty-wait measurement floor bounds actual waiting near
+1,950 ticks per frame. This is material, but the per-wait instrumentation also
+explains why diagnostic cadence is lower than the byte-identical production
+build.
+
+An isolated prototype moved the four source/destination plane-address
+calculations ahead of each existing wait. It retained every Blit, register,
+plane, family order, pixel and ownership contract. Supplied FS-UAE/68030 HD
+testing reports A and B visually correct. B appeared scoped-positive there:
+Bob-pass average 5,433 to 5,013 ticks and p95 8,399 to 7,508.
+
+Supplied FS-UAE/68020 HD testing also reports both visually correct, but rejects
+B's timing. The runs are not perfectly scene-matched, yet B moves effective
+cadence 38.56 to 34.29 FPS and Bob-pass average 7,369 to 8,955 ticks. The
+precomputed stack arrays add work when the preceding Blit has already completed,
+so there is no acceptable 68020 evidence of useful overlap. The implementation,
+targets and source test instructions were removed. Preserve alpha.45's current
+address schedule and pursue a candidate that eliminates actual jobs/waits or
+reduces transferred Chip data instead.
+
+## Rejected post-alpha.45 inline WaitBlit prototype
+
+An isolated prototype replaced the seven static C call sites of
+`platformWaitBlit()` with the identical register poll in place. Supplied
+FS-UAE/68030 and FS-UAE/68020 HD testing reports both A and B visually correct.
+The 68030 run suggested a small Bob-pass reduction, but the 68020 workloads
+were not scene-matched and provide no top-line win: effective cadence moves
+44.21 to 42.55 FPS while B also contains a heavier projectile/Strider scene.
+At roughly fifty runtime calls per frame, removing only seven `jsr`/`rts`
+pairs has too little bounded upside to justify more tests. The candidate,
+targets and test instructions were removed.
+
+Before selecting another Bob micro-optimization, use the minimal-cadence
+diagnostic to bound profiler observer cost. It preserves renderer boundary
+sampling and the clean-exit log but compiles out nested CIA performance scopes
+and per-family raster timing. This separates the remaining production cadence
+gap from instrumentation overhead.
+
+Supplied FS-UAE HD testing reports normal presentation for both minimal builds.
+The 68030 run is exactly 50.00 FPS: 1,578/1,578 intervals use one PAL field,
+with zero ownership violations. The 68020 run reaches 48.58 FPS: 1,104
+one-field and 33 two-field intervals out of 1,137, no three-field interval and
+zero ownership violations. Compared with the 44.21-FPS function-call reference
+from the immediately preceding fully instrumented test, at least 4.37 FPS of
+the apparent gap was diagnostic observer cost under these supplied workloads.
+The runs are not frame-for-frame matched, so this is a bounded conclusion, not
+an exact production-versus-diagnostic delta.
+
+The retained trace shows the remaining missed-field flag principally under
+the heaviest recorded states: the right-end camera around 1403 with two
+Striders and five collectibles, and the first frames after level reload with
+up to seven collectibles. This makes broad average-cost micro-optimization a
+poor next choice. Pursue only a tail-specific reduction that also has useful
+bounded upside on real hardware. The normal alpha.45 executable contains none
+of the diagnostic scopes or log writer; FS-UAE/68020 is now near the 50-Hz
+target. Subsequent supplied tests accept alpha.45 presentation and cadence on
+the approximately 34.5 MHz real A1200/68030 from HD and physical ADF and on
+the Analogue Pocket 68020 ADF path.
+
+## Post-minimal-cadence whole-codebase recheck
+
+A second production-route review after the 48.58-FPS minimal-cadence result
+rechecks the complete main loop, gameplay dispatch, physics/collision, enemies,
+projectiles, collectibles, audio, input, HUD, Copper/ring work, sprite staging,
+Bob composition, loading calls and explicit memory domains. Current VBCC
+`-O2 -cpu=68020` assembly was regenerated for player, enemy, projectile and
+collectible code. It uses native 68020 multiply/divide instructions and direct
+or bounded indirect calls; no new compiler-runtime arithmetic helper appears.
+
+No forgotten continuous large copy or post-CHARGING asset operation was found.
+Runtime `CopyMem` sites are the already accepted specialized entering-column
+fallback, pose-cached hardware-sprite staging, changed Strider stage copies and
+event-driven HUD work. CPU masters and state are Fast/public memory where
+appropriate; Blitter, Copper, sprite and Paula sources correctly remain Chip.
+Creating mirrors for those Chip sources would add synchronization without a
+proven recurring CPU-read saving.
+
+The remaining ordinary CPU scopes are not new big-gun candidates. Player
+physics already uses the accepted tile-span collision route; projectile enemy
+preselection was measured and rejected; direct traversal lookup and enemy
+copy-on-unload are already defaults; collectible gameplay collision scans 48
+small Fast-state records but measured only about 210 diagnostic ticks. Audio,
+input, HUD and contact scopes are smaller still. Keyboard acknowledge can busy
+wait for two raster-line changes on a key transition, as required by the Amiga
+keyboard protocol, but is event-driven and not a joystick-frame cost.
+
+The apparent tail correlation with five to seven visible diamonds does not
+justify reopening collectible persistence. H5, H6 and H7 already tested full,
+visible-only and column-indexed spatial invalidation against enemy, projectile,
+splash, water, hover, collection and origin changes. Their bookkeeping erased
+the scoped Blit saving on 68020 and worsened top-line cadence. H4 always-redraw
+therefore remains the lower-risk measured winner.
+
+Conclusion: no newly missed source-level optimization has enough bounded
+upside to explain another four or five production FPS. The minimal diagnostic
+itself still copies renderer trace state and samples raster boundaries, so its
+33 two-field intervals are an upper bound on the normal executable's misses.
+The subsequently supplied alpha.45 real-A1200/HD, physical-ADF and Pocket runs
+accept the checkpoint. No performance prototype remains active. If a future
+feature regresses cadence, profile that hardware-facing gap with coarse scopes
+rather than adding another FS-UAE-only micro-candidate.

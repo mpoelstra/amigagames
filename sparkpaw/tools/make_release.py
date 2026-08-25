@@ -66,8 +66,10 @@ geometry, art or gameplay. Direct Strider traversal lookup reduces the 68020
 enemy update, invariant Bob-register setup reduces tail latency, and a
 specialized aligned 16px entering-column loop raises supplied FS-UAE/68020
 stress cadence from 44.47 to 45.55 FPS while reducing ring-roll p95 by 71.8%.
-Stock-68020 50 Hz remains open. ADF gameplay, Analogue Pocket and real-A1200
-testing remain pending explicit supplied results.
+A later low-overhead FS-UAE/68020 diagnostic records 48.58 FPS with no
+three-field misses or ownership violations. Final supplied testing accepts
+alpha.45 presentation and cadence on a real A1200/68030 at about 34.5 MHz from
+both HD and physical ADF and on the Analogue Pocket 68020 ADF path.
 
 Phase 6B.3 adds the approved thin ground cap; 6B.3A aligns floor actors to
 y=200 and 6B.3B adds synchronized sixteen-frame blue water. The HUD todo is open.

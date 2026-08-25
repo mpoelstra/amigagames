@@ -5224,3 +5224,55 @@ p95 9,878 to 2,782 and maximum 9,941 to 2,815; Bob-pass p95 falls 16,308 to
 and real-A1200 acceptance require new explicit supplied results. Native HD,
 ZIP/LHA and packed-asset ADF construction pass; the bootable DOS1/FFS image
 uses 1,197 blocks (598 KiB) and leaves 563 free. This validates packaging only.
+
+### 25 August 2026 - Post-alpha.45 residual-cost plan synchronized
+
+The current planning documents now agree that the broad Stage 2 codebase audit
+has been completed and has already produced the alpha.44/45 gains; it is no
+longer described as work that still has to begin. The latest matched
+FS-UAE/68020 result is 45.55 effective FPS. Its remaining continuous aggregates
+are `game_update` average/p95 4,056/5,215 CIA ticks and `bob_pass` 5,840/9,142.
+Their 14,357-tick p95 sum is already above the approximately 14,188-tick PAL
+field before publication overhead.
+
+The next diagnostic will split those aggregates into CPU-active work,
+custom-register setup, `WaitBlit`, Blitter execution and Chip-bus contention.
+Current VBCC 68020/68030 assembly, symbol sizes, linker placement and runtime
+Fast/Chip allocation evidence must be inspected before choosing another
+optimization. Safe CPU/Blitter overlap in the serialized Bob chain is the
+leading hypothesis, followed by isolated Strider/Bob preparation and only
+measured CPU-read-heavy Fast-RAM mirrors. The ranking may change with evidence.
+Every implementation remains one isolated prototype, gated first for
+FS-UAE/68030 presentation and then by matched FS-UAE/68020 timing. Stage 5L/H7,
+art and gameplay remain fixed. Mechanical source splitting stays a separate
+byte-identical refactor, and a controlled 25 Hz update/50 Hz display prototype
+remains a last resort rather than ordinary frameskipping.
+
+### 25 August 2026 - Alpha.45 performance and hardware checkpoint accepted
+
+The detailed CIA profiler was found to be a material observer on the 68020
+stress configuration. A minimal-cadence build compiles out nested leaf timing
+and Bob-family raster sampling while retaining renderer-boundary evidence.
+Supplied FS-UAE/68030 HD testing reports normal presentation and 1,578/1,578
+one-field intervals (50.00 FPS). Supplied FS-UAE/68020 HD testing also reports
+normal presentation and records 1,104 one-field plus 33 two-field intervals out
+of 1,137 (48.58 FPS), with no three-field misses or ownership violations. The
+preceding fully instrumented run's lower cadence was therefore mostly profiler
+overhead rather than missing production optimization.
+
+Final supplied hardware testing accepts alpha.45 presentation and cadence on
+the real A1200/68030 at approximately 34.5 MHz from both HD and physical ADF.
+The supplied Analogue Pocket 68020 ADF run is also accepted. These results close
+the alpha.45 renderer/performance checkpoint without changing the production
+executable, renderer geometry, art or gameplay.
+
+The 48.58-FPS FS-UAE/68020 result is now a required regression baseline. Future
+features must not casually add broad per-frame scans, complete bitmap/Copper
+copies, unconditional Fast-to-Chip staging or serialized small Blits. The
+post-checkpoint whole-codebase review found no forgotten continuous large copy,
+post-CHARGING asset work, misplaced CPU-heavy Chip data or new compiler helper.
+Possible future gains require new evidence: coarse hardware-facing scopes,
+eliminating an actual Bob job/wait, a genuinely coalesced projectile sweep, or
+a Fast-RAM mirror justified by measured CPU reads. Rejected H5--H7 diamond
+persistence, Bob pointer precompute, inline `WaitBlit`, fetch pruning and small
+Blitter-column experiments must not be repeated unchanged.

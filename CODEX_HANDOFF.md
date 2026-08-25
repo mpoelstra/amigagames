@@ -144,10 +144,22 @@ behavior on a real 68020 is a hypothesis, not supplied hardware verification.
   invariant Bob-register setup and a specialized aligned 16px entering-column
   copy. The latest matched 68020 A/B raises cadence 44.47 to 45.55 FPS and
   lowers ring-roll p95 9,878 to 2,782 CIA ticks; Bob-pass p95 falls 16,308 to
-  9,142. Stock-68020 50 Hz remains open. Alpha.45 ADF/Pocket gameplay and
-  real-A1200 acceptance remain pending explicit supplied results. Its bootable
+  9,142. Final supplied testing accepts alpha.45 presentation and cadence on
+  the approximately 34.5 MHz real A1200/68030 from both HD and physical ADF,
+  and accepts the Analogue Pocket 68020 ADF path. Its bootable
   DOS1/FFS ADF validates at 1,197 blocks used and 563 free; this is package
   construction evidence only.
+- A post-alpha.45 minimal-cadence diagnostic removes nested CIA scopes and Bob
+  family raster timing while retaining renderer-boundary cadence sampling.
+  Supplied FS-UAE/HD testing reports normal presentation. FS-UAE/68030 records
+  1,578/1,578 one-field intervals (50.00 FPS); FS-UAE/68020 records 1,104
+  one-field and 33 two-field intervals out of 1,137 (48.58 FPS), with no
+  three-field intervals or ownership violations. The immediately preceding
+  fully instrumented 68020 reference measured 44.21 FPS under a different
+  workload, proving that most of the apparent remaining 4--5 FPS deficit was
+  profiler observer cost. Do not extrapolate this diagnostic result to ADF,
+  Pocket or real hardware by itself. Those acceptances were supplied later as
+  the separate final alpha.45 tests above.
 - Alpha.39 ADF on an Analogue Pocket FPGA core shows widespread transient Bob,
   gameplay-field and HUD corruption at 68020/no-cache. Treat this as a useful
   missed-deadline stress signal, not as FS-UAE or real-A1200 equivalence.
@@ -226,54 +238,62 @@ Water/route:
 - Full level traversal through the corrected second-water platform is accepted
   in FS-UAE/HD. ADF and real-hardware claims stay evidence-specific.
 
-## Immediate work order
+## Current work order
 
-### 1. Correct the remaining HUD seam without reopening Stage 5L
+### 1. Preserve the completed Stage 5L/H7 renderer baseline
 
-Stage 5L is the immutable renderer baseline. Move or retime only the fixed-HUD
-FMODE/pointer setup at the playfield-to-HUD boundary, then gate the isolated
-candidate in FS-UAE/68030 before slower testing. Do not change ring ownership,
-early-fetch geometry, the wide Sparkpaw pair, art or gameplay to hide the seam.
+Stage 5L plus H7 is the immutable renderer baseline. Do not change the fixed-HUD
+FMODE/pointer split, ring ownership, early-fetch geometry, the wide Sparkpaw
+pair, art or gameplay during residual performance work without new renderer
+evidence and a separately gated correction.
 
 H5 established bitplane rather than sprite origin. H6A then removed the seam
 by masking FRONT16 colours on only the final transition scanline; H6B's REAR8
 mask did not. The user explicitly accepts H6A in FS-UAE/68030 with no other
 visible corruption; its log records 49.93 FPS and zero ownership violations.
-The same operation is now production-compiled in
-`sparkpaw/dist/Stage5L-H7-FRONT16-Seam-Fix-Production-HD/`. Await the user's
-visual H7 result before claiming the non-diagnostic build accepted or starting
-the Stage 2 performance audit. H7 intentionally creates no log.
+The same operation was production-compiled and subsequently accepted by the
+user in FS-UAE/68030 HD as H7. H7 intentionally created no log.
 
-The user subsequently reports that this exact production-shaped H7 drawer
-looks good in FS-UAE/68030 HD. The seam fix is therefore accepted only for
-FS-UAE/68030 HD. No ADF, Pocket or real-A1200 acceptance is claimed. Stage 2 of
-`sparkpaw/docs/PERFORMANCE_68020_PLAN.md` is now active: complete the broad
-whole-codebase C/assembly/profiler audit and ranked hotspot table before making
-any optimization.
+The original H7 gate accepted only FS-UAE/68030 HD. Final alpha.45 testing now
+also accepts the complete result on real-A1200/68030 HD, physical ADF and
+Analogue Pocket ADF. Do not reopen the Copper split, Stage 5L
+fetch geometry, rolling ownership or wide-sprite layout during performance
+work without new evidence of a renderer regression.
 
 The title contract is unchanged: 35 black PAL frames after display takeover,
 24 fade frames and 225 fully visible title frames. Faster loading before title
 takeover must not be confused with a shortened Indivision stabilization delay.
 
-### 2. Optimize only the measured hotspot
+### 2. Preserve the completed alpha.45 performance checkpoint
 
 Use `sparkpaw/docs/PERFORMANCE_68020_PLAN.md`.
 
-First build a production executable without invasive synchronization and a
-separate CIA-timer profiler capable of measuring multiple PAL frames. Measure
-game update, player physics states, enemy/projectile simulation, clean-world
-maintenance, each Bob family submission and final Blitter stall.
+The broad C/assembly audit and ranked table produced the alpha.44/45 gains.
+The final low-overhead diagnostic records 48.58 effective FPS on FS-UAE/68020:
+1,104 one-field and 33 two-field intervals out of 1,137, no three-field misses
+and zero ownership violations. This near-50-Hz result is a protected regression
+baseline for every later feature and refactor.
 
-Primary hypotheses to test, in this order:
+The residual profiler and follow-up review already split CPU work, custom
+register setup and `WaitBlit`, regenerated VBCC output, checked runtime copies
+and re-audited Fast/Chip allocation. Most of the prior apparent 4--5 FPS gap was
+observer cost from the detailed profiler. No forgotten continuous large copy,
+runtime asset load or compiler helper remains as an active big-gun candidate.
 
-- replace thousands of two-byte `CopyMem` calls during an entering-column ring
-  update with direct word copies or a bounded tall Blitter transfer;
-- avoid copying the complete inactive Copper list every update;
-- cache each target's wide-player frame/facing and avoid recopying unchanged
-  sprite image data while still updating its control words;
-- reduce serialized per-plane Bob waits while preserving accepted ordering;
-- per-pixel `moveY()` plus full sole scans may cause sprint/jump CPU spikes;
-- collectible/enemy iteration or collision sweep may contribute.
+Future candidate order, only after a measured regression or new feature cost:
+
+1. remove an actual Bob job or wait with proven safe CPU/Blitter overlap;
+2. coalesce projectile geometry and enemy work rather than add a prepass;
+3. add a Fast-RAM mirror only for measured repeated CPU reads from Chip;
+4. use coarse hardware-facing scopes if a hardware-only gap returns;
+5. do not repeat rejected diamond persistence, pointer-precompute, inline-wait,
+   fetch-pruning or tiny-Blitter experiments unchanged.
+
+Research 68020 scheduling, AGA bus arbitration, Blitter behavior and Fast/Chip
+placement only for a concrete measured question. Keep any prototype isolated:
+first FS-UAE/68030 presentation, then matched FS-UAE/68020 timing. Production
+must remain diagnostic-free. A fixed 25 Hz game update with 50 Hz display
+service remains a separate last-resort prototype, never uncontrolled skipping.
 
 The diagnostic implementation is compiled out of production already. Split it
 from `renderer.c` for auditability, and later split Copper/ring/Bob/sprite
@@ -344,12 +364,12 @@ Further overlap invalidation would add redraws. H1/H2/H3 implementation, tests
 and build targets are removed; retain canonical synchronization. No MOV,
 FS-UAE/68020, ADF, Pocket or real-hardware acceptance is needed or inferred.
 
-Current Stage2 hazard-cache candidate: supplied FS-UAE/68030 HD A/B testing
+Accepted Stage2 hazard-cache result, initial 68030 gate: supplied FS-UAE/68030 HD A/B testing
 reports normal presentation, collision, water death/reload and enemy behavior.
 Both runs sustain 50.00 FPS. B's `game_update` average is 192 versus 211 CIA
 ticks for A, but scene/projectile load is not matched closely enough to claim
-that difference. The candidate uses 3 KiB non-Chip BSS and awaits a matched
-FS-UAE/68020 A/B decision; no ADF, Pocket or real-hardware claim is inferred.
+that difference. The candidate uses 3 KiB non-Chip BSS; its subsequent 68020
+decision is recorded immediately below.
 
 The subsequent supplied FS-UAE/68020 HD A/B test reports both variants normal.
 Cadence is effectively identical at 27.07 versus 27.05 FPS under unmatched
@@ -359,12 +379,12 @@ ticks (-5.1%), median 756 to 599 (-20.8%), and `enemies` average 1760 to 1748
 `SPARKPAW_COLLISION_HAZARD_SCAN_REFERENCE`; classify this as a small CPU win,
 not a whole-game FPS gain. No ADF, Pocket or real-hardware claim is inferred.
 
-Current Stage2 projectile-sweep candidate: supplied FS-UAE/68030 HD testing
+Rejected Stage2 projectile-sweep result, initial 68030 gate: supplied FS-UAE/68030 HD testing
 reports both variants visually and functionally normal at exactly 50.00 FPS.
 Both issue 82 shot requests. Candidate B reduces `projectiles` average 20 to 12
 CIA ticks, p95 91 to 46 and maximum 174 to 91; A has one additional hit and
-kill, so scene load is close but not identical. Proceed to FS-UAE/68020 A/B
-before deciding promotion. No ADF, Pocket or real-hardware claim is inferred.
+kill, so scene load is close but not identical. Its subsequent 68020 rejection
+is recorded immediately below.
 
 The subsequent supplied FS-UAE/68020 HD result rejects that projectile-only
 enemy prepass. Presentation remains correct, but `projectiles` average is flat
@@ -375,14 +395,13 @@ were removed; retain the original pixel-ordered dispatcher. A future swept
 candidate must coalesce geometry and enemy work together. No ADF, Pocket or
 real-hardware claim is inferred.
 
-Current Stage2 collectible H1 is visually rejected in supplied FS-UAE/68030
+Historical Stage2 collectible H1 is visually rejected in supplied FS-UAE/68030
 HD testing: target-local diamonds flicker visible/invisible despite zero Copper
 ownership violations. H1 did reduce `ring_dynamic` average 91 to 1 CIA tick
 and Bob-pass average 3575 to 3081 (-13.8%). Root cause: entering roll columns
 can overwrite a target-local diamond while its history still says drawn. H2
-invalidates exactly those histories using an exhaustively tested entering-strip
-overlap predicate and awaits a fresh FS-UAE/68030 gate. Do not infer H2, ADF,
-Pocket or real-hardware acceptance.
+invalidated exactly those histories using an exhaustively tested entering-strip
+overlap predicate; the subsequent H2 result is recorded below.
 
 Supplied FS-UAE/68030 H2 also rejects target-local collectibles: A is correct,
 but B still flickers and trembles between diamond Y positions despite zero
@@ -391,8 +410,8 @@ Cause: the canonical `(frameCounter&3)==(index&3)` stagger is incompatible with
 per-target history because alternating targets own opposite tick parities; an
 index group can update one buffer but not the other. H3 removes that stagger
 only for target-local mode and converges each target whenever its stored hover
-Y is stale. H1/H2 remain rejected; H3 awaits FS-UAE/68030. No ADF, Pocket or
-real-hardware acceptance is inferred.
+Y is stale. H1/H2/H3 were ultimately rejected; H4's accepted replacement is
+recorded later in this file.
 
 ### 3. Deferred visual work
 
@@ -430,5 +449,3 @@ raises cadence 44.47 to 45.55 FPS and lowers `ring_roll` average 1,691 to 483
 and p95 9,878 to 2,782 ticks. All supplied FS-UAE/68030 and FS-UAE/68020 HD
 gates report normal presentation. Preserve the former routes behind explicit
 reference flags. No ADF, Pocket or real-A1200 claim is inferred.
-
-My request is:

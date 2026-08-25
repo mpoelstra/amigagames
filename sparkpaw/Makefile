@@ -27,6 +27,7 @@ HUD_SEAM_H6_FRONT_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-front16-black
 HUD_SEAM_H6_REAR_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-rear8-black
 HUD_SEAM_H7_PRODUCTION_TARGET = build/sparkpaw-hud-seam-h7-production
 STAGE2_PROFILE_TARGET = build/sparkpaw-stage2-profile
+STAGE2_MINIMAL_CADENCE_TARGET = build/sparkpaw-stage2-minimal-cadence
 STAGE2_DYNAMIC_REFERENCE_TARGET = build/sparkpaw-stage2-dynamic-reference
 STAGE2_DYNAMIC_WORD_COPY_TARGET = build/sparkpaw-stage2-dynamic-word-copy
 STAGE2_DYNAMIC_UNROLLED_TARGET = build/sparkpaw-stage2-dynamic-unrolled
@@ -115,7 +116,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 .PHONY: aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package
 .PHONY: aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package
 .PHONY: renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package
-.PHONY: stage2-profile-package stage2-profile-68020-package stage2-enemy-breakdown-68020-package stage2-loading-profile-package stage2-setup-breakdown-package stage2-enemy-cache-word-68030-package stage2-enemy-cache-word-68020-package stage2-player-sprite-word-68030-package stage2-player-sprite-word-68020-package
+.PHONY: stage2-profile-package stage2-profile-68020-package stage2-residual-cost-profile-package stage2-minimal-cadence-package stage2-enemy-breakdown-68020-package stage2-loading-profile-package stage2-setup-breakdown-package stage2-enemy-cache-word-68030-package stage2-enemy-cache-word-68020-package stage2-player-sprite-word-68030-package stage2-player-sprite-word-68020-package
 .PHONY: stage2-dynamic-word-copy-ab-package stage2-dynamic-word-copy-68020-ab-package stage2-dynamic-unrolled-68030-ab-package stage2-dynamic-unrolled-68020-ab-package stage2-canonical-word-68030-ab-package stage2-canonical-word-68020-ab-package stage2-collision-tile-68030-ab-package stage2-collision-tile-68020-ab-package stage2-sprite-stage-cache-68030-ab-package stage2-sprite-stage-cache-68020-ab-package stage2-ring-reach-68030-ab-package stage2-ring-reach-68020-ab-package stage2-ring-reach-h3-68030-package
 .PHONY: stage2-copper-patch-68030-ab-package stage2-copper-patch-68020-ab-package
 .PHONY: stage2-column-blit-68030-ab-package stage2-column-blit-68020-ab-package
@@ -486,6 +487,26 @@ stage2-profile-68020-package: assets $(STAGE2_PROFILE_TARGET)
 	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/Sparkpaw-Stage2-Profiler-68020
 	cp $(RUNTIME_ASSETS) dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/assets/runtime/
 	cp docs/PERFORMANCE_68020_STAGE2_PROFILE_68020_TEST.txt dist/Stage2-Whole-Codebase-Profiler-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-residual-cost-profile-package: assets $(STAGE2_PROFILE_TARGET)
+	@mkdir -p dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68030-HD/Sparkpaw-Residual-Cost-Profiler-68030
+	cp $(RUNTIME_ASSETS) dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RESIDUAL_COST_PROFILE_TEST.txt dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_PROFILE_TARGET) dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68020-HD/Sparkpaw-Residual-Cost-Profiler-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_RESIDUAL_COST_PROFILE_TEST.txt dist/Stage2-Post-Alpha45-Residual-Cost-Profiler-FS-UAE-68020-HD/ReadMe.txt
+
+stage2-minimal-cadence-package: assets $(STAGE2_MINIMAL_CADENCE_TARGET)
+	@mkdir -p dist/Stage2-Minimal-Cadence-FS-UAE-68030-HD/assets/runtime
+	@mkdir -p dist/Stage2-Minimal-Cadence-FS-UAE-68020-HD/assets/runtime
+	cp $(STAGE2_MINIMAL_CADENCE_TARGET) dist/Stage2-Minimal-Cadence-FS-UAE-68030-HD/Sparkpaw-Minimal-Cadence-68030
+	cp $(RUNTIME_ASSETS) dist/Stage2-Minimal-Cadence-FS-UAE-68030-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_MINIMAL_CADENCE_TEST.txt dist/Stage2-Minimal-Cadence-FS-UAE-68030-HD/ReadMe.txt
+	cp $(STAGE2_MINIMAL_CADENCE_TARGET) dist/Stage2-Minimal-Cadence-FS-UAE-68020-HD/Sparkpaw-Minimal-Cadence-68020
+	cp $(RUNTIME_ASSETS) dist/Stage2-Minimal-Cadence-FS-UAE-68020-HD/assets/runtime/
+	cp docs/PERFORMANCE_68020_STAGE2_MINIMAL_CADENCE_TEST.txt dist/Stage2-Minimal-Cadence-FS-UAE-68020-HD/ReadMe.txt
 
 stage2-enemy-breakdown-68020-package: assets $(STAGE2_PROFILE_TARGET)
 	@mkdir -p dist/Stage2-Enemy-Breakdown-Profiler-FS-UAE-68020-HD/assets/runtime
@@ -970,6 +991,14 @@ $(STAGE2_PROFILE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
 		-DSPARKPAW_RENDER_DIAGNOSTIC $(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+$(STAGE2_MINIMAL_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE $(RELEASE_RENDERER_FLAGS) \
 		-o $@ $(SOURCES)
 
 $(STAGE2_DYNAMIC_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
