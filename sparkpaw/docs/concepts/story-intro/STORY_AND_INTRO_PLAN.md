@@ -23,6 +23,32 @@ into the ceiling. He follows the energy trail to repair the system. The comedy
 comes from machinery following bad instructions with absolute dignity; the
 danger remains sincere.
 
+## The Stormstone and the quest
+
+The **Stormstone** was one large crystal capacitor at the heart of the ancient
+weather network. It absorbed destructive storm energy and redistributed rain,
+wind, lightning and warmth through local weather stations. Archivolt broke it
+into a number of large **Stormstone Cores** so he could file each weather system
+separately. Each level ends with the recovery of one Core. When all Cores are
+returned, Sparkpaw can reconstruct the Stormstone and restore natural weather.
+
+The numerous small diamond collectibles already present in the game are
+**Storm Shards**: minor splinters shed when the Stormstone was broken and its
+Cores were transported through the ruins. Sparkpaw's gauntlet collects their
+residual charge. Fifty Shards provide one emergency Storm Charge, retaining the
+current fifty-collectibles-award-one-life rule without implying that fifty
+small items form a major Core.
+
+Sparkpaw can locate and safely handle the Cores because his teal gauntlet is
+powered by a legally acquired Storm Shard. The complete quest is therefore:
+
+> Collect Storm Shards to power the gauntlet, recover one Stormstone Core from
+> each weather station, then reassemble the Stormstone before Archivolt files
+> away the entire sky.
+
+The first Storm Ruins level should eventually end in a quiet one-screen Core
+clearing after its existing final portal. See `LEVEL1_CORE_CLEARING_PLAN.md`.
+
 ## Antagonist and final boss
 
 ### Grand Archivolt, Keeper of Inclement Records

@@ -3,7 +3,7 @@
 
 #include "../src/collision_hazard_cache.h"
 
-#define TEST_WORLD_W 3072
+#define TEST_WORLD_W 3392
 
 static int referenceHazard(short x)
 {

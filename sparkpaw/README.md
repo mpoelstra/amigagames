@@ -3,9 +3,13 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.45`. Roadmap checkpoint: Phase 6C.1 rolling
-renderer Stage 5L. Supplied FS-UAE/68030 HD testing accepts clean presentation
-at 50 Hz. Final supplied alpha.45 testing also accepts presentation and cadence
+Current release: `0.6.0-alpha.46`. Roadmap checkpoint: Phase 6C.2 first
+Stormstone Core clearing on the protected rolling renderer Stage 5L baseline.
+Supplied FS-UAE/68030 HD testing accepts the centred waystation, animated Core,
+radial pickup, Storm Triumph sound and delayed replay. The matching
+FS-UAE/68020 HD minimal-cadence gate records 49.67 FPS over 3,244 intervals,
+with no three-field misses or ownership violations. The preceding alpha.45
+testing also accepts presentation and cadence
 on the real A1200/68030 at about 34.5 MHz from both HD and physical ADF, and on
 the Analogue Pocket 68020 ADF path. The low-overhead FS-UAE/68020 diagnostic
 records 48.58 effective FPS with no three-field misses or ownership violations.
@@ -332,6 +336,36 @@ The resident width adds 131,072 bytes to each of `frontClean` and
 Host builds/package validation pass and supplied FS-UAE/HD testing accepts full
 route traversal. Supplied full-run memory remains viable, but production timing
 is rejected/pending optimization; ADF parity and real hardware remain pending.
+
+### Alpha.46 Phase 6C.2 — first Core clearing
+
+Alpha.46 extends Level 1 from 3072px to 3392px with
+one safe, enemy-free destination screen after the final portal. A large
+Stormkeeper's Waystation—a caretaker cottage/shrine with a storm-bent tree—
+frames the first Stormstone Core. Touching that Core currently invokes the
+existing in-memory replay path; the later real level-complete/progression flow
+remains separate work.
+
+The waystation remains static FRONT16 art. Alpha.46 renders
+the Core through one 64x48 FRONT16 Bob, keeps the accepted centred final camera
+and uses the selected Storm Triumph reward sound before delayed replay. After
+supplied 60 fps evidence showed thin gauntlet-directed lines disappearing
+behind Sparkpaw, pickup now contracts into a radial release with a two-field
+foreground illumination. It adds no player frames and does not alter HUD
+palette ownership, world geometry or Core cache dimensions. Host tests and the
+native 68020 build pass. The supplied 60 fps recording and explicit user
+verdict accept the FS-UAE/68030 visual/function gate; a matching minimal-
+cadence 68020 HD run also passes: 49.67 effective FPS across 3,244 intervals,
+21 two-field, zero three-plus and zero ownership violations. This clears the
+48.58-FPS regression baseline without establishing a new optimization result.
+ADF and real hardware remain pending. Detailed intent and measurements live in
+`docs/concepts/story-intro/LEVEL1_CORE_CLEARING_PLAN.md` and
+`docs/concepts/story-intro/LEVEL1_CORE_CLEARING_POLISH_PLAN.md`.
+
+The bootable alpha.46 DOS1/FFS ADF validates at 1,327 blocks (663 KiB), leaving
+433 blocks free. It includes the packed extended foreground/rear assets plus
+the animated Core bitmap and selected Core sound. This proves package
+construction only; alpha.46 ADF gameplay remains pending supplied evidence.
 
 Current follow-up keeps three contracts separate. Supplied alpha.28 FS-UAE
 evidence rejects the world diamond's transparent dark facets and ragged lower
@@ -694,10 +728,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.45.lha`
-- `dist/Sparkpaw-0.6.0-alpha.45.zip`
-- `dist/Sparkpaw-0.6.0-alpha.45.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.45/`
+- `dist/Sparkpaw-0.6.0-alpha.46.lha`
+- `dist/Sparkpaw-0.6.0-alpha.46.zip`
+- `dist/Sparkpaw-0.6.0-alpha.46.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.46/`
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

@@ -150,6 +150,15 @@ BOOL levelWaterColumnAt(WORD x)
     return FALSE;
 }
 
+BOOL levelPlayerTouchesStormstoneCore(WORD left,WORD top,WORD right,WORD bottom)
+{
+    WORD center=(WORD)((left+right)>>1);
+    return center>=LEVEL_STORMSTONE_CORE_LEFT&&
+           center<=LEVEL_STORMSTONE_CORE_RIGHT&&
+           bottom>=LEVEL_STORMSTONE_CORE_TOP&&
+           top<=LEVEL_STORMSTONE_CORE_BOTTOM;
+}
+
 WORD levelWaterLeft(UBYTE index)
 {
     return index<LEVEL_WATER_COUNT?waterLeft[index]:-1;

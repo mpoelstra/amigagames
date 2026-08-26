@@ -71,6 +71,14 @@ struct EnemyTraversalLink {
 #define LEVEL_WATER_SPLASH_Y 204
 #define LEVEL_FLOOR_Y 200
 
+/* Phase 6C.2 quiet reward field. The animated Core Bob is centred in
+   the final 320px camera composition. */
+#define LEVEL_STORMSTONE_CORE_CENTER_X 3232
+#define LEVEL_STORMSTONE_CORE_LEFT 3198
+#define LEVEL_STORMSTONE_CORE_TOP 112
+#define LEVEL_STORMSTONE_CORE_RIGHT 3208
+#define LEVEL_STORMSTONE_CORE_BOTTOM 174
+
 const struct EnemySpawnCandidate *levelEnemySpawnCandidates(UWORD *count);
 const struct EnemyPatrolSurface *levelEnemyPatrolSurface(UBYTE surfaceId);
 const struct EnemyTraversalLink *levelEnemyTraversalLinks(UWORD *count);
@@ -80,5 +88,6 @@ BOOL levelHazardColumnAt(WORD x);
 BOOL levelPlayerInWater(WORD left,WORD right,WORD bottom);
 BOOL levelPlayerTouchesWater(WORD left,WORD right,WORD bottom);
 BOOL levelPlayerFallsInDryGap(WORD left,WORD right,WORD bottom);
+BOOL levelPlayerTouchesStormstoneCore(WORD left,WORD top,WORD right,WORD bottom);
 
 #endif

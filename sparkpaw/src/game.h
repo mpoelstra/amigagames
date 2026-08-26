@@ -10,6 +10,7 @@ struct GameState {
     UBYTE lives;
     UBYTE diamonds;
     UBYTE waterSplashTimer;
+    UBYTE coreCollectTimer;
     WORD waterSplashX;
 };
 

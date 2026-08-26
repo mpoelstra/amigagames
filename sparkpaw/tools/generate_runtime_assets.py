@@ -23,14 +23,19 @@ from PIL import Image, ImageDraw, ImageOps
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "assets" / "runtime"
 LEVELS = ROOT / "assets" / "levels"
-WORLD_W, WORLD_H = 3072, 256
+WORLD_W, WORLD_H = 3392, 256
 GAMEPLAY_H = 208
-PARALLAX_W = 1024
+# Preserve the accepted 1024px rear master byte-for-byte and add a guarded
+# 96px continuation for the new quarter-speed camera reach. 1120px keeps the
+# three-plane row stride longword aligned for the production renderer.
+PARALLAX_ACCEPTED_W = 1024
+PARALLAX_W = 1120
 TILE = 16
 BEETLE_W, BEETLE_H = 32, 24
 BEETLE_FRAMES = 9
 STRIDER_W, STRIDER_H = 64, 64
 STRIDER_FRAMES = 28
+CORE_RUNTIME_FRAMES = 18
 STRIDER_FORBIDDEN_PENS = {2, 3}  # Sparkpaw orange, never Strider identity
 STRIDER_NEUTRAL_PENS = {1, 8, 9, 10, 11}
 STRIDER_VIOLET_PENS = {7, 12, 13, 14, 15}
@@ -67,6 +72,12 @@ FRONT8 = [
 FRONT16 = FRONT8 + [
     (55, 55, 65), (101, 98, 103), (163, 157, 158), (229, 225, 219),
     (67, 29, 100), (112, 45, 157), (166, 77, 218), (224, 35, 104),
+]
+CLEARING_FRONT16 = [
+    FRONT16[0], FRONT16[1], (35, 79, 48), (146, 99, 43),
+    FRONT16[4], FRONT16[5], FRONT16[6], (88, 142, 69),
+    FRONT16[8], FRONT16[9], FRONT16[10], FRONT16[11],
+    FRONT16[12], FRONT16[13], FRONT16[14], (126, 173, 82),
 ]
 REAR8 = [
     (0, 0, 17), (0, 17, 51), (17, 34, 85), (34, 68, 119),
@@ -116,6 +127,10 @@ PARALLAX_MASTER = (ROOT / "assets" / "concept" /
                    "sparkpaw-parallax-master-concept-v4.png")
 FOREGROUND_KIT = (ROOT / "assets" / "concept" /
                   "sparkpaw-foreground-kit-concept-v2.png")
+WAYSTATION_SOURCE = (ROOT / "assets" / "concept" /
+                     "sparkpaw-stormkeeper-waystation-source-v2.png")
+CORE_SOURCE = (ROOT / "assets" / "concept" /
+               "sparkpaw-stormstone-core-six-frame-source-v1.png")
 LEVEL_CHARGING_PREVIEW = (ROOT / "assets" / "concept" /
                           "sparkpaw-level-charging-aga64-preview.png")
 HUD_SOURCE = ROOT / "assets" / "concept" / "sparkpaw-hud-concept-v1.png"
@@ -507,13 +522,17 @@ def make_authored_parallax() -> Image.Image:
     source = Image.open(PARALLAX_MASTER).convert("RGB")
     # V3 was authored as one complete sky/mountain/ruin/forest panorama. Keep
     # its full vertical composition rather than applying v2's top-biased crop.
-    source = source.resize((PARALLAX_W, 208), Image.Resampling.LANCZOS)
+    source = source.resize((PARALLAX_ACCEPTED_W, 208), Image.Resampling.LANCZOS)
     image = indexed_image((PARALLAX_W, WORLD_H), rear_palette_for_y(0), 1)
     src, dst = source.load(), image.load()
     for y in range(208):
         palette = rear_palette_for_y(y)
         for x in range(PARALLAX_W):
-            r, g, b = src[x, y]
+            # Existing cameras retain their exact accepted 0..1023 source.
+            # The final 96px mirror the quiet forest tail and sit mostly behind
+            # the new foreground landmark; no earlier landmark repeat moves.
+            source_x=x if x<PARALLAX_ACCEPTED_W else 2047-x
+            r, g, b = src[source_x, y]
             # The low forest is colour-graded toward the concept's cold green
             # stone/trees before exact palette reduction. Geometry and pixels
             # still come from the approved authored master.
@@ -639,6 +658,36 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
         d.line((x0,y0,x1,y0),fill=11)
         d.line((x0+1,y0+1,x1-1,y0+1),fill=edge)
 
+    def waystation() -> None:
+        """Reduce the landmark into the clearing-specific FRONT16 roles."""
+        source=Image.open(WAYSTATION_SOURCE).convert("RGB")
+        pixels=source.load()
+        # ImageGen's checkerboard is baked RGB rather than alpha. Treat only
+        # bright near-neutral pixels as background; the landmark itself is
+        # intentionally dark/cyan and remains well outside this key.
+        mask=Image.new("L",source.size,0)
+        mask_pixels=mask.load()
+        for py in range(source.height):
+            for px in range(source.width):
+                r,g,b=pixels[px,py]
+                if not (min(r,g,b)>=210 and max(r,g,b)-min(r,g,b)<=14):
+                    mask_pixels[px,py]=255
+        bbox=mask.getbbox()
+        if not bbox:
+            raise ValueError("Stormkeeper waystation source has no landmark")
+        landmark=source.crop(bbox).convert("RGBA")
+        landmark.putalpha(mask.crop(bbox))
+        landmark.thumbnail((200,145),Image.Resampling.LANCZOS)
+        src=landmark.load()
+        x0,y0=3132+(200-landmark.width)//2,55+(145-landmark.height)
+        for py in range(landmark.height):
+            for px in range(landmark.width):
+                r,g,b,a=src[px,py]
+                if a>=96:
+                    image.putpixel((x0+px,y0+py),
+                                   nearest_index((r,g,b),CLEARING_FRONT16,
+                                                 avoid_zero=True))
+
     # Continuous collision floor and varied but readable Phase 6B greybox over
     # eight screens. The visible 6B.3 cap is applied after the legacy eight-
     # colour remap so it can use the existing fourth-plane steel/violet pens.
@@ -674,6 +723,10 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
     block(179,11, 3, 1, 1)
     block(183,10, 3, 1, 3)
     block(188,10, 4, 1, 0)
+    # Phase 6C.2 adds one safe reward field. The old raised portal deck ends at
+    # x=3072; Sparkpaw drops onto the ordinary y=200 floor and approaches the
+    # landmark without a new platform, hazard or enemy surface.
+    waystation()
     # Short columns establish occlusion and test collision at camera seams.
     block(16, 11, 2, 2, 1)
     block(40, 10, 2, 3, 0)
@@ -687,6 +740,125 @@ def make_foreground() -> tuple[Image.Image, bytearray]:
     block(186, 10, 2, 3, 2)
     block(190, 10, 2, 3, 3)
     return image, collision
+
+
+def make_stormstone_core() -> tuple[Image.Image, bytes]:
+    """Build six stable idle and twelve radial Core-release frames."""
+    source=Image.open(CORE_SOURCE).convert("RGB")
+    cell_w=source.width//6
+    sheet=indexed_image((64,48*CORE_RUNTIME_FRAMES),FRONT16,0)
+    for frame in range(6):
+        cell=source.crop((frame*cell_w,0,(frame+1)*cell_w,source.height))
+        alpha=Image.new("L",cell.size,0)
+        cp,ap=cell.load(),alpha.load()
+        for y in range(cell.height):
+            for x in range(cell.width):
+                r,g,b=cp[x,y]
+                if not (r>150 and b>100 and g<105 and r>g*1.7):
+                    ap[x,y]=255
+        bbox=alpha.getbbox()
+        if not bbox:
+            raise ValueError(f"Stormstone Core frame {frame} is empty")
+        art=cell.crop(bbox).convert("RGBA")
+        art.putalpha(alpha.crop(bbox))
+        art.thumbnail((60,44),Image.Resampling.LANCZOS)
+        x0=(64-art.width)//2
+        y0=frame*48+(48-art.height)//2
+        pixels=art.load()
+        for y in range(art.height):
+            for x in range(art.width):
+                r,g,b,a=pixels[x,y]
+                if a>=96:
+                    sheet.putpixel((x0+x,y0+y),
+                                   nearest_index((r,g,b),FRONT16,
+                                                 avoid_zero=True))
+    # ImageGen's six cells vary slightly in mass. Runtime idle deliberately
+    # keeps frame zero's silhouette/mask exact and moves only the inner light.
+    base=sheet.crop((0,0,64,48))
+    vein_pens=(5,7,6,4,6,5)
+    for frame,vein_pen in enumerate(vein_pens):
+        stable=base.copy()
+        glow=ImageDraw.Draw(stable)
+        # Preserve every outline/mass pixel; only a narrow lightning vein and
+        # two intermittent motes change. This reads as energy travelling
+        # inside a stable crystal instead of whole-object heartbeat flashing.
+        glow.line(((33,7),(30,17),(34,25),(29,36)),fill=vein_pen,width=1)
+        if frame in (2,3): glow.point((20,19),fill=6)
+        if frame in (3,4): glow.point((44,29),fill=4 if frame==3 else 6)
+        sheet.paste(stable,(0,frame*48))
+
+    # Pickup frames are a self-contained level-end signature. The Core first
+    # compresses into a white-hot centre, then throws chunky asymmetrical rays
+    # and fragments in every direction. Keeping the burst around the shrine
+    # avoids relying on a Bob endpoint that the higher-priority player sprite
+    # would cover.
+    rays=((0.00,30),(0.52,35),(1.08,27),(1.57,22),(2.12,31),
+          (2.65,38),(3.14,32),(3.70,37),(4.18,29),(4.71,23),
+          (5.20,31),(5.78,36))
+    for stage in range(12):
+        cell=indexed_image((64,48),FRONT16,0)
+        draw=ImageDraw.Draw(cell)
+        if stage<5:
+            if stage<2:
+                scaled=base.copy().point(
+                    lambda pen: 3 if pen in (4,6,9,11) else pen)
+            else:
+                size=(48,34,20)[stage-2]
+                scaled=base.resize((size,max(12,int(48*size/64))),
+                                   Image.Resampling.NEAREST)
+            cell.paste(scaled,((64-scaled.width)//2,(48-scaled.height)//2))
+        if 1<=stage<=8:
+            travel=stage-1
+            inner=2+travel*3
+            length=max(3,13-abs(4-travel)*2)
+            for index,(angle,limit) in enumerate(rays):
+                reach=min(limit,inner+length+(index&1)*2)
+                start=max(2,reach-length)
+                x1=32+int(math.cos(angle)*start)
+                y1=24+int(math.sin(angle)*start*.70)
+                x2=32+int(math.cos(angle)*reach)
+                y2=24+int(math.sin(angle)*reach*.70)
+                pen=(3,4,9,11,13)[(index+stage)%5]
+                draw.line((x1,y1,x2,y2),fill=pen,
+                          width=2 if 2<=stage<=5 and index%3==0 else 1)
+        if 2<=stage<=10:
+            distance=5+(stage-2)*3
+            for index,angle in enumerate((.30,1.85,2.85,4.05,5.45)):
+                x=32+int(math.cos(angle)*distance)
+                y=24+int(math.sin(angle)*distance*.65)
+                if 1<=x<63 and 1<=y<47:
+                    draw.point((x,y),fill=(4,6,9,11,13)[index])
+                    if stage in (4,5,6): draw.point((x+1,y),fill=3)
+        if stage<=3:
+            radius=(2,4,3,2)[stage]
+            draw.ellipse((32-radius,24-radius,32+radius,24+radius),fill=3)
+            draw.point((32,24),fill=4)
+        sheet.paste(cell,(0,(6+stage)*48))
+    return sheet,bitmap_mask(sheet)
+
+
+def make_stormstone_core_triumph_raw() -> bytes:
+    """Reproduce the selected 02 Storm Triumph Paula sample from source."""
+    rate=11025
+    sample_count=int(rate*1.15)
+
+    def tone(freq: float,start: float,duration: float,volume: float) -> list[float]:
+        values=[0.0]*sample_count
+        begin=int(start*rate)
+        length=int(duration*rate)
+        for index in range(length):
+            phase=math.sin(2*math.pi*freq*index/rate)
+            env=min(1.0,index/(rate*.008))*max(0.0,1-index/length)**1.3
+            values[begin+index]+=phase*env*volume
+        return values
+
+    tracks=(tone(392,.00,.22,.55),tone(523,.14,.24,.65),
+            tone(659,.29,.27,.72),tone(784,.46,.52,.92),
+            tone(1568,.48,.42,.3),tone(98,.00,.18,.3))
+    mixed=[sum(values) for values in zip(*tracks)]
+    peak=max(1.0,max(abs(value) for value in mixed))
+    signed=[int(max(-127,min(127,value*118/peak))) for value in mixed]
+    return bytes(value&255 for value in signed)
 
 
 def apply_ground_water_treatment(image: Image.Image) -> None:
@@ -1413,6 +1585,7 @@ def main() -> None:
     level_loading,level_charging,level_loading_palette = make_level_loading()
     hud_base,hud_health,hud_lives,hud_diamonds = make_hud()
     collectible_diamond,collectible_diamond_mask = make_collectible_diamond()
+    stormstone_core,stormstone_core_mask = make_stormstone_core()
 
     save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
     save_spbm(RUNTIME / "sparkpaw-level-loading.spbm",level_loading,
@@ -1433,6 +1606,12 @@ def main() -> None:
               HUD_PALETTE,depth=3)
     save_spbm(RUNTIME / "sparkpaw-diamond.spbm",collectible_diamond,
               FRONT16,depth=4,mask=collectible_diamond_mask)
+    save_spbm(RUNTIME / "stormstone-core.spbm",stormstone_core,
+              FRONT16,depth=4,mask=stormstone_core_mask)
+    core_preview=stormstone_core.resize(
+        (64*4,48*CORE_RUNTIME_FRAMES*4),Image.Resampling.NEAREST)
+    core_preview.save(ROOT / "assets" / "concept" /
+                      "sparkpaw-stormstone-core-aga16-preview-v2.png")
 
     # Separate hardware-scrollable 3-plane layers for the C dual-playfield
     # renderer. The 1024px authored rear span covers every quarter-speed source
@@ -1481,6 +1660,8 @@ def main() -> None:
         (ROOT / "sfx" / "raw" / "collect-spark.raw").read_bytes())
     (RUNTIME / "water-splash.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "water-splash.raw").read_bytes())
+    (RUNTIME / "stormstone-core.raw").write_bytes(
+        make_stormstone_core_triumph_raw())
     world = indexed_image((WORLD_W, WORLD_H), WORLD_PALETTE, 16)
     shifted_bg = bg.point(lambda p: p + 16)
     for x in range(0, WORLD_W, PARALLAX_W):
@@ -1515,7 +1696,7 @@ def main() -> None:
     water_front.putalpha(alpha_image(front_world.crop((1504,0,1824,256))))
     water_preview.paste(water_front,(0,0),water_front)
     water_preview.save(LEVELS / "storm-water-hazard-aga-preview.png")
-    # Four hardware-exact panels cover the complete new Phase 6C extension.
+    # Four hardware-exact panels cover the complete Phase 6C route extension.
     # Each uses the renderer's quarter-speed rear sample and world-space front.
     route_preview=Image.new("RGB",(1280,208))
     for panel,camera_x in enumerate((1920,2176,2432,2752)):
@@ -1525,6 +1706,17 @@ def main() -> None:
         panel_image.paste(panel_front,(0,0),panel_front)
         route_preview.paste(panel_image,(panel*320,0))
     route_preview.save(LEVELS / "storm-phase6c-route-aga-preview.png")
+    core_camera=WORLD_W-320
+    core_preview=rear_preview.crop((core_camera//4,0,
+                                    core_camera//4+320,208))
+    core_front_indexed=front_world.crop((core_camera,0,core_camera+320,208))
+    core_front=core_front_indexed.convert("RGBA")
+    core_front.putalpha(alpha_image(core_front_indexed))
+    core_preview.paste(core_front,(0,0),core_front)
+    core_frame=stormstone_core.crop((0,0,64,48)).convert("RGBA")
+    core_frame.putalpha(alpha_image(stormstone_core.crop((0,0,64,48))))
+    core_preview.paste(core_frame,(128,112),core_frame)
+    core_preview.save(LEVELS / "storm-level1-core-clearing-aga-preview.png")
     make_water_animation_preview().save(
         LEVELS / "storm-water-animation-aga-preview.png")
     manifest = {

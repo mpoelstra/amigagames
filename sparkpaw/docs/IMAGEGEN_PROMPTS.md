@@ -664,3 +664,57 @@ actors, collectibles, HUD, rear scenery, perspective, gradients or repeated
 Saved as `assets/concept/sparkpaw-foreground-kit-concept-v2-chroma.png`; the
 cleaned RGBA source is `sparkpaw-foreground-kit-concept-v2.png`. V2 replaces
 only generated foreground pixels; collision, renderer and gameplay stay fixed.
+
+## Phase 6C.2 Stormkeeper's Waystation concept v1
+
+Built-in ImageGen generation workflow, 2026-08-25. The prompt requests a new
+side-view late-era AGA pixel-art Level 1 destination: a compact stone-and-steel
+weather-station cottage/shrine, a crooked storm-bent pine growing through its
+roof, restrained cyan conduits, one dark doorway and exactly one large cyan
+Stormstone Core above a pedestal. Composition reserves a quiet approach on the
+left and places the building/tree cluster on the right. Player, HUD, enemies,
+ordinary shards, text and gameplay platforms are excluded.
+
+The 320x208 composition study is preserved in
+`docs/concepts/story-intro/assets/stormkeeper-waystation-concept-v1.png`. A
+second prompt isolates only the house/tree/Core cluster as an orthographic
+hard-edged cutout; its checker-backed RGB output is
+`assets/concept/sparkpaw-stormkeeper-waystation-source-v1.png`. Runtime
+generation keys the neutral checker, maps the cluster to FRONT16 and adds a
+separately readable procedural Core. These generated sources are not direct
+hardware-ready art.
+
+## Phase 6C.2 Waystation v2 and animated Core source v1
+
+Built-in ImageGen generation workflow, 2026-08-25. Waystation v2 was requested
+as a reusable orthographic late-era AGA end-station asset: a larger detailed
+stone-and-steel cottage/shrine with one empty arched Core socket, a prominent
+crooked storm-bent pine, moss, bronze fittings and cyan conduits, but no Core,
+actors, HUD, text, enemies or platforms. The source is preserved as
+`assets/concept/sparkpaw-stormkeeper-waystation-source-v2.png`.
+
+The companion Core request specified exactly six left-to-right frames in one
+row: one asymmetrical cyan/blue Stormstone crystal with bronze keeper arcs and
+small green energy accents, subtly hovering and pulsing while retaining a
+stable 64x48 silhouette. It excluded actors, HUD, text, scenery and multiple
+objects. The magenta-backed source is preserved as
+`assets/concept/sparkpaw-stormstone-core-six-frame-source-v1.png`; its exact
+FG_PALETTE reduction is
+`assets/concept/sparkpaw-stormstone-core-aga16-preview-v1.png`.
+
+The accepted clearing deliberately displays the waystation's mapped material
+roles through the normal FRONT16 bank. This turns its foliage detail into warm
+copper/orange lightning-scorched highlights, which gives stronger contrast
+against the cold violet rear panorama than the investigated green palette.
+
+The first FS-UAE Core-sprite integration was rejected because the established
+early-fetch Stage 5L layout cannot safely feed another 64-pixel attached pair.
+The accepted integrity correction instead maps the Core to FRONT16 and caches
+it as a 64x48 Bob. Animation polish derives all six idle frames from the first
+generated cell so silhouette, scale and mask remain exact; only internal light
+roles change. The first twelve-frame pickup attempt used Core-to-gauntlet
+threads, but supplied 60 fps evidence showed that their low endpoint vanished
+behind the higher-priority player sprite. The v2 native-palette preview is
+`assets/concept/sparkpaw-stormstone-core-aga16-preview-v2.png`: contraction,
+a radial white/cyan/bronze release and fading fragments replace the directional
+threads. These frames do not alter or regenerate Sparkpaw's player sheet.

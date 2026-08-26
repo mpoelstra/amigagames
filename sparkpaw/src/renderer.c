@@ -75,6 +75,27 @@
 #define SPRITE_W 48
 #define SPRITE_H 48
 #define ANIM_FRAMES PLAYER_ANIM_FRAMES
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+static void writeStartupStage(const char *stage)
+{
+    BPTR file=Open("PROGDIR:startupdiag.log",MODE_NEWFILE);
+    if(!file) return;
+    FPrintf(file,"Sparkpaw Phase 6C.2 startup diagnostic\n");
+    FPrintf(file,"stage=%s world_width=%ld\n",(STRPTR)stage,(LONG)WORLD_W);
+    FPrintf(file,"chip_free=%ld chip_largest=%ld\n",
+            (LONG)AvailMem(MEMF_CHIP),
+            (LONG)AvailMem(MEMF_CHIP|MEMF_LARGEST));
+    FPrintf(file,"fast_free=%ld fast_largest=%ld\n",
+            (LONG)AvailMem(MEMF_FAST),
+            (LONG)AvailMem(MEMF_FAST|MEMF_LARGEST));
+    Close(file);
+}
+#define STARTUP_REQUIRE(stage,expression) do { \
+    writeStartupStage("before_" stage); \
+    if(!(expression)) { writeStartupStage("failed_" stage); return FALSE; } \
+    writeStartupStage("after_" stage); \
+} while(0)
+#endif
 #ifdef SPARKPAW_AGA64_PLAYER_SPRITE
 #define SPRITE_CHANNELS 2
 #define SPRITE_DMA_W 64
@@ -89,6 +110,12 @@
 #define SPRITE_WORDS (2+SPRITE_H*2+2)
 #endif
 #define TOTAL_SPRITE_CHANNELS 8
+#define CORE_SPRITE_W 64
+#define CORE_SPRITE_H 48
+#define CORE_IDLE_FRAMES 6
+#define CORE_PICKUP_FRAMES 12
+#define CORE_SPRITE_FRAMES (CORE_IDLE_FRAMES+CORE_PICKUP_FRAMES)
+#define CORE_SOURCE_WORDS 4
 #include "enemy_vertical_order.h"
 #include "strider_restore_union.h"
 #include "sprite_stage_cache.h"
@@ -130,12 +157,17 @@
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static const struct PlanarAsset *frontClean,*rearWorld,*sprites;
 static const struct PlanarAsset *hudBase;
-static const struct PlanarAsset *diamondSprite;
+static const struct PlanarAsset *diamondSprite,*coreSprite;
 static struct BitMap *frontDisplay;
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
 static struct BitMap *rearDisplay;
 #endif
 static UWORD *cop,copPos,ptrValue[WORLD_PLANES],scrollValue;
+static UWORD frontColorValue[2][16];
+static const UWORD frontColors[16]={
+    0x001,0x111,0xd41,0xf92,0xfea,0x26c,0x3ce,0x94c,
+    0x444,0x666,0xa9a,0xedc,0x426,0x72a,0xa5d,0xe26
+};
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 struct PrototypeEnemyHistory {
     WORD x,worldX,y;
@@ -157,6 +189,9 @@ struct PrototypeTarget {
     BOOL collectibleDrawn[MAX_COLLECTIBLES];
     WORD collectibleX[MAX_COLLECTIBLES];
     WORD collectibleY[MAX_COLLECTIBLES];
+    BOOL coreDrawn;
+    WORD coreX,coreY;
+    UBYTE coreFrame;
 };
 static UWORD *prototypeCopper[2];
 static UBYTE prototypeActiveCopper,prototypePreparedCopper;
@@ -183,6 +218,12 @@ static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *diamondMask,*diamondBits;
+static UWORD *coreMask,*coreBits;
+#ifndef SPARKPAW_ROLLING_PROTOTYPE
+static BOOL coreDrawn;
+static WORD coreDrawnX,coreDrawnY;
+static UBYTE coreDrawnFrame;
+#endif
 static UWORD *diamondBackground;
 static UWORD *diamondWideBackground;
 static UWORD *waterBits;
@@ -333,7 +374,11 @@ static void buildCopper(void)
         0x001,0x013,0x125,0x247,0x449,0x65a,0x97b,0xcbd,
         0x100,0x210,0x320,0x430,0x540,0x650,0x760,0x870
     };
+    UBYTE listIndex=0;
     WORD i; copPos=0;
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    if(cop==prototypeCopper[1]) listIndex=1;
+#endif
     cmove(0x08e,0x2c81); cmove(0x090,0x2cc1);
 #ifdef SPARKPAW_FMODE0_EARLY_WORD_GUARD
     cmove(0x092,0x0028); cmove(0x094,0x00d0);
@@ -384,7 +429,10 @@ static void buildCopper(void)
     /* PF1 reads entries 0..15 and PF2OF=16 reads entries 16..23, all within
        AGA palette bank zero (COLOR00..31). */
     cmove(0x106,0x1020);
-    for(i=0;i<32;i++) cmove((UWORD)(0x180+i*2),colors[i]);
+    for(i=0;i<32;i++) {
+        cmove((UWORD)(0x180+i*2),colors[i]);
+        if(i<16) frontColorValue[listIndex][i]=copPos-1;
+    }
     copperRearPalette(0,0,0,1);
     /* Three attached pairs provide one 48x48 actor. */
     for(i=0;i<SPRITE_CHANNELS;i++)
@@ -1603,6 +1651,42 @@ static BOOL buildDiamondPattern(void)
     return TRUE;
 }
 
+static UWORD *coreMaskFrame(UBYTE frame)
+{
+    return coreMask+(LONG)frame*CORE_SPRITE_H*CORE_SOURCE_WORDS;
+}
+
+static UWORD *coreBitsFrame(UBYTE frame)
+{
+    return coreBits+(LONG)frame*FRONT_PLANES*CORE_SPRITE_H*CORE_SOURCE_WORDS;
+}
+
+static BOOL buildCorePattern(void)
+{
+    LONG maskWords=(LONG)CORE_SPRITE_FRAMES*CORE_SPRITE_H*CORE_SOURCE_WORDS;
+    UBYTE frame,plane; WORD x,y;
+    coreMask=(UWORD *)AllocMem(maskWords*2,MEMF_CHIP|MEMF_CLEAR);
+    coreBits=(UWORD *)AllocMem(maskWords*FRONT_PLANES*2,
+                              MEMF_CHIP|MEMF_CLEAR);
+    if(!coreMask||!coreBits) return FALSE;
+    for(frame=0;frame<CORE_SPRITE_FRAMES;frame++)
+    for(y=0;y<CORE_SPRITE_H;y++) for(x=0;x<CORE_SPRITE_W;x++) {
+        LONG sourceY=(LONG)frame*CORE_SPRITE_H+y;
+        LONG sourceAt=sourceY*coreSprite->rowBytes+(x>>3);
+        UBYTE sourceMask=(UBYTE)(0x80>>(x&7));
+        UWORD bit=(UWORD)(0x8000U>>(x&15));
+        LONG word=(LONG)y*CORE_SOURCE_WORDS+(x>>4);
+        UBYTE pen;
+        if(!(coreSprite->mask[sourceAt]&sourceMask)) continue;
+        pen=pixel(coreSprite->bitmap,x,(WORD)sourceY,FRONT_PLANES);
+        coreMaskFrame(frame)[word]|=bit;
+        for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+            coreBitsFrame(frame)[(LONG)plane*CORE_SPRITE_H*
+                                 CORE_SOURCE_WORDS+word]|=bit;
+    }
+    return TRUE;
+}
+
 static UWORD *diamondBackgroundPlane(WORD index,UBYTE plane)
 {
     return diamondBackground+
@@ -1969,6 +2053,112 @@ static void drawCollectibleBobs(void)
 #endif
 }
 
+static UBYTE desiredCoreFrame(void)
+{
+    static const UBYTE pulse[8]={0,1,2,3,4,5,4,2};
+    UBYTE elapsed,frame;
+    if(!game->coreCollectTimer) return pulse[(game->frameCounter>>3)&7];
+    elapsed=(UBYTE)(50-game->coreCollectTimer);
+    if(elapsed<8) return CORE_IDLE_FRAMES;
+    frame=(UBYTE)((elapsed-8)>>2);
+    if(frame>=CORE_PICKUP_FRAMES-1) frame=CORE_PICKUP_FRAMES-2;
+    if(elapsed>=48) frame=CORE_PICKUP_FRAMES-1;
+    return (UBYTE)(CORE_IDLE_FRAMES+1+frame);
+}
+
+static UBYTE desiredCoreFlash(void)
+{
+    UBYTE elapsed;
+    if(!game->coreCollectTimer) return 0;
+    elapsed=(UBYTE)(50-game->coreCollectTimer);
+    if(elapsed<2) return 2;
+    if(elapsed<4) return 1;
+    return 0;
+}
+
+static void setCoreWorldFlash(void)
+{
+    UBYTE index,level=desiredCoreFlash(),listIndex=0;
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    listIndex=prototypePreparedCopper;
+#endif
+    for(index=0;index<16;index++) {
+        UWORD base=frontColors[index],value=base;
+        if(level&&index) {
+            UWORD r=(base>>8)&15,g=(base>>4)&15,b=base&15;
+            r=(UWORD)(r+((15-r)*level)/4);
+            g=(UWORD)(g+((15-g)*level)/4);
+            b=(UWORD)(b+((15-b)*level)/4);
+            value=(UWORD)((r<<8)|(g<<4)|b);
+        }
+        cop[frontColorValue[listIndex][index]]=value;
+    }
+}
+
+static WORD desiredCoreY(void)
+{
+    static const BYTE hover[16]={
+        -1,-1,-2,-2,-2,-1,-1,0,0,1,1,2,2,1,1,0
+    };
+    if(game->coreCollectTimer) return 112;
+    return (WORD)(112+hover[(game->frameCounter>>2)&15]);
+}
+
+static BOOL coreRenderVisible(void)
+{
+    const WORD x=LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2;
+    return x+CORE_SPRITE_W>=(WORD)game->cameraX-16&&
+           x<=(WORD)game->cameraX+SCREEN_W+16;
+}
+
+static void restoreCoreBob(void)
+{
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    struct PrototypeTarget *target=&prototypeTarget[prototypePreparedCopper];
+    if(!target->coreDrawn) return;
+    if(coreRenderVisible()&&target->coreFrame==desiredCoreFrame()&&
+       target->coreY==desiredCoreY()) return;
+    blitRestoreRect(LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2,
+                    target->coreX,target->coreY,
+                    CORE_SPRITE_W,CORE_SPRITE_H);
+    target->coreDrawn=FALSE;
+#else
+    if(!coreDrawn) return;
+    if(coreRenderVisible()&&coreDrawnFrame==desiredCoreFrame()&&
+       coreDrawnY==desiredCoreY()) return;
+    blitRestoreRect(LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2,
+                    coreDrawnX,coreDrawnY,CORE_SPRITE_W,CORE_SPRITE_H);
+    coreDrawn=FALSE;
+#endif
+}
+
+static void drawCoreBob(void)
+{
+    WORD worldX=LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2;
+    WORD y=desiredCoreY();
+    UBYTE frame=desiredCoreFrame();
+    if(!coreRenderVisible()) return;
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    {
+        struct PrototypeTarget *target=&prototypeTarget[prototypePreparedCopper];
+        WORD physicalX;
+        if(target->coreDrawn) return;
+        if(!prototypeRectFits(worldX,CORE_SPRITE_W)) return;
+        physicalX=prototypePhysicalX(worldX);
+        blitMaskedBob(coreMaskFrame(frame),coreBitsFrame(frame),
+                      CORE_SOURCE_WORDS,CORE_SPRITE_W,CORE_SPRITE_H,
+                      physicalX,y);
+        target->coreDrawn=TRUE; target->coreX=physicalX;
+        target->coreY=y; target->coreFrame=frame;
+    }
+#else
+    if(coreDrawn) return;
+    blitMaskedBob(coreMaskFrame(frame),coreBitsFrame(frame),CORE_SOURCE_WORDS,
+                  CORE_SPRITE_W,CORE_SPRITE_H,worldX,y);
+    coreDrawn=TRUE; coreDrawnX=worldX; coreDrawnY=y; coreDrawnFrame=frame;
+#endif
+}
+
 static void eraseProjectileBobs(void)
 {
     WORD i;
@@ -2154,7 +2344,8 @@ BOOL rendererLoadGameplay(void)
 {
     if(!assetsLoadGameplay()) return FALSE;
     frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
-    sprites=assetsPlayerSprites(); configureEnemyCaches();
+    sprites=assetsPlayerSprites(); coreSprite=assetsStormstoneCore();
+    configureEnemyCaches();
     hudBase=assetsHudBase();
     diamondSprite=assetsCollectibleDiamond();
     return TRUE;
@@ -2202,7 +2393,12 @@ static BOOL prepareRearGuardedDisplay(void)
     UBYTE plane;
     UWORD row;
     const struct BitMap *source=rearWorld->bitmap;
-    rearDisplay=AllocBitMap((UWORD)(rearWorld->width+PLAYFIELD_GUARD_BYTES*8),
+    /* Base the guarded allocation on the source's physical stride, not its
+       logical width. graphics.library may pad a DISPLAYABLE source row; using
+       width+guard can then allocate the destination in the same stride class
+       and leave no actual leading guard bytes. */
+    rearDisplay=AllocBitMap(
+        (UWORD)((source->BytesPerRow+PLAYFIELD_GUARD_BYTES)*8),
                            rearWorld->height,
                            REAR_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     if(!rearDisplay||rearDisplay->BytesPerRow<
@@ -2229,6 +2425,9 @@ BOOL rendererPrepareGameplay(void)
 } while(0)
 #endif
     game=gameState();
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("renderer_prepare_entry");
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 #ifndef SPARKPAW_CANONICAL_BOB_RESTORE
     prototypeTarget[0].clean=AllocBitMap(PROTOTYPE_TARGET_W,WORLD_H,
@@ -2249,6 +2448,9 @@ BOOL rendererPrepareGameplay(void)
     frontDisplay=AllocBitMap(WORLD_W,WORLD_H,FRONT_PLANES,
                              BMF_CLEAR|BMF_DISPLAYABLE,NULL);
 #endif
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("after_target_alloc");
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticLoadingFrames[DIAG_LOAD_TARGET_ALLOC]=
         GfxBase->VBCounter-diagnosticLoadStart;
@@ -2259,6 +2461,9 @@ BOOL rendererPrepareGameplay(void)
     prototypeCopper[0]=cop;
     prototypeCopper[1]=(UWORD *)AllocMem(COP_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
 #endif
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("after_copper_alloc");
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticLoadingFrames[DIAG_LOAD_COPPER_ALLOC]=
         GfxBase->VBCounter-diagnosticLoadStart;
@@ -2266,27 +2471,52 @@ BOOL rendererPrepareGameplay(void)
     DIAG_LOAD(DIAG_LOAD_HUD,hudPrepare());
     DIAG_LOAD(DIAG_LOAD_PLAYER_SPRITES,buildHardwareSprites());
 #else
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    if(!frontDisplay||!cop) {
+        writeStartupStage("failed_target_or_copper_alloc"); return FALSE;
+    }
+    STARTUP_REQUIRE("hud_prepare",hudPrepare());
+    STARTUP_REQUIRE("player_sprite_prepare",buildHardwareSprites());
+#else
     if(!frontDisplay||!cop||!hudPrepare()||!buildHardwareSprites())
         return FALSE;
+#endif
 #endif
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     DIAG_LOAD(DIAG_LOAD_REAR_GUARD,prepareRearGuardedDisplay());
 #else
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    STARTUP_REQUIRE("rear_guard_prepare",prepareRearGuardedDisplay());
+#else
     if(!prepareRearGuardedDisplay()) return FALSE;
+#endif
 #endif
 #endif
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
     /* Never hand an invalid wide-fetch layout to Alice. Graphics.library may
        pad displayable rows, so validate its actual pointers and stride. */
-    if(!aga32DisplayLayoutValid()) return FALSE;
+    if(!aga32DisplayLayoutValid()) {
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+        writeStartupStage("failed_aga32_layout_validation");
+#endif
+        return FALSE;
+    }
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("after_aga32_layout_validation");
+#endif
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     if(!prototypeCopper[1]||!prototypeTarget[1].display
 #ifndef SPARKPAW_CANONICAL_BOB_RESTORE
        ||!prototypeTarget[0].clean||!prototypeTarget[1].clean
 #endif
-       ) return FALSE;
+       ) {
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+        writeStartupStage("failed_rolling_runtime_validation");
+#endif
+        return FALSE;
+    }
 #endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticLoadStart=GfxBase->VBCounter;
@@ -2316,17 +2546,32 @@ BOOL rendererPrepareGameplay(void)
     DIAG_LOAD(DIAG_LOAD_STRIDER_STAGE,prepareStriderStages());
     DIAG_LOAD(DIAG_LOAD_PLASMA,buildPlasmaPatterns());
     DIAG_LOAD(DIAG_LOAD_DIAMOND,buildDiamondPattern());
+    DIAG_LOAD(DIAG_LOAD_DIAMOND,buildCorePattern());
     DIAG_LOAD(DIAG_LOAD_STATIC_COLLECTIBLES,prepareStaticCollectibles());
     DIAG_LOAD(DIAG_LOAD_WATER,buildWaterPatterns());
     DIAG_LOAD(DIAG_LOAD_SPLASH,buildSplashPatterns());
 #else
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    STARTUP_REQUIRE("beetle_patterns",
+        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE));
+    STARTUP_REQUIRE("strider_patterns",
+        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE));
+    STARTUP_REQUIRE("strider_stages",prepareStriderStages());
+    STARTUP_REQUIRE("plasma_patterns",buildPlasmaPatterns());
+    STARTUP_REQUIRE("diamond_pattern",buildDiamondPattern());
+    STARTUP_REQUIRE("core_pattern",buildCorePattern());
+    STARTUP_REQUIRE("static_collectibles",prepareStaticCollectibles());
+    STARTUP_REQUIRE("water_patterns",buildWaterPatterns());
+    STARTUP_REQUIRE("splash_patterns",buildSplashPatterns());
+#else
     if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)||
        !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)||
        !prepareStriderStages()||
-       !buildPlasmaPatterns()||!buildDiamondPattern()||
+       !buildPlasmaPatterns()||!buildDiamondPattern()||!buildCorePattern()||
        !prepareStaticCollectibles()||!buildWaterPatterns()||
        !buildSplashPatterns())
         return FALSE;
+#endif
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -2334,6 +2579,9 @@ BOOL rendererPrepareGameplay(void)
 #endif
     prototypeCopyInitial(&prototypeTarget[0]);
     prototypeCopyInitial(&prototypeTarget[1]);
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("after_initial_ring_copy");
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticLoadingFrames[DIAG_LOAD_RING_TARGETS]=
         GfxBase->VBCounter-diagnosticLoadStart;
@@ -2365,15 +2613,22 @@ BOOL rendererPrepareGameplay(void)
     prototypeActiveCopper=0; prototypePreparedCopper=1;
     prototypeCopperReady=FALSE;
 #endif
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("after_copper_build");
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     diagnosticLoadingFrames[DIAG_LOAD_COPPER]=
         GfxBase->VBCounter-diagnosticLoadStart;
 #endif
     assetsUnloadGameplayConversionSources();
-    sprites=NULL; diamondSprite=NULL;
+    sprites=NULL; diamondSprite=NULL; coreSprite=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE].source=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER].source=NULL;
     setScroll(0,0);
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("renderer_prepare_complete");
+#undef STARTUP_REQUIRE
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 #undef DIAG_LOAD
 #endif
@@ -2431,6 +2686,10 @@ void rendererCleanup(void)
                             FRONT_PLANES*2);
     if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*
                             DIAMOND_SOURCE_WORDS*2);
+    if(coreBits) FreeMem(coreBits,(LONG)CORE_SPRITE_FRAMES*FRONT_PLANES*
+                        CORE_SPRITE_H*CORE_SOURCE_WORDS*2);
+    if(coreMask) FreeMem(coreMask,(LONG)CORE_SPRITE_FRAMES*CORE_SPRITE_H*
+                        CORE_SOURCE_WORDS*2);
     if(diamondBackground) FreeMem(diamondBackground,
         MAX_COLLECTIBLES*FRONT_PLANES*DIAMOND_PATCH_H*2);
     if(diamondWideBackground) FreeMem(diamondWideBackground,
@@ -2491,6 +2750,7 @@ void rendererUpdateGameplay(void)
 #endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     profileStart=performanceProfileBegin();
+    setCoreWorldFlash();
     setHardwareSprite();
     performanceProfileEnd(PERF_SPRITE_STAGE,profileStart);
     profileStart=performanceProfileBegin();
@@ -2500,7 +2760,7 @@ void rendererUpdateGameplay(void)
     setScroll(game->cameraX,game->cameraX>>2);
     performanceProfileEnd(PERF_SCROLL_PATCH,profileStart);
 #else
-    setHardwareSprite(); setHudPointers();
+    setCoreWorldFlash(); setHardwareSprite(); setHudPointers();
     setScroll(game->cameraX,game->cameraX>>2);
 #endif
 }
@@ -2559,14 +2819,17 @@ void rendererDrawGameplayBobs(void)
         DIAG_CALL(0,PERF_BOB_PROJECTILE_RESTORE,eraseProjectileBobs());
         DIAG_CALL(1,PERF_BOB_ENEMY_RESTORE,restoreEnemyBob());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCollectibleBobs());
+        DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCoreBob());
         DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
         DIAG_CALL(3,PERF_BOB_WATER,animateWater());
 #ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
         DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,prototypePrepareCompactTarget(target));
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
+        DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCoreBob());
 #else
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
         DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,prototypePrepareCompactTarget(target));
+        DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCoreBob());
 #endif
         DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
         DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
@@ -2591,10 +2854,12 @@ void rendererDrawGameplayBobs(void)
     DIAG_CALL(0,PERF_BOB_PROJECTILE_RESTORE,eraseProjectileBobs());
     DIAG_CALL(1,PERF_BOB_ENEMY_RESTORE,restoreEnemyBob());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCollectibleBobs());
+    DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCoreBob());
     DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
     DIAG_CALL(3,PERF_BOB_WATER,animateWater());
     DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
+    DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCoreBob());
     DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
     DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
 #endif

@@ -5276,3 +5276,97 @@ eliminating an actual Bob job/wait, a genuinely coalesced projectile sweep, or
 a Fast-RAM mirror justified by measured CPU reads. Rejected H5--H7 diamond
 persistence, Bob pointer precompute, inline `WaitBlit`, fetch pruning and small
 Blitter-column experiments must not be repeated unchanged.
+
+### 25 August 2026 - Post-alpha.45 first Stormstone Core clearing prototype
+
+Story planning now defines the small diamonds as Storm Shards and one large
+Stormstone Core as each level's required quest reward. The isolated Level 1
+prototype extends the world from 3072px to 3392px with one safe final field,
+no enemies or ordinary Shards, and a large Stormkeeper's Waystation: a
+stone-and-steel cottage/shrine with a storm-bent tree framing the Core.
+
+The waystation and Core are baked into FRONT16 for the first proof. Touching the
+Core performs one rectangle-overlap test and invokes the existing in-memory
+level replay; the permanent level-complete/progression flow remains unimplemented.
+No renderer, Makefile, release, version or distribution artifact changes are
+included. FRONT16 grows 33,280 raw bytes, REAR8 7,488 and collision-map/cache
+data 600; the packed foreground/rear comparison grows 12,739 bytes. The full
+host suite, dedicated Core-bound test and native 68020 build pass. FS-UAE
+presentation/timing and hardware acceptance remain open.
+
+The first supplied FS-UAE/68030 HD run rejects the candidate before gameplay.
+The CHARGING image remains onscreen with several short cyan fragments at the
+upper-left display edge; the user reports an apparent crash. No
+`renderdiag.log` or memory log exists in the exact drawer, so the evidence does
+not distinguish gameplay-asset load failure, allocation failure, renderer
+layout rejection or memory overwrite. The screenshot and sidecar are preserved
+under `sparkpaw/testresults/Phase 6C.2-rejected-fs-uae-68030-charging-glitch.*`.
+The 68020 gate is blocked pending a focused startup diagnosis.
+
+The focused diagnostic repeats the user's CHARGING stop and writes
+`stage=failed_rear_guard_prepare`. At failure it retains 786360 free Chip bytes
+and a 784400-byte largest block, ruling out the guarded bitmap's approximately
+90 KiB allocation as a total/contiguous-memory shortage. Source inspection
+shows that the old request used logical `rearWorld->width + 32` while validating
+against the source bitmap's already padded physical `BytesPerRow + 4`. At the
+new 1120px width, graphics.library can place both requests in the same stride
+class and the validation correctly refuses to continue.
+
+The isolated correction requests the guarded destination from
+`(source->BytesPerRow + PLAYFIELD_GUARD_BYTES) * 8`. Copy offsets, Copper,
+fetch geometry, art and gameplay remain unchanged. A new FS-UAE/68030 HD gate
+is packaged; acceptance remains pending and no 68020 build is promoted.
+
+The supplied corrected run reaches gameplay and the final clearing. Its startup
+log records `renderer_prepare_complete`, with 732624 free Chip bytes and a
+731312-byte largest block. The rear panorama appears coherent and unstretched
+in the supplied still, but the user rejects the art/pickup presentation: the
+old portal remains visible at left, the house/tree touches the right edge and
+reduces mainly to grey/black, the static Core lacks polish, and immediate replay
+hides the act of collecting it. Evidence is preserved as
+`sparkpaw/testresults/Phase 6C.2-rejected-fs-uae-68030-waystation-core-art.*`.
+
+The follow-up remains planning-only. It keeps world width 3392, centres the
+final scene at camera x=3072, proposes a clearing-specific FRONT16 palette role
+swap for green/bronze material, reserves hardware sprite channels 2/3 for a
+six-frame attached Core, adds a deterministic 32-frame collection beat and a
+unique priority-11 Paula channel-1 effect. No 68020 gate is created before a
+new 68030 visual/function candidate is approved.
+
+The later isolated Phase 6C.2 implementation keeps the Core in the existing
+64x48 FRONT16 Bob cache after an extra attached sprite pair proved incompatible
+with the protected fetch layout. Supplied FS-UAE/68030 evidence accepts the
+stable Core silhouette, calmer internal idle, centred camera, Storm Triumph
+sound and delayed replay. It also shows that narrow Core-to-gauntlet lines end
+low and disappear behind Sparkpaw's higher-priority hardware sprite. The next
+candidate therefore changes only the twelve procedural pickup cells to a
+self-contained radial release and patches the existing foreground Copper
+colour values for a two-field local illumination. HUD palette, player sprites,
+world geometry, cache dimensions and Bob ordering remain unchanged. Host tests
+and native 68020 compilation pass; FS-UAE/68030 presentation remains pending.
+
+The supplied 8.4-second 60 fps FS-UAE/68030 HD recording and explicit user
+verdict accept the radial release. It preserves the idle silhouette, flashes
+only the opaque foreground briefly, restores its palette immediately, keeps
+HUD/rear/player colours stable and removes the ambiguous line into Sparkpaw.
+Storm Triumph and replay timing remain accepted. A matching minimal-cadence
+68020 HD run subsequently passes with normal user-observed presentation. Its
+3,244 intervals comprise 3,223 one-field, 21 two-field and zero three-plus
+intervals, for 49.67 effective FPS with maximum two fields and zero ownership
+violations. One Stormstone Core request produces one Paula start. This clears
+the regression gate against alpha.45's 48.58 FPS without claiming an
+optimization gain from a differently routed sample. ADF and real hardware
+remain untested.
+
+### 26 August 2026 - Alpha.46 packages the first Core clearing
+
+The accepted Phase 6C.2 work is released as `0.6.0-alpha.46`. The package adds
+the 3392-pixel Level 1 world, Stormkeeper's Waystation, 64x48 FRONT16 animated
+Core Bob, deterministic 50-tick radial collection beat and selected Storm
+Triumph Paula sample. The existing Stage 5L/H7 rolling renderer, 4+3 dual-
+playfield split, Sparkpaw sprite family, HUD and alpha.45 performance baseline
+remain authoritative. Supplied FS-UAE/68030 HD presentation/function and the
+49.67-FPS FS-UAE/68020 HD minimal-cadence gate are accepted. Package validation
+produces LHA, ZIP, extracted HD drawer and a bootable DOS1/FFS ADF using 1,327
+blocks (663 KiB), leaving 433 free. Both Core runtime files are present. This
+does not establish alpha.46 ADF gameplay or real-hardware acceptance.

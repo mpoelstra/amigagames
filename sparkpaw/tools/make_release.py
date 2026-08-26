@@ -17,8 +17,8 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.45"
-ROADMAP_CHECKPOINT = "6C.1"
+RELEASE_VERSION = "0.6.0-alpha.46"
+ROADMAP_CHECKPOINT = "6C.2"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -38,6 +38,7 @@ RUNTIME_FILES = (
     "sparkpaw-hud-lives.spbm",
     "sparkpaw-hud-diamonds.spbm",
     "sparkpaw-diamond.spbm",
+    "stormstone-core.spbm",
     "storm-front.spbm",
     "storm-rear.spbm",
     "storm-collision.bin",
@@ -52,14 +53,28 @@ RUNTIME_FILES = (
     "jump.raw",
     "collect-spark.raw",
     "water-splash.raw",
+    "stormstone-core.raw",
 )
 
 RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} rolling-renderer migration
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} first Core clearing
 MrDig Productions - Copyright 2026
+
+Alpha.46 extends Level 1 from 3072 to 3392 pixels with a quiet enemy-free
+Stormkeeper's Waystation clearing. The final camera eases to its authored
+composition, where a stable 64x48 FRONT16 Stormstone Core Bob hovers inside a
+large storm-scorched house/tree shrine. Contact latches gameplay for 50 PAL
+ticks, contracts the Core into a radial cyan/white/bronze release, briefly
+illuminates the opaque foreground, plays the selected Storm Triumph Paula
+sample once and then reuses the temporary in-memory level replay. The small
+diamonds are now explicitly Storm Shards; this Core is the first required quest
+reward. Supplied FS-UAE/68030 HD review accepts presentation and function. A
+matching FS-UAE/68020 HD minimal-cadence run records 49.67 FPS across 3,244
+intervals, with zero three-field misses and zero ownership violations. ADF
+gameplay and real-hardware acceptance of alpha.46 remain pending.
 
 Alpha.45 continues measured Stage 2 optimization without changing Stage 5L
 geometry, art or gameplay. Direct Strider traversal lookup reduces the 68020
@@ -367,12 +382,15 @@ be hit by any shot whose sample overlaps its body. Fire twice to destroy one.
 Beetle contact removes one of
 six internal half-heart health units, applies knockback and plays a short hurt
 effect. Destroyed beetles can return indefinitely after a cooldown once their
-patrol zone is safely off-screen. Reaching the far-right world edge resets the
-current test level in memory so it can be replayed without rebooting.
+patrol zone is safely off-screen. Beyond the former far-right portal, an
+enemy-free final clearing centres the Stormkeeper's Waystation and one large
+animated Stormstone Core. Touching the Core freezes movement, plays its radial
+release and unique reward sound, then resets the current test level in memory
+so it can be replayed without rebooting.
 A fixed full-width HUD band at the bottom shows the six health units as three
 full, half or empty hearts. The Sparkpaw-head counter starts at x3, decreases on
 each zero-health reset and temporarily cycles to x3 after the third loss until
-the later game-over state is implemented. Forty-eight hovering diamonds form
+the later game-over state is implemented. Forty-eight hovering Storm Shards form
 trails and original arcs throughout the level; the adjacent two-digit HUD
 counter records them up to 49. Contact invulnerability is shown by a brief
 whole-character blink.

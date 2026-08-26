@@ -45,12 +45,16 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.45`, Phase 6C.1. A normal release contains:
+Current release is `0.6.0-alpha.46`, Phase 6C.2. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.45.lha`
-- `Sparkpaw-0.6.0-alpha.45.zip`
-- `Sparkpaw-0.6.0-alpha.45.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.45/`
+- `Sparkpaw-0.6.0-alpha.46.lha`
+- `Sparkpaw-0.6.0-alpha.46.zip`
+- `Sparkpaw-0.6.0-alpha.46.adf`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.46/`
+
+The bootable alpha.46 DOS1/FFS ADF validates at 1,327 blocks (663 KiB), leaving
+433 blocks free. This is package evidence, not ADF gameplay or hardware
+acceptance.
 
 MrDig mounts `sparkpaw/dist/` directly as an FS-UAE HD volume. Every
 user-facing FS-UAE HD test or diagnostic drawer must therefore be created
@@ -279,6 +283,66 @@ register setup and `WaitBlit`, regenerated VBCC output, checked runtime copies
 and re-audited Fast/Chip allocation. Most of the prior apparent 4--5 FPS gap was
 observer cost from the detailed profiler. No forgotten continuous large copy,
 runtime asset load or compiler helper remains as an active big-gun candidate.
+
+A separate Phase 6C.2 checkpoint, released as alpha.46, extends Level 1
+to 3392px with one enemy-free Stormstone Core clearing. It adds static FRONT16
+waystation/tree/Core art and a single overlap-triggered call to the existing
+in-memory replay path; it does not change Stage 5L/H7, add a Bob/Blit family or
+define the permanent level-complete flow. Measured bitmap-source growth is
+40,768 resident bytes and 12,739 packed ADF bytes; collision-map/cache growth
+is 600 bytes. Host tests and native 68020 compilation pass. FS-UAE presentation
+and the protected low-overhead 68020 timing comparison remain required before
+acceptance. See `sparkpaw/docs/concepts/story-intro/LEVEL1_CORE_CLEARING_PLAN.md`.
+
+Its first supplied FS-UAE/68030 HD gate is rejected before gameplay: CHARGING
+remains visible with several short cyan fragments at the upper-left edge, and
+the exact drawer contains no clean-exit `renderdiag.log`. Treat asset-load,
+allocation and renderer-preparation failure as hypotheses until a focused
+startup diagnostic distinguishes them. Do not create the 68020 gate yet.
+
+The focused rerun records `failed_rear_guard_prepare`, with 786360 free Chip
+bytes and a 784400-byte largest block. The problem is therefore not Chip
+exhaustion. The 1120px source's padded physical stride plus the required four
+guard bytes exceeded the destination stride requested from logical width.
+The pending correction requests the guarded bitmap from
+`(source->BytesPerRow + 4) * 8`. Retest only this 68030 HD candidate before any
+68020 promotion.
+
+The supplied corrected FS-UAE/68030 HD run reaches the final clearing and its
+startup log records `renderer_prepare_complete`, with 732624 Chip bytes free.
+The user rejects the presentation: an old platform remains at left, the
+house/tree is pressed against the right edge and reduces to grey/black, the
+Core is a flat static shape, and contact reloads before a reward beat is seen.
+Planning now recommends a fixed final camera at x=3072, centred house/Core,
+clearing-specific FRONT16 palette roles, an attached hardware-sprite Core pair,
+a 32-frame collection state and a unique priority-11 Paula effect. See
+`sparkpaw/docs/concepts/story-intro/LEVEL1_CORE_CLEARING_POLISH_PLAN.md`. No
+68020 promotion is authorized yet.
+
+The completed Phase 6C.2 work uses a 64x48 FRONT16 Core Bob rather
+than the rejected extra attached sprite pair. Supplied FS-UAE/68030 evidence
+accepts its integrity, calmer idle, centred clearing, Storm Triumph sound and
+delayed replay, but its narrow directional pickup lines disappear behind the
+higher-priority Sparkpaw sprite. The current focused candidate replaces only
+those twelve pickup cells with an outward radial release and adds a two-field
+foreground Copper-palette lift; player sprites, HUD palette, Bob dimensions,
+world geometry and draw order remain fixed. Host tests and native 68020 compile
+pass. Require a fresh FS-UAE/68030 visual gate before any 68020 timing gate.
+
+The supplied 60 fps radial-burst MOV and explicit user verdict now accept that
+FS-UAE/68030 HD visual/function gate. Idle, two-field foreground illumination,
+radial fragments, Storm Triumph and delayed replay all pass; HUD and rear
+palette remain stable. The active next drawer is the matching minimal-cadence
+FS-UAE/68020 HD gate. It must be compared with alpha.45's 48.58 FPS result and
+must show no three-field misses or ownership violations.
+
+That matching FS-UAE/68020 HD minimal-cadence gate is now accepted as well.
+The user reports normal visuals/gameplay; the exact drawer log contains 3,244
+presentation intervals over about 65 seconds: 3,223 one-field, 21 two-field,
+zero three-plus, maximum two fields, 49.67 effective FPS and zero ownership
+violations. One Core request produces one Paula start. This protects rather
+than resets alpha.45's 48.58-FPS baseline; differing routes prevent treating
+the higher figure as an optimization gain. No ADF or hardware claim.
 
 Future candidate order, only after a measured regression or new feature cost:
 

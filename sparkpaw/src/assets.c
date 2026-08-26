@@ -13,6 +13,7 @@ static struct PlanarAsset title,levelLoading,levelCharging,frontClean,rearWorld;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
 static struct PlanarAsset collectibleDiamond;
+static struct PlanarAsset stormstoneCore;
 
 static UWORD readBigEndian16(const UBYTE *value)
 {
@@ -282,7 +283,9 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-diamonds.spbm",
                      &hudDiamonds,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
-                     &collectibleDiamond,4,FALSE);
+                     &collectibleDiamond,4,FALSE)&&
+           loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
+                     &stormstoneCore,4,FALSE);
 }
 
 BOOL assetsLoadTitle(void)
@@ -296,9 +299,11 @@ void assetsUnloadGameplayConversionSources(void)
        them into the final hardware-sprite and Blitter cache layouts.  Keeping
        both representations in Chip RAM after conversion wastes 325,220 bytes. */
     freeAsset(&collectibleDiamond);
+    freeAsset(&stormstoneCore);
     freeAsset(&striderSprites);
     freeAsset(&enemySprites);
     freeAsset(&playerSprites);
+    freeAsset(&stormstoneCore);
 }
 
 void assetsUnloadTitle(void)
@@ -354,3 +359,4 @@ const struct PlanarAsset *assetsCollectibleDiamond(void)
 {
     return &collectibleDiamond;
 }
+const struct PlanarAsset *assetsStormstoneCore(void) { return &stormstoneCore; }

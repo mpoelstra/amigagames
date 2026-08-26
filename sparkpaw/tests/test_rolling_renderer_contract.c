@@ -15,24 +15,24 @@ int main(void)
     assert(!rollingFixedPublishBoundary(5));
     assert(!rollingFixedPublishBoundary(43));
     assert(ROLLING_RUNTIME_W==512);
-    assert(rollingWindowOrigin(0,3072,ROLLING_RUNTIME_W)==0);
-    assert(rollingWindowOrigin(47,3072,ROLLING_RUNTIME_W)==0);
-    assert(rollingWindowOrigin(48,3072,ROLLING_RUNTIME_W)==16);
-    assert(rollingWindowOrigin(3072-320,3072,ROLLING_RUNTIME_W)==2560);
+    assert(rollingWindowOrigin(0,3392,ROLLING_RUNTIME_W)==0);
+    assert(rollingWindowOrigin(47,3392,ROLLING_RUNTIME_W)==0);
+    assert(rollingWindowOrigin(48,3392,ROLLING_RUNTIME_W)==16);
+    assert(rollingWindowOrigin(3392-320,3392,ROLLING_RUNTIME_W)==2880);
     assert(rollingRectFits(100,64,64,ROLLING_RUNTIME_W));
     assert(!rollingRectFits(48,64,64,ROLLING_RUNTIME_W));
     assert(!rollingRectFits(520,64,64,ROLLING_RUNTIME_W));
-    assert(rollingHysteresisOrigin(0,0,3072,ROLLING_RUNTIME_W)==0);
-    assert(rollingHysteresisOrigin(128,0,3072,ROLLING_RUNTIME_W)==0);
-    assert(rollingHysteresisOrigin(144,0,3072,ROLLING_RUNTIME_W)==80);
-    assert(rollingHysteresisOrigin(128,80,3072,ROLLING_RUNTIME_W)==0);
-    assert(rollingHysteresisOrigin(144,80,3072,ROLLING_RUNTIME_W)==80);
-    assert(rollingHysteresisOrigin(3072-320,2560,3072,
-                                   ROLLING_RUNTIME_W)==2560);
+    assert(rollingHysteresisOrigin(0,0,3392,ROLLING_RUNTIME_W)==0);
+    assert(rollingHysteresisOrigin(128,0,3392,ROLLING_RUNTIME_W)==0);
+    assert(rollingHysteresisOrigin(144,0,3392,ROLLING_RUNTIME_W)==80);
+    assert(rollingHysteresisOrigin(128,80,3392,ROLLING_RUNTIME_W)==0);
+    assert(rollingHysteresisOrigin(144,80,3392,ROLLING_RUNTIME_W)==80);
+    assert(rollingHysteresisOrigin(3392-320,2880,3392,
+                                   ROLLING_RUNTIME_W)==2880);
     assert(ROLLING_PHYSICAL_W==1536);
-    assert(rollingRingWindowOrigin(0,3072,ROLLING_RUNTIME_W)==0);
-    assert(rollingRingWindowOrigin(512,3072,ROLLING_RUNTIME_W)==416);
-    assert(rollingRingWindowOrigin(3072-320,3072,ROLLING_RUNTIME_W)==2560);
+    assert(rollingRingWindowOrigin(0,3392,ROLLING_RUNTIME_W)==0);
+    assert(rollingRingWindowOrigin(512,3392,ROLLING_RUNTIME_W)==416);
+    assert(rollingRingWindowOrigin(3392-320,3392,ROLLING_RUNTIME_W)==2880);
     assert(rollingRingPhysicalX(416,512,ROLLING_RUNTIME_W)==416);
     assert(rollingRingPhysicalX(864,512,ROLLING_RUNTIME_W)==864);
     assert(rollingRingPhysicalX(927,1023,ROLLING_RUNTIME_W)==927);
@@ -68,12 +68,12 @@ int main(void)
     }
     assert(rollingRectFits(416,64,416,ROLLING_RUNTIME_W));
     assert(rollingRectFits(864,64,416,ROLLING_RUNTIME_W));
-    for(camera=0;camera<=3072-ROLLING_VIEW_W;camera+=16) {
-        long origin=rollingRingWindowOrigin(camera,3072,ROLLING_RUNTIME_W);
+    for(camera=0;camera<=3392-ROLLING_VIEW_W;camera+=16) {
+        long origin=rollingRingWindowOrigin(camera,3392,ROLLING_RUNTIME_W);
         assert(rollingRingFetchFits(camera,ROLLING_RUNTIME_W,
                                     ROLLING_MIN_W));
         for(world=camera-96;world<=camera+ROLLING_VIEW_W+32;world+=16) {
-            if(world<0||world+ROLLING_MAX_ACTOR_W>3072) continue;
+            if(world<0||world+ROLLING_MAX_ACTOR_W>3392) continue;
             assert(rollingRectFits(world,ROLLING_MAX_ACTOR_W,origin,
                                    ROLLING_RUNTIME_W));
             physical=rollingRingPhysicalX(world,camera,ROLLING_RUNTIME_W);

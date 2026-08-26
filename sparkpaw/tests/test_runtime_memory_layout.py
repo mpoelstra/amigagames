@@ -25,15 +25,15 @@ rear = header("storm-rear.spbm")
 loading = header("sparkpaw-level-loading.spbm")
 charging = header("level-charge-patch.spbm")
 
-assert front[:4] == (3072, 208, 4, 0)
-assert rear[:4] == (1024, 208, 3, 0)
+assert front[:4] == (3392, 208, 4, 0)
+assert rear[:4] == (1120, 208, 3, 0)
 assert loading[:4] == (320, 256, 6, 0)
 assert charging[:4] == (224, 40, 6, 0)
 
-# Maximum camera X is 3072-320. Quarter scroll is word-aligned down and the
+# Maximum camera X is 3392-320. Quarter scroll is word-aligned down and the
 # Copper fetches 42 bytes (336 pixels). The final fetched pixel must remain in
-# the retained authored 1024px rear span.
-max_camera = 3072 - 320
+# the retained 1120px rear span.
+max_camera = 3392 - 320
 rear_scroll = max_camera // 4
 rear_word_start = (rear_scroll // 16) * 16
 assert rear_word_start + 42 * 8 <= rear[0]

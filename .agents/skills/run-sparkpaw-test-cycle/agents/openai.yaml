@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Sparkpaw Test Cycle"
+  short_description: "Package, gate, and analyze Sparkpaw test builds"
+  default_prompt: "Use $run-sparkpaw-test-cycle to package and guide the next Sparkpaw 68030/68020 diagnostic test cycle."

@@ -25,6 +25,7 @@ static void resetLevelRuntime(void)
     playerInit();
     game.cameraX=0; game.frameCounter=0;
     game.waterSplashTimer=0;
+    game.coreCollectTimer=0;
 }
 
 static BOOL applyEnemyDamage(WORD sourceCenterX)
@@ -50,8 +51,11 @@ static void updateCamera(void)
 {
     const struct PlayerState *player=playerState();
     LONG playerX=player->x>>8,wanted=game.cameraX;
-    if(playerX-game.cameraX>202) wanted=playerX-202;
-    if(playerX-game.cameraX<105) wanted=playerX-105;
+    if(playerX>=3072||game.coreCollectTimer) wanted=WORLD_W-SCREEN_W;
+    else {
+        if(playerX-game.cameraX>202) wanted=playerX-202;
+        if(playerX-game.cameraX<105) wanted=playerX-105;
+    }
     if(wanted<0) wanted=0;
     if(wanted>WORLD_W-SCREEN_W) wanted=WORLD_W-SCREEN_W;
     if(wanted>game.cameraX+5) game.cameraX+=5;
@@ -64,6 +68,7 @@ void gameInit(ULONG enemySeed)
     game.cameraX=0; game.frameCounter=0;
     game.lives=GAME_START_LIVES;
     game.diamonds=0;
+    game.coreCollectTimer=0;
     game.enemySeed=enemySeed?enemySeed:0x53504157UL;
     playerInit(); enemiesInit(game.enemySeed); collectiblesInit(); projectilesInit();
 }
@@ -77,6 +82,13 @@ void gameUpdate(void)
     BOOL left,right,down,jump,fire,wasGrounded;
     WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
+    if(game.coreCollectTimer) {
+        audioUpdate();
+        updateCamera();
+        game.frameCounter++;
+        if(!--game.coreCollectTimer) resetLevelRuntime();
+        return;
+    }
     if(game.waterSplashTimer) {
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         detailProfileStart=performanceProfileBegin();
@@ -115,6 +127,15 @@ void gameUpdate(void)
         if(game.lives>1) game.lives--;
         else game.lives=GAME_START_LIVES;
         resetLevelRuntime();
+        audioUpdate();
+        return;
+    }
+    /* Latch a short readable Core response before the resident replay path.
+       A later checkpoint can replace this timer with LEVEL_COMPLETE. */
+    if(levelPlayerTouchesStormstoneCore(playerLeft,playerTop,
+                                        playerRight,playerBottom)) {
+        game.coreCollectTimer=50;
+        audioPlayStormstoneCore();
         audioUpdate();
         return;
     }

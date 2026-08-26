@@ -7,7 +7,7 @@
 static int solidAt(int x,int y)
 {
     int tileX,tileY;
-    if(x<0||x>=3072||y<0) return 1;
+    if(x<0||x>=3392||y<0) return 1;
     if(y>=LEVEL_FLOOR_Y) {
         int hazard=(x>=1584&&x<1664)||(x>=2432&&x<2512)||
                    (x>=2112&&x<2176)||(x>=2784&&x<2864);
@@ -57,11 +57,11 @@ int main(void)
 {
     int x,y,length;
     for(y=-1;y<=225;y++)
-        for(x=-1;x<=3072;x++)
+        for(x=-1;x<=3392;x++)
             for(length=0;length<=40;length++)
                 assert(horizontalReference(x,x+length,y)==
                        horizontalTile(x,x+length,y));
-    for(x=-1;x<=3072;x++)
+    for(x=-1;x<=3392;x++)
         for(y=-1;y<=225;y++)
             for(length=0;length<=48;length++)
                 assert(verticalReference(x,y,y+length)==

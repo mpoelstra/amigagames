@@ -95,6 +95,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-hud-lives.spbm \
 	assets/runtime/sparkpaw-hud-diamonds.spbm \
 	assets/runtime/sparkpaw-diamond.spbm \
+	assets/runtime/stormstone-core.spbm \
 	assets/runtime/storm-front.spbm \
 	assets/runtime/storm-rear.spbm \
 	assets/runtime/storm-collision.bin \
@@ -106,6 +107,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
 	assets/runtime/water-splash.raw \
+	assets/runtime/stormstone-core.raw \
 	assets/runtime/clockwork-beetle.spbm \
 	assets/runtime/clockwork-storm-strider.spbm \
 	assets/runtime/sparkpaw-sprites.spbm \

@@ -33,12 +33,31 @@ static BOOL loadLevelFiles(void)
     return rendererLoadGameplay()&&collisionLoad()&&audioLoad();
 }
 
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+static void writeStartupStage(const char *stage)
+{
+    BPTR file=Open("PROGDIR:startupdiag.log",MODE_NEWFILE);
+    if(!file) return;
+    FPrintf(file,"Sparkpaw Phase 6C.2 startup diagnostic\n");
+    FPrintf(file,"stage=%s world_width=%ld\n",(STRPTR)stage,
+            (LONG)SPARKPAW_WORLD_W);
+    FPrintf(file,"chip_free=%ld chip_largest=%ld\n",
+            (LONG)AvailMem(MEMF_CHIP),
+            (LONG)AvailMem(MEMF_CHIP|MEMF_LARGEST));
+    FPrintf(file,"fast_free=%ld fast_largest=%ld\n",
+            (LONG)AvailMem(MEMF_FAST),
+            (LONG)AvailMem(MEMF_FAST|MEMF_LARGEST));
+    Close(file);
+}
+#endif
+
 #ifdef PHASE6_MEMORY_TEST
 static void writePhase6MemoryLog(ULONG beforeFree,ULONG beforeLargest)
 {
     BPTR file=Open("PROGDIR:phase6-memory.log",MODE_NEWFILE);
     if(!file) return;
-    FPrintf(file,"phase=6C.1 world_width=%ld\n",(LONG)SPARKPAW_WORLD_W);
+    FPrintf(file,"phase=6C.2-core-clearing world_width=%ld\n",
+            (LONG)SPARKPAW_WORLD_W);
     FPrintf(file,"before_gameplay_free=%ld before_gameplay_largest=%ld\n",
             (LONG)beforeFree,(LONG)beforeLargest);
     FPrintf(file,"peak_chip_free=%ld peak_chip_largest=%ld\n",
@@ -93,10 +112,31 @@ int main(void)
     gameInit(enemySeed^0x53504157UL);
     state=APP_LEVEL_LOADING;
     loadingShown=titleShowLevelLoading();
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeStartupStage("level_loading_visible");
+#endif
 #ifdef PHASE6_MEMORY_TEST
     phase6BeforeFree=AvailMem(MEMF_CHIP);
     phase6BeforeLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
 #endif
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    if(!loadingShown) {
+        writeStartupStage("failed_level_loading_display");
+    } else if(!loadLevelFiles()) {
+        writeStartupStage("failed_gameplay_assets_collision_or_audio");
+        loadingShown=FALSE;
+    } else if(!titleShowLevelCharging()) {
+        writeStartupStage("failed_charging_display");
+        loadingShown=FALSE;
+    } else {
+        writeStartupStage("charging_visible_before_renderer_prepare");
+        if(!rendererPrepareGameplay()) loadingShown=FALSE;
+    }
+    if(!loadingShown) {
+        PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
+        cleanup(); return 10;
+    }
+#else
     if(!loadingShown||!loadLevelFiles()||!titleShowLevelCharging()||
        !rendererPrepareGameplay()) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
@@ -105,6 +145,7 @@ int main(void)
         }
         cleanup(); return 10;
     }
+#endif
 #ifdef PHASE6_MEMORY_TEST
     writePhase6MemoryLog(phase6BeforeFree,phase6BeforeLargest);
 #endif
