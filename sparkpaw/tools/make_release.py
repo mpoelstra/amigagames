@@ -16,11 +16,12 @@ import re
 from pathlib import Path
 
 from pack_adf_asset import decode as decode_adf_asset
+from make_sparkpaw_icon import make_project_icon
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.51"
+RELEASE_VERSION = "0.6.0-alpha.52"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -96,6 +97,14 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
+
+Alpha.52 gives the ordinary HD and WHDLoad launchers one shared Sparkpaw cover
+icon. NewIcons-capable Workbenches use its embedded 86x93, 34-colour artwork;
+older setups use an 86x93, eight-colour fallback limited to the standard OS
+2.x/3.x pens. Supplied real-A1200 evidence accepts the NewIcons presentation.
+The eight-colour host preview is accepted for now; FS-UAE display remains a
+separate pending check. HD uses DefaultTool Sparkpaw while WHDLoad retains its
+WHDLoad/SLAVE/PRELOAD/PAL metadata. ADF contents and gameplay are unchanged.
 
 Alpha.51 promotes the real-A1200-accepted WHDLoad F10 exit correction. The
 WHDLoad-only executable catches raw F10 during Sparkpaw's direct CIA keyboard
@@ -530,6 +539,7 @@ def copy_runtime() -> None:
         shutil.rmtree(STAGE_PARENT)
     STAGE.mkdir(parents=True)
     shutil.copy2(ROOT / "sparkpaw", STAGE / "Sparkpaw")
+    (STAGE / "Sparkpaw.info").write_bytes(make_project_icon("Sparkpaw", []))
     for name in RUNTIME_FILES:
         target = STAGE / "assets" / "runtime" / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -542,6 +552,7 @@ def make_adf() -> Path:
     if adf_root.exists():
         shutil.rmtree(adf_root)
     shutil.copytree(STAGE, adf_root)
+    (adf_root / "Sparkpaw.info").unlink()
     shutil.copy2(ADF_EXECUTABLE, adf_root / "Sparkpaw")
     (adf_root / "assets" / "runtime" / "storm-front.spbm").unlink()
     shutil.copy2(

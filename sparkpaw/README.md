@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.51`. Roadmap checkpoint: Phase 6C.4 pre-level
+Current release: `0.6.0-alpha.52`. Roadmap checkpoint: Phase 6C.4 pre-level
 ready screen on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -31,6 +31,19 @@ was supplied. Jump physics, animation, audio and the renderer are unchanged.
 The bootable DOS1/FFS ADF validates at 1,354 blocks (677 KiB), leaving 406
 free; this proves package construction and retained-stream decode identity,
 not ADF gameplay acceptance.
+
+Alpha.52 adds a shared Sparkpaw cover icon to the ordinary HD and WHDLoad
+drawers. NewIcons-capable systems use the accepted 86x93, 34-colour embedded
+image. Systems without NewIcons use an 86x93, eight-colour classic fallback
+limited to the standard OS 2.x/3.x Workbench pens. Supplied real-A1200 evidence
+accepts the NewIcons layer. The decoded eight-colour preview is accepted for
+now; exact FS-UAE presentation remains pending retest. The rejected 16-colour
+RomIcon fallback depended on a FullPalette pen layout absent from the supplied
+FS-UAE Workbench. HD and WHDLoad share pixels but retain their distinct launch
+metadata. ADF contents, gameplay, renderer, memory and audio are unchanged.
+The bootable alpha.52 DOS1/FFS ADF validates at 1,356 blocks (678 KiB), leaving
+404 free. Its staging explicitly removes the HD `.info`; the one-block increase
+is packaged ReadMe text only and establishes no new ADF gameplay acceptance.
 
 Alpha.51 promotes the WHDLoad-only F10 exit correction accepted in supplied
 real-A1200/68030 testing. Once Sparkpaw owns the custom chips, its direct CIA
@@ -776,12 +789,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.51.lha`
-- `dist/Sparkpaw-0.6.0-alpha.51.zip`
-- `dist/Sparkpaw-0.6.0-alpha.51.adf`
-- `dist/Sparkpaw-0.6.0-alpha.51-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.51-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.51/`
+- `dist/Sparkpaw-0.6.0-alpha.52.lha`
+- `dist/Sparkpaw-0.6.0-alpha.52.zip`
+- `dist/Sparkpaw-0.6.0-alpha.52.adf`
+- `dist/Sparkpaw-0.6.0-alpha.52-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.52-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.52/`
 
 The WHDLoad archives contain a versioned self-contained drawer with the
 WHDLoad-specific executable and assets under `data/`, a Kickstart 3.1 BootDOS
@@ -792,11 +805,12 @@ archives. Supplied real-A1200/68030 testing accepts startup, loading and the
 alpha.51 direct-CIA F10 return to Workbench. The normal HD/ADF executable stays
 separate; no FS-UAE, ADF or broader WHDLoad gameplay result is inferred.
 
-The generated Sparkpaw icon remains a 48x48 four-colour classic Workbench icon.
-The visually richer ThunderCats icon photographed on the supplied real A1200
-has not been obtained: the separately downloaded `.info` is a different 90x90
-NewIcons image. A 16-colour RomIcon is plausible but unconfirmed. Preserve this
-as open packaging work until the exact hardware `.info` can be inspected.
+Both launcher icons are generated from
+`assets/concept/sparkpaw-newicon-cover-source-v1.png`. Their preferred 34-colour
+NewIcons layer and standard eight-colour fallback are both 86x93. The HD icon
+uses `DefaultTool=Sparkpaw`; the WHDLoad icon uses `DefaultTool=WHDLoad` with
+`SLAVE`, `PRELOAD` and `PAL`. `tests/test_sparkpaw_icon.py` protects dimensions,
+depths, palette count, shared pixels and launch metadata.
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

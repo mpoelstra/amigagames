@@ -10,13 +10,12 @@ import time
 import zipfile
 from pathlib import Path
 
-from PIL import Image
 from make_release import RELEASE_NAME, RELEASE_VERSION, ROADMAP_CHECKPOINT, RUNTIME_FILES
+from make_sparkpaw_icon import make_project_icon, make_readme_icon
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV = ROOT / ".toolchain" / "whdload-dev" / "WHDLoad"
 NDK_INCLUDE = ROOT / ".toolchain" / "ndk" / "Include_I"
-AMIGAINFO = ROOT / ".toolchain" / "amigainfo"
 VASM = ROOT / ".toolchain" / "sdk" / "bin" / "vasmm68k_mot"
 SLAVE_SOURCE = ROOT / "whdload" / "Sparkpaw.asm"
 SLAVE = ROOT / "whdload" / "Sparkpaw.Slave"
@@ -44,69 +43,11 @@ def assemble() -> None:
     ], cwd=ROOT, check=True)
 
 
-def load_amigainfo_api():
-    if str(AMIGAINFO) not in sys.path:
-        sys.path.insert(0, str(AMIGAINFO))
-    from amigainfo import load, save
-    from amigainfo.models import IconType
-    return load, save, IconType
-
-
-def icon_pen(rgb: tuple[int, int, int]) -> int:
-    red, green, blue = rgb
-    brightness = (red * 30 + green * 59 + blue * 11) // 100
-    if brightness < 38:
-        return 1
-    if brightness > 205 and abs(red - green) < 65:
-        return 2
-    if blue > red and blue > green:
-        return 3
-    return 0
-
-
-def base_icon_bytes() -> bytes:
-    source = ROOT / "assets" / "concept" / "sparkpaw-title-concept-aga64-preview.png"
-    require(source, "Sparkpaw icon source")
-    with Image.open(source).convert("RGB") as image:
-        side = min(image.size)
-        left = (image.width - side) // 2
-        top = (image.height - side) // 2
-        resized = image.crop((left, top, left + side, top + side)).resize(
-            (48, 48), Image.Resampling.LANCZOS
-        )
-        pixels = resized.load()
-        rows = [pixels[x, y] for y in range(48) for x in range(48)]
-    planar = bytearray()
-    for plane in range(2):
-        for y in range(48):
-            for word_index in range(3):
-                word = 0
-                for bit in range(16):
-                    if icon_pen(rows[y * 48 + word_index * 16 + bit]) & (1 << plane):
-                        word |= 1 << (15 - bit)
-                planar += struct.pack(">H", word)
-    gadget = struct.pack(
-        ">IhhhhHHHIIIiIHI", 0, 0, 0, 48, 48, 0x0004, 0x0001, 0x0001,
-        1, 0, 0, 0, 0, 0, 1,
-    )
-    disk_object = (struct.pack(">HH", 0xE310, 1) + gadget +
-                   struct.pack(">BBIIiiIIi", 3, 0, 0, 0, -1, -1, 0, 0, 65536))
-    image_header = struct.pack(">hhhhhIBBI", 0, 0, 48, 48, 2, 1, 0x03, 0, 0)
-    return disk_object + image_header + planar
-
-
 def make_icons() -> None:
-    load, save, IconType = load_amigainfo_api()
-    icon = load(base_icon_bytes())
-    icon.type = IconType.PROJECT
-    icon.default_tool = "WHDLoad"
-    icon.tooltypes = ["SLAVE=Sparkpaw.Slave", "PRELOAD", "PAL"]
-    (STAGE / "Sparkpaw.info").write_bytes(save(icon))
-    readme_icon = load(base_icon_bytes())
-    readme_icon.type = IconType.PROJECT
-    readme_icon.default_tool = "MultiView"
-    readme_icon.tooltypes = []
-    (STAGE / "ReadMe.txt.info").write_bytes(save(readme_icon))
+    (STAGE / "Sparkpaw.info").write_bytes(make_project_icon(
+        "WHDLoad", ["SLAVE=Sparkpaw.Slave", "PRELOAD", "PAL"]
+    ))
+    (STAGE / "ReadMe.txt.info").write_bytes(make_readme_icon())
 
 
 def crc16(data: bytes) -> int:

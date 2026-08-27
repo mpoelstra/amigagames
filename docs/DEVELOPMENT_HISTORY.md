@@ -5541,3 +5541,45 @@ extracted HD review drawer. The bootable DOS1/FFS ADF uses 1,355 blocks
 the executable extracted from the ZIP is byte-identical to
 `build/sparkpaw-whdload`. These host checks do not add gameplay acceptance
 beyond the supplied real-A1200 WHDLoad startup/loading/F10 result.
+
+### 27 August 2026 - Alpha.52 adds dual-layer HD and WHDLoad icons
+
+The exact `ThunderCats.info` copied from MrDig's real A1200 resolves the earlier
+format uncertainty. It is an 86x93 NewIcons project icon with 34 embedded
+colours and a negligible classic fallback. Its artwork matches the supplied
+Workbench photograph, unlike the unrelated downloaded 90x90 NewIcons variant.
+This proves the desired format without making ThunderCats artwork a Sparkpaw
+asset or style source.
+
+Sparkpaw now owns an original vertical cover composition derived from its
+accepted title, environment and character identity. Both ordinary HD and
+WHDLoad packages receive the same 86x93, 34-colour embedded NewIcons pixels.
+MrDig's supplied real-A1200 photograph accepts their size, colour and
+presentation. The HD project icon uses `DefaultTool=Sparkpaw`; the WHDLoad icon
+retains `DefaultTool=WHDLoad`, `SLAVE=Sparkpaw.Slave`, `PRELOAD` and `PAL`.
+
+The first FS-UAE preview showed the old four-colour fallback because that
+Workbench does not process NewIcons. A subsequent 16-colour RomIcon fallback
+was rejected: classic icons contain only pen indices, and this Workbench did
+not install the assumed FullPalette/RomIcon colours, producing green, pink and
+washed-grey substitutions. The final fallback therefore uses only the eight
+standard OS 2.x/3.x pens, three bitplanes and the same 86x93 composition without
+dithering. MrDig accepts its decoded preview for now; exact FS-UAE display of
+that final fallback remains pending and is not inferred from host rendering.
+
+`tools/make_sparkpaw_icon.py` is the sole generator for both package paths.
+`tests/test_sparkpaw_icon.py` reloads the actual encoded bytes and protects both
+layer dimensions/depths, 34-colour NewIcons palette, shared pixel data and the
+different HD/WHDLoad start metadata. The checkpoint skill now requires this
+test and explicitly rejects a future 16-colour fallback unless the target pen
+ownership changes. ADF packaging removes the HD `.info` before building the
+floppy, so the icon itself consumes no ADF capacity and alters no runtime data.
+
+The normal native build, full host regression suite, skill validation and
+release pipeline pass. Both generated ZIPs were reopened and their encoded
+project icons independently confirm 86x93/three-bitplane classic plus
+86x93/34-colour NewIcons layers and the correct distinct DefaultTool/tooltypes.
+Both WHDLoad archives pass integrity checks. The bootable DOS1/FFS ADF uses
+1,356 blocks (678 KiB) and leaves 404 free; inspection confirms it contains no
+`.info` icon. This host/package evidence adds no new FS-UAE or ADF gameplay
+acceptance beyond the supplied icon observations.

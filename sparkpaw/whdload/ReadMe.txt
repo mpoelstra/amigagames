@@ -44,9 +44,12 @@ and Space provide the matching test controls. Fire or Space advances the ready
 screen. Test the complete five-plate intro, title, LOADING, CHARGING, ready
 screen and all twelve gameplay screens through the Stormstone Core clearing.
 
-This WHDLoad package wraps the alpha.51 runtime in Kickstart 3.1 emulation.
+This WHDLoad package wraps the alpha.52 runtime in Kickstart 3.1 emulation.
 Supplied real-A1200/68030 testing accepts startup, loading and clean F10 return
 to Workbench. Presentation, sound, full-level traversal and repeated launches
 remain evidence-specific; no FS-UAE or ADF acceptance is inferred.
+
+The Sparkpaw project icon contains an 86x93, 34-colour NewIcons image and an
+86x93 fallback using the eight standard OS 2.x/3.x Workbench pens.
 
 No Kickstart ROM and no WHDLoad executable are redistributed in this package.

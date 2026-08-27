@@ -156,6 +156,7 @@ all: assets $(TARGET)
 test:
 	@mkdir -p build/host-tests
 	$(PYTHON) tests/test_runtime_memory_layout.py
+	$(PYTHON) tests/test_sparkpaw_icon.py
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-beetle-hitbox tests/test_beetle_hitbox.c
 	build/host-tests/test-beetle-hitbox
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-water-update-visibility tests/test_water_update_visibility.c

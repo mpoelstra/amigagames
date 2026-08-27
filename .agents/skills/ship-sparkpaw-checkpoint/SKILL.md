@@ -35,6 +35,14 @@ and must only be produced when MrDig explicitly requests it. Do not delete
 ignored local evidence or backups while cleaning release outputs. Never infer
 WHDLoad startup or gameplay acceptance from successful package assembly.
 
+For releases with Workbench launchers, verify both HD and WHDLoad project icons
+with `amigainfo`: each must retain the shared 86x93 embedded 34-colour NewIcons
+layer and 86x93 three-bitplane standard OS 2.x/3.x fallback. HD must use
+`DefaultTool=Sparkpaw`; WHDLoad must use `DefaultTool=WHDLoad` plus `SLAVE`,
+`PRELOAD` and `PAL`. Do not substitute a 16-colour RomIcon fallback: classic
+icons store only pen numbers, and the supplied FS-UAE Workbench does not own the
+RomIcon/FullPalette pen mapping. Keep `tests/test_sparkpaw_icon.py` passing.
+
 ## Synchronize the checkpoint record
 
 - Advance SemVer only when the roadmap step warrants it; never reuse a released

@@ -45,14 +45,14 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.51`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.52`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.51.lha`
-- `Sparkpaw-0.6.0-alpha.51.zip`
-- `Sparkpaw-0.6.0-alpha.51.adf`
-- `Sparkpaw-0.6.0-alpha.51-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.51-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.51/`
+- `Sparkpaw-0.6.0-alpha.52.lha`
+- `Sparkpaw-0.6.0-alpha.52.zip`
+- `Sparkpaw-0.6.0-alpha.52.adf`
+- `Sparkpaw-0.6.0-alpha.52-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.52-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.52/`
 
 Alpha.50 adds an optional secondary-button jump input on joystick
 port 2 alongside the preserved joystick Up and keyboard W paths. Port 2 pin 5
@@ -78,12 +78,20 @@ ADF executables remain separate and unchanged by this compile-time path.
 The bootable alpha.51 DOS1/FFS ADF validates at 1,355 blocks (678 KiB), leaving
 405 free; this is package/decode evidence, not new ADF gameplay acceptance.
 
-The current generated Sparkpaw icon is a palette-dependent 48x48 four-colour
-classic Workbench icon. A downloaded ThunderCats package was proven to contain
-a different 90x90 NewIcons image and is not the icon shown on MrDig's real
-A1200. The hardware icon may be a 16-colour RomIcon, but this remains explicitly
-unconfirmed until its actual `.info` file is supplied; do not use the downloaded
-NewIcon or a photograph alone as format proof.
+Alpha.52 adds the same Sparkpaw project-icon artwork to ordinary HD and WHDLoad
+packages. Its preferred layer is an embedded 86x93, 34-colour NewIcon accepted
+in supplied real-A1200 evidence. Its classic fallback is deliberately 86x93 and
+three bitplanes using only the eight standard OS 2.x/3.x Workbench pens; the
+rejected 16-colour RomIcon experiment rendered with incorrect green/pink/grey
+pens in the supplied FS-UAE Workbench. The eight-colour decoded preview is
+accepted for now, but its exact FS-UAE display remains pending supplied retest.
+HD uses `DefaultTool=Sparkpaw`; WHDLoad retains `DefaultTool=WHDLoad` plus
+`SLAVE=Sparkpaw.Slave`, `PRELOAD` and `PAL`. The actual A1200
+`ThunderCats.info` established the target NewIcons profile; the unrelated
+downloaded icon variant must not be used as evidence.
+The bootable alpha.52 DOS1/FFS ADF validates at 1,356 blocks (678 KiB), leaving
+404 free. The ADF deliberately excludes `Sparkpaw.info`; its one-block growth
+over alpha.51 is packaged ReadMe text, not icon or runtime data.
 
 Alpha.49 reserves pure black palette pen 0 in all five intro plates and the
 ready screen. This removes the full-height one-pixel `COLOR00` border exposed
