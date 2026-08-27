@@ -98,7 +98,7 @@ actually records.
 
 #### Sparkpaw by the numbers
 
-- **22 days** from the first public repository baseline to alpha.54
+- **23 days** from the first public repository baseline to alpha.56
 - **14 active development dates** recorded in Git
 - **64 Sparkpaw commits**
 - **54 numbered alpha iterations** in the current development line
@@ -308,8 +308,8 @@ is the accumulated result of that conversation.
 
 ## Upload labels
 
-- `Sparkpaw 0.6.0 alpha.54 — Bootable ADF`
-- `Sparkpaw 0.6.0 alpha.54 — HD version (LHA)`
-- `Sparkpaw 0.6.0 alpha.54 — HD version (ZIP)`
-- `Sparkpaw 0.6.0 alpha.54 — WHDLoad (LHA)`
-- `Sparkpaw 0.6.0 alpha.54 — WHDLoad (ZIP)`
+- `Sparkpaw 0.6.0 alpha.56 — Bootable ADF`
+- `Sparkpaw 0.6.0 alpha.56 — HD version (LHA)`
+- `Sparkpaw 0.6.0 alpha.56 — HD version (ZIP)`
+- `Sparkpaw 0.6.0 alpha.56 — WHDLoad (LHA)`
+- `Sparkpaw 0.6.0 alpha.56 — WHDLoad (ZIP)`

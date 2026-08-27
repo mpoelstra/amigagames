@@ -16,7 +16,7 @@ LOGO = CONCEPT / "assets/sparkpaw-logo-wordmark-source-v2.png"
 PREVIEW = CONCEPT / "sparkpaw-ready-screen-aga64-preview.png"
 OPTIONS_PREVIEW = CONCEPT / "sparkpaw-options-screen-aga64-preview.png"
 RUNTIME = ROOT / "assets/runtime/sparkpaw-ready-screen.spbm"
-MENU_PATCHES = ROOT / "assets/runtime/sparkpaw-ready-menu-patches.spbm"
+MENU_PATCHES = ROOT / "assets/runtime/readymenu.spbm"
 
 PATCH_Y = 118
 PATCH_H = 104

@@ -15,6 +15,13 @@ static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
 static struct PlanarAsset collectibleDiamond;
 static struct PlanarAsset stormstoneCore;
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+static const char *loadFailureReason="none";
+const char *assetsLoadFailureReason(void) { return loadFailureReason; }
+#define SET_LOAD_FAILURE(reason) (loadFailureReason=(reason))
+#else
+#define SET_LOAD_FAILURE(reason) do { } while(0)
+#endif
 
 static UWORD readBigEndian16(const UBYTE *value)
 {
@@ -177,9 +184,12 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
                       UBYTE wantedDepth,BOOL dmaSource)
 {
     BPTR file; UBYTE header[12],plane; LONG size;
+    SET_LOAD_FAILURE("none");
     memset(asset,0,sizeof(*asset));
-    file=Open((STRPTR)name,MODE_OLDFILE); if(!file) return FALSE;
+    file=Open((STRPTR)name,MODE_OLDFILE);
+    if(!file) { SET_LOAD_FAILURE("open"); return FALSE; }
     if(!readExact(file,header,12)||memcmp(header,"SPBM",4)!=0) {
+        SET_LOAD_FAILURE("header read or magic");
         Close(file); return FALSE;
     }
     asset->width=readBigEndian16(header+4);
@@ -189,18 +199,23 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
     if(asset->depth!=wantedDepth||
        !readExact(file,(UBYTE *)asset->palette,
                   (LONG)(1<<asset->depth)*3)) {
+        SET_LOAD_FAILURE("depth or palette read");
         Close(file); return FALSE;
     }
-    if(!allocateAssetBitmap(asset,dmaSource)) { Close(file); return FALSE; }
+    if(!allocateAssetBitmap(asset,dmaSource)) {
+        SET_LOAD_FAILURE("bitmap allocation"); Close(file); return FALSE;
+    }
     for(plane=0;plane<asset->depth;plane++)
         if(!readRows(file,asset->bitmap->Planes[plane],asset->rowBytes,
                      asset->bitmap->BytesPerRow,asset->height)) {
+            SET_LOAD_FAILURE("plane read");
             Close(file); freeAsset(asset); return FALSE;
         }
     if(asset->hasMask) {
         size=(LONG)asset->rowBytes*asset->height;
         asset->mask=(UBYTE *)AllocMem(size,dmaSource?MEMF_CHIP:MEMF_FAST);
         if(!asset->mask||!readExact(file,asset->mask,size)) {
+            SET_LOAD_FAILURE(asset->mask?"mask read":"mask allocation");
             Close(file); freeAsset(asset); return FALSE;
         }
     }
@@ -306,11 +321,11 @@ BOOL assetsLoadStoryIntro(UWORD plate)
     };
 #else
     static const char *names[5]={
-        "PROGDIR:assets/runtime/intro-plate-01-balance.spbm",
-        "PROGDIR:assets/runtime/intro-plate-02-instruction.spbm",
-        "PROGDIR:assets/runtime/intro-plate-03-reversed-network.spbm",
-        "PROGDIR:assets/runtime/intro-plate-04-motive.spbm",
-        "PROGDIR:assets/runtime/intro-plate-05-quest.spbm"
+        "PROGDIR:assets/runtime/intro1.spbm",
+        "PROGDIR:assets/runtime/intro2.spbm",
+        "PROGDIR:assets/runtime/intro3.spbm",
+        "PROGDIR:assets/runtime/intro4.spbm",
+        "PROGDIR:assets/runtime/intro5.spbm"
     };
 #endif
     if(plate>=5) return FALSE;
@@ -396,7 +411,7 @@ BOOL assetsLoadLevelReadyMenu(void)
     return loadPackedAsset("PROGDIR:assets/runtime/level-ready-menu.spr1",
                            &levelReadyMenu,6,FALSE);
 #else
-    return loadAsset("PROGDIR:assets/runtime/sparkpaw-ready-menu-patches.spbm",
+    return loadAsset("PROGDIR:assets/runtime/readymenu.spbm",
                      &levelReadyMenu,6,FALSE);
 #endif
 }

@@ -33,6 +33,10 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
   log pathname between A and B.
 - Production builds must not contain diagnostic logging, profiling or test
   input code.
+- Keep every Amiga-side path component, including the extracted root drawer and
+  runtime filenames, at 30 characters or fewer. Reuse production's canonical
+  short asset names across HD, WHDLoad and ADF tests; do not rely on a ZIP/LHA
+  extractor to preserve longer names.
 
 ### Keep quick real-A1200 HD ZIPs minimal
 
@@ -49,6 +53,9 @@ the transfer package as well as the executable:
   that executable can load;
 - deliver one ZIP unless the user explicitly asks for an extracted drawer,
   LHA, ADF, WHDLoad package or comparison pair;
+- when an LHA is explicitly requested, use the release packager's classic
+  creation-capable LHa path and require `-lh5-` members plus a successful CRC
+  test; Homebrew Lhasa alone is extraction-only;
 - test the archive, report its compressed size and compare its contents with
   the ordinary release ZIP so unexpected growth is caught before delivery.
 

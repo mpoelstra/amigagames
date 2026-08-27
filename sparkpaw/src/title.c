@@ -7,6 +7,10 @@
 #include <hardware/dmabits.h>
 #include <proto/exec.h>
 #include <proto/graphics.h>
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+#include <dos/dos.h>
+#include <proto/dos.h>
+#endif
 
 #include "assets.h"
 #include "platform_amiga.h"
@@ -52,6 +56,36 @@ static ULONG chargingStartFrame;
 static const char *failureReason="unknown title failure";
 static ULONG chipFree,chipLargest;
 static BOOL buildingIntroCopper;
+
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+static BPTR introDiagnosticFile;
+
+static void introDiagnosticOpen(void)
+{
+    introDiagnosticFile=Open("PROGDIR:whdintrodiag.log",MODE_NEWFILE);
+    if(introDiagnosticFile) {
+        FPrintf(introDiagnosticFile,"Sparkpaw WHDLoad intro diagnostic alpha.55\n");
+        Flush(introDiagnosticFile);
+    }
+}
+
+static void introDiagnosticEvent(const char *event,UWORD plate)
+{
+    if(!introDiagnosticFile) return;
+    FPrintf(introDiagnosticFile,
+            "%s plate=%ld failure=%s ioerr=%ld chip_free=%ld chip_largest=%ld fast_free=%ld fast_largest=%ld\n",
+            (LONG)event,(LONG)(plate+1),(LONG)assetsLoadFailureReason(),IoErr(),
+            AvailMem(MEMF_CHIP),AvailMem(MEMF_CHIP|MEMF_LARGEST),
+            AvailMem(MEMF_FAST),AvailMem(MEMF_FAST|MEMF_LARGEST));
+    Flush(introDiagnosticFile);
+}
+
+static void introDiagnosticClose(void)
+{
+    if(introDiagnosticFile) Close(introDiagnosticFile);
+    introDiagnosticFile=0;
+}
+#endif
 
 #ifdef SPARKPAW_STORY_INTRO
 static void stageIntroText(UWORD passage,UWORD offset);
@@ -304,10 +338,20 @@ BOOL titleShow(void)
 #endif
     chipFree=AvailMem(MEMF_CHIP);
     chipLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+    introDiagnosticOpen();
+    introDiagnosticEvent("before_load",0);
+#endif
 #ifdef SPARKPAW_STORY_INTRO
     if(!assetsLoadStoryIntro(0)) {
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+        introDiagnosticEvent("load_failed",0); introDiagnosticClose();
+#endif
         failureReason="six-plane intro proof asset load failed"; return FALSE;
     }
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+    introDiagnosticEvent("load_ok",0);
+#endif
 #else
     if(!assetsLoadTitle()) {
         failureReason="six-plane title asset load failed"; return FALSE;
@@ -342,10 +386,20 @@ BOOL titleShow(void)
 #ifdef SPARKPAW_STORY_INTRO
     for(plate=0;plate<5&&!skipIntro;plate++) {
         if(plate) {
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+            introDiagnosticEvent("before_load",plate);
+#endif
             if(!assetsLoadStoryIntro(plate)) {
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+                introDiagnosticEvent("load_failed",plate);
+                introDiagnosticClose();
+#endif
                 failureReason="six-plane intro plate asset load failed";
                 titleRelease(); return FALSE;
             }
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+            introDiagnosticEvent("load_ok",plate);
+#endif
             next=currentCopper^1;
             buildingIntroCopper=TRUE;
             buildCopper(assetsStoryIntro(),next,0);
@@ -363,9 +417,15 @@ BOOL titleShow(void)
         assetsUnloadStoryIntro();
     }
     if(!assetsLoadTitle()) {
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+        introDiagnosticEvent("title_load_failed",4); introDiagnosticClose();
+#endif
         failureReason="six-plane title asset load after intro failed";
         titleRelease(); return FALSE;
     }
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+    introDiagnosticEvent("intro_complete",4); introDiagnosticClose();
+#endif
     buildCopper(assetsTitle(),currentCopper^1,0);
     installCopper(currentCopper^1);
 #endif

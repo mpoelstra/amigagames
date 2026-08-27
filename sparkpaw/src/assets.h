@@ -17,6 +17,9 @@ BOOL assetsLoadTitle(void);
 void assetsUnloadTitle(void);
 BOOL assetsLoadStoryIntro(UWORD plate);
 void assetsUnloadStoryIntro(void);
+#ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
+const char *assetsLoadFailureReason(void);
+#endif
 BOOL assetsLoadLevelLoading(void);
 void assetsUnloadLevelLoading(void);
 BOOL assetsLoadLevelCharging(void);

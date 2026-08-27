@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.54`. Roadmap checkpoint: Phase 6C.4 pre-level
+Current release: `0.6.0-alpha.56`. Roadmap checkpoint: Phase 6C.4 pre-level
 ready menu on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -15,7 +15,7 @@ FS-UAE/68020 HD testing accepts presentation, both inputs and the immediate
 gameplay transition. HD retains the complete Phase 6C.3 five-plate story intro;
 the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
-Its bootable DOS1/FFS image validates at 1,444 blocks (722 KiB), leaving 316
+Its bootable DOS1/FFS image validates at 1,446 blocks (723 KiB), leaving 314
 free; this is package/decode evidence, not ADF gameplay acceptance.
 
 Alpha.49 additionally reserves pure black palette pen 0 in every fullscreen
@@ -49,6 +49,36 @@ cadence logger, so it makes no new numerical FPS claim. ADF and WHDLoad runtime
 acceptance remain pending. The raw 50,124-byte menu atlas packs to 40,805 bytes
 on ADF; the bootable DOS1/FFS image uses 1,444 blocks (722 KiB) and leaves 316
 free.
+
+Alpha.55 is a packaging-only release. The ordinary HD and WHDLoad LHA files now
+contain genuine classic `-lh5-` compressed members instead of stored `-lh0-`
+members. Executables, runtime assets, archive layouts, ADF game data, runtime
+loader, renderer, gameplay and audio are unchanged from alpha.54; versioned
+names and packaged ReadMe text advance to alpha.55. Package construction and
+independent host extraction are verified, but no new FS-UAE, ADF, WHDLoad or
+real-hardware runtime acceptance is inferred.
+
+Subsequent supplied real-A1200 testing rejects the alpha.55 WHDLoad intro path:
+the first plate displays both passages, then Sparkpaw returns to Workbench at
+the plate-2 load boundary. The ordinary alpha.55 HD build completes the intro,
+so this is WHDLoad-specific. The visibly shortened 31-character parent drawer
+name alone cannot explain a launch that reaches plate 1. A focused
+`Sparkpaw-WHDIntroDiag` package uses a 21-character drawer and records each
+intro load plus asset/IoErr/Chip/Fast diagnostics; its hardware result remains
+pending. The supplied log now confirms plate 1 loads and plate 2 fails at
+`Open` with IoErr 205 (`ERROR_OBJECT_NOT_FOUND`) despite about 2.07 MB Chip and
+7.70 MB Fast remaining. The short diagnostic parent rules out the versioned
+drawer name as the necessary cause; plate 2's own 31-character runtime name is
+the failing WHDLoad boundary. The corrected-package result is recorded below.
+
+The focused `Sparkpaw-WHDShortNames.zip` correction replaces the three
+overlength components with `intro2.spbm`, `intro3.spbm` and `readymenu.spbm`.
+Supplied real-A1200/68030 testing accepts it through all five intro plates,
+title, loading, charging and the ready menu. Alpha.56 makes these the canonical
+names for HD and WHDLoad and uses the same short sources for ADF packing.
+Release tooling rejects path components longer than 30 characters; the WHDLoad
+archive extracts to `Sparkpaw-0.6.0-a56-WHDLoad`. Asset bytes, renderer,
+gameplay and memory configuration remain unchanged.
 
 Alpha.52 adds a shared Sparkpaw cover icon to the ordinary HD and WHDLoad
 drawers. NewIcons-capable systems use the accepted 86x93, 34-colour embedded
@@ -809,12 +839,19 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.54.lha`
-- `dist/Sparkpaw-0.6.0-alpha.54.zip`
-- `dist/Sparkpaw-0.6.0-alpha.54.adf`
-- `dist/Sparkpaw-0.6.0-alpha.54-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.54-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.54/`
+- `dist/Sparkpaw-0.6.0-alpha.56.lha`
+- `dist/Sparkpaw-0.6.0-alpha.56.zip`
+- `dist/Sparkpaw-0.6.0-alpha.56.adf`
+- `dist/Sparkpaw-0.6.0-alpha.56-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.56-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.56/`
+
+Release LHA files use genuine `-lh5-` compression. Packaging requires classic
+LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent
+creation-capable binary selected with `LHA=/absolute/path/to/lha`. Homebrew's
+Lhasa `lha` command is extraction-only and is not a valid substitute. Both HD
+and WHDLoad packagers CRC-test the completed archive and reject output without
+at least one `-lh5-` member.
 
 The WHDLoad archives contain a versioned self-contained drawer with the
 WHDLoad-specific executable and assets under `data/`, a Kickstart 3.1 BootDOS

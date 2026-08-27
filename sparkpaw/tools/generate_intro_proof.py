@@ -7,20 +7,20 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[1]
 ASSET_DIR = ROOT / "docs/concepts/story-intro/assets"
 PLATES = (
-    ("intro-plate-01-balance", "intro-plate-01-balance-source-v2-aga-polish.png", (
+    ("intro1", "intro-plate-01-balance", "intro-plate-01-balance-source-v2-aga-polish.png", (
         ("THE ANCIENT STORMSTONE", "KEPT THE VALLEY'S WEATHER", "IN PERFECT BALANCE."),
         ("FOUR CORES RULED LIGHTNING,", "RAIN, WIND AND WARMTH.", "THE FIFTH BALANCED THEM."))),
-    ("intro-plate-02-instruction", "intro-plate-02-instruction-source-v2-aga-polish.png", (
+    ("intro2", "intro-plate-02-instruction", "intro-plate-02-instruction-source-v2-aga-polish.png", (
         ("GRAND ARCHIVOLT WAS BUILT", "TO GUARD THE STORMSTONE", "AND CONTROL WILD WEATHER."),
         ("A DAMAGED ORDER COMMANDED:", "CONTAIN ALL WEATHER.", "RELEASE NOTHING."))),
-    ("intro-plate-03-reversed-network", "intro-plate-03-reversed-network-source-v5-from-scratch-aga.png", (
+    ("intro3", "intro-plate-03-reversed-network", "intro-plate-03-reversed-network-source-v5-from-scratch-aga.png", (
         ("ARCHIVOLT TORE THE CORES", "FROM THE STORMSTONE", "AND SEALED THEM AWAY."),
         ("HE REVERSED THE STATIONS.", "EACH CORE DREW ITS ELEMENT", "INWARD WITHOUT END."),
         ("RAIN BECAME FLOODS.", "WIND BECAME HURRICANES.", "LIGHTNING NEVER STOPPED."))),
-    ("intro-plate-04-motive", "intro-plate-04-motive-source-v4-aga-polish.png", (
+    ("intro4", "intro-plate-04-motive", "intro-plate-04-motive-source-v4-aga-polish.png", (
         ("SPARKPAW WATCHED THE STORMS", "TEAR THROUGH HIS HOME.", "SOMEONE HAD TO FREE THE CORES."),
         ("HIS SHARD POWERED GAUNTLET", "COULD FIND AND CARRY THEM,", "BACK TO THE STORMSTONE."))),
-    ("intro-plate-05-quest", "intro-plate-05-quest-source-v2-aga-polish.png", (
+    ("intro5", "intro-plate-05-quest", "intro-plate-05-quest-source-v2-aga-polish.png", (
         ("RECOVER ONE CORE FROM", "EACH WEATHER STATION."),
         ("RETURN THEM TO THE STORMSTONE.", "RESTORE THE NATURAL SKY.", "STOP GRAND ARCHIVOLT."))),
 )
@@ -96,7 +96,7 @@ def medium_text(draw, text, x, y, colour):
                     draw.rectangle((x0,y0,x1,y1),fill=colour)
         x+=9
 
-def build_plate(name, source_name, passages):
+def build_plate(name, preview_name, source_name, passages):
     source=Image.open(ASSET_DIR/source_name).convert("RGB").resize((320,256),Image.Resampling.LANCZOS)
     height=256+176*len(passages)
     image=Image.new("RGB",(320,height),(5,13,29))
@@ -119,12 +119,13 @@ def build_plate(name, source_name, passages):
         raise ValueError(f"{name}: fullscreen COLOR00 must be black")
     preview=Image.new("P",(320,256)); preview.putpalette(indexed.getpalette())
     preview.paste(indexed.crop((0,0,320,168)),(0,0)); preview.paste(indexed.crop((0,328,320,416)),(0,168))
-    preview.save(ASSET_DIR/f"{name}-aga64-preview.png")
+    preview.save(ASSET_DIR/f"{preview_name}-aga64-preview.png")
     row_bytes,planes=planar_bytes(indexed,6)
     output=ROOT/"assets/runtime"/f"{name}.spbm"; output.parent.mkdir(parents=True,exist_ok=True)
     output.write_bytes(b"SPBM"+struct.pack(">HHBBH",320,height,6,0,row_bytes)+bytes(palette_data)+planes)
 
 def main():
-    for name,source_name,passages in PLATES: build_plate(name,source_name,passages)
+    for name,preview_name,source_name,passages in PLATES:
+        build_plate(name,preview_name,source_name,passages)
 
 if __name__ == "__main__": main()

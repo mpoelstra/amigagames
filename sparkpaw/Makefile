@@ -17,14 +17,13 @@ RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) \
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
 WHDLOAD_TARGET = build/sparkpaw-whdload
+WHDLOAD_INTRO_DIAG_TARGET = build/sparkpaw-whdload-introdiag
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
 INTRO_PROOF_TARGET = build/sparkpaw-intro-proof
-STORY_INTRO_ASSETS = assets/runtime/intro-plate-01-balance.spbm \
-	assets/runtime/intro-plate-02-instruction.spbm \
-	assets/runtime/intro-plate-03-reversed-network.spbm \
-	assets/runtime/intro-plate-04-motive.spbm \
-	assets/runtime/intro-plate-05-quest.spbm
+STORY_INTRO_ASSETS = assets/runtime/intro1.spbm assets/runtime/intro2.spbm \
+	assets/runtime/intro3.spbm assets/runtime/intro4.spbm \
+	assets/runtime/intro5.spbm
 HUD_SEAM_DIAG_TARGET = build/sparkpaw-hud-seam-fmode-first
 HUD_SEAM_H2_DIAG_TARGET = build/sparkpaw-hud-seam-h2-retain-ddfstop
 HUD_SEAM_H3_DIAG_TARGET = build/sparkpaw-hud-seam-h3-native-3plane
@@ -130,7 +129,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean test assets release whdload bench bench-package renderdiag
+.PHONY: all clean test assets release whdload whdload-introdiag-package bench bench-package renderdiag
 .PHONY: aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package
 .PHONY: aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package
 .PHONY: renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package
@@ -364,7 +363,7 @@ $(AGA64_PLAYER_SPRITE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 		-DSPARKPAW_AGA64_PLAYER_SPRITE -o $@ $(SOURCES)
 
 READY_SCREEN_ASSET = assets/runtime/sparkpaw-ready-screen.spbm
-READY_MENU_ASSET = assets/runtime/sparkpaw-ready-menu-patches.spbm
+READY_MENU_ASSET = assets/runtime/readymenu.spbm
 
 assets: $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 
@@ -431,6 +430,13 @@ $(WHDLOAD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTR
 	$(CC) $(CFLAGS) -DSPARKPAW_WHDLOAD -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
+$(WHDLOAD_INTRO_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_WHDLOAD \
+		-DSPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC \
+		-DSPARKPAW_ROLLING_PROTOTYPE $(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
 $(INTRO_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
 		$(STORY_INTRO_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
@@ -470,15 +476,15 @@ $(ADF_STRIDER_ASSET): assets/runtime/clockwork-storm-strider.spbm tools/pack_adf
 $(ADF_PLAYER_ASSET): assets/runtime/sparkpaw-sprites4.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
-build/adf-assets/intro1.spr1: assets/runtime/intro-plate-01-balance.spbm tools/pack_adf_asset.py
+build/adf-assets/intro1.spr1: assets/runtime/intro1.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
-build/adf-assets/intro2.spr1: assets/runtime/intro-plate-02-instruction.spbm tools/pack_adf_asset.py
+build/adf-assets/intro2.spr1: assets/runtime/intro2.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
-build/adf-assets/intro3.spr1: assets/runtime/intro-plate-03-reversed-network.spbm tools/pack_adf_asset.py
+build/adf-assets/intro3.spr1: assets/runtime/intro3.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
-build/adf-assets/intro4.spr1: assets/runtime/intro-plate-04-motive.spbm tools/pack_adf_asset.py
+build/adf-assets/intro4.spr1: assets/runtime/intro4.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
-build/adf-assets/intro5.spr1: assets/runtime/intro-plate-05-quest.spbm tools/pack_adf_asset.py
+build/adf-assets/intro5.spr1: assets/runtime/intro5.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 build/adf-assets/sparkpaw-level-loading.spr1: assets/runtime/sparkpaw-level-loading.spbm tools/pack_adf_asset.py
@@ -490,7 +496,7 @@ build/adf-assets/level-charge-patch.spr1: assets/runtime/level-charge-patch.spbm
 build/adf-assets/level-ready.spr1: assets/runtime/sparkpaw-ready-screen.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
-build/adf-assets/level-ready-menu.spr1: assets/runtime/sparkpaw-ready-menu-patches.spbm tools/pack_adf_asset.py
+build/adf-assets/level-ready-menu.spr1: assets/runtime/readymenu.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 
@@ -500,6 +506,9 @@ release: all $(ADF_TARGET) $(ADF_ASSETS) $(WHDLOAD_TARGET)
 
 whdload: all $(WHDLOAD_TARGET)
 	$(PYTHON) tools/make_whdload.py
+
+whdload-introdiag-package: assets $(WHDLOAD_INTRO_DIAG_TARGET)
+	$(PYTHON) tools/make_whdload.py --intro-diagnostic
 
 adf-report: all
 	$(PYTHON) tools/report_adf_storage.py

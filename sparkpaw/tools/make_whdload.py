@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import shutil
-import struct
 import subprocess
 import sys
-import time
 import zipfile
 from pathlib import Path
 
-from make_release import RELEASE_NAME, RELEASE_VERSION, ROADMAP_CHECKPOINT, RUNTIME_FILES
+from make_release import (
+    RELEASE_NAME,
+    RELEASE_VERSION,
+    ROADMAP_CHECKPOINT,
+    RUNTIME_FILES,
+    make_lha,
+)
 from make_sparkpaw_icon import make_project_icon, make_readme_icon
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,7 +24,8 @@ VASM = ROOT / ".toolchain" / "sdk" / "bin" / "vasmm68k_mot"
 SLAVE_SOURCE = ROOT / "whdload" / "Sparkpaw.asm"
 SLAVE = ROOT / "whdload" / "Sparkpaw.Slave"
 STAGE_ROOT = ROOT / "build" / "whdload"
-STAGE_NAME = f"{RELEASE_NAME}-WHDLoad"
+ARCHIVE_NAME = f"{RELEASE_NAME}-WHDLoad"
+STAGE_NAME = f"Sparkpaw-{RELEASE_VERSION.replace('-alpha.', '-a')}-WHDLoad"
 STAGE = STAGE_ROOT / STAGE_NAME
 DIST = ROOT / "dist"
 
@@ -50,45 +55,18 @@ def make_icons() -> None:
     (STAGE / "ReadMe.txt.info").write_bytes(make_readme_icon())
 
 
-def crc16(data: bytes) -> int:
-    crc = 0
-    for byte in data:
-        crc ^= byte
-        for _ in range(8):
-            crc = (crc >> 1) ^ 0xA001 if crc & 1 else crc >> 1
-    return crc & 0xFFFF
-
-
-def dos_time(timestamp: float) -> int:
-    value = time.localtime(timestamp)
-    return ((max(1980, min(2107, value.tm_year)) - 1980) << 25 |
-            value.tm_mon << 21 | value.tm_mday << 16 | value.tm_hour << 11 |
-            value.tm_min << 5 | value.tm_sec // 2)
-
-
-def lha_member(name: str, data: bytes, timestamp: float) -> bytes:
-    encoded = name.encode("latin-1")
-    body = (b"-lh0-" + struct.pack("<IIIBBB", len(data), len(data),
-            dos_time(timestamp), 0x20, 0, len(encoded)) + encoded +
-            struct.pack("<H", crc16(data)))
-    return bytes((len(body), sum(body) & 255)) + body + data
-
-
-def make_lha() -> Path:
-    output = DIST / f"{STAGE_NAME}.lha"
-    with output.open("wb") as archive:
-        for path in sorted(STAGE.rglob("*")):
-            if path.is_file():
-                relative = path.relative_to(STAGE_ROOT).as_posix()
-                archive.write(lha_member(relative, path.read_bytes(), path.stat().st_mtime))
-        archive.write(b"\0")
-    return output
-
-
 def main() -> None:
-    if sys.argv[1:]:
-        raise SystemExit("usage: make_whdload.py")
-    executable = ROOT / "build" / "sparkpaw-whdload"
+    global STAGE_ROOT, STAGE_NAME, STAGE
+    diagnostic = sys.argv[1:] == ["--intro-diagnostic"]
+    if sys.argv[1:] and not diagnostic:
+        raise SystemExit("usage: make_whdload.py [--intro-diagnostic]")
+    if diagnostic:
+        executable = ROOT / "build" / "sparkpaw-whdload-introdiag"
+        STAGE_ROOT = ROOT / "build" / "whdload-introdiag"
+        STAGE_NAME = "Sparkpaw-WHDIntroDiag"
+        STAGE = STAGE_ROOT / STAGE_NAME
+    else:
+        executable = ROOT / "build" / "sparkpaw-whdload"
     assemble()
     if STAGE_ROOT.exists():
         shutil.rmtree(STAGE_ROOT)
@@ -101,15 +79,36 @@ def main() -> None:
         source = ROOT / "assets" / "runtime" / name
         require(source, f"runtime asset {name}")
         shutil.copy2(source, data / "assets" / "runtime" / name)
-    readme = (ROOT / "whdload" / "ReadMe.txt").read_text(encoding="ascii").format(
-        RELEASE_NAME=RELEASE_NAME, RELEASE_VERSION=RELEASE_VERSION,
-        ROADMAP_CHECKPOINT=ROADMAP_CHECKPOINT,
-    )
+    if diagnostic:
+        readme = """Sparkpaw alpha.55 WHDLoad intro diagnostic
+==============================================
+
+Real-A1200 focused test only. Launch Sparkpaw from its Workbench icon and do
+not skip the intro. Let it run until it either reaches the title or returns to
+Workbench. Then return data/whdintrodiag.log from this exact drawer.
+
+The short drawer name and ZIP packaging deliberately avoid the suspected
+31-character parent-name boundary. This build changes only bounded intro-load
+logging; gameplay, renderer, assets and WHDLoad memory configuration match the
+alpha.55 WHDLoad release. F10 remains the exit key.
+"""
+    else:
+        readme = (ROOT / "whdload" / "ReadMe.txt").read_text(encoding="ascii").format(
+            RELEASE_NAME=RELEASE_NAME, RELEASE_VERSION=RELEASE_VERSION,
+            ROADMAP_CHECKPOINT=ROADMAP_CHECKPOINT,
+        )
     (STAGE / "ReadMe.txt").write_text(readme, encoding="ascii")
     make_icons()
     DIST.mkdir(exist_ok=True)
-    zip_path = Path(shutil.make_archive(str(DIST / STAGE_NAME), "zip", STAGE_ROOT, STAGE_NAME))
-    lha_path = make_lha()
+    archive_name = STAGE_NAME if diagnostic else ARCHIVE_NAME
+    for path in STAGE.rglob("*"):
+        for component in path.relative_to(STAGE_ROOT).parts:
+            if len(component) > 30:
+                raise SystemExit(f"Amiga path component exceeds 30 characters: {component}")
+    zip_path = Path(shutil.make_archive(str(DIST / archive_name), "zip", STAGE_ROOT, STAGE_NAME))
+    lha_path = None if diagnostic else make_lha(
+        STAGE_ROOT, STAGE_NAME, DIST / f"{archive_name}.lha"
+    )
     with zipfile.ZipFile(zip_path) as archive:
         required = {
             f"{STAGE_NAME}/Sparkpaw.Slave", f"{STAGE_NAME}/Sparkpaw.info",
@@ -119,7 +118,8 @@ def main() -> None:
         if missing:
             raise SystemExit(f"WHDLoad ZIP verification failed: {sorted(missing)}")
     print("Wrote", zip_path)
-    print("Wrote", lha_path)
+    if lha_path is not None:
+        print("Wrote", lha_path)
     print("Prepared", STAGE)
 
 

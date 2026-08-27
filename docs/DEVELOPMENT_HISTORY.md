@@ -15,7 +15,7 @@ Audit and update the compact repository-root `CODEX_HANDOFF.md` at the same
 time, but keep chronological detail here rather than allowing that handoff to
 become a diary again.
 
-Last updated: 14 August 2026
+Last updated: 28 August 2026
 
 ## Purpose of this file
 
@@ -5658,3 +5658,131 @@ pending; FS-UAE/68020 performance continues to rely on the protected earlier
 48.58-FPS low-overhead baseline rather than this uninstrumented menu test. The
 atlas packs to 40,805 bytes on ADF; the final bootable DOS1/FFS image uses 1,444
 blocks (722 KiB) and leaves 316 free.
+### 28 August 2026 - Release LHA artifacts gain real compression
+
+The HD and WHDLoad `.lha` artifacts previously used project-owned Python code
+that wrote valid level-0 `-lh0-` members. They were archives, but every payload
+was stored byte-for-byte without compression. macOS already provided Homebrew
+Lhasa 0.6.0 as `lha`; Lhasa can list, test and extract archives but deliberately
+cannot create them.
+
+Sparkpaw now uses classic LHa 1.14i-ac20220213, installed in the ignored local
+`.toolchain/lha/bin/lha`, to create both release archives with `-lh5-`. An
+absolute `LHA` environment override is supported for another creation-capable
+installation. Packaging deletes stale output first, invokes LHa from the parent
+of the versioned drawer, CRC-tests the result and fails unless at least one
+`-lh5-` member is present. The ordinary HD and WHDLoad directory structures and
+payload bytes are unchanged.
+
+The normal `make` and `make release` path succeeds. Independent Lhasa extraction
+compares byte-for-byte with both staged drawers. The current HD artifact falls
+from about 1.9 MiB stored to 586 KiB, and WHDLoad from about 1.9 MiB to 583 KiB.
+This changes host release packaging only; the ZIP, ADF, runtime loader, renderer,
+gameplay and acceptance boundary are unchanged.
+
+The packaging correction is released under the new `0.6.0-alpha.55` identity;
+alpha.54 is not reused for different archive bytes. Alpha.55 contains the same
+executables and staged runtime assets as alpha.54, with versioned packaged
+ReadMe text, and advances no gameplay roadmap checkpoint. The persistent
+`ship-sparkpaw-checkpoint` and
+`run-sparkpaw-test-cycle` skills now require creation-capable classic LHa,
+`-lh5-` member inspection, CRC validation and independent extraction checks
+where applicable, so later sessions cannot silently regress to stored LHA
+artifacts.
+
+The final alpha.55 release build and host suite pass. The bootable DOS1/FFS ADF
+uses 1,445 blocks (722 KiB) and leaves 315 free; the one-block change from
+alpha.54 is versioned packaged ReadMe text, not game data. Independent Lhasa
+extraction matches both staged drawers byte-for-byte. HD LHA contains 34
+`-lh5-` files at 600,711 bytes; WHDLoad LHA contains 36 at 596,753 bytes. Final
+SHA-256 values are: HD LHA
+`c9d995d9e93a37c828bd7736cc73c7f2ffa22b5b5faf3a3beabd14714d30818c`,
+HD ZIP `9b0fcabe4d104db15a302a62fe1456baccc51b4846b68c8085d5d992f5eb0542`,
+ADF `c51ac8796e966ebcae790dc871725d901b69e4806f2a497d9926eb25a24e1f66`,
+WHDLoad LHA
+`ab276e53ae1ea354f7ffc1ab4e8ffbc14b9a2d026c31b314e462e22d5b3c8a53`
+and WHDLoad ZIP
+`cd0f442253ac9e0bd123301e97f9a988a5d615112157311d082dca5cc0bb22ca`.
+
+Supplied real-A1200/68030 alpha.55 evidence subsequently rejects WHDLoad intro
+traversal. A 14.775-second phone recording shows story plate 1 and both of its
+passages normally, followed by the authored fade and a clean return to
+Workbench exactly where plate 2 should load. The ordinary alpha.55 HD build
+does not reproduce the failure. SnoopDOS shows successful WHDLoad package/asset
+discovery, and Workbench displays the 31-character parent drawer shortened to
+`Sparkpaw-0.6.0-alpha.55-WHDLoa`. Because that drawer still launches and plate 1
+works, its truncation is evidence of a name boundary but not a sufficient root
+cause. The plate-2 source filename is also 31 characters, but the passing HD
+path means its role remains a WHDLoad-specific hypothesis rather than a proven
+general AmigaDOS failure.
+
+The focused `Sparkpaw-WHDIntroDiag` package keeps the alpha.55 WHDLoad assets,
+memory configuration, slave and runtime behavior, changes only bounded intro
+load logging and uses a 21-character root drawer. It records before/after each
+plate load, detailed Open/header/palette/allocation/plane/mask failure, IoErr
+and Chip/Fast free/largest values to `data/whdintrodiag.log`. Host tests and the
+native 68020 diagnostic build pass. The ZIP contains one self-contained drawer,
+passes archive testing, is 596,737 bytes and has SHA-256
+`a81b3fe822ce2b9678d163bb20678b4fd5adb89e513a1ae9c8cae4aec1901026`.
+Real-hardware diagnosis remains pending the returned log.
+
+The supplied photo of `data/whdintrodiag.log` resolves the failure class. Plate
+1 records `load_ok`; plate 2 records `load_failed failure=open ioerr=205`.
+AmigaOS NDK `dos/dos.h` defines 205 as `ERROR_OBJECT_NOT_FOUND`. About 2.07 MB
+Chip remains free with a 1.92 MB largest block, and about 7.70 MB Fast remains,
+so bitmap allocation and plane reading are not reached. Because the diagnostic
+root is only 21 characters, the earlier versioned parent truncation is not the
+necessary cause. The requested `intro-plate-02-instruction.spbm` component is
+itself 31 characters and is the proven WHDLoad name-resolution boundary. The
+next correction should use short WHDLoad runtime aliases and preserve ordinary
+HD paths until focused real-hardware retest accepts complete intro traversal.
+
+Comparison against the real-hardware-working alpha.52 commit finds no change to
+the five intro path strings, WHDLoad compile flags or BootDOS slave through
+alpha.54; the intervening runtime change is the ready-menu atlas. Alpha.55 then
+replaces hand-written stored level-0 LHA members with classic compressed LHa
+output and explicit directory records, while the focused diagnostic was
+delivered as ZIP. The regression is therefore not a newly introduced intro
+filename in the executable. Earlier success depended on the old archive and
+extractor preserving names beyond the compatibility boundary; current
+extraction leaves the requested object unresolved. A manifest audit finds
+three packaged components over 30 characters: intro plate 2 (31), intro plate 3
+(36) and the ready-menu atlas (32). Correct all three for WHDLoad so later
+startup does not merely move the same failure to plate 3 or the ready screen.
+
+The isolated correction compiles `SPARKPAW_WHDLOAD_SHORT_NAMES` only into
+`build/sparkpaw-whdload-shortnames`. The packager copies the canonical bytes as
+`intro2.spbm`, `intro3.spbm` and `readymenu.spbm`, excludes their long aliases
+and rejects any remaining runtime component longer than 30 characters. The
+resulting self-contained `Sparkpaw-WHDShortNames.zip` has 31 runtime files, a
+maximum component length of 28, passes ZIP integrity and contains an executable
+whose embedded paths select only the three short aliases. Full host tests and
+native 68020 compilation pass. The 596,734-byte ZIP has SHA-256
+`86338e2cc449b57496fa15da51479b37b40d32614b7da0ad988af9e4180d8aba`.
+The earlier diagnostic ZIP is preserved under `dist/older-builds`.
+
+MrDig's supplied real-A1200/68030 test accepts the short-name correction through
+all five intro plates, title, loading, charging and the ready menu. This proves
+the component-length diagnosis for the tested WHDLoad route. Alpha.56 promotes
+the aliases to the only canonical SPBM names for both ordinary HD and WHDLoad;
+ADF packing consumes those same sources for its already-short SPR1 streams.
+The external WHDLoad artifact retains its descriptive versioned filename, but
+the archived top-level drawer becomes `Sparkpaw-0.6.0-a56-WHDLoad`. Both
+packagers now reject any extracted component over 30 characters. The isolated
+short-name compiler/package mode is removed because production itself carries
+the accepted rule. Asset bytes, renderer, gameplay and memory configuration
+are unchanged.
+
+The final alpha.56 host suite, native HD/ADF/WHDLoad builds and package checks
+pass. The ADF uses 1,446 DOS1/FFS blocks (723 KiB), leaving 314 free. HD and
+WHDLoad ZIP/LHA manifests have a maximum extracted component length of 28;
+independent Lhasa extraction compares byte-for-byte with both staged drawers.
+The HD LHA contains 34 `-lh5-` files and is 600,695 bytes; WHDLoad contains 36
+and is 596,375 bytes. Final SHA-256 values are: HD LHA
+`b1cbe338d7c3297a70cc52e92cd67a436f1794c032d0f1f5c078bb1c923d5683`,
+HD ZIP `5a5f35b1adf363b29a600497a88befa1433af0637f04fc7b93b6deea6494bd4c`,
+ADF `33f3ac0473d3f00a5c5cd5345fa1be26871fb4518f238592387e9472d095bc7e`,
+WHDLoad LHA
+`f4843eecf730c0e2394182cfca226aad93906385171738e44db96c3575f8f87f`
+and WHDLoad ZIP
+`c9eed9128131394bbf7e4724f7f5d0ad3041af9a55abe65f9e8ccc18841dd62f`.

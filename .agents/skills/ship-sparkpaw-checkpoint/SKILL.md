@@ -35,6 +35,33 @@ and must only be produced when MrDig explicitly requests it. Do not delete
 ignored local evidence or backups while cleaning release outputs. Never infer
 WHDLoad startup or gameplay acceptance from successful package assembly.
 
+Sparkpaw LHA releases require classic creation-capable LHa 1.14i at
+`sparkpaw/.toolchain/lha/bin/lha`, or an absolute `LHA` override. Do not accept
+Homebrew Lhasa as the creator: it can list, test and extract but cannot create
+archives. For both HD and WHDLoad `.lha` files:
+
+1. confirm archive creation and the packager's CRC test succeed;
+2. inspect member methods and require file members to be `-lh5-`, never a
+   silently restored all-`-lh0-` archive;
+3. independently extract with Lhasa when available and compare byte-for-byte
+   with the matching staged drawer;
+4. report archive byte sizes and SHA-256 values in the release handoff.
+
+Treat 30 characters as the maximum Amiga-safe length for every extracted path
+component, including the top-level drawer. Audit both ZIP and LHA member paths
+and require the packagers' name guards to pass. HD and WHDLoad must share the
+same short canonical runtime filenames; ADF SPR1 creation must consume those
+same short sources. A longer descriptive host artifact filename is allowed only
+when its archived top-level drawer is separately shortened and versioned. Never
+reintroduce the alpha.55 overlength intro/menu names: supplied real-A1200
+WHDLoad testing proved an `Open`/IoErr 205 failure at the 31-character plate-2
+component and accepted `intro2.spbm`, `intro3.spbm` and `readymenu.spbm`.
+
+On a fresh Mac, install the tested Universal classic LHa
+1.14i-ac20220213 build from `https://github.com/amigavision/LhA` into the local
+ignored toolchain path. Keep the source URL/version in `docs/BUILDING.md`; never
+commit a host binary into the repository.
+
 For releases with Workbench launchers, verify both HD and WHDLoad project icons
 with `amigainfo`: each must retain the shared 86x93 embedded 34-colour NewIcons
 layer and 86x93 three-bitplane standard OS 2.x/3.x fallback. HD must use

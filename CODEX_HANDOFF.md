@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 27 August 2026
+Last updated: 28 August 2026
 
 ## Start here
 
@@ -45,14 +45,63 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.54`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.56`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.54.lha`
-- `Sparkpaw-0.6.0-alpha.54.zip`
-- `Sparkpaw-0.6.0-alpha.54.adf`
-- `Sparkpaw-0.6.0-alpha.54-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.54-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.54/`
+- `Sparkpaw-0.6.0-alpha.56.lha`
+- `Sparkpaw-0.6.0-alpha.56.zip`
+- `Sparkpaw-0.6.0-alpha.56.adf`
+- `Sparkpaw-0.6.0-alpha.56-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.56-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.56/`
+
+Both LHA artifacts are genuinely compressed with classic `-lh5-`, not stored
+as the former Python-generated `-lh0-` members. Sparkpaw uses the ignored local
+`.toolchain/lha/bin/lha` (classic LHa 1.14i) or an explicit absolute `LHA`
+override, CRC-tests each completed archive and rejects output without an
+`-lh5-` member. Homebrew Lhasa remains useful for independent list/test/extract
+verification but cannot create archives.
+
+Alpha.55 is packaging-only: it promotes this real LHA compression into a new
+release identity so the already published alpha.54 bytes are never reused for
+different archive contents. Executables, runtime assets, archive layouts, ADF
+game data, runtime loader, renderer, gameplay and audio are unchanged from
+alpha.54; versioned names and packaged ReadMe text advance to alpha.55. Its
+bootable DOS1/FFS ADF uses 1,445 blocks (722 KiB) and leaves 315 free.
+
+Supplied real-A1200 evidence rejects alpha.55 WHDLoad intro traversal: plate 1
+and both passages display, then the program returns cleanly to Workbench where
+plate 2 should load. The ordinary alpha.55 HD build does not reproduce the
+failure. Workbench visibly shortens the 31-character versioned WHDLoad drawer
+to 30 characters, but successful launch and plate 1 make that parent name an
+insufficient cause. A focused short-drawer `Sparkpaw-WHDIntroDiag` ZIP logs each
+plate load, detailed asset failure, IoErr and Chip/Fast free/largest values to
+`data/whdintrodiag.log`. The supplied log confirms plate 1 loads, then plate 2
+fails at `Open` with IoErr 205 (`ERROR_OBJECT_NOT_FOUND`) while roughly 2.07 MB
+Chip and 7.70 MB Fast remain free. This rules out allocation and read failure.
+The 21-character diagnostic parent also rules out the versioned parent drawer
+as the necessary cause; plate 2's own 31-character filename is the failing
+WHDLoad boundary. Source comparison shows alpha.52 and alpha.54 use the same
+intro names and WHDLoad compile/slave path; alpha.54 only adds the ready menu.
+The relevant recent change is alpha.55 archive construction (`-lh0-` level-0
+members to classic `-lh5-` with explicit directories), while the diagnostic
+was delivered as ZIP. The earlier working package therefore depended on an
+archive/extractor combination preserving overlength components. The manifest
+also contains 36-character intro plate 3 and 32-character ready-menu names, so
+all WHDLoad runtime components must be made <=30 rather than relying on archive
+format behavior. The focused `Sparkpaw-WHDShortNames.zip` changed those assets
+to `intro2.spbm`, `intro3.spbm` and `readymenu.spbm`. MrDig's supplied real-
+A1200/68030 test accepts this correction through all five intro plates, title,
+loading, charging and the ready menu.
+
+Alpha.56 promotes that accepted correction universally. HD and WHDLoad use the
+same short canonical SPBM names, while the ADF packer consumes those same
+sources for its already-short SPR1 names. Release tooling rejects runtime or
+extracted drawer components longer than 30 characters. The descriptive WHDLoad
+artifact filename remains versioned, but it extracts to the Amiga-safe drawer
+`Sparkpaw-0.6.0-a56-WHDLoad`. Asset bytes, renderer, gameplay and memory
+configuration are unchanged from alpha.55.
+The alpha.56 bootable DOS1/FFS ADF uses 1,446 blocks (723 KiB) and leaves 314
+free; this is package/decode evidence, not new ADF gameplay acceptance.
 
 Alpha.54 expands the accepted Phase 6C.4 ready screen into a two-item menu.
 `START GAME` remains selected by default and Fire/Space follows the existing

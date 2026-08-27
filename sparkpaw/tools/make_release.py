@@ -7,11 +7,9 @@ from __future__ import annotations
 
 import os
 import shutil
-import struct
 import subprocess
 import sys
 import tempfile
-import time
 import re
 from pathlib import Path
 
@@ -21,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.54"
+RELEASE_VERSION = "0.6.0-alpha.56"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -49,23 +47,24 @@ ADF_STATUS_ASSETS = (
     ROOT / "build" / "adf-assets" / "level-ready-menu.spr1",
 )
 ADF_RAW_NAMES = {
-    "intro1.spr1": "intro-plate-01-balance.spbm",
-    "intro2.spr1": "intro-plate-02-instruction.spbm",
-    "intro3.spr1": "intro-plate-03-reversed-network.spbm",
-    "intro4.spr1": "intro-plate-04-motive.spbm",
-    "intro5.spr1": "intro-plate-05-quest.spbm",
+    "intro1.spr1": "intro1.spbm",
+    "intro2.spr1": "intro2.spbm",
+    "intro3.spr1": "intro3.spbm",
+    "intro4.spr1": "intro4.spbm",
+    "intro5.spr1": "intro5.spbm",
     "sparkpaw-level-loading.spr1": "sparkpaw-level-loading.spbm",
     "level-charge-patch.spr1": "level-charge-patch.spbm",
     "level-ready.spr1": "sparkpaw-ready-screen.spbm",
-    "level-ready-menu.spr1": "sparkpaw-ready-menu-patches.spbm",
+    "level-ready-menu.spr1": "readymenu.spbm",
 }
+LHA = Path(os.environ.get("LHA", ROOT / ".toolchain" / "lha" / "bin" / "lha"))
 
 RUNTIME_FILES = (
     "sparkpaw-title.spbm",
     "sparkpaw-level-loading.spbm",
     "level-charge-patch.spbm",
     "sparkpaw-ready-screen.spbm",
-    "sparkpaw-ready-menu-patches.spbm",
+    "readymenu.spbm",
     "sparkpaw-hud-base.spbm",
     "sparkpaw-hud-health.spbm",
     "sparkpaw-hud-lives.spbm",
@@ -87,12 +86,20 @@ RUNTIME_FILES = (
     "collect-spark.raw",
     "water-splash.raw",
     "stormstone-core.raw",
-    "intro-plate-01-balance.spbm",
-    "intro-plate-02-instruction.spbm",
-    "intro-plate-03-reversed-network.spbm",
-    "intro-plate-04-motive.spbm",
-    "intro-plate-05-quest.spbm",
+    "intro1.spbm",
+    "intro2.spbm",
+    "intro3.spbm",
+    "intro4.spbm",
+    "intro5.spbm",
 )
+
+
+def validate_amiga_names() -> None:
+    overlength = sorted(name for name in RUNTIME_FILES if len(name) > 30)
+    if overlength:
+        raise SystemExit(
+            f"runtime filenames exceed the Amiga-safe 30-character limit: {overlength}"
+        )
 
 RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
@@ -100,6 +107,22 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
+
+Alpha.56 promotes the real-A1200-accepted WHDLoad filename correction. All HD,
+WHDLoad and ADF source manifests now share short canonical intro and ready-menu
+asset names; every extracted path component is limited to 30 characters. The
+WHDLoad archive keeps its descriptive external filename but extracts to a short
+versioned drawer. Supplied real-A1200/68030 WHDLoad testing accepts the complete
+five-plate intro and transition through title/loading/charging to the ready
+menu. Renderer, gameplay, memory configuration and asset bytes are unchanged.
+
+Alpha.55 changes release packaging only. Both the ordinary HD and WHDLoad LHA
+artifacts now use genuine classic -lh5- compression instead of stored -lh0-
+members. Their staged drawer contents, executable, assets and loader paths are
+unchanged apart from versioned ReadMe text. The packager CRC-tests each completed
+archive and rejects output without compressed members. ADF game data, gameplay,
+renderer and audio behavior remain identical to alpha.54; no new runtime
+acceptance is inferred.
 
 Alpha.54 expands the accepted ready screen into a compact two-item menu.
 START GAME remains selected by default and Fire/Space follows the same direct
@@ -529,28 +552,28 @@ the absence of stale 64x64 pixels. Music remains outside this milestone.
 """
 
 
-def crc16(data: bytes) -> int:
-    crc = 0
-    for byte in data:
-        crc ^= byte
-        for _ in range(8):
-            crc = (crc >> 1) ^ 0xA001 if crc & 1 else crc >> 1
-    return crc & 0xFFFF
-
-
-def dos_time(timestamp: float) -> int:
-    value = time.localtime(timestamp)
-    return ((max(1980, min(2107, value.tm_year)) - 1980) << 25 |
-            value.tm_mon << 21 | value.tm_mday << 16 | value.tm_hour << 11 |
-            value.tm_min << 5 | value.tm_sec // 2)
-
-
-def lha_member(name: str, data: bytes, timestamp: float) -> bytes:
-    encoded = name.encode("latin-1")
-    body = (b"-lh0-" + struct.pack("<IIIBBB", len(data), len(data),
-            dos_time(timestamp), 0x20, 0, len(encoded)) + encoded +
-            struct.pack("<H", crc16(data)))
-    return bytes((len(body), sum(body) & 255)) + body + data
+def make_lha(stage_root: Path, stage_name: str, output: Path) -> Path:
+    """Create and CRC-test a genuinely compressed, Amiga-compatible LHA."""
+    if not LHA.is_file():
+        raise SystemExit(
+            f"missing LHA archiver: {LHA}\n"
+            "Install classic LHa 1.14i under .toolchain/lha/bin/lha "
+            "or set LHA=/absolute/path/to/a creation-capable lha."
+        )
+    output.unlink(missing_ok=True)
+    subprocess.run(
+        [str(LHA), "aq2o5", str(output.resolve()), stage_name],
+        cwd=stage_root,
+        check=True,
+    )
+    subprocess.run(
+        [str(LHA), "tq2", str(output.resolve())],
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+    if b"-lh5-" not in output.read_bytes():
+        raise SystemExit(f"LHA compression verification failed: {output}")
+    return output
 
 
 def copy_runtime() -> None:
@@ -764,6 +787,7 @@ def validate_release_identity() -> None:
 
 
 def main() -> None:
+    validate_amiga_names()
     include_source = sys.argv[1:] == ["--include-source"]
     if sys.argv[1:] and not include_source:
         raise SystemExit("usage: make_release.py [--include-source]")
@@ -775,13 +799,7 @@ def main() -> None:
     ))
     review_drawer = DIST / RELEASE_NAME
     shutil.copytree(STAGE, review_drawer)
-    lha_path = DIST / f"{RELEASE_NAME}.lha"
-    with lha_path.open("wb") as output:
-        for path in sorted(STAGE.rglob("*")):
-            if path.is_file():
-                relative = path.relative_to(STAGE_PARENT).as_posix()
-                output.write(lha_member(relative, path.read_bytes(), path.stat().st_mtime))
-        output.write(b"\0")
+    lha_path = make_lha(STAGE_PARENT, STAGE.name, DIST / f"{RELEASE_NAME}.lha")
     adf_path = make_adf()
     paths = [zip_path, lha_path, adf_path]
     if include_source:

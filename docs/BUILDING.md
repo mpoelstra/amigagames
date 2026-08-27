@@ -7,7 +7,14 @@
 - Pillow and amigainfo, installed with
 	`python3 -m pip install -r requirements-dev.txt`
 - CMake and a host C++ compiler for the Light Speed Player converter
-- `zip` and an LHA-compatible archiver for complete release packaging
+- `zip` and classic LHa 1.14i with archive-creation support for complete
+  release packaging. Sparkpaw expects it at
+  `sparkpaw/.toolchain/lha/bin/lha`, or at the absolute path supplied through
+  `LHA`. Homebrew's `lhasa` formula can test and extract LHA files but cannot
+  create them, so it is not sufficient for release packaging. The tested macOS
+  Universal build is LHa 1.14i-ac20220213 from
+  `https://github.com/amigavision/LhA`, itself built from
+  `https://github.com/jca02266/lha`.
 
 Compiler SDKs and proprietary reference material are not redistributed by this
 repository. Install a separate local toolchain in every project that you want
@@ -37,6 +44,12 @@ source, and WHDLoad outputs where supported. Sparkpaw's `make release` now
 creates its versioned WHDLoad LHA and ZIP beside the HD and ADF artifacts;
 `make whdload` rebuilds only that pair. Generated files appear below
 `build/` and `dist/` and are intentionally not committed.
+
+Sparkpaw release manifests use one set of Amiga-safe runtime names for HD,
+WHDLoad and the ADF source streams. No extracted filename or drawer component
+may exceed 30 characters. The release scripts enforce this boundary; do not
+restore descriptive long runtime names or derive the extracted WHDLoad root
+directly from its longer public artifact filename.
 
 The Makefiles default to `python3`. Override the interpreter when required:
 
