@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.50`. Roadmap checkpoint: Phase 6C.4 pre-level
+Current release: `0.6.0-alpha.51`. Roadmap checkpoint: Phase 6C.4 pre-level
 ready screen on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -31,6 +31,16 @@ was supplied. Jump physics, animation, audio and the renderer are unchanged.
 The bootable DOS1/FFS ADF validates at 1,354 blocks (677 KiB), leaving 406
 free; this proves package construction and retained-stream decode identity,
 not ADF gameplay acceptance.
+
+Alpha.51 promotes the WHDLoad-only F10 exit correction accepted in supplied
+real-A1200/68030 testing. Once Sparkpaw owns the custom chips, its direct CIA
+keyboard polling now catches raw F10, restores DMA/Copper/Exec ownership and
+returns through the BootDOS slave to Workbench. The normal HD and ADF builds do
+not compile this path. WHDLoad startup, loading and clean F10 return are accepted
+on the supplied real A1200; FS-UAE, ADF and broader WHDLoad gameplay acceptance
+are not inferred.
+The bootable alpha.51 DOS1/FFS ADF validates at 1,355 blocks (678 KiB), leaving
+405 free; this is package/decode evidence, not new ADF gameplay acceptance.
 
 The preceding Phase 6C.2 Core-clearing checkpoint remains accepted.
 Supplied FS-UAE/68030 HD testing accepts the centred waystation, animated Core,
@@ -766,21 +776,27 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.50.lha`
-- `dist/Sparkpaw-0.6.0-alpha.50.zip`
-- `dist/Sparkpaw-0.6.0-alpha.50.adf`
-- `dist/Sparkpaw-0.6.0-alpha.50-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.50-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.50/`
+- `dist/Sparkpaw-0.6.0-alpha.51.lha`
+- `dist/Sparkpaw-0.6.0-alpha.51.zip`
+- `dist/Sparkpaw-0.6.0-alpha.51.adf`
+- `dist/Sparkpaw-0.6.0-alpha.51-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.51-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.51/`
 
-The WHDLoad archives contain a versioned self-contained drawer with the normal
-HD executable and assets under `data/`, a Kickstart 3.1 BootDOS slave, a
-Workbench icon and an installation/test ReadMe. They require WHDLoad 19 or
+The WHDLoad archives contain a versioned self-contained drawer with the
+WHDLoad-specific executable and assets under `data/`, a Kickstart 3.1 BootDOS
+slave, a Workbench icon and an installation/test ReadMe. They require WHDLoad 19 or
 newer plus a legal A1200 Kickstart 3.1 ROM/RTB pair; neither is redistributed.
 F10 exits through WHDLoad. Run `make whdload` to rebuild only these two
-archives after the normal executable and assets exist. This first package is
-host-assembled and archive-verified; WHDLoad gameplay and real-hardware
-acceptance remain pending supplied tests.
+archives. Supplied real-A1200/68030 testing accepts startup, loading and the
+alpha.51 direct-CIA F10 return to Workbench. The normal HD/ADF executable stays
+separate; no FS-UAE, ADF or broader WHDLoad gameplay result is inferred.
+
+The generated Sparkpaw icon remains a 48x48 four-colour classic Workbench icon.
+The visually richer ThunderCats icon photographed on the supplied real A1200
+has not been obtained: the separately downloaded `.info` is a different 90x90
+NewIcons image. A 16-colour RomIcon is plausible but unconfirmed. Preserve this
+as open packaging work until the exact hardware `.info` can be inspected.
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

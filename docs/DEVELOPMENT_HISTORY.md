@@ -5489,3 +5489,55 @@ pass. The bootable DOS1/FFS ADF uses 1,354 blocks (677 KiB), leaving 406 free;
 the HD ZIP/LHA, ADF and both WHDLoad archives are host-validated. These package
 checks add no ADF or WHDLoad gameplay acceptance beyond the supplied real-A1200
 HD result.
+
+### 27 August 2026 - WHDLoad F10 exit diagnosis and hardware candidate
+
+Supplied real-A1200/68030 testing of the alpha.49 WHDLoad package accepts
+startup and loading but rejects the documented F10 exit. Source inspection
+isolates the boundary: after the ready screen appears, Sparkpaw calls
+`Disable()`, clears custom `INTENA` and polls the keyboard CIA directly. The
+KickEmu `slv_keyexit` hook lives in the normal keyboard-interrupt route, so it
+never observes F10 after custom-chip takeover; Sparkpaw acknowledges and
+otherwise discards that raw key itself.
+
+The isolated `WHDLoad-F10-Exit-Real-A1200` candidate adds no interrupt handler
+and does not alter the normal HD or ADF executable. Only the
+`SPARKPAW_WHDLOAD` build latches raw F10, leaves the ready wait or gameplay
+loop, restores DMA/Copper/Exec ownership, frees game resources and returns to
+the existing slave, which completes with `resload_Abort(TDREASON_OK)`. The
+normal executable remains byte-identical to alpha.50. Host tests, native builds
+and ZIP integrity pass; clean Workbench return from both ready screen and
+gameplay remains pending supplied real-A1200 testing.
+
+### 27 August 2026 - Alpha.51 promotes the accepted WHDLoad F10 return
+
+MrDig's subsequent real-A1200/68030 test accepts the isolated correction and a
+clean return to Workbench. Alpha.51 therefore compiles the direct raw-F10 latch
+only into `build/sparkpaw-whdload`, which is the executable packaged under the
+WHDLoad drawer's `data/`. The ordinary HD executable and ADF build omit
+`SPARKPAW_WHDLOAD`, preserving their prior exit behavior and runtime bytes apart
+from the normal release rebuild. The BootDOS slave remains unchanged and still
+finishes through `resload_Abort(TDREASON_OK)` after the program returns.
+
+The general lesson is that a slave header's `slv_keyexit` is not sufficient
+when a game disables the OS/custom interrupts and consumes raw CIA keyboard
+events itself. Such a runtime must either preserve a compatible interrupt route
+or explicitly recognize the quit key and unwind through the program/slave
+boundary; aborting directly from arbitrary game state would skip Sparkpaw's
+resource and hardware restoration.
+
+Icon investigation remains deliberately separate. Sparkpaw currently generates
+a 48x48, two-bitplane classic icon. A downloaded `ThunderCats.info` was decoded
+as a 90x90, 35-colour NewIcons image with IM1/IM2 states, but its extracted art
+does not match the box-cover icon photographed on the real A1200. The downloaded
+file therefore cannot establish the hardware icon's format. A 16-colour RomIcon
+is a plausible visual match, not an accepted fact; inspect the exact A1200
+`.info` before replacing Sparkpaw's icon or documenting a target format.
+
+The normal build, complete host regression suite and release pipeline pass.
+Packaging produces the five consistently versioned alpha.51 artifacts plus the
+extracted HD review drawer. The bootable DOS1/FFS ADF uses 1,355 blocks
+(678 KiB) and leaves 405 free. Both WHDLoad archives pass integrity checks, and
+the executable extracted from the ZIP is byte-identical to
+`build/sparkpaw-whdload`. These host checks do not add gameplay acceptance
+beyond the supplied real-A1200 WHDLoad startup/loading/F10 result.

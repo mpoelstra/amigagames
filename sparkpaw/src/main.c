@@ -162,6 +162,11 @@ int main(void)
        raw-key path with joystick Fire. */
     platformFinishTakeover(titleCopperList());
     titleWaitLevelReadyFire();
+#ifdef SPARKPAW_WHDLOAD
+    if(platformWHDLoadQuitRequested()) {
+        platformRestore(); cleanup(); return 0;
+    }
+#endif
     titleFadeOut();
     rendererUpdateGameplay();
     platformSwitchCopper(rendererCopperList());
@@ -172,6 +177,17 @@ int main(void)
     state=APP_PLAYING;
     while(state==APP_PLAYING) {
         ULONG profileStart;
+#ifdef SPARKPAW_WHDLOAD
+        BOOL ignoredLeft,ignoredRight,ignoredDown,ignoredJump,ignoredFire;
+        /* Poll once even while a gameplay state temporarily skips player
+           input. The later player poll reads the same cached key state. */
+        platformReadGameKeys(&ignoredLeft,&ignoredRight,&ignoredDown,
+                             &ignoredJump,&ignoredFire);
+        if(platformWHDLoadQuitRequested()) {
+            state=APP_BOOT;
+            break;
+        }
+#endif
 #ifdef SPARKPAW_UPDATE_LINE100_REFERENCE
         while(platformRasterLine()<100) { }
 #endif
@@ -231,6 +247,9 @@ int main(void)
         if(platformLeftMouse()) state=APP_BOOT;
 #endif
     }
+#ifdef SPARKPAW_WHDLOAD
+    platformRestore(); cleanup(); return 0;
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     while(platformLeftMouse()) { }
     platformPrepareDebugFlush();

@@ -16,6 +16,7 @@ RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) \
 	-DSPARKPAW_STORY_INTRO
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
+WHDLOAD_TARGET = build/sparkpaw-whdload
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
 INTRO_PROOF_TARGET = build/sparkpaw-intro-proof
@@ -420,6 +421,11 @@ $(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS
 	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
+$(WHDLOAD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_WHDLOAD -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
 $(INTRO_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
 		$(STORY_INTRO_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
@@ -480,11 +486,11 @@ build/adf-assets/level-ready.spr1: assets/runtime/sparkpaw-ready-screen.spbm too
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 
-release: all $(ADF_TARGET) $(ADF_ASSETS)
+release: all $(ADF_TARGET) $(ADF_ASSETS) $(WHDLOAD_TARGET)
 	$(PYTHON) tools/make_release.py
 	$(PYTHON) tools/make_whdload.py
 
-whdload: all
+whdload: all $(WHDLOAD_TARGET)
 	$(PYTHON) tools/make_whdload.py
 
 adf-report: all

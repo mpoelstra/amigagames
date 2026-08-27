@@ -45,14 +45,14 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.50`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.51`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.50.lha`
-- `Sparkpaw-0.6.0-alpha.50.zip`
-- `Sparkpaw-0.6.0-alpha.50.adf`
-- `Sparkpaw-0.6.0-alpha.50-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.50-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.50/`
+- `Sparkpaw-0.6.0-alpha.51.lha`
+- `Sparkpaw-0.6.0-alpha.51.zip`
+- `Sparkpaw-0.6.0-alpha.51.adf`
+- `Sparkpaw-0.6.0-alpha.51-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.51-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.51/`
 
 Alpha.50 adds an optional secondary-button jump input on joystick
 port 2 alongside the preserved joystick Up and keyboard W paths. Port 2 pin 5
@@ -66,11 +66,24 @@ separately identified CD32-pad acceptance is inferred.
 The bootable alpha.50 DOS1/FFS ADF validates at 1,354 blocks (677 KiB), leaving
 406 free; this is package/decode evidence, not ADF gameplay acceptance.
 
-The WHDLoad packages wrap the normal HD executable/runtime in a Kickstart
+The WHDLoad packages wrap a dedicated WHDLoad executable/runtime in a Kickstart
 3.1 BootDOS slave, fit the established 2 MB Chip plus 8 MB Fast target and
 provide F10 as the WHDLoad exit key. They include neither WHDLoad nor Kickstart.
-Package construction is host-verified; WHDLoad gameplay and real-hardware
-acceptance remain pending supplied testing.
+Package construction is host-verified. Supplied real-A1200/68030 testing first
+accepted WHDLoad startup/loading but rejected the alpha.49 F10 exit after
+Sparkpaw's custom-chip takeover. Alpha.51 promotes the accepted correction: a
+WHDLoad-only executable catches raw F10 during direct CIA polling, restores
+system ownership and returns through the slave to Workbench. The normal HD and
+ADF executables remain separate and unchanged by this compile-time path.
+The bootable alpha.51 DOS1/FFS ADF validates at 1,355 blocks (678 KiB), leaving
+405 free; this is package/decode evidence, not new ADF gameplay acceptance.
+
+The current generated Sparkpaw icon is a palette-dependent 48x48 four-colour
+classic Workbench icon. A downloaded ThunderCats package was proven to contain
+a different 90x90 NewIcons image and is not the icon shown on MrDig's real
+A1200. The hardware icon may be a 16-colour RomIcon, but this remains explicitly
+unconfirmed until its actual `.info` file is supplied; do not use the downloaded
+NewIcon or a photograph alone as format proof.
 
 Alpha.49 reserves pure black palette pen 0 in all five intro plates and the
 ready screen. This removes the full-height one-pixel `COLOR00` border exposed

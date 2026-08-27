@@ -468,11 +468,17 @@ void titleWaitLevelReadyFire(void)
     BOOL left,right,down,jump,space,held;
     do {
         platformReadGameKeys(&left,&right,&down,&jump,&space);
+#ifdef SPARKPAW_WHDLOAD
+        if(platformWHDLoadQuitRequested()) return;
+#endif
         held=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||space;
         waitOwnedDisplayFrame();
     } while(held);
     do {
         platformReadGameKeys(&left,&right,&down,&jump,&space);
+#ifdef SPARKPAW_WHDLOAD
+        if(platformWHDLoadQuitRequested()) return;
+#endif
         held=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||space;
         if(!held) waitOwnedDisplayFrame();
     } while(!held);

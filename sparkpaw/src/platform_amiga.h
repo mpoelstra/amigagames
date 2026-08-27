@@ -13,6 +13,9 @@ UWORD platformRasterLine(void);
 void platformWaitBlit(void);
 void platformSetBlitterPriority(BOOL enabled);
 BOOL platformSecondaryButtonHeld(void);
+#ifdef SPARKPAW_WHDLOAD
+BOOL platformWHDLoadQuitRequested(void);
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 BOOL platformBlitterBusy(void);
 BOOL platformLeftMouse(void);

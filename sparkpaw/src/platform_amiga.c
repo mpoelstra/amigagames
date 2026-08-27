@@ -18,6 +18,9 @@ static struct View *systemView;
 static UWORD oldDma,oldIntena;
 static BOOL systemLocked,interruptsDisabled;
 static UBYTE gameKeys;
+#ifdef SPARKPAW_WHDLOAD
+static BOOL whdloadQuitRequested;
+#endif
 
 #define CIAA_SDR (*(volatile UBYTE *)0xbfec01)
 #define CIAA_ICR (*(volatile UBYTE *)0xbfed01)
@@ -70,6 +73,9 @@ void platformClose(void)
 void platformBeginTakeover(void)
 {
     gameKeys=0;
+#ifdef SPARKPAW_WHDLOAD
+    whdloadQuitRequested=FALSE;
+#endif
     WaitTOF(); hardware->color[0]=0;
     hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
 }
@@ -124,6 +130,13 @@ BOOL platformSecondaryButtonHeld(void)
 {
     return (hardware->potinp&PORT2_SECOND_BUTTON)==0;
 }
+
+#ifdef SPARKPAW_WHDLOAD
+BOOL platformWHDLoadQuitRequested(void)
+{
+    return whdloadQuitRequested;
+}
+#endif
 
 UWORD platformRasterLine(void)
 {
@@ -246,6 +259,12 @@ void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
         code=(UBYTE)~CIAA_SDR;
         code=(UBYTE)((code>>1)|(code<<7));
         acknowledgeKeyboard();
+#ifdef SPARKPAW_WHDLOAD
+        /* Once Sparkpaw owns the custom chips, Exec's keyboard interrupt no
+           longer reaches the KickEmu quit-key patch. Preserve F10 explicitly
+           and return through the program/slave boundary instead. */
+        if(code==0x59) whdloadQuitRequested=TRUE;
+#endif
         switch(code&0x7f) {
             case 0x11: flag=GAMEKEY_W; break;
             case 0x20: flag=GAMEKEY_A; break;

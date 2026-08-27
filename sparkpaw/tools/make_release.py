@@ -20,7 +20,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.50"
+RELEASE_VERSION = "0.6.0-alpha.51"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -97,6 +97,13 @@ AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
 
+Alpha.51 promotes the real-A1200-accepted WHDLoad F10 exit correction. The
+WHDLoad-only executable catches raw F10 during Sparkpaw's direct CIA keyboard
+polling, leaves the ready or gameplay loop, restores system ownership and
+returns through the slave to Workbench. The normal HD and ADF executables keep
+their existing behavior. Supplied real-A1200/68030 WHDLoad testing accepts
+startup, loading and clean F10 return; no FS-UAE or ADF result is inferred.
+
 Alpha.50 adds joystick-port-2 secondary-button jumping alongside the preserved
 joystick Up and keyboard W inputs. All three feed the existing combined press
 edge, so holding or overlapping them cannot retrigger a jump. Primary Fire and
@@ -109,9 +116,7 @@ and ready asset. This removes the one-pixel full-height coloured border exposed
 by the Indivision but normally hidden by CRT overscan and FS-UAE. Supplied
 FS-UAE/68030 HD and real-A1200/Indivision HD testing accept the correction.
 The build test now rejects any affected SPBM whose palette pen 0 is not black.
-This release also adds versioned WHDLoad LHA/ZIP packages around the normal HD
-runtime. Their construction is host-verified; WHDLoad startup, F10 exit and
-gameplay remain pending supplied testing.
+This release also adds versioned WHDLoad LHA/ZIP packages around the HD runtime.
 
 Alpha.48 adds a unique 64-colour AGA ready screen after CHARGING and only after
 gameplay data and renderer preparation are complete. Its isolated Sparkpaw

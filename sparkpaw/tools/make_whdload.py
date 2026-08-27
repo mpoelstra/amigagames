@@ -145,13 +145,17 @@ def make_lha() -> Path:
 
 
 def main() -> None:
+    if sys.argv[1:]:
+        raise SystemExit("usage: make_whdload.py")
+    executable = ROOT / "build" / "sparkpaw-whdload"
     assemble()
     if STAGE_ROOT.exists():
         shutil.rmtree(STAGE_ROOT)
     data = STAGE / "data"
     (data / "assets" / "runtime").mkdir(parents=True)
     shutil.copy2(SLAVE, STAGE / "Sparkpaw.Slave")
-    shutil.copy2(ROOT / "sparkpaw", data / "Sparkpaw")
+    require(executable, "WHDLoad game executable")
+    shutil.copy2(executable, data / "Sparkpaw")
     for name in RUNTIME_FILES:
         source = ROOT / "assets" / "runtime" / name
         require(source, f"runtime asset {name}")
