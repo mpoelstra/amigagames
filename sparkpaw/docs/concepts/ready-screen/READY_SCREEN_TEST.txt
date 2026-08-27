@@ -1,0 +1,40 @@
+Sparkpaw pre-level ready screen - FS-UAE/68020 HD final gate
+============================================================
+
+Hypothesis
+----------
+After all loading and renderer preparation, Sparkpaw can show a restrained
+AGA ready screen and start Level 1 immediately on Fire without another pause.
+
+Run
+---
+1. Boot the executable `Sparkpaw-Ready-Screen` from this drawer.
+2. You may use left mouse to skip the complete story intro.
+3. Let TITLE, LOADING and CHARGING finish normally.
+4. Review the ready screen at native scaling: logo sharpness, spacing, prompt
+   readability, richer 64-colour treatment, lower credit alignment, balanced
+   black credit margins, the smaller lower-right platform, palette stability
+   and absence of glitches.
+5. Test either joystick Fire or Space. Level 1 must appear immediately, already
+   loaded and ready to play. Check that Sparkpaw responds normally from the
+   first visible frame. A reset is sufficient to test the other input route.
+
+This is a production/visual build: no diagnostic log is written and left mouse
+does not stop gameplay. Report the visual result and whether Fire entered the
+level without a second loading pause.
+
+Acceptance boundary
+-------------------
+The matching FS-UAE/68030 HD visual/function gate is accepted. This run can
+accept FS-UAE/68020 HD presentation, input and immediate gameplay transition.
+It is a production/visual build without cadence instrumentation, so it does not
+produce a numerical FPS claim. It does not prove ADF gameplay, Analogue Pocket
+or real-A1200 behavior.
+
+Result - 27 August 2026
+-----------------------
+Accepted by supplied FS-UAE/68020 HD testing. The ready screen appeared
+correctly and the Fire/Space transition into the prepared level worked. The
+matching FS-UAE/68030 HD gate was already accepted. No cadence log was produced,
+so this result adds no numerical performance claim and does not widen the ADF,
+Analogue Pocket or real-A1200 acceptance boundary.

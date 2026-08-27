@@ -45,19 +45,23 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.47`, Phase 6C.3. A normal release contains:
+Current release is `0.6.0-alpha.48`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.47.lha`
-- `Sparkpaw-0.6.0-alpha.47.zip`
-- `Sparkpaw-0.6.0-alpha.47.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.47/`
+- `Sparkpaw-0.6.0-alpha.48.lha`
+- `Sparkpaw-0.6.0-alpha.48.zip`
+- `Sparkpaw-0.6.0-alpha.48.adf`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.48/`
 
-Alpha.47 adds the accepted five-plate 64-colour story intro before the title.
-Supplied FS-UAE/68030 and FS-UAE/68020 HD testing accepts its art, passage
-timing, Fire controls, left-mouse complete skip and transition into gameplay.
-Its bootable DOS1/FFS ADF validates at 1,707 blocks (853 KiB), leaving 53
-blocks free; all packed intro/status streams decode byte-identically. ADF
-gameplay and real-hardware acceptance remain pending.
+Alpha.48 adds the accepted 64-colour pre-level ready screen after CHARGING and
+after complete gameplay/renderer preparation. Supplied FS-UAE/68030 and
+FS-UAE/68020 HD testing accepts the isolated crest-free wordmark, Level-1 edge
+architecture, centred prompt/credits, Fire and Space controls and immediate
+transition into gameplay. HD retains alpha.47's complete five-plate story
+intro. The ADF deliberately omits only those cinematic plates and begins at the
+existing title; loading, charging, ready screen and gameplay remain shared.
+The bootable DOS1/FFS ADF uses 1,353 blocks (676 KiB), leaving 407 free; the
+packager verifies every retained SPR1 stream against its source. ADF gameplay
+and real-hardware acceptance remain pending.
 
 MrDig mounts `sparkpaw/dist/` directly as an FS-UAE HD volume. Every
 user-facing FS-UAE HD test or diagnostic drawer must therefore be created

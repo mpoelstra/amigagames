@@ -5399,3 +5399,33 @@ DOS1/FFS ADF uses 1,707 blocks (853 KiB) and leaves 53 free. This proves package
 construction and decode identity, not ADF gameplay. Real-A1200 intro acceptance
 also remains open. The Stage 5L/H7 renderer, Phase 6C.2 gameplay, 2 MB Chip plus
 8 MB Fast minimum and protected 68020 cadence baseline are unchanged.
+
+### 27 August 2026 - Alpha.48 adds the pre-level ready screen
+
+Phase 6C.4 adds a dedicated 64-colour AGA presentation screen after CHARGING.
+It is shown only after all level assets and the gameplay renderer are prepared,
+so joystick Fire or Space can fade directly into the playable level without a
+second loading pause. The accepted composition uses a standalone crest-free
+Sparkpaw wordmark, restrained black negative space, centred prompt and credits,
+Level-1-derived edge architecture and Sparkpaw on a small lower-right platform.
+
+The ready image is loaded temporarily in Fast RAM and copied once into the
+resident six-plane loading bitmap in Chip RAM. It therefore adds no second
+displayable status bitmap and does not alter the protected Stage 5L/H7 gameplay
+renderer. An early title-art reuse was rejected as visually cheap. A malformed
+32-colour SPBM prototype was 96 bytes short (61,548 versus the required 61,644)
+and caused the familiar CHARGING-edge corruption; palette padding plus an exact
+size assertion removed that failure. A later input failure was traced to
+`WaitTOF()` after OS interrupts had been disabled during hardware takeover.
+Owned-display waits now poll a safe raster boundary, making both controls work.
+
+Supplied production-build tests accept presentation, Fire/Space handling and
+the immediate level transition on FS-UAE/68030 HD and FS-UAE/68020 HD. Because
+these were visual/function builds without cadence instrumentation, they make no
+new numerical FPS claim. HD/LHA/ZIP retain the complete five-plate story intro.
+To preserve full-quality art and ample floppy capacity, the ADF deliberately
+omits only that cinematic and begins at the normal title; LOADING, CHARGING,
+the ready screen and gameplay remain common. The final bootable DOS1/FFS image
+uses 1,353 blocks (676 KiB), leaving 407 free, and every retained packed stream
+decodes identically to its source. This package evidence does not establish ADF
+gameplay, Analogue Pocket or real-A1200 acceptance, which remain open.

@@ -9,6 +9,7 @@
 #include <proto/graphics.h>
 
 #include "assets.h"
+#include "platform_amiga.h"
 
 #define COPPER_WORDS 380
 #define SCREEN_ROW_BYTES 40
@@ -217,6 +218,15 @@ static UWORD rasterLine(void)
     return (UWORD)(((high&7)<<8)|(low>>8));
 }
 
+static void waitOwnedDisplayFrame(void)
+{
+    /* Exec interrupts are disabled after platformFinishTakeover(), so WaitTOF
+       can no longer complete. Synchronise the ready-screen input/fade to one
+       real PAL frame boundary directly from the beam instead. */
+    if(rasterLine()<300) while(rasterLine()<300) { }
+    while(rasterLine()>=300) { }
+}
+
 #ifdef SPARKPAW_STORY_INTRO
 static void stageIntroText(UWORD passage,UWORD offset)
 {
@@ -419,9 +429,68 @@ BOOL titleShowLevelLoading(void)
     return TRUE;
 }
 
+BOOL titleShowLevelReady(void)
+{
+    UBYTE plane;
+    LONG planeBytes;
+    const struct PlanarAsset *loading=assetsLevelLoading();
+    const struct PlanarAsset *ready;
+    if(!displayed||!loading->bitmap) {
+        failureReason="loading display unavailable for ready screen";
+        return FALSE;
+    }
+    if(!assetsLoadLevelReady()) {
+        failureReason="six-plane ready screen asset load failed";
+        return FALSE;
+    }
+    ready=assetsLevelReady();
+    if(!ready->bitmap||ready->width!=320||ready->height!=256) {
+        failureReason="ready screen asset has invalid geometry";
+        assetsUnloadLevelReady();
+        return FALSE;
+    }
+    /* Gameplay is already fully prepared. Replace the resident status bitmap
+       once while black; the temporary source stays in Fast RAM and never adds
+       another displayable Chip bitmap. */
+    fadeTo(loading,FALSE);
+    WaitTOF();
+    planeBytes=(LONG)loading->bitmap->BytesPerRow*loading->height;
+    for(plane=0;plane<6;plane++)
+        CopyMem(ready->bitmap->Planes[plane],loading->bitmap->Planes[plane],
+                planeBytes);
+    stagePalette(ready,0);
+    fadeTo(ready,TRUE);
+    return TRUE;
+}
+
+void titleWaitLevelReadyFire(void)
+{
+    BOOL left,right,down,jump,space,held;
+    do {
+        platformReadGameKeys(&left,&right,&down,&jump,&space);
+        held=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||space;
+        waitOwnedDisplayFrame();
+    } while(held);
+    do {
+        platformReadGameKeys(&left,&right,&down,&jump,&space);
+        held=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||space;
+        if(!held) waitOwnedDisplayFrame();
+    } while(!held);
+}
+
+UWORD *titleCopperList(void) { return copper[currentCopper]; }
+
 void titleFadeOut(void)
 {
-    if(displayed&&assetsLevelLoading()->bitmap)
+    if(displayed&&assetsLevelReady()->bitmap) {
+        UWORD frame;
+        for(frame=1;frame<=FADE_FRAMES;frame++) {
+            stagePalette(assetsLevelReady(),(UWORD)(
+                ((ULONG)(FADE_FRAMES-frame)*256)/FADE_FRAMES));
+            waitOwnedDisplayFrame();
+        }
+        assetsUnloadLevelReady();
+    } else if(displayed&&assetsLevelLoading()->bitmap)
         fadeTo(assetsLevelLoading(),FALSE);
 }
 
@@ -451,6 +520,7 @@ void titleRelease(void)
     displayed=FALSE;
     assetsUnloadTitle(); assetsUnloadStoryIntro();
     assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
+    assetsUnloadLevelReady();
     for(index=0;index<2;index++) {
         if(copper[index]) {
             FreeMem(copper[index],COPPER_WORDS*sizeof(UWORD));

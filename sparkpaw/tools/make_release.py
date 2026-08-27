@@ -17,8 +17,8 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.47"
-ROADMAP_CHECKPOINT = "6C.3"
+RELEASE_VERSION = "0.6.0-alpha.48"
+ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -41,6 +41,7 @@ ADF_INTRO_ASSETS = tuple(
 ADF_STATUS_ASSETS = (
     ROOT / "build" / "adf-assets" / "sparkpaw-level-loading.spr1",
     ROOT / "build" / "adf-assets" / "level-charge-patch.spr1",
+    ROOT / "build" / "adf-assets" / "level-ready.spr1",
 )
 ADF_RAW_NAMES = {
     "intro1.spr1": "intro-plate-01-balance.spbm",
@@ -50,12 +51,14 @@ ADF_RAW_NAMES = {
     "intro5.spr1": "intro-plate-05-quest.spbm",
     "sparkpaw-level-loading.spr1": "sparkpaw-level-loading.spbm",
     "level-charge-patch.spr1": "level-charge-patch.spbm",
+    "level-ready.spr1": "sparkpaw-ready-screen.spbm",
 }
 
 RUNTIME_FILES = (
     "sparkpaw-title.spbm",
     "sparkpaw-level-loading.spbm",
     "level-charge-patch.spbm",
+    "sparkpaw-ready-screen.spbm",
     "sparkpaw-hud-base.spbm",
     "sparkpaw-hud-health.spbm",
     "sparkpaw-hud-lives.spbm",
@@ -88,8 +91,22 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} five-plate story intro
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
+
+Alpha.48 adds a unique 64-colour AGA ready screen after CHARGING and only after
+gameplay data and renderer preparation are complete. Its isolated Sparkpaw
+wordmark, restrained black field, Level-1 stone/machine border, lower-right
+Sparkpaw pose, centred prompt and credits replace the rejected title-art crop.
+Joystick Fire or Space fades directly into the already prepared level. Supplied
+FS-UAE/68030 and FS-UAE/68020 HD review accepts presentation, both inputs and
+the immediate gameplay transition. HD retains the complete five-plate story
+intro. To preserve full-quality art and generous floppy capacity, the ADF omits
+the cinematic plates and begins at the existing title; loading, charging, the
+ready screen and gameplay remain shared. The bootable DOS1/FFS image uses 1,353
+blocks (676 KiB), leaving 407 free, with retained SPR1 streams decode-verified
+against their sources. ADF gameplay and real-hardware acceptance of alpha.48
+remain pending.
 
 Alpha.47 adds the complete five-plate opening story before the existing title.
 It introduces the Stormstone, its five Cores, Grand Archivolt's damaged order,
@@ -524,7 +541,13 @@ def make_adf() -> Path:
         ADF_PLAYER_ASSET,
         adf_root / "assets" / "runtime" / "sparkpaw-sprites4.spr1",
     )
-    for packed in (*ADF_INTRO_ASSETS, *ADF_STATUS_ASSETS):
+    # The floppy edition deliberately omits the cinematic five-plate intro;
+    # HD keeps the complete story sequence. The normal title still leads into
+    # LOADING, CHARGING and the shared ready screen on ADF.
+    for packed in ADF_INTRO_ASSETS:
+        raw_name = ADF_RAW_NAMES[packed.name]
+        (adf_root / "assets" / "runtime" / raw_name).unlink()
+    for packed in ADF_STATUS_ASSETS:
         raw_name = ADF_RAW_NAMES[packed.name]
         (adf_root / "assets" / "runtime" / raw_name).unlink()
         shutil.copy2(packed, adf_root / "assets" / "runtime" / packed.name)
@@ -572,7 +595,7 @@ def make_adf() -> Path:
             "+", "read", "assets/runtime/sparkpaw-sprites4.spr1",
             str(extracted / "sparkpaw-sprites4.spr1"),
         ]
-        for packed_path in (*ADF_INTRO_ASSETS, *ADF_STATUS_ASSETS):
+        for packed_path in ADF_STATUS_ASSETS:
             extract_command.extend((
                 "+", "read", f"assets/runtime/{packed_path.name}",
                 str(extracted / packed_path.name),
@@ -616,7 +639,7 @@ def make_adf() -> Path:
             raise SystemExit(
                 "ADF decode verification failed: sparkpaw-sprites4.spr1"
             )
-        for packed_path in (*ADF_INTRO_ASSETS, *ADF_STATUS_ASSETS):
+        for packed_path in ADF_STATUS_ASSETS:
             packed = (extracted / packed_path.name).read_bytes()
             if packed != packed_path.read_bytes():
                 raise SystemExit(

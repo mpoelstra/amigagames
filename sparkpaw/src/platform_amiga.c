@@ -78,6 +78,12 @@ void platformFinishTakeover(UWORD *copper)
     audioSetHardwareActive(TRUE);
 }
 
+void platformSwitchCopper(UWORD *copper)
+{
+    hardware->cop1lc=(ULONG)copper;
+    hardware->copjmp1=0;
+}
+
 void platformRestore(void)
 {
     if(interruptsDisabled) {

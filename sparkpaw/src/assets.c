@@ -9,7 +9,7 @@
 
 #include "packed_crc32.h"
 
-static struct PlanarAsset title,introProof,levelLoading,levelCharging,frontClean,rearWorld;
+static struct PlanarAsset title,introProof,levelLoading,levelCharging,levelReady,frontClean,rearWorld;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
 static struct PlanarAsset collectibleDiamond;
@@ -378,6 +378,22 @@ void assetsUnloadLevelCharging(void)
     freeAsset(&levelCharging);
 }
 
+BOOL assetsLoadLevelReady(void)
+{
+#ifdef ADF_PACKED_ASSETS
+    return loadPackedAsset("PROGDIR:assets/runtime/level-ready.spr1",
+                           &levelReady,6,FALSE);
+#else
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-ready-screen.spbm",
+                     &levelReady,6,FALSE);
+#endif
+}
+
+void assetsUnloadLevelReady(void)
+{
+    freeAsset(&levelReady);
+}
+
 void assetsUnloadGameplay(void)
 {
     assetsUnloadGameplayConversionSources(); freeAsset(&hudDiamonds);
@@ -391,6 +407,7 @@ const struct PlanarAsset *assetsTitle(void) { return &title; }
 const struct PlanarAsset *assetsStoryIntro(void) { return &introProof; }
 const struct PlanarAsset *assetsLevelLoading(void) { return &levelLoading; }
 const struct PlanarAsset *assetsLevelCharging(void) { return &levelCharging; }
+const struct PlanarAsset *assetsLevelReady(void) { return &levelReady; }
 const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }

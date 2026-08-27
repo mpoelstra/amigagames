@@ -74,9 +74,10 @@ ADF_INTRO_ASSETS = build/adf-assets/intro1.spr1 \
 	build/adf-assets/intro2.spr1 build/adf-assets/intro3.spr1 \
 	build/adf-assets/intro4.spr1 build/adf-assets/intro5.spr1
 ADF_STATUS_ASSETS = build/adf-assets/sparkpaw-level-loading.spr1 \
-	build/adf-assets/level-charge-patch.spr1
+	build/adf-assets/level-charge-patch.spr1 \
+	build/adf-assets/level-ready.spr1
 ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET) \
-	$(ADF_PLAYER_ASSET) $(ADF_INTRO_ASSETS) $(ADF_STATUS_ASSETS)
+	$(ADF_PLAYER_ASSET) $(ADF_STATUS_ASSETS)
 BENCH_TARGETS = sparkpaw-renderbench-4plus3 sparkpaw-renderbench-4plus4
 AGA32_SCROLL_PROOF_TARGET = build/sparkpaw-aga32-scroll-proof
 AGA_ORIGIN_REFERENCE_TARGET = build/sparkpaw-aga-origin-reference-fmode0
@@ -357,7 +358,14 @@ $(AGA64_PLAYER_SPRITE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 		-DSPARKPAW_AGA32_LEFT_GUARD \
 		-DSPARKPAW_AGA64_PLAYER_SPRITE -o $@ $(SOURCES)
 
-assets: $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS)
+READY_SCREEN_ASSET = assets/runtime/sparkpaw-ready-screen.spbm
+
+assets: $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
+
+$(READY_SCREEN_ASSET): tools/generate_ready_screen.py tools/generate_intro_proof.py \
+	docs/concepts/ready-screen/assets/sparkpaw-ready-background-source-v3.png \
+	docs/concepts/ready-screen/assets/sparkpaw-logo-wordmark-source-v2.png
+	$(PYTHON) tools/generate_ready_screen.py
 
 $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
@@ -407,7 +415,7 @@ sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/en
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
-$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS)
+$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
 	@mkdir -p "$(TMPDIR)"
 	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
@@ -427,10 +435,11 @@ intro-proof-package: $(INTRO_PROOF_TARGET)
 	cp docs/concepts/story-intro/INTRO_PROOF_TEST.txt \
 		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/ReadMe.txt
 
-$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS)
+$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DADF_PACKED_ASSETS -DSPARKPAW_ROLLING_PROTOTYPE \
-		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-o $@ $(SOURCES)
 
 $(PHASE6_MEMORY_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
@@ -466,6 +475,10 @@ build/adf-assets/sparkpaw-level-loading.spr1: assets/runtime/sparkpaw-level-load
 
 build/adf-assets/level-charge-patch.spr1: assets/runtime/level-charge-patch.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+build/adf-assets/level-ready.spr1: assets/runtime/sparkpaw-ready-screen.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
 
 release: all $(ADF_TARGET) $(ADF_ASSETS)
 	$(PYTHON) tools/make_release.py

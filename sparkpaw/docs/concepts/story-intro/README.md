@@ -1,7 +1,9 @@
 # Sparkpaw story and intro concept
 Status: five-plate story intro accepted in supplied FS-UAE/68030 and 68020 HD
-testing and promoted as the alpha.47 Phase 6C.3 release checkpoint. The earlier
-alpha.46 Level 1 Core-clearing checkpoint remains accepted. Supplied evidence accepts the
+testing and promoted as the alpha.47 Phase 6C.3 release checkpoint. From
+alpha.48 onward the complete cinematic remains in HD/LHA/ZIP builds, while the
+space-bound ADF omits the five plates and begins at the existing title. The
+earlier alpha.46 Level 1 Core-clearing checkpoint remains accepted. Supplied evidence accepts the
 composition, animated Core, radial collection beat, Storm Triumph sound and
 delayed replay. The matching minimal-cadence FS-UAE/68020 HD run reaches 49.67
 FPS with zero three-field misses and zero ownership violations. ADF gameplay

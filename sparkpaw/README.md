@@ -3,13 +3,18 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.47`. Roadmap checkpoint: Phase 6C.3 five-plate
-story intro on the protected rolling renderer Stage 5L baseline. The intro
-establishes the Stormstone, five Cores, Grand Archivolt's damaged order,
-reversed weather stations, Sparkpaws motive and the five-level quest before
-the existing title. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing accepts
-the 64-colour AGA art, multi-passage text, timing, Fire controls, left-mouse
-complete skip and transition through title/loading into gameplay.
+Current release: `0.6.0-alpha.48`. Roadmap checkpoint: Phase 6C.4 pre-level
+ready screen on the protected rolling renderer Stage 5L baseline. After all
+loading and renderer preparation, a unique 64-colour AGA composition presents
+the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
+centred prompt/credits and lower-right Sparkpaw pose. Joystick Fire or Space
+fades directly into the already prepared level. Supplied FS-UAE/68030 and
+FS-UAE/68020 HD testing accepts presentation, both inputs and the immediate
+gameplay transition. HD retains the complete Phase 6C.3 five-plate story intro;
+the space-bound ADF deliberately omits only those cinematic plates and begins
+at the existing title while retaining loading, charging and the ready screen.
+Its bootable DOS1/FFS image validates at 1,353 blocks (676 KiB), leaving 407
+free; this is package/decode evidence, not ADF gameplay acceptance.
 
 The preceding Phase 6C.2 Core-clearing checkpoint remains accepted.
 Supplied FS-UAE/68030 HD testing accepts the centred waystation, animated Core,
@@ -376,6 +381,13 @@ time. The bootable DOS1/FFS ADF validates at 1,707 blocks (853 KiB), leaving
 53 blocks free. This is package/decode evidence only; ADF gameplay and real-
 hardware intro acceptance remain pending supplied evidence.
 
+Alpha.48 keeps that complete cinematic in HD/LHA/ZIP but deliberately omits it
+from the space-bound ADF. The floppy still contains the normal title, LOADING,
+CHARGING, the same 64-colour ready screen and identical gameplay. Its bootable
+DOS1/FFS image validates at 1,353 blocks (676 KiB), leaving 407 free, and all
+retained packed status/world streams decode identically to their sources. This
+does not establish ADF, Analogue Pocket or real-A1200 gameplay acceptance.
+
 Current follow-up keeps three contracts separate. Supplied alpha.28 FS-UAE
 evidence rejects the world diamond's transparent dark facets and ragged lower
 tip: replace it with one clean native 16x21 opaque-outline diamond without
@@ -737,10 +749,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.47.lha`
-- `dist/Sparkpaw-0.6.0-alpha.47.zip`
-- `dist/Sparkpaw-0.6.0-alpha.47.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.47/`
+- `dist/Sparkpaw-0.6.0-alpha.48.lha`
+- `dist/Sparkpaw-0.6.0-alpha.48.zip`
+- `dist/Sparkpaw-0.6.0-alpha.48.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.48/`
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

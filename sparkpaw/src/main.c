@@ -152,10 +152,19 @@ int main(void)
     /* Keep the second status readable even when preparation finishes quickly
        on Fast RAM systems or accelerated/emulated CPUs. */
     titleWaitLevelCharging(100);
+    if(!titleShowLevelReady()) {
+        PutStr("Sparkpaw: ready screen unavailable.\n");
+        PutStr((STRPTR)titleFailureReason()); PutStr("\n");
+        cleanup(); return 10;
+    }
+    /* All DOS work and gameplay preparation are complete. Own the machine
+       while the ready screen remains displayed so Space shares the gameplay
+       raw-key path with joystick Fire. */
+    platformFinishTakeover(titleCopperList());
+    titleWaitLevelReadyFire();
     titleFadeOut();
     rendererUpdateGameplay();
-    platformBeginTakeover();
-    platformFinishTakeover(rendererCopperList());
+    platformSwitchCopper(rendererCopperList());
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     platformProfileTimerStart();
 #endif
