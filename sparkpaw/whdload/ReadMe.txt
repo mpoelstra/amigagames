@@ -38,12 +38,13 @@ reset-to-exit when it is run without WHDLoad.
 CONTROLS AND TEST SCOPE
 -----------------------
 
-Joystick port 2 controls movement; up jumps and Fire shoots. Keyboard A/D/W/S
+Joystick port 2 controls movement; up or the secondary button jumps and primary
+Fire shoots. Keyboard A/D/W/S
 and Space provide the matching test controls. Fire or Space advances the ready
 screen. Test the complete five-plate intro, title, LOADING, CHARGING, ready
 screen and all twelve gameplay screens through the Stormstone Core clearing.
 
-This first WHDLoad package wraps the alpha.49 HD executable and runtime in
+This WHDLoad package wraps the alpha.50 HD executable and runtime in
 Kickstart 3.1 emulation. Please verify F10 exit, presentation, sound, controls,
 full-level traversal and repeated launches. No WHDLoad, ADF or real-hardware
 acceptance is claimed until user-supplied testing establishes it.

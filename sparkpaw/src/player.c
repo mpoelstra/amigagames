@@ -26,7 +26,7 @@
 #define CONTACT_KNOCKBACK_Y -500
 
 static struct PlayerState player;
-static BOOL joystickUpHeld,joystickFireHeld,crouchInputHeld;
+static BOOL jumpInputHeld,joystickFireHeld,crouchInputHeld;
 
 static UBYTE groundSupportCount(WORD x,WORD y,UBYTE *leftCount)
 {
@@ -67,8 +67,8 @@ void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
     *right=((value&0x0002)!=0)||keyRight;
     *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
     up=((value^(value>>1))&0x0100)!=0;
-    up=up||keyJump;
-    *jump=up&&!joystickUpHeld; joystickUpHeld=up;
+    up=up||keyJump||platformSecondaryButtonHeld();
+    *jump=up&&!jumpInputHeld; jumpInputHeld=up;
     held=(*(volatile UBYTE *)0xbfe001&0x80)==0;
     held=held||keyFire;
     *fire=held&&!joystickFireHeld; joystickFireHeld=held;

@@ -20,7 +20,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.49"
+RELEASE_VERSION = "0.6.0-alpha.50"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -96,6 +96,13 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
+
+Alpha.50 adds joystick-port-2 secondary-button jumping alongside the preserved
+joystick Up and keyboard W inputs. All three feed the existing combined press
+edge, so holding or overlapping them cannot retrigger a jump. Primary Fire and
+Space still shoot. Supplied real-A1200 HD testing accepts the secondary-button
+jump; the controller model was not recorded, so no separate CD32-pad result is
+claimed. Physics, animation, audio and renderer behavior are unchanged.
 
 Alpha.49 reserves pure black COLOR00 in every fullscreen direct-Copper intro
 and ready asset. This removes the one-pixel full-height coloured border exposed
@@ -437,7 +444,8 @@ Keep the complete {RELEASE_NAME} drawer together. Start it from Shell:
 Controls
 --------
 
-Joystick port 2: left/right to run, up to jump and fire to shoot. Every fire
+Joystick port 2: left/right to run, up or secondary button to jump and primary
+fire to shoot. Every fire
 press launches a fast blue/cyan plasma pulse; rapid tapping supports several
 pulses in flight. Hold down to crouch; combine down with left/right to
 crouch-walk, and press fire to shoot from a dedicated low pose. Ten required

@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.49`. Roadmap checkpoint: Phase 6C.4 pre-level
+Current release: `0.6.0-alpha.50`. Roadmap checkpoint: Phase 6C.4 pre-level
 ready screen on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -21,6 +21,16 @@ intro and ready asset. This removes the one-pixel full-height `COLOR00` border
 visible on the real A1200's Indivision output but hidden by FS-UAE and ordinary
 CRT overscan. Supplied FS-UAE/68030 HD and real-A1200/Indivision HD testing
 accept the correction. A host regression now enforces this asset contract.
+
+Alpha.50 adds joystick-port-2 secondary-button jumping
+as an alternative to the preserved joystick Up and keyboard W inputs. The
+combined action retains the existing press-edge behavior; primary Fire and
+Space still shoot. A supplied real-A1200 HD test accepts the secondary button.
+No controller model or separate FS-UAE, ADF, WHDLoad, Pocket or CD32-pad result
+was supplied. Jump physics, animation, audio and the renderer are unchanged.
+The bootable DOS1/FFS ADF validates at 1,354 blocks (677 KiB), leaving 406
+free; this proves package construction and retained-stream decode identity,
+not ADF gameplay acceptance.
 
 The preceding Phase 6C.2 Core-clearing checkpoint remains accepted.
 Supplied FS-UAE/68030 HD testing accepts the centred waystation, animated Core,
@@ -535,7 +545,8 @@ stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 
 ## Controls
 
-- Joystick port 2: left/right to run, up to jump and fire to shoot
+- Joystick port 2: left/right to run, up or secondary button to jump, primary
+  fire to shoot
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
 - Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots
@@ -755,12 +766,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.49.lha`
-- `dist/Sparkpaw-0.6.0-alpha.49.zip`
-- `dist/Sparkpaw-0.6.0-alpha.49.adf`
-- `dist/Sparkpaw-0.6.0-alpha.49-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.49-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.49/`
+- `dist/Sparkpaw-0.6.0-alpha.50.lha`
+- `dist/Sparkpaw-0.6.0-alpha.50.zip`
+- `dist/Sparkpaw-0.6.0-alpha.50.adf`
+- `dist/Sparkpaw-0.6.0-alpha.50-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.50-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.50/`
 
 The WHDLoad archives contain a versioned self-contained drawer with the normal
 HD executable and assets under `data/`, a Kickstart 3.1 BootDOS slave, a
@@ -873,7 +884,8 @@ including on accelerated systems. Both screens share one 64-colour palette.
 - `src/game.c` / `src/game.h`: gameplay initialization and update ordering,
   frame progression and camera state
 - `src/platform_amiga.c` / `src/platform_amiga.h`: graphics-library lifetime,
-  custom-chip takeover/restore, raster reads and the required Blitter wait;
+  custom-chip takeover/restore, raster reads, port-2 secondary-button/POTGO
+  handling and the required Blitter wait;
   Copper construction and concrete rendering commands remain in `renderer.c`
 - `src/enemies.c` / `src/enemies.h`: fixed enemy pool, typed patrol AI, Strider
   walk/turn state, hit detection and damage state; runtime slots retain an

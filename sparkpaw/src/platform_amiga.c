@@ -25,6 +25,13 @@ static UBYTE gameKeys;
 #define CIAICRF_SP 0x08
 #define CIACRAF_SPMODE 0x40
 
+/* Controller port 2 pin 5 holds a CD32 pad's shift register in its reset
+   state, where pin 9 exposes Blue as the ordinary Amiga second button.
+   Keep pin 9 configured as an input so native two-button joysticks use the
+   same active-low POTINP bit. */
+#define PORT2_CD32_RESET_HIGH 0x3000
+#define PORT2_SECOND_BUTTON 0x4000
+
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 #define CIAB_TBLO (*(volatile UBYTE *)0xbfd600)
 #define CIAB_TBHI (*(volatile UBYTE *)0xbfd700)
@@ -69,6 +76,7 @@ void platformBeginTakeover(void)
 
 void platformFinishTakeover(UWORD *copper)
 {
+    hardware->potgo=PORT2_CD32_RESET_HIGH;
     OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
     Disable(); interruptsDisabled=TRUE;
     hardware->intena=0x7fff; hardware->dmacon=DMAF_ALL;
@@ -106,9 +114,15 @@ void platformRestore(void)
         Enable(); interruptsDisabled=FALSE;
     }
     if(systemView) { WaitTOF(); WaitTOF(); }
+    hardware->potgo=0;
     if(systemLocked) {
         DisownBlitter(); Permit(); systemLocked=FALSE;
     }
+}
+
+BOOL platformSecondaryButtonHeld(void)
+{
+    return (hardware->potinp&PORT2_SECOND_BUTTON)==0;
 }
 
 UWORD platformRasterLine(void)

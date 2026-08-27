@@ -45,14 +45,26 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.49`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.50`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.49.lha`
-- `Sparkpaw-0.6.0-alpha.49.zip`
-- `Sparkpaw-0.6.0-alpha.49.adf`
-- `Sparkpaw-0.6.0-alpha.49-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.49-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.49/`
+- `Sparkpaw-0.6.0-alpha.50.lha`
+- `Sparkpaw-0.6.0-alpha.50.zip`
+- `Sparkpaw-0.6.0-alpha.50.adf`
+- `Sparkpaw-0.6.0-alpha.50-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.50-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.50/`
+
+Alpha.50 adds an optional secondary-button jump input on joystick
+port 2 alongside the preserved joystick Up and keyboard W paths. Port 2 pin 5
+holds a CD32 pad in its reset state and active-low POTINP bit 14 reads the
+ordinary second-button/Blue line. All jump sources merge before the existing
+edge detector, so holding or overlapping them cannot retrigger a jump. Primary
+Fire/Space still shoot; physics, animation, audio and renderer are unchanged.
+MrDig's supplied real-A1200 HD test accepts the secondary-button jump. The
+controller model was not recorded, and no FS-UAE, ADF, WHDLoad, Pocket or
+separately identified CD32-pad acceptance is inferred.
+The bootable alpha.50 DOS1/FFS ADF validates at 1,354 blocks (677 KiB), leaving
+406 free; this is package/decode evidence, not ADF gameplay acceptance.
 
 The WHDLoad packages wrap the normal HD executable/runtime in a Kickstart
 3.1 BootDOS slave, fit the established 2 MB Chip plus 8 MB Fast target and
@@ -233,6 +245,8 @@ Player:
 
 - Frames 0..49 accepted base; standing hurt 50..53, crouched hurt 54..57 and
   ledge balance 58..61 are append-only.
+- Joystick port 2 Up, its secondary button and keyboard W feed one combined
+  edge-triggered jump action; primary Fire and Space remain the shoot action.
 - Preserve scale, feet, mirrored facing, run/jump/landing/crouch/turn/shoot/hurt
   selection, three hearts as six health units and accepted life/reset behavior.
 - Sprint/jump performance is open; do not change physics before measuring it.

@@ -34,6 +34,28 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
 - Production builds must not contain diagnostic logging, profiling or test
   input code.
 
+### Keep quick real-A1200 HD ZIPs minimal
+
+When the user requests one quick HD ZIP for testing on a real A1200, optimize
+the transfer package as well as the executable:
+
+- use `tools/make_release.py`'s current `RUNTIME_FILES` manifest as the
+  authoritative asset list, or an equivalently verified strict subset for the
+  exact executable;
+- never copy the complete `assets/runtime/` directory into such a package;
+- exclude renderbench files, superseded status/intro variants, manifests and
+  other development-only or unreachable runtime artifacts;
+- include exactly one executable, one concise `ReadMe.txt` and only the files
+  that executable can load;
+- deliver one ZIP unless the user explicitly asks for an extracted drawer,
+  LHA, ADF, WHDLoad package or comparison pair;
+- test the archive, report its compressed size and compare its contents with
+  the ordinary release ZIP so unexpected growth is caught before delivery.
+
+Do not trade away self-containment or byte parity merely to reduce ZIP size.
+The goal is the smallest complete hardware-test package, not a hand-curated
+archive whose loading path has not been verified.
+
 Keep the `dist` root uncluttered:
 
 - retain the sole current alpha release artifact set and extracted drawer;

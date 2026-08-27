@@ -5460,3 +5460,32 @@ and review drawer first, then assembles and archive-checks
 the WHDLoad pair. This is host build/package evidence. Startup, F10 exit,
 presentation, audio, gameplay and repeated-launch behavior under WHDLoad and
 on real hardware remain pending user-supplied testing.
+
+### 27 August 2026 - Alpha.50 adds secondary-button jump input
+
+Sparkpaw now accepts the secondary button on joystick port 2 as a third source
+for the existing jump action alongside joystick Up and keyboard W. During
+hardware takeover, port 2 pin 5 is driven high to keep a CD32 pad's shift
+register in its reset state; active-low POTINP bit 14 then exposes the ordinary
+Amiga second-button/Blue line on pin 9. Restore returns the POT lines to input.
+
+All three jump sources are combined before the existing edge detector. Holding
+the secondary button after takeoff therefore cannot trigger another jump on
+landing, and pressing it while Up or W is already held cannot synthesize a
+second edge. Primary Fire/Space, crouch, shooting, jump acceptance, physics,
+animation, Paula audio and renderer timing remain unchanged.
+
+All host regressions and the native VBCC 68020 build pass. MrDig reports that
+the supplied production-style HD test works on the real A1200 and explicitly
+accepts the secondary-button jump. The exact controller model was not supplied,
+so this records real-A1200 HD function without claiming a separately identified
+CD32 pad. No FS-UAE, ADF, WHDLoad or Analogue Pocket result is inferred.
+
+After initially requesting a source-only checkpoint, MrDig chose a normal
+version increment to keep distributed behavior unambiguous. SemVer advances to
+`0.6.0-alpha.50`; the Phase 6C.4 roadmap identity remains unchanged.
+The normal native build, host regression suite and complete release pipeline
+pass. The bootable DOS1/FFS ADF uses 1,354 blocks (677 KiB), leaving 406 free;
+the HD ZIP/LHA, ADF and both WHDLoad archives are host-validated. These package
+checks add no ADF or WHDLoad gameplay acceptance beyond the supplied real-A1200
+HD result.
