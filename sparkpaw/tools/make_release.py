@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Create HD, LHA, ZIP and bootable ADF milestone builds."""
+"""Create HD, LHA, ZIP and bootable ADF milestone builds.
+
+The Makefile follows this with the separately assembled WHDLoad packages.
+"""
 from __future__ import annotations
 
 import os
@@ -17,7 +20,7 @@ from pack_adf_asset import decode as decode_adf_asset
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.48"
+RELEASE_VERSION = "0.6.0-alpha.49"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -94,6 +97,15 @@ AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
 
+Alpha.49 reserves pure black COLOR00 in every fullscreen direct-Copper intro
+and ready asset. This removes the one-pixel full-height coloured border exposed
+by the Indivision but normally hidden by CRT overscan and FS-UAE. Supplied
+FS-UAE/68030 HD and real-A1200/Indivision HD testing accept the correction.
+The build test now rejects any affected SPBM whose palette pen 0 is not black.
+This release also adds versioned WHDLoad LHA/ZIP packages around the normal HD
+runtime. Their construction is host-verified; WHDLoad startup, F10 exit and
+gameplay remain pending supplied testing.
+
 Alpha.48 adds a unique 64-colour AGA ready screen after CHARGING and only after
 gameplay data and renderer preparation are complete. Its isolated Sparkpaw
 wordmark, restrained black field, Level-1 stone/machine border, lower-right
@@ -105,8 +117,7 @@ intro. To preserve full-quality art and generous floppy capacity, the ADF omits
 the cinematic plates and begins at the existing title; loading, charging, the
 ready screen and gameplay remain shared. The bootable DOS1/FFS image uses 1,353
 blocks (676 KiB), leaving 407 free, with retained SPR1 streams decode-verified
-against their sources. ADF gameplay and real-hardware acceptance of alpha.48
-remain pending.
+against their sources. Alpha.48 ADF gameplay remained pending.
 
 Alpha.47 adds the complete five-plate opening story before the existing title.
 It introduces the Stormstone, its five Cores, Grand Archivolt's damaged order,

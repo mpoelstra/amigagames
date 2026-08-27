@@ -27,12 +27,13 @@ make release PYTHON=../.venv/bin/python3
 ```
 
 Do not ship if either command fails. Review warnings and package validation,
-including executable and ADF checks performed by the release tooling. Confirm
-that `sparkpaw/dist` contains exactly the three current consistently versioned
-artifacts (LHA, ZIP and ADF) plus the extracted same-version review drawer. A
-source ZIP is opt-in and must only be produced when MrDig explicitly requests
-it. Do not delete ignored local evidence or backups while cleaning release
-outputs.
+including executable, ADF and WHDLoad archive checks performed by the release
+tooling. Confirm that `sparkpaw/dist` contains exactly the five current
+consistently versioned artifacts (HD LHA, HD ZIP, ADF, WHDLoad LHA and WHDLoad
+ZIP) plus the extracted same-version HD review drawer. A source ZIP is opt-in
+and must only be produced when MrDig explicitly requests it. Do not delete
+ignored local evidence or backups while cleaning release outputs. Never infer
+WHDLoad startup or gameplay acceptance from successful package assembly.
 
 ## Synchronize the checkpoint record
 

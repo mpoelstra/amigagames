@@ -45,12 +45,27 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.48`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.49`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.48.lha`
-- `Sparkpaw-0.6.0-alpha.48.zip`
-- `Sparkpaw-0.6.0-alpha.48.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.48/`
+- `Sparkpaw-0.6.0-alpha.49.lha`
+- `Sparkpaw-0.6.0-alpha.49.zip`
+- `Sparkpaw-0.6.0-alpha.49.adf`
+- `Sparkpaw-0.6.0-alpha.49-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.49-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.49/`
+
+The WHDLoad packages wrap the normal HD executable/runtime in a Kickstart
+3.1 BootDOS slave, fit the established 2 MB Chip plus 8 MB Fast target and
+provide F10 as the WHDLoad exit key. They include neither WHDLoad nor Kickstart.
+Package construction is host-verified; WHDLoad gameplay and real-hardware
+acceptance remain pending supplied testing.
+
+Alpha.49 reserves pure black palette pen 0 in all five intro plates and the
+ready screen. This removes the full-height one-pixel `COLOR00` border exposed
+by the Indivision but hidden in FS-UAE/CRT overscan. Supplied FS-UAE/68030 HD
+and real-A1200/Indivision HD testing accept the fix. A host regression now
+rejects any fullscreen direct-Copper SPBM whose palette bytes 12..14 are not
+zero. Copper geometry, presenter timing, renderer and gameplay are unchanged.
 
 Alpha.48 adds the accepted 64-colour pre-level ready screen after CHARGING and
 after complete gameplay/renderer preparation. Supplied FS-UAE/68030 and
@@ -77,7 +92,8 @@ assets and ReadMe, so `PROGDIR:renderdiag.log` is naturally unique. Never ask
 MrDig to rename or move a log between variants.
 
 Keep the mounted `sparkpaw/dist/` root uncluttered. It should contain only the
-current alpha release artifact set and the single currently active diagnostic
+current alpha release artifact set (including both WHDLoad archives) and the
+single currently active diagnostic
 or A/B test set; `my-files/` and `older-builds/` remain as fixed storage
 drawers. As soon as a diagnostic set is superseded or its evidence has been
 preserved in `sparkpaw/testresults/`, move its complete self-contained drawers

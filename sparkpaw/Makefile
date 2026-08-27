@@ -128,7 +128,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
 	assets/runtime/sparkpaw-sprites4.spbm
 
-.PHONY: all clean test assets release bench bench-package renderdiag
+.PHONY: all clean test assets release whdload bench bench-package renderdiag
 .PHONY: aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package
 .PHONY: aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package
 .PHONY: renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package
@@ -482,6 +482,10 @@ build/adf-assets/level-ready.spr1: assets/runtime/sparkpaw-ready-screen.spbm too
 
 release: all $(ADF_TARGET) $(ADF_ASSETS)
 	$(PYTHON) tools/make_release.py
+	$(PYTHON) tools/make_whdload.py
+
+whdload: all
+	$(PYTHON) tools/make_whdload.py
 
 adf-report: all
 	$(PYTHON) tools/report_adf_storage.py

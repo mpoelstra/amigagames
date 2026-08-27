@@ -5429,3 +5429,34 @@ the ready screen and gameplay remain common. The final bootable DOS1/FFS image
 uses 1,353 blocks (676 KiB), leaving 407 free, and every retained packed stream
 decodes identically to its source. This package evidence does not establish ADF
 gameplay, Analogue Pocket or real-A1200 acceptance, which remain open.
+
+### 27 August 2026 - Alpha.49 fixes fullscreen COLOR00 and adds WHDLoad packages
+
+Real-A1200/Indivision HD photos expose a stable one-pixel full-height coloured
+line at the left of every intro plate and the ready screen. Source inspection
+confirms the presenter geometry is shared with the already-clean title/loading
+screens, while the new assets assigned non-black colours to palette pen 0.
+Their generators now reserve pure-black `COLOR00` using the established
+lossless index swap where possible, or the least-used nearest-colour merge
+where a source contains no black. Supplied FS-UAE/68030 HD and subsequent real-
+A1200/Indivision HD testing accept the correction. A host regression checks
+palette bytes 12..14 of every fullscreen direct-Copper SPBM so the failure
+cannot silently return. Copper geometry, presenter timing and gameplay remain
+unchanged.
+
+Alpha.49 also ships versioned WHDLoad LHA and ZIP archives. The implementation
+follows the established ChipSnake and
+MrDig's Futsal BootDOS approach but keeps Sparkpaw's A1200/68020 identity:
+Kickstart 3.1 emulation fitting the 2 MB Chip plus 8 MB Fast target, the complete HD
+runtime asset set under `data/`, PRELOAD/PAL Workbench tooltypes and F10 as the
+WHDLoad exit key. Unlike the earlier prototype slaves it does not define the
+68000-oriented `NO68020` option.
+
+The package includes a generated four-colour Sparkpaw Workbench icon and a
+MultiView ReadMe icon. It deliberately redistributes neither WHDLoad nor a
+Kickstart ROM. `make release` now creates the existing LHA, ZIP, bootable ADF
+and review drawer first, then assembles and archive-checks
+`Sparkpaw-0.6.0-alpha.49-WHDLoad.lha` and `.zip`; `make whdload` rebuilds only
+the WHDLoad pair. This is host build/package evidence. Startup, F10 exit,
+presentation, audio, gameplay and repeated-launch behavior under WHDLoad and
+on real hardware remain pending user-supplied testing.

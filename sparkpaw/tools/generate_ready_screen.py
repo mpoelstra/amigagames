@@ -5,7 +5,8 @@ import struct
 
 from PIL import Image, ImageDraw, ImageOps
 
-from generate_intro_proof import GLYPHS, medium_text, planar_bytes
+from generate_intro_proof import (GLYPHS, medium_text, planar_bytes,
+                                  reserve_black_pen_zero)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,12 +82,17 @@ def build_ready_screen():
 
     indexed = image.quantize(colors=64, method=Image.Quantize.MEDIANCUT,
                              dither=Image.Dither.NONE)
-    palette = indexed.getpalette()[:192]
-    palette.extend([0] * (192 - len(palette)))
+    palette_data = indexed.getpalette()[:192]
+    palette = [tuple(palette_data[index:index + 3])
+               for index in range(0, 192, 3)]
+    indexed, palette = reserve_black_pen_zero(indexed, palette)
+    palette_data = [value for rgb in palette for value in rgb]
+    if palette_data[:3] != [0, 0, 0]:
+        raise ValueError("ready screen fullscreen COLOR00 must be black")
     indexed.save(PREVIEW)
     row_bytes, planes = planar_bytes(indexed, 6)
     payload = (b"SPBM" + struct.pack(">HHBBH", 320, 256, 6, 0, row_bytes) +
-               bytes(palette) + planes)
+               bytes(palette_data) + planes)
     expected = 12 + 64 * 3 + row_bytes * 256 * 6
     if len(payload) != expected:
         raise ValueError(f"ready-screen SPBM is {len(payload)} bytes; "

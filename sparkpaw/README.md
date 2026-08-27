@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.48`. Roadmap checkpoint: Phase 6C.4 pre-level
+Current release: `0.6.0-alpha.49`. Roadmap checkpoint: Phase 6C.4 pre-level
 ready screen on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -15,6 +15,12 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS image validates at 1,353 blocks (676 KiB), leaving 407
 free; this is package/decode evidence, not ADF gameplay acceptance.
+
+Alpha.49 additionally reserves pure black palette pen 0 in every fullscreen
+intro and ready asset. This removes the one-pixel full-height `COLOR00` border
+visible on the real A1200's Indivision output but hidden by FS-UAE and ordinary
+CRT overscan. Supplied FS-UAE/68030 HD and real-A1200/Indivision HD testing
+accept the correction. A host regression now enforces this asset contract.
 
 The preceding Phase 6C.2 Core-clearing checkpoint remains accepted.
 Supplied FS-UAE/68030 HD testing accepts the centred waystation, animated Core,
@@ -749,16 +755,28 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.48.lha`
-- `dist/Sparkpaw-0.6.0-alpha.48.zip`
-- `dist/Sparkpaw-0.6.0-alpha.48.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.48/`
+- `dist/Sparkpaw-0.6.0-alpha.49.lha`
+- `dist/Sparkpaw-0.6.0-alpha.49.zip`
+- `dist/Sparkpaw-0.6.0-alpha.49.adf`
+- `dist/Sparkpaw-0.6.0-alpha.49-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.49-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.49/`
+
+The WHDLoad archives contain a versioned self-contained drawer with the normal
+HD executable and assets under `data/`, a Kickstart 3.1 BootDOS slave, a
+Workbench icon and an installation/test ReadMe. They require WHDLoad 19 or
+newer plus a legal A1200 Kickstart 3.1 ROM/RTB pair; neither is redistributed.
+F10 exits through WHDLoad. Run `make whdload` to rebuild only these two
+archives after the normal executable and assets exist. This first package is
+host-assembled and archive-verified; WHDLoad gameplay and real-hardware
+acceptance remain pending supplied tests.
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with
 `../.venv/bin/python3 tools/make_release.py --include-source` after the build.
 
-`tools/make_release.py` owns the SemVer prerelease value. Its minor component
+`tools/make_release.py` owns the SemVer prerelease value shared by the HD, ADF
+and WHDLoad packages. Its minor component
 tracks the broad roadmap phase (`0.6.x` for Phase 6); the exact lettered
 checkpoint remains explicit in this README and the packaged ReadMe. Increment
 the prerelease counter for later meaningful packaged checkpoints within the

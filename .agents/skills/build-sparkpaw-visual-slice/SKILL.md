@@ -1,6 +1,6 @@
 ---
 name: build-sparkpaw-visual-slice
-description: Design, implement and measure one representative concept-quality Sparkpaw AGA foreground and parallax slice while preserving gameplay geometry, palette ownership, renderer timing and memory budgets. Use for visual-slice work, environment-art upgrades, foreground or rear-playfield redesigns, AGA palette experiments, parallax polish, or measured 4+3 versus feasible higher-colour renderer proofs.
+description: Design, implement and measure Sparkpaw AGA visual assets while preserving palette ownership, display boundaries, renderer timing and memory budgets. Use for visual slices, environment-art upgrades, foreground or rear-playfield redesigns, title/intro/loading/charging/ready screens, fullscreen direct-Copper assets, AGA palette experiments, parallax polish, or measured 4+3 versus feasible higher-colour renderer proofs.
 ---
 
 # Build Sparkpaw Visual Slice
@@ -40,18 +40,26 @@ repaint the level or mix in unrelated gameplay.
 1. Convert approved art to exact native indexed assets and inspect a nearest-
    neighbour enlargement. Check palette identity, banding, seams, tile joins,
    scroll joins and HUD contact at 320x256.
-2. Keep reusable or packed source data in Fast RAM and only DMA-visible working
+2. For every fullscreen direct-Copper title, intro, loading, charging or ready
+   asset, reserve palette pen 0 as pure black before planar conversion. An
+   Indivision can expose a one-pixel full-height `COLOR00` border that CRT
+   overscan and FS-UAE hide. Prefer an RGB-lossless index swap when black is
+   already present; otherwise merge the least-used nonzero colour into its
+   nearest palette neighbour and assign black to pen 0. Regenerate every
+   derived preview/runtime asset and assert the SPBM palette bytes at offsets
+   12..14 equal `(0,0,0)`. Do not move DIW/DDF to conceal this palette defect.
+3. Keep reusable or packed source data in Fast RAM and only DMA-visible working
    data in Chip RAM. Measure all increases; target stock PAL A1200/68020 with
    2 MB Chip plus 8 MB Fast RAM.
-3. Compare the accepted 4+3 dual-playfield layout only with hardware-feasible
+4. Compare the accepted 4+3 dual-playfield layout only with hardware-feasible
    candidates using the same scene, workload and measurement method. AGA has
    at most four planes per playfield; eight total planes yield 4+4, never 5+3.
    Report palette benefit,
    Chip cost, conversion/copy cost, Copper cost and worst observed frame time.
-4. Treat every alternative as an experiment until measured evidence and visual
+5. Treat every alternative as an experiment until measured evidence and visual
    review justify it. Keep accepted 4+3 recoverable and do not silently change
    renderer contracts.
-5. Animate water or environmental effects with deterministic prebuilt planar
+6. Animate water or environmental effects with deterministic prebuilt planar
    frames and synchronized Blitter copies, including both clean and displayed
    buffers. Prove loop closure and bank joins.
 

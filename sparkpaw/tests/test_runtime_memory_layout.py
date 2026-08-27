@@ -24,11 +24,13 @@ front = header("storm-front.spbm")
 rear = header("storm-rear.spbm")
 loading = header("sparkpaw-level-loading.spbm")
 charging = header("level-charge-patch.spbm")
+ready = header("sparkpaw-ready-screen.spbm")
 
 assert front[:4] == (3392, 208, 4, 0)
 assert rear[:4] == (1120, 208, 3, 0)
 assert loading[:4] == (320, 256, 6, 0)
 assert charging[:4] == (224, 40, 6, 0)
+assert ready[:4] == (320, 256, 6, 0)
 
 # Maximum camera X is 3392-320. Quarter scroll is word-aligned down and the
 # Copper fetches 42 bytes (336 pixels). The final fetched pixel must remain in
@@ -42,5 +44,23 @@ assert rear_word_start + 42 * 8 <= rear[0]
 loading_data = (RUNTIME / "sparkpaw-level-loading.spbm").read_bytes()
 charging_data = (RUNTIME / "level-charge-patch.spbm").read_bytes()
 assert loading_data[12 : 12 + 64 * 3] == charging_data[12 : 12 + 64 * 3]
+
+# Indivision hardware can expose one full-height COLOR00 column outside the
+# CRT-visible overscan. Every fullscreen direct-Copper presentation asset must
+# therefore reserve palette pen 0 as pure black.
+fullscreen_assets = (
+    "sparkpaw-title.spbm",
+    "sparkpaw-level-loading.spbm",
+    "sparkpaw-ready-screen.spbm",
+    "intro-plate-01-balance.spbm",
+    "intro-plate-02-instruction.spbm",
+    "intro-plate-03-reversed-network.spbm",
+    "intro-plate-04-motive.spbm",
+    "intro-plate-05-quest.spbm",
+)
+for name in fullscreen_assets:
+    assert (RUNTIME / name).read_bytes()[12:15] == b"\0\0\0", (
+        f"{name}: fullscreen COLOR00 must be black"
+    )
 
 print("PASS: runtime assets retain the complete reachable display span")

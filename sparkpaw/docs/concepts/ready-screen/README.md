@@ -1,6 +1,9 @@
 # Pre-level ready screen
 
 Status: accepted on FS-UAE/68030 and FS-UAE/68020 HD for alpha.48 Phase 6C.4.
+Alpha.49 additionally reserves pure-black palette pen 0; supplied FS-UAE/68030
+HD and real-A1200/Indivision HD testing accept removal of the previously
+visible one-pixel full-height `COLOR00` border.
 
 This screen appears after `CHARGING`, after gameplay preparation, and before
 the gameplay Copper is published. It uses a separately extracted Sparkpaw logo,

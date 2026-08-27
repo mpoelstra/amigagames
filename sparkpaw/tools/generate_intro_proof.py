@@ -38,6 +38,35 @@ def planar_bytes(image, depth):
                 if value & (1 << plane): out[plane * plane_size + offset] |= mask
     return row_bytes, bytes(out)
 
+def reserve_black_pen_zero(image, palette, colour_count=64):
+    """Reserve COLOR00 black, using the smallest merge if black is absent."""
+    palette = list(palette)
+    mapping = list(range(256))
+    try:
+        black_pen = palette[:colour_count].index((0, 0, 0))
+    except ValueError:
+        black_pen = -1
+    if black_pen >= 0:
+        if black_pen != 0:
+            mapping[0], mapping[black_pen] = black_pen, 0
+            palette[0], palette[black_pen] = palette[black_pen], palette[0]
+    else:
+        histogram = image.histogram()[:colour_count]
+        drop = min(range(1, colour_count), key=lambda pen: histogram[pen])
+        replacement = min(
+            (pen for pen in range(1, colour_count) if pen != drop),
+            key=lambda pen: sum((palette[drop][channel]-palette[pen][channel])**2
+                                for channel in range(3)),
+        )
+        mapping[drop] = replacement
+        mapping[0] = drop
+        palette[drop] = palette[0]
+        palette[0] = (0, 0, 0)
+    remapped = image.point(mapping)
+    remapped.putpalette([value for rgb in palette for value in rgb] +
+                        [0] * (768-len(palette)*3))
+    return remapped, palette
+
 GLYPHS = {
  "A":("01110","10001","10001","11111","10001","10001","10001"), "B":("11110","10001","10001","11110","10001","10001","11110"),
  "C":("01111","10000","10000","10000","10000","10000","01111"), "E":("11111","10000","10000","11110","10000","10000","11111"),
@@ -74,20 +103,26 @@ def build_plate(name, source_name, passages):
     image.paste(source.crop((0,0,320,168)),(0,0))
     ImageDraw.Draw(image).line((0,167,319,167),fill=(48,177,207),width=1)
     indexed=image.quantize(colors=63,method=Image.Quantize.MEDIANCUT,dither=Image.Dither.NONE)
-    palette=indexed.getpalette(); palette[189:192]=[238,220,173]; indexed.putpalette(palette)
+    palette_data=indexed.getpalette()[:192]
+    palette=[tuple(palette_data[index:index+3]) for index in range(0,192,3)]
+    indexed,palette=reserve_black_pen_zero(indexed,palette,63)
+    palette[63]=(238,220,173)
+    indexed.putpalette([value for rgb in palette for value in rgb] + [0]*576)
     draw=ImageDraw.Draw(indexed)
     for passage,lines in enumerate(passages):
         text_top=256+passage*176+88
         first_y=text_top+(18 if len(lines)==2 else 0)
         for row,value in enumerate(lines):
             medium_text(draw,value,(320-len(value)*9)//2,first_y+row*18,63)
-    palette=indexed.getpalette()[:192]
+    palette_data=indexed.getpalette()[:192]
+    if palette_data[:3] != [0,0,0]:
+        raise ValueError(f"{name}: fullscreen COLOR00 must be black")
     preview=Image.new("P",(320,256)); preview.putpalette(indexed.getpalette())
     preview.paste(indexed.crop((0,0,320,168)),(0,0)); preview.paste(indexed.crop((0,328,320,416)),(0,168))
     preview.save(ASSET_DIR/f"{name}-aga64-preview.png")
     row_bytes,planes=planar_bytes(indexed,6)
     output=ROOT/"assets/runtime"/f"{name}.spbm"; output.parent.mkdir(parents=True,exist_ok=True)
-    output.write_bytes(b"SPBM"+struct.pack(">HHBBH",320,height,6,0,row_bytes)+bytes(palette)+planes)
+    output.write_bytes(b"SPBM"+struct.pack(">HHBBH",320,height,6,0,row_bytes)+bytes(palette_data)+planes)
 
 def main():
     for name,source_name,passages in PLATES: build_plate(name,source_name,passages)

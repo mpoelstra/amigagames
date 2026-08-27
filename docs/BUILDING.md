@@ -33,7 +33,9 @@ make release
 
 `make` regenerates required runtime conversions and builds the root executable.
 `make release` rebuilds the executable and creates the project's ZIP, LHA, ADF,
-source, and WHDLoad outputs where supported. Generated files appear below
+source, and WHDLoad outputs where supported. Sparkpaw's `make release` now
+creates its versioned WHDLoad LHA and ZIP beside the HD and ADF artifacts;
+`make whdload` rebuilds only that pair. Generated files appear below
 `build/` and `dist/` and are intentionally not committed.
 
 The Makefiles default to `python3`. Override the interpreter when required:

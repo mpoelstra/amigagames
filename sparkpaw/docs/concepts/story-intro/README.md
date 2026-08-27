@@ -3,6 +3,9 @@ Status: five-plate story intro accepted in supplied FS-UAE/68030 and 68020 HD
 testing and promoted as the alpha.47 Phase 6C.3 release checkpoint. From
 alpha.48 onward the complete cinematic remains in HD/LHA/ZIP builds, while the
 space-bound ADF omits the five plates and begins at the existing title. The
+alpha.49 generators reserve pure-black palette pen 0; supplied real-A1200/
+Indivision HD testing accepts removal of the exposed full-height `COLOR00`
+border from all five plates. The
 earlier alpha.46 Level 1 Core-clearing checkpoint remains accepted. Supplied evidence accepts the
 composition, animated Core, radial collection beat, Storm Triumph sound and
 delayed replay. The matching minimal-cadence FS-UAE/68020 HD run reaches 49.67
