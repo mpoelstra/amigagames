@@ -27,6 +27,7 @@
 
 static struct PlayerState player;
 static BOOL jumpInputHeld,joystickFireHeld,crouchInputHeld;
+static enum SecondaryButtonAction secondaryButtonAction=SECONDARY_BUTTON_JUMP;
 
 static UBYTE groundSupportCount(WORD x,WORD y,UBYTE *leftCount)
 {
@@ -58,19 +59,25 @@ void playerInit(void)
     player.health=PLAYER_MAX_HEALTH;
 }
 
+void playerSetSecondaryButtonAction(enum SecondaryButtonAction action)
+{
+    secondaryButtonAction=action;
+}
+
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
 {
-    UWORD value=*(volatile UWORD *)0xdff00c; BOOL up,held;
+    UWORD value=*(volatile UWORD *)0xdff00c; BOOL up,held,secondary;
     BOOL keyLeft,keyRight,keyDown,keyJump,keyFire;
     platformReadGameKeys(&keyLeft,&keyRight,&keyDown,&keyJump,&keyFire);
     *left=((value&0x0200)!=0)||keyLeft;
     *right=((value&0x0002)!=0)||keyRight;
     *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
     up=((value^(value>>1))&0x0100)!=0;
-    up=up||keyJump||platformSecondaryButtonHeld();
+    secondary=platformSecondaryButtonHeld();
+    up=up||keyJump||secondaryButtonAddsJump(secondaryButtonAction,secondary);
     *jump=up&&!jumpInputHeld; jumpInputHeld=up;
-    held=(*(volatile UBYTE *)0xbfe001&0x80)==0;
-    held=held||keyFire;
+    held=((*(volatile UBYTE *)0xbfe001&0x80)==0)||keyFire||
+         secondaryButtonAddsFire(secondaryButtonAction,secondary);
     *fire=held&&!joystickFireHeld; joystickFireHeld=held;
 }
 

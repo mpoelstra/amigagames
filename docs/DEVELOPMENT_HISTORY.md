@@ -5583,3 +5583,78 @@ Both WHDLoad archives pass integrity checks. The bootable DOS1/FFS ADF uses
 1,356 blocks (678 KiB) and leaves 404 free; inspection confirms it contains no
 `.info` icon. This host/package evidence adds no new FS-UAE or ADF gameplay
 acceptance beyond the supplied icon observations.
+
+### 27 August 2026 - Alpha.53 adds ready-menu control options
+
+Phase 6C.4 now presents `START GAME` and `OPTIONS` in the accepted ready-screen
+composition. Start remains selected at entry, so Fire or Space retains the
+existing immediate fade into the fully prepared level. Up/down selects Options;
+its sole session-local setting assigns the port-2 secondary button to `JUMP`
+(the default alpha.50 contract) or `FIRE`. Left/right changes the value and
+Fire/Space returns to Start. No preferences file or save format is introduced.
+
+The deterministic generator produces one 320x256 six-plane base and four
+320x76 central menu bands in a single CPU-only Fast-RAM atlas. All variants are
+quantized together to one 64-colour palette with pure-black pen 0. After custom
+takeover, a menu change waits until the beam has passed the affected band and
+copies only 18,240 planar bytes into the existing loading/status bitmap. There
+is no second displayable Chip bitmap and no change to Stage 5L/H7, the gameplay
+Copper, HUD, physics, animation or audio.
+
+When `FIRE` is selected, the secondary line is merged with primary Fire and
+Space before the existing shot edge detector, matching alpha.50's anti-
+retrigger contract. Host asset/mapping regressions and the native VBCC 68020
+build pass. FS-UAE, ADF, WHDLoad and real-hardware behavior remain pending
+supplied tests.
+
+The complete release pipeline passes. The raw patch atlas is 73,164 bytes in
+Fast RAM and its ADF SPR1 stream is 5,304 bytes. The bootable DOS1/FFS ADF uses
+1,346 blocks (673 KiB) and leaves 414 free. HD ZIP/LHA, ADF and both WHDLoad
+archives are host-validated; this does not establish runtime acceptance.
+
+Supplied alpha.53 FS-UAE/HD screenshots reject the first menu-patch layout.
+After entering Options and returning, the full-width native y=118..193 patch
+clears the lower-left architecture and upper part of Sparkpaw's lower-right
+composition. The Options value and return hint also leave insufficient space
+above the credits. This is deterministic patch coverage, not a Copper,
+renderer or emulator-scaling defect.
+
+The focused correction narrows the patch from 320 to the word-aligned central
+x=80..239 span, reducing each menu update from 18,240 to 9,120 planar bytes and
+preserving both corner compositions. Options now places `SECOND BUTTON` and
+`JUMP`/`FIRE` on one compact key/value row with the return hint above a larger
+empty credit gap. Host asset regressions and native 68020 compilation pass.
+Only the self-contained production-style FS-UAE/68030 HD visual gate is staged;
+the alpha.53 release artifacts remain unchanged and correction acceptance is
+pending supplied testing.
+
+The supplied v1 FS-UAE/68030 screenshots reject that first correction too.
+Although the runtime copy was central-only, the generator still erased the
+full 320-pixel source band before extracting it, so both corners remained
+clipped. Options also retained crowded credits and asymmetric arrow spacing.
+
+The v2 generator no longer clears a flat band. Every state begins from the
+accepted background and changes only its central text; assertions require both
+outside regions to remain byte-identical. The atlas now spans x=80..239 and
+y=118..221 so main-menu credits can be restored while Options leaves that field
+empty. JUMP and FIRE use equal-width glyphs with exactly five empty pixels to
+either arrowhead. The superseded v1 drawer is preserved under `older-builds`;
+only the v2 production-style FS-UAE/68030 HD drawer remains for acceptance.
+
+The supplied v2 FS-UAE/68030 HD result accepts the corrected layout and menu
+function. The same production-style executable is subsequently accepted in
+FS-UAE/68020 HD; this confirms presentation, direct start and both mappings but
+adds no cadence number because the build contains no logger. MrDig's supplied
+real-A1200/68030 HD test also accepts the final menu and verifies that selecting
+`FIRE` makes the physical secondary button shoot instead of jump, while Up/W
+remain jump and `JUMP` preserves alpha.50. The controller model was not
+recorded, so no separately identified CD32-pad claim is made.
+
+The accepted v2 becomes alpha.54. Its 160x416 six-plane CPU-only atlas occupies
+50,124 bytes in Fast RAM and each menu update copies 12,480 planar bytes after
+scanout. It adds no displayable Chip bitmap and changes no gameplay renderer,
+physics, animation or audio behavior. ADF and WHDLoad runtime acceptance remain
+pending; FS-UAE/68020 performance continues to rely on the protected earlier
+48.58-FPS low-overhead baseline rather than this uninstrumented menu test. The
+atlas packs to 40,805 bytes on ADF; the final bootable DOS1/FFS image uses 1,444
+blocks (722 KiB) and leaves 316 free.

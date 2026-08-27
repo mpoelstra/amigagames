@@ -3,17 +3,19 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.52`. Roadmap checkpoint: Phase 6C.4 pre-level
-ready screen on the protected rolling renderer Stage 5L baseline. After all
+Current release: `0.6.0-alpha.54`. Roadmap checkpoint: Phase 6C.4 pre-level
+ready menu on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
-centred prompt/credits and lower-right Sparkpaw pose. Joystick Fire or Space
-fades directly into the already prepared level. Supplied FS-UAE/68030 and
+centred menu/credits and lower-right Sparkpaw pose. `START GAME` is selected by
+default, so joystick Fire or Space still fades directly into the already
+prepared level. `OPTIONS` assigns the secondary button to `JUMP` or `FIRE` for
+the current run. Supplied FS-UAE/68030 and
 FS-UAE/68020 HD testing accepts presentation, both inputs and the immediate
 gameplay transition. HD retains the complete Phase 6C.3 five-plate story intro;
 the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
-Its bootable DOS1/FFS image validates at 1,353 blocks (676 KiB), leaving 407
+Its bootable DOS1/FFS image validates at 1,444 blocks (722 KiB), leaving 316
 free; this is package/decode evidence, not ADF gameplay acceptance.
 
 Alpha.49 additionally reserves pure black palette pen 0 in every fullscreen
@@ -31,6 +33,22 @@ was supplied. Jump physics, animation, audio and the renderer are unchanged.
 The bootable DOS1/FFS ADF validates at 1,354 blocks (677 KiB), leaving 406
 free; this proves package construction and retained-stream decode identity,
 not ADF gameplay acceptance.
+
+Alpha.54 replaces only the ready screen's central prompt with `START GAME` and
+`OPTIONS`. Up/down selects; Fire/Space confirms. Inside Options, left/right
+changes `SECOND BUTTON` between `JUMP` and `FIRE`, and Fire/Space returns to the
+main menu. The setting defaults to the real-A1200-accepted alpha.50 jump
+behavior on every launch. Menu variants share one exact 64-colour palette and
+a Fast-RAM patch atlas. No extra displayable Chip bitmap, gameplay renderer
+work, physics or audio change is introduced. Host tests and native 68020
+compilation pass. The final central-only atlas preserves both lower corners,
+omits credits from Options and keeps the JUMP/FIRE arrows symmetric. Supplied
+FS-UAE/68030, FS-UAE/68020 and real-A1200/68030 HD testing accepts presentation,
+direct start and both mappings. The 68020 production-style run contains no
+cadence logger, so it makes no new numerical FPS claim. ADF and WHDLoad runtime
+acceptance remain pending. The raw 50,124-byte menu atlas packs to 40,805 bytes
+on ADF; the bootable DOS1/FFS image uses 1,444 blocks (722 KiB) and leaves 316
+free.
 
 Alpha.52 adds a shared Sparkpaw cover icon to the ordinary HD and WHDLoad
 drawers. NewIcons-capable systems use the accepted 86x93, 34-colour embedded
@@ -568,8 +586,10 @@ stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 
 ## Controls
 
-- Joystick port 2: left/right to run, up or secondary button to jump, primary
-  fire to shoot
+- Ready menu: up/down selects, Fire/Space confirms; Options left/right assigns
+  the secondary button to Jump or Fire for the current run
+- Joystick port 2: left/right to run, up to jump and primary fire to shoot;
+  the secondary button follows the selected option and defaults to jump
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
 - Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots
@@ -789,12 +809,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.52.lha`
-- `dist/Sparkpaw-0.6.0-alpha.52.zip`
-- `dist/Sparkpaw-0.6.0-alpha.52.adf`
-- `dist/Sparkpaw-0.6.0-alpha.52-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.52-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.52/`
+- `dist/Sparkpaw-0.6.0-alpha.54.lha`
+- `dist/Sparkpaw-0.6.0-alpha.54.zip`
+- `dist/Sparkpaw-0.6.0-alpha.54.adf`
+- `dist/Sparkpaw-0.6.0-alpha.54-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.54-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.54/`
 
 The WHDLoad archives contain a versioned self-contained drawer with the
 WHDLoad-specific executable and assets under `data/`, a Kickstart 3.1 BootDOS

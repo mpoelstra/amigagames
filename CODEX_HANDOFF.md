@@ -45,14 +45,30 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.52`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.54`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.52.lha`
-- `Sparkpaw-0.6.0-alpha.52.zip`
-- `Sparkpaw-0.6.0-alpha.52.adf`
-- `Sparkpaw-0.6.0-alpha.52-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.52-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.52/`
+- `Sparkpaw-0.6.0-alpha.54.lha`
+- `Sparkpaw-0.6.0-alpha.54.zip`
+- `Sparkpaw-0.6.0-alpha.54.adf`
+- `Sparkpaw-0.6.0-alpha.54-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.54-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.54/`
+
+Alpha.54 expands the accepted Phase 6C.4 ready screen into a two-item menu.
+`START GAME` remains selected by default and Fire/Space follows the existing
+fade into the already prepared level. `OPTIONS` exposes one session-only
+`SECOND BUTTON` choice: `JUMP` preserves alpha.50, while `FIRE` keeps Up/W as
+jump and merges the secondary button into the primary-Fire/Space press edge.
+A shared-palette Fast-RAM patch atlas updates only the static central menu band;
+the six-plane display, Stage 5L/H7 renderer, physics and audio are unchanged.
+The final word-aligned x=80..239 atlas preserves both lower corner
+compositions, omits credits from Options and uses symmetric JUMP/FIRE arrows.
+Supplied FS-UAE/68030, FS-UAE/68020 and real-A1200/68030 HD testing accepts
+presentation, direct start and both mappings. The 68020 production-style run
+contains no cadence logger, so it adds no numerical FPS claim. ADF and WHDLoad
+runtime acceptance of alpha.54 remain pending. The raw 50,124-byte menu atlas
+packs to 40,805 bytes on ADF; the bootable DOS1/FFS image uses 1,444 blocks
+(722 KiB) and leaves 316 free.
 
 Alpha.50 adds an optional secondary-button jump input on joystick
 port 2 alongside the preserved joystick Up and keyboard W paths. Port 2 pin 5
@@ -266,8 +282,9 @@ Player:
 
 - Frames 0..49 accepted base; standing hurt 50..53, crouched hurt 54..57 and
   ledge balance 58..61 are append-only.
-- Joystick port 2 Up, its secondary button and keyboard W feed one combined
-  edge-triggered jump action; primary Fire and Space remain the shoot action.
+- Joystick port 2 Up and keyboard W feed the jump action. The ready-menu option
+  assigns the secondary button to that same edge by default, or to the existing
+  primary-Fire/Space shoot edge for the session.
 - Preserve scale, feet, mirrored facing, run/jump/landing/crouch/turn/shoot/hurt
   selection, three hearts as six health units and accepted life/reset behavior.
 - Sprint/jump performance is open; do not change physics before measuring it.

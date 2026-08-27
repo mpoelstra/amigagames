@@ -25,12 +25,45 @@ rear = header("storm-rear.spbm")
 loading = header("sparkpaw-level-loading.spbm")
 charging = header("level-charge-patch.spbm")
 ready = header("sparkpaw-ready-screen.spbm")
+ready_menu = header("sparkpaw-ready-menu-patches.spbm")
 
 assert front[:4] == (3392, 208, 4, 0)
 assert rear[:4] == (1120, 208, 3, 0)
 assert loading[:4] == (320, 256, 6, 0)
 assert charging[:4] == (224, 40, 6, 0)
 assert ready[:4] == (320, 256, 6, 0)
+assert ready_menu[:4] == (160, 416, 6, 0)
+
+ready_data = (RUNTIME / "sparkpaw-ready-screen.spbm").read_bytes()
+ready_menu_data = (RUNTIME / "sparkpaw-ready-menu-patches.spbm").read_bytes()
+assert ready_data[12 : 12 + 64 * 3] == ready_menu_data[12 : 12 + 64 * 3]
+
+# State zero in the patch atlas must be byte-identical to the displayed base
+# screen's menu band. This protects tear-safe runtime patching from palette or
+# planar-layout drift.
+header_bytes = 12 + 64 * 3
+ready_row_bytes = 40
+menu_row_bytes = 20
+ready_plane_bytes = ready_row_bytes * 256
+menu_plane_bytes = menu_row_bytes * 416
+patch_y = 118
+patch_x_bytes = 10
+patch_bytes = menu_row_bytes * 104
+for plane in range(6):
+    ready_at = (header_bytes + plane * ready_plane_bytes +
+                patch_y * ready_row_bytes + patch_x_bytes)
+    menu_at = header_bytes + plane * menu_plane_bytes
+    for row in range(104):
+        ready_row = ready_at + row * ready_row_bytes
+        menu_row = menu_at + row * menu_row_bytes
+        assert ready_data[ready_row : ready_row + menu_row_bytes] == \
+            ready_menu_data[menu_row : menu_row + menu_row_bytes]
+
+first_state = ready_menu_data[header_bytes : header_bytes + patch_bytes]
+second_state = ready_menu_data[
+    header_bytes + patch_bytes : header_bytes + patch_bytes * 2
+]
+assert first_state != second_state
 
 # Maximum camera X is 3392-320. Quarter scroll is word-aligned down and the
 # Copper fetches 42 bytes (336 pixels). The final fetched pixel must remain in

@@ -2,6 +2,7 @@
 #define SPARKPAW_PLAYER_H
 
 #include <exec/types.h>
+#include "control_options.h"
 
 #define PLAYER_W 32
 #define PLAYER_H 40
@@ -21,6 +22,7 @@ struct PlayerState {
 typedef void (*PlayerPlayShot)(void);
 
 void playerInit(void);
+void playerSetSecondaryButtonAction(enum SecondaryButtonAction action);
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire);
 void playerStartShot(BOOL pressed,PlayerPlayShot playShot);
 BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);

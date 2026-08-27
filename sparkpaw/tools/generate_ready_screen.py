@@ -14,7 +14,14 @@ CONCEPT = ROOT / "docs/concepts/ready-screen"
 BACKGROUND = CONCEPT / "assets/sparkpaw-ready-background-source-v3.png"
 LOGO = CONCEPT / "assets/sparkpaw-logo-wordmark-source-v2.png"
 PREVIEW = CONCEPT / "sparkpaw-ready-screen-aga64-preview.png"
+OPTIONS_PREVIEW = CONCEPT / "sparkpaw-options-screen-aga64-preview.png"
 RUNTIME = ROOT / "assets/runtime/sparkpaw-ready-screen.spbm"
+MENU_PATCHES = ROOT / "assets/runtime/sparkpaw-ready-menu-patches.spbm"
+
+PATCH_Y = 118
+PATCH_H = 104
+PATCH_X = 80
+PATCH_W = 160
 
 
 GLYPHS.update({
@@ -22,6 +29,7 @@ GLYPHS.update({
     "1": ("00100", "01100", "00100", "00100", "00100", "00100", "01110"),
     "2": ("01110", "10001", "00001", "00010", "00100", "01000", "11111"),
     "6": ("00110", "01000", "10000", "11110", "10001", "10001", "01110"),
+    "J": ("00111", "00010", "00010", "00010", "10010", "10010", "01100"),
     "%": ("11001", "11010", "00100", "01000", "10110", "00110", "00000"),
 })
 
@@ -35,6 +43,48 @@ def small_text(draw, value, y, colour, centre_x=160):
                 if bit == "1":
                     draw.point((x + gx, y + gy), fill=colour)
         x += 6
+
+
+def menu_screen(image, state):
+    image = image.copy()
+    draw = ImageDraw.Draw(image)
+
+    if state < 2:
+        selected = state
+        labels = ("START GAME", "OPTIONS")
+        for index, label in enumerate(labels):
+            colour = (31, 201, 224) if index == selected else (241, 221, 170)
+            y = 129 + index * 25
+            medium_text(draw, label, (320 - len(label) * 9) // 2, y, colour)
+            if index == selected:
+                draw.line((82, y + 6, 105, y + 6), fill=(31, 201, 224))
+                draw.line((214, y + 6, 237, y + 6), fill=(31, 201, 224))
+        small_text(draw, "2026 MRDIG PRODUCTIONS", 201, (180, 190, 183))
+        small_text(draw, "100% MADE WITH AI", 213, (71, 175, 198))
+    else:
+        value = "JUMP" if state == 2 else "FIRE"
+        medium_text(draw, "OPTIONS", (320 - len("OPTIONS") * 9) // 2,
+                    128, (31, 201, 224))
+        small_text(draw, "SECOND BUTTON", 157, (241, 221, 170), 132)
+        small_text(draw, value, 157, (31, 201, 224), 207)
+        draw.polygon(((183, 160), (190, 154), (190, 166)),
+                     fill=(31, 201, 224))
+        draw.polygon(((224, 154), (231, 160), (224, 166)),
+                     fill=(31, 201, 224))
+        small_text(draw, "FIRE: RETURN", 177, (180, 190, 183))
+    return image
+
+
+def spbm_payload(indexed, width, height, depth=6):
+    palette_data = indexed.getpalette()[:(1 << depth) * 3]
+    row_bytes, planes = planar_bytes(indexed, depth)
+    payload = (b"SPBM" + struct.pack(">HHBBH", width, height, depth, 0,
+                                     row_bytes) +
+               bytes(palette_data) + planes)
+    expected = 12 + (1 << depth) * 3 + row_bytes * height * depth
+    if len(payload) != expected:
+        raise ValueError(f"SPBM is {len(payload)} bytes; expected {expected}")
+    return payload
 
 
 def build_ready_screen():
@@ -70,34 +120,45 @@ def build_ready_screen():
     logo.thumbnail((300, 106), Image.Resampling.LANCZOS)
     image.paste(logo, ((320-logo.width)//2, 7), logo)
 
-    draw = ImageDraw.Draw(image)
-
-    prompt = "PRESS FIRE TO START"
-    medium_text(draw, prompt, (320 - len(prompt) * 9) // 2, 133,
-                (241, 221, 170))
-    draw.line((39, 138, 65, 138), fill=(31, 201, 224))
-    draw.line((254, 138, 280, 138), fill=(31, 201, 224))
-    small_text(draw, "2026 MRDIG PRODUCTIONS", 201, (180, 190, 183))
-    small_text(draw, "100% MADE WITH AI", 213, (71, 175, 198))
-
-    indexed = image.quantize(colors=64, method=Image.Quantize.MEDIANCUT,
-                             dither=Image.Dither.NONE)
-    palette_data = indexed.getpalette()[:192]
-    palette = [tuple(palette_data[index:index + 3])
+    screens = [menu_screen(image, state) for state in range(4)]
+    for state, screen in enumerate(screens):
+        for box in ((0, PATCH_Y, PATCH_X, PATCH_Y + PATCH_H),
+                    (PATCH_X + PATCH_W, PATCH_Y, 320,
+                     PATCH_Y + PATCH_H)):
+            if screen.crop(box).tobytes() != image.crop(box).tobytes():
+                raise ValueError(f"menu state {state} changed corner pixels")
+    for state in (2, 3):
+        if screens[state].crop((PATCH_X, 195, PATCH_X + PATCH_W, 215)).tobytes() \
+                != image.crop((PATCH_X, 195, PATCH_X + PATCH_W, 215)).tobytes():
+            raise ValueError("Options credits field must remain empty")
+    combined = Image.new("RGB", (320, 256 * len(screens)))
+    for state, screen in enumerate(screens):
+        combined.paste(screen, (0, state * 256))
+    indexed = combined.quantize(colors=64, method=Image.Quantize.MEDIANCUT,
+                                dither=Image.Dither.NONE)
+    raw_palette = indexed.getpalette()[:192]
+    palette = [tuple(raw_palette[index:index + 3])
                for index in range(0, 192, 3)]
     indexed, palette = reserve_black_pen_zero(indexed, palette)
     palette_data = [value for rgb in palette for value in rgb]
     if palette_data[:3] != [0, 0, 0]:
         raise ValueError("ready screen fullscreen COLOR00 must be black")
-    indexed.save(PREVIEW)
-    row_bytes, planes = planar_bytes(indexed, 6)
-    payload = (b"SPBM" + struct.pack(">HHBBH", 320, 256, 6, 0, row_bytes) +
-               bytes(palette_data) + planes)
-    expected = 12 + 64 * 3 + row_bytes * 256 * 6
-    if len(payload) != expected:
-        raise ValueError(f"ready-screen SPBM is {len(payload)} bytes; "
-                         f"expected {expected}")
-    RUNTIME.write_bytes(payload)
+    indexed.putpalette(palette_data)
+    indexed_screens = [indexed.crop((0, state * 256, 320,
+                                     (state + 1) * 256))
+                       for state in range(4)]
+    indexed_screens[0].save(PREVIEW)
+    indexed_screens[2].save(OPTIONS_PREVIEW)
+    RUNTIME.write_bytes(spbm_payload(indexed_screens[0], 320, 256))
+
+    patches = Image.new("P", (PATCH_W, PATCH_H * len(indexed_screens)))
+    patches.putpalette(palette_data)
+    for state, screen in enumerate(indexed_screens):
+        patches.paste(screen.crop((PATCH_X, PATCH_Y,
+                                   PATCH_X + PATCH_W, PATCH_Y + PATCH_H)),
+                      (0, state * PATCH_H))
+    MENU_PATCHES.write_bytes(spbm_payload(
+        patches, PATCH_W, PATCH_H * len(indexed_screens)))
 
 
 if __name__ == "__main__":

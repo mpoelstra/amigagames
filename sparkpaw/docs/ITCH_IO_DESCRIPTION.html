@@ -1,0 +1,68 @@
+<h3>A storm is waking in the ruins</h3>
+<p><strong>Sparkpaw: The Stormstone Quest</strong> is an original side-scrolling action platformer for the Commodore Amiga 1200. Play as Sparkpaw, an amber-orange feline adventurer and young inventor armed with a teal energy gauntlet, and cross ancient stone-and-machine ruins to recover the scattered Cores of the Stormstone.</p>
+<p>This public alpha contains the complete first-world route: twelve scrolling screens of platforms, water hazards, ruined machinery, collectibles and clockwork enemies, followed by the Stormkeeper&#39;s Waystation and the first Stormstone Core. Run, crouch, jump, fire rapid plasma shots, fight Clockwork Beetles and towering Storm Striders, and follow the distant storm-lit citadel through a layered parallax landscape.</p>
+<p>Sparkpaw is a real native Amiga game rather than a browser recreation or a modern game wearing a retro skin. It is written in C for VBCC with direct use of AGA bitplanes, Copper lists, the Blitter, attached hardware sprites, Paula audio and PAL raster timing.</p>
+<h3>Current alpha features</h3>
+<ul>
+  <li>One extended, completable Level 1 route and first Core-clearing sequence</li>
+  <li>A 64-colour five-panel story introduction in the HD and WHDLoad editions</li>
+  <li>Dedicated title, loading, charging and pre-level ready menu</li>
+  <li>Ready-menu option assigns the joystick secondary button to Jump or Fire</li>
+  <li>Dual AGA playfields with quarter-speed rear parallax</li>
+  <li>A fluid 15-colour, 48x48 Sparkpaw built from an attached AGA sprite pair</li>
+  <li>Running, variable jumping, crouching, crouch-walking and dedicated combat poses</li>
+  <li>Rapid energy fire, animated impacts, health, lives and Storm Shard collection</li>
+  <li>Clockwork Beetles and 64x64 Storm Striders with patrol, traversal, ranged attack, hurt, destruction and respawn behaviour</li>
+  <li>Animated water hazards, splashes and ledge-balance animation</li>
+  <li>Original Amiga-ready sound effects played through Paula</li>
+  <li>HD, bootable ADF and WHDLoad packages</li>
+</ul>
+<p>This is an <strong>in-development alpha</strong>, not the finished five-world adventure. Music, broader enemy variety, later levels, final progression and the complete game-over/victory flow are still to come. Feedback from Amiga users is very welcome, especially when the exact machine, accelerator, RAM, display setup and package type are included.</p>
+<h3>Requirements</h3>
+<ul>
+  <li>PAL Commodore Amiga 1200 or compatible AGA system</li>
+  <li>2 MB Chip RAM and 8 MB Fast RAM</li>
+  <li>68020 or faster CPU</li>
+  <li>Joystick in port 2</li>
+</ul>
+<p>The game is actively stress-tested at stock-68020 speed in FS-UAE. The most complete supplied real-hardware acceptance so far is from an A1200 with a roughly 34.5 MHz 68030. Performance on every accelerator, FPGA core or exact stock configuration is not implied.</p>
+<h3>Controls</h3>
+<ul>
+  <li><strong>Ready menu:</strong> Up/down selects; Fire/Space confirms; Options uses left/right to assign the secondary button to Jump or Fire for the current run</li>
+  <li><strong>Joystick:</strong> left/right to run, up to jump, down to crouch and primary fire to shoot; the secondary button follows the ready-menu choice and defaults to Jump</li>
+  <li><strong>Keyboard:</strong> A/D to move, W to jump, S to crouch, Space to shoot</li>
+  <li><strong>Story intro:</strong> Fire reveals/advances; hold Fire or use the left mouse button to skip</li>
+  <li><strong>WHDLoad:</strong> F10 returns to Workbench</li>
+</ul>
+<h3>Downloads</h3>
+<ul>
+  <li><strong>ADF:</strong> bootable floppy image. To preserve floppy space it omits the five cinematic story plates, but retains the title, loading, ready screen and game.</li>
+  <li><strong>HD:</strong> extract the LHA or ZIP to a hard drive and launch Sparkpaw from its drawer.</li>
+  <li><strong>WHDLoad:</strong> LHA and ZIP packages for an existing WHDLoad installation; WHDLoad and Kickstart files are not included.</li>
+</ul>
+<p>If you are unsure, use the HD or WHDLoad edition for the complete presentation.</p>
+<h3>Development: MrDig + AI, one test at a time</h3>
+<p>This was not a one-prompt game. Before the story, here is what the repository actually records.</p>
+<h4>Sparkpaw by the numbers</h4>
+<ul>
+  <li><strong>22 days</strong> from the first public repository baseline to alpha.54</li>
+  <li><strong>14 active development dates</strong> recorded in Git</li>
+  <li><strong>64 Sparkpaw commits</strong></li>
+  <li><strong>54 numbered alpha iterations</strong> in the current development line</li>
+  <li><strong>364 preserved test-evidence files</strong></li>
+  <li><strong>79 gameplay and hardware-test videos</strong></li>
+  <li><strong>90 diagnostic and performance logs</strong></li>
+  <li><strong>49 screenshots</strong> documenting presentation, bugs and hardware differences</li>
+  <li><strong>145 written test reports and evidence sidecars</strong></li>
+  <li><strong>173 preserved old test-build drawers</strong>, including accepted references, rejected experiments and A/B candidates</li>
+  <li><strong>25,951 lines</strong> across the current C headers/sources, Python tools and Sparkpaw development/test documentation</li>
+  <li><strong>1,743 simulated launch cases</strong> for one particularly stubborn traversal fix</li>
+  <li>Approximately <strong>642 KiB of permanent Chip RAM</strong> recovered during the real-hardware memory investigation, plus about <strong>54 KiB</strong> during status loading</li>
+  <li><strong>48.58 effective FPS</strong> in the low-overhead FS-UAE/68020 stress diagnostic</li>
+  <li><strong>49.67 effective FPS</strong> in the later 68020 Core-clearing performance run</li>
+  <li>An estimated <strong>80–120 combined development and testing hours</strong></li>
+</ul>
+<p>The final number is deliberately a range. Git records commits, not the time spent playing a build, moving files to a real Amiga, filming a CRT, comparing individual video frames, discussing whether a platform looks wrong, or discovering at midnight that the profiler has been profiling itself into a slower game. The evidence makes “dozens of hours” an understatement and makes <strong>roughly one hundred hours of collaboration</strong> a fair description, but it is still an estimate rather than a timesheet.</p>
+<p>Sparkpaw was created through an intensive collaboration between <strong>MrDig</strong> and <strong>AI coding agent Codex</strong>. MrDig set the creative direction, played every meaningful build, judged the art and feel, and supplied the evidence that an AI cannot manufacture: recordings, logs and observations from FS-UAE, a real A1200, physical ADF boots, WHDLoad and an Analogue Pocket. Codex helped design and implement the engine, assets and tooling, analyse evidence, propose isolated experiments, build test packages and preserve the results.</p>
+<p>What made the project hard was not generating a hero image or making a sprite move. The hard part was making many Amiga subsystems agree every PAL frame. The foreground, parallax, Copper, Blitter Bobs, hardware sprites, HUD and audio all compete for finite Chip RAM, DMA time and raster time. A change that looked perfect in a fast emulator could hitch at 68020 speed, expose a seam through an Indivision, corrupt a Bob on real hardware or fail only when Workbench left too little free Chip RAM.</p>
+<p>That produced a deliberately empirical workflow: change one variable, package a named A/B build, test at 68030 and 68020 speed, inspect video frame by frame, read the CIA/raster timings, reject the losing hypothesis and retain the evidence. Many optimisations were correctly thrown away. Failed work was not hidden; it became the map that led to the stable build.</p>

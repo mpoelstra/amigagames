@@ -21,7 +21,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.52"
+RELEASE_VERSION = "0.6.0-alpha.54"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -46,6 +46,7 @@ ADF_STATUS_ASSETS = (
     ROOT / "build" / "adf-assets" / "sparkpaw-level-loading.spr1",
     ROOT / "build" / "adf-assets" / "level-charge-patch.spr1",
     ROOT / "build" / "adf-assets" / "level-ready.spr1",
+    ROOT / "build" / "adf-assets" / "level-ready-menu.spr1",
 )
 ADF_RAW_NAMES = {
     "intro1.spr1": "intro-plate-01-balance.spbm",
@@ -56,6 +57,7 @@ ADF_RAW_NAMES = {
     "sparkpaw-level-loading.spr1": "sparkpaw-level-loading.spbm",
     "level-charge-patch.spr1": "level-charge-patch.spbm",
     "level-ready.spr1": "sparkpaw-ready-screen.spbm",
+    "level-ready-menu.spr1": "sparkpaw-ready-menu-patches.spbm",
 }
 
 RUNTIME_FILES = (
@@ -63,6 +65,7 @@ RUNTIME_FILES = (
     "sparkpaw-level-loading.spbm",
     "level-charge-patch.spbm",
     "sparkpaw-ready-screen.spbm",
+    "sparkpaw-ready-menu-patches.spbm",
     "sparkpaw-hud-base.spbm",
     "sparkpaw-hud-health.spbm",
     "sparkpaw-hud-lives.spbm",
@@ -97,6 +100,20 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
+
+Alpha.54 expands the accepted ready screen into a compact two-item menu.
+START GAME remains selected by default and Fire/Space follows the same direct
+fade into the prepared level. OPTIONS exposes one session-only SECOND BUTTON
+choice. JUMP preserves alpha.50; FIRE keeps Up/W as jump and adds the secondary
+button to the existing primary-Fire/Space shot edge. Up/down selects the main
+menu, left/right changes the option and Fire/Space returns. One shared-palette
+Fast-RAM patch atlas updates only the static central band after scanout; the
+gameplay renderer, physics and audio are unchanged. The final central-only
+atlas preserves both corner compositions, omits credits from Options and keeps
+the JUMP/FIRE arrows symmetric. Supplied FS-UAE/68030, FS-UAE/68020 and real-
+A1200/68030 HD testing accepts the menu, direct start and both mappings. The
+68020 run was production-style and provides no new numerical cadence result.
+The bootable DOS1/FFS ADF uses 1,444 blocks (722 KiB) and leaves 316 free.
 
 Alpha.52 gives the ordinary HD and WHDLoad launchers one shared Sparkpaw cover
 icon. NewIcons-capable Workbenches use its embedded 86x93, 34-colour artwork;
@@ -458,8 +475,10 @@ Keep the complete {RELEASE_NAME} drawer together. Start it from Shell:
 Controls
 --------
 
-Joystick port 2: left/right to run, up or secondary button to jump and primary
-fire to shoot. Every fire
+Ready menu: up/down selects and Fire/Space confirms. In Options, left/right
+assigns the secondary button to Jump or Fire for this run; Jump is the default.
+Joystick port 2: left/right to run, up to jump and primary fire to shoot. The
+secondary button follows the ready-menu choice. Every fire
 press launches a fast blue/cyan plasma pulse; rapid tapping supports several
 pulses in flight. Hold down to crouch; combine down with left/right to
 crouch-walk, and press fire to shoot from a dedicated low pose. Ten required

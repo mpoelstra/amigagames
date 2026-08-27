@@ -8,6 +8,7 @@
 #include "game.h"
 #include "performance_profile.h"
 #include "platform_amiga.h"
+#include "player.h"
 #include "renderer.h"
 #include "title.h"
 #include "world_config.h"
@@ -85,6 +86,7 @@ int main(void)
     ULONG phase6BeforeFree,phase6BeforeLargest;
 #endif
     BOOL loadingShown;
+    enum SecondaryButtonAction secondaryButtonAction=SECONDARY_BUTTON_JUMP;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     BOOL prototypePublished;
 #endif
@@ -161,12 +163,13 @@ int main(void)
        while the ready screen remains displayed so Space shares the gameplay
        raw-key path with joystick Fire. */
     platformFinishTakeover(titleCopperList());
-    titleWaitLevelReadyFire();
+    titleRunLevelReadyMenu(&secondaryButtonAction);
 #ifdef SPARKPAW_WHDLOAD
     if(platformWHDLoadQuitRequested()) {
         platformRestore(); cleanup(); return 0;
     }
 #endif
+    playerSetSecondaryButtonAction(secondaryButtonAction);
     titleFadeOut();
     rendererUpdateGameplay();
     platformSwitchCopper(rendererCopperList());

@@ -76,7 +76,8 @@ ADF_INTRO_ASSETS = build/adf-assets/intro1.spr1 \
 	build/adf-assets/intro4.spr1 build/adf-assets/intro5.spr1
 ADF_STATUS_ASSETS = build/adf-assets/sparkpaw-level-loading.spr1 \
 	build/adf-assets/level-charge-patch.spr1 \
-	build/adf-assets/level-ready.spr1
+	build/adf-assets/level-ready.spr1 \
+	build/adf-assets/level-ready-menu.spr1
 ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET) \
 	$(ADF_PLAYER_ASSET) $(ADF_STATUS_ASSETS)
 BENCH_TARGETS = sparkpaw-renderbench-4plus3 sparkpaw-renderbench-4plus4
@@ -98,7 +99,7 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
-HEADERS = src/assets.h src/audio.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
+HEADERS = src/assets.h src/audio.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
@@ -157,6 +158,8 @@ test:
 	@mkdir -p build/host-tests
 	$(PYTHON) tests/test_runtime_memory_layout.py
 	$(PYTHON) tests/test_sparkpaw_icon.py
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-control-options tests/test_control_options.c
+	build/host-tests/test-control-options
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-beetle-hitbox tests/test_beetle_hitbox.c
 	build/host-tests/test-beetle-hitbox
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-water-update-visibility tests/test_water_update_visibility.c
@@ -361,10 +364,11 @@ $(AGA64_PLAYER_SPRITE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 		-DSPARKPAW_AGA64_PLAYER_SPRITE -o $@ $(SOURCES)
 
 READY_SCREEN_ASSET = assets/runtime/sparkpaw-ready-screen.spbm
+READY_MENU_ASSET = assets/runtime/sparkpaw-ready-menu-patches.spbm
 
-assets: $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
+assets: $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 
-$(READY_SCREEN_ASSET): tools/generate_ready_screen.py tools/generate_intro_proof.py \
+$(READY_SCREEN_ASSET) $(READY_MENU_ASSET): tools/generate_ready_screen.py tools/generate_intro_proof.py \
 	docs/concepts/ready-screen/assets/sparkpaw-ready-background-source-v3.png \
 	docs/concepts/ready-screen/assets/sparkpaw-logo-wordmark-source-v2.png
 	$(PYTHON) tools/generate_ready_screen.py
@@ -417,12 +421,12 @@ sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/en
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
-$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
+$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)"
 	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
-$(WHDLOAD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
+$(WHDLOAD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DSPARKPAW_WHDLOAD -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
@@ -442,7 +446,7 @@ intro-proof-package: $(INTRO_PROOF_TARGET)
 	cp docs/concepts/story-intro/INTRO_PROOF_TEST.txt \
 		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/ReadMe.txt
 
-$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET)
+$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DADF_PACKED_ASSETS -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
@@ -484,6 +488,9 @@ build/adf-assets/level-charge-patch.spr1: assets/runtime/level-charge-patch.spbm
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 build/adf-assets/level-ready.spr1: assets/runtime/sparkpaw-ready-screen.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+build/adf-assets/level-ready-menu.spr1: assets/runtime/sparkpaw-ready-menu-patches.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 

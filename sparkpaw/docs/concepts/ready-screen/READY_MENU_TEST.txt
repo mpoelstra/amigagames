@@ -1,0 +1,29 @@
+Sparkpaw alpha.53 ready menu - supplied runtime gate
+=====================================================
+
+Use the normal Sparkpaw-0.6.0-alpha.53 HD drawer first. Test FS-UAE/68030,
+then FS-UAE/68020. ADF, WHDLoad and real-A1200 results remain separate.
+
+1. Reach the ready screen after CHARGING. START GAME must be selected by
+   default. The logo, Sparkpaw, credits and outer architecture must remain
+   stable and the left COLOR00 edge must stay pure black.
+2. Press Fire immediately. The accepted fade must lead directly into the
+   already prepared level, with no new loading pause.
+3. Restart. Use Up/Down to alternate START GAME and OPTIONS. Check for clean,
+   tear-free cyan selection rails and unchanged surrounding pixels.
+4. Enter OPTIONS with Fire or Space. It must show SECOND BUTTON and JUMP.
+   Use Left/Right repeatedly to alternate JUMP and FIRE, then Fire/Space to
+   return. START GAME must again be selected and the chosen value must survive
+   that return.
+5. With JUMP selected, verify Up, W and the secondary button jump; primary
+   Fire and Space shoot. Holding or overlapping jump sources must not retrigger.
+6. With FIRE selected, verify Up and W still jump while primary Fire, Space and
+   the secondary button shoot. Holding or overlapping fire sources must not
+   create a second press edge.
+7. Relaunch the executable. OPTIONS must default to JUMP again; no preference
+   file should be created.
+8. For WHDLoad, also press F10 from both main and Options screens and verify the
+   accepted clean return path remains intact.
+
+Report the exact platform/package, menu presentation, both mappings and whether
+any transition shows tearing, stale text, a coloured left border or a pause.

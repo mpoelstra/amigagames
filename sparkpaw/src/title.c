@@ -27,6 +27,14 @@
 #define INTRO_PASSAGE_HOLD_FRAMES 240
 #define INTRO_TEXT_SCROLL_ROWS 72
 #define INTRO_SKIP_HOLD_FRAMES 30
+#define READY_MENU_PATCH_Y 118
+#define READY_MENU_PATCH_H 104
+#define READY_MENU_PATCH_X 80
+#define READY_MENU_PATCH_W 160
+#define READY_MENU_STATE_START 0
+#define READY_MENU_STATE_OPTIONS 1
+#define READY_MENU_STATE_JUMP 2
+#define READY_MENU_STATE_FIRE 3
 #define INTRO_TEXT_FADE_FRAMES 12
 #define INTRO_TEXT_PAGE_ROWS 176
 
@@ -443,9 +451,18 @@ BOOL titleShowLevelReady(void)
         failureReason="six-plane ready screen asset load failed";
         return FALSE;
     }
+    if(!assetsLoadLevelReadyMenu()) {
+        failureReason="ready menu patch asset load failed";
+        assetsUnloadLevelReady();
+        return FALSE;
+    }
     ready=assetsLevelReady();
-    if(!ready->bitmap||ready->width!=320||ready->height!=256) {
+    if(!ready->bitmap||ready->width!=320||ready->height!=256||
+       !assetsLevelReadyMenu()->bitmap||
+       assetsLevelReadyMenu()->width!=READY_MENU_PATCH_W||
+       assetsLevelReadyMenu()->height!=READY_MENU_PATCH_H*4) {
         failureReason="ready screen asset has invalid geometry";
+        assetsUnloadLevelReadyMenu();
         assetsUnloadLevelReady();
         return FALSE;
     }
@@ -463,25 +480,88 @@ BOOL titleShowLevelReady(void)
     return TRUE;
 }
 
-void titleWaitLevelReadyFire(void)
+static void readReadyMenuInput(BOOL *up,BOOL *down,BOOL *left,BOOL *right,
+                               BOOL *fire)
 {
-    BOOL left,right,down,jump,space,held;
-    do {
-        platformReadGameKeys(&left,&right,&down,&jump,&space);
+    UWORD value=*(volatile UWORD *)0xdff00c;
+    BOOL keyLeft,keyRight,keyDown,keyUp,keyFire;
+    platformReadGameKeys(&keyLeft,&keyRight,&keyDown,&keyUp,&keyFire);
+    *left=((value&0x0200)!=0)||keyLeft;
+    *right=((value&0x0002)!=0)||keyRight;
+    *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
+    *up=(((value^(value>>1))&0x0100)!=0)||keyUp;
+    *fire=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||keyFire;
+}
+
+static void showReadyMenuState(UBYTE state)
+{
+    UBYTE plane;
+    UWORD row;
+    LONG sourceRowBytes,targetRowBytes,planeOffset,targetOffset;
+    const struct PlanarAsset *loading=assetsLevelLoading();
+    const struct PlanarAsset *patches=assetsLevelReadyMenu();
+    while(rasterLine()<252) { }
+    sourceRowBytes=patches->bitmap->BytesPerRow;
+    targetRowBytes=loading->bitmap->BytesPerRow;
+    planeOffset=(LONG)state*READY_MENU_PATCH_H*sourceRowBytes;
+    targetOffset=(LONG)READY_MENU_PATCH_Y*targetRowBytes+
+                 READY_MENU_PATCH_X/8;
+    for(plane=0;plane<6;plane++)
+        for(row=0;row<READY_MENU_PATCH_H;row++)
+            CopyMem(patches->bitmap->Planes[plane]+planeOffset+
+                    (LONG)row*sourceRowBytes,
+                    loading->bitmap->Planes[plane]+targetOffset+
+                    (LONG)row*targetRowBytes,sourceRowBytes);
+}
+
+void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction)
+{
+    UBYTE state=READY_MENU_STATE_START;
+    BOOL up,down,left,right,fire;
+    BOOL oldUp=FALSE,oldDown=FALSE,oldLeft=FALSE,oldRight=FALSE,oldFire;
+    readReadyMenuInput(&up,&down,&left,&right,&fire);
+    oldFire=fire;
+    while(oldFire) {
 #ifdef SPARKPAW_WHDLOAD
         if(platformWHDLoadQuitRequested()) return;
 #endif
-        held=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||space;
         waitOwnedDisplayFrame();
-    } while(held);
-    do {
-        platformReadGameKeys(&left,&right,&down,&jump,&space);
+        readReadyMenuInput(&up,&down,&left,&right,&oldFire);
+    }
+    oldUp=up; oldDown=down; oldLeft=left; oldRight=right;
+    for(;;) {
+        waitOwnedDisplayFrame();
+        readReadyMenuInput(&up,&down,&left,&right,&fire);
 #ifdef SPARKPAW_WHDLOAD
         if(platformWHDLoadQuitRequested()) return;
 #endif
-        held=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||space;
-        if(!held) waitOwnedDisplayFrame();
-    } while(!held);
+        if(state<READY_MENU_STATE_JUMP) {
+            if((up&&!oldUp)||(down&&!oldDown)) {
+                state=(state==READY_MENU_STATE_START)?
+                      READY_MENU_STATE_OPTIONS:READY_MENU_STATE_START;
+                showReadyMenuState(state);
+            }
+            if(fire&&!oldFire) {
+                if(state==READY_MENU_STATE_START) return;
+                state=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
+                      READY_MENU_STATE_JUMP:READY_MENU_STATE_FIRE;
+                showReadyMenuState(state);
+            }
+        } else {
+            if((left&&!oldLeft)||(right&&!oldRight)) {
+                *secondaryAction=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
+                                 SECONDARY_BUTTON_FIRE:SECONDARY_BUTTON_JUMP;
+                state=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
+                      READY_MENU_STATE_JUMP:READY_MENU_STATE_FIRE;
+                showReadyMenuState(state);
+            }
+            if(fire&&!oldFire) {
+                state=READY_MENU_STATE_START;
+                showReadyMenuState(state);
+            }
+        }
+        oldUp=up; oldDown=down; oldLeft=left; oldRight=right; oldFire=fire;
+    }
 }
 
 UWORD *titleCopperList(void) { return copper[currentCopper]; }
@@ -495,6 +575,7 @@ void titleFadeOut(void)
                 ((ULONG)(FADE_FRAMES-frame)*256)/FADE_FRAMES));
             waitOwnedDisplayFrame();
         }
+        assetsUnloadLevelReadyMenu();
         assetsUnloadLevelReady();
     } else if(displayed&&assetsLevelLoading()->bitmap)
         fadeTo(assetsLevelLoading(),FALSE);
@@ -526,7 +607,7 @@ void titleRelease(void)
     displayed=FALSE;
     assetsUnloadTitle(); assetsUnloadStoryIntro();
     assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
-    assetsUnloadLevelReady();
+    assetsUnloadLevelReadyMenu(); assetsUnloadLevelReady();
     for(index=0;index<2;index++) {
         if(copper[index]) {
             FreeMem(copper[index],COPPER_WORDS*sizeof(UWORD));
