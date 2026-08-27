@@ -12,11 +12,18 @@ STAGE5L_RENDERER_FLAGS = -DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
 	-DSPARKPAW_AGA32_FETCH_CANDIDATE -DSPARKPAW_AGA32_ORIGIN_CORRECTED \
 	-DSPARKPAW_AGA32_LEFT_GUARD -DSPARKPAW_AGA64_PLAYER_SPRITE
 RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) \
-	-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE
+	-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+	-DSPARKPAW_STORY_INTRO
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
+INTRO_PROOF_TARGET = build/sparkpaw-intro-proof
+STORY_INTRO_ASSETS = assets/runtime/intro-plate-01-balance.spbm \
+	assets/runtime/intro-plate-02-instruction.spbm \
+	assets/runtime/intro-plate-03-reversed-network.spbm \
+	assets/runtime/intro-plate-04-motive.spbm \
+	assets/runtime/intro-plate-05-quest.spbm
 HUD_SEAM_DIAG_TARGET = build/sparkpaw-hud-seam-fmode-first
 HUD_SEAM_H2_DIAG_TARGET = build/sparkpaw-hud-seam-h2-retain-ddfstop
 HUD_SEAM_H3_DIAG_TARGET = build/sparkpaw-hud-seam-h3-native-3plane
@@ -63,7 +70,13 @@ ADF_FRONT_ASSET = build/adf-assets/storm-front.spr1
 ADF_REAR_ASSET = build/adf-assets/storm-rear.spr1
 ADF_STRIDER_ASSET = build/adf-assets/clockwork-storm-strider.spr1
 ADF_PLAYER_ASSET = build/adf-assets/sparkpaw-sprites4.spr1
-ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET) $(ADF_PLAYER_ASSET)
+ADF_INTRO_ASSETS = build/adf-assets/intro1.spr1 \
+	build/adf-assets/intro2.spr1 build/adf-assets/intro3.spr1 \
+	build/adf-assets/intro4.spr1 build/adf-assets/intro5.spr1
+ADF_STATUS_ASSETS = build/adf-assets/sparkpaw-level-loading.spr1 \
+	build/adf-assets/level-charge-patch.spr1
+ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET) \
+	$(ADF_PLAYER_ASSET) $(ADF_INTRO_ASSETS) $(ADF_STATUS_ASSETS)
 BENCH_TARGETS = sparkpaw-renderbench-4plus3 sparkpaw-renderbench-4plus4
 AGA32_SCROLL_PROOF_TARGET = build/sparkpaw-aga32-scroll-proof
 AGA_ORIGIN_REFERENCE_TARGET = build/sparkpaw-aga-origin-reference-fmode0
@@ -134,7 +147,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 .PHONY: stage2-hazard-cache-68030-ab-package stage2-hazard-cache-68020-ab-package
 .PHONY: stage2-phase-start-68030-ab-package stage2-phase-start-68020-ab-package
 .PHONY: stage2-collectible-h4-68030-ab-package stage2-collectible-h4-68020-ab-package
-.PHONY: visual-slice-proof adf-report phase6-memory
+.PHONY: visual-slice-proof adf-report phase6-memory intro-proof-package
 
 all: assets $(TARGET)
 
@@ -344,7 +357,7 @@ $(AGA64_PLAYER_SPRITE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 		-DSPARKPAW_AGA32_LEFT_GUARD \
 		-DSPARKPAW_AGA64_PLAYER_SPRITE -o $@ $(SOURCES)
 
-assets: $(RUNTIME_ASSETS)
+assets: $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS)
 
 $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
@@ -381,17 +394,40 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	sfx/raw/jump.raw
 	$(PYTHON) tools/generate_runtime_assets.py
 
+$(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
+	docs/concepts/story-intro/assets/intro-plate-01-balance-source-v2-aga-polish.png \
+	docs/concepts/story-intro/assets/intro-plate-02-instruction-source-v2-aga-polish.png \
+	docs/concepts/story-intro/assets/intro-plate-03-reversed-network-source-v5-from-scratch-aga.png \
+	docs/concepts/story-intro/assets/intro-plate-04-motive-source-v4-aga-polish.png \
+	docs/concepts/story-intro/assets/intro-plate-05-quest-source-v2-aga-polish.png
+	$(PYTHON) tools/generate_intro_proof.py
+
 sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/enemy-death.raw sfx/raw/strider-shot.raw \
 	sfx/raw/jump.raw sfx/raw/collect-spark.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
-$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS)
 	@mkdir -p "$(TMPDIR)"
 	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
-$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+$(INTRO_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		$(STORY_INTRO_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_STORY_INTRO -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+intro-proof-package: $(INTRO_PROOF_TARGET)
+	@mkdir -p dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/assets/runtime
+	cp $(INTRO_PROOF_TARGET) \
+		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/Sparkpaw-Intro-Proof
+	cp $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) \
+		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/assets/runtime/
+	cp docs/concepts/story-intro/INTRO_PROOF_TEST.txt \
+		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/ReadMe.txt
+
+$(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DADF_PACKED_ASSETS -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
@@ -412,6 +448,23 @@ $(ADF_STRIDER_ASSET): assets/runtime/clockwork-storm-strider.spbm tools/pack_adf
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 $(ADF_PLAYER_ASSET): assets/runtime/sparkpaw-sprites4.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+build/adf-assets/intro1.spr1: assets/runtime/intro-plate-01-balance.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+build/adf-assets/intro2.spr1: assets/runtime/intro-plate-02-instruction.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+build/adf-assets/intro3.spr1: assets/runtime/intro-plate-03-reversed-network.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+build/adf-assets/intro4.spr1: assets/runtime/intro-plate-04-motive.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+build/adf-assets/intro5.spr1: assets/runtime/intro-plate-05-quest.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+build/adf-assets/sparkpaw-level-loading.spr1: assets/runtime/sparkpaw-level-loading.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+build/adf-assets/level-charge-patch.spr1: assets/runtime/level-charge-patch.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 release: all $(ADF_TARGET) $(ADF_ASSETS)

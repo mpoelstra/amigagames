@@ -1,0 +1,18 @@
+Sparkpaw five-plate intro proof - FS-UAE/68030 HD
+
+Launch Sparkpaw-Intro-Proof. Five story plates fade in before the existing
+title. Judge native-scale composition, 64-colour reduction, consistency,
+text size/contrast and story clarity. Each passage enters upward for roughly
+1.4 seconds, lands on whole pixels and remains fully static for roughly 3.4
+seconds of reading time.
+
+During the upward entrance, tap Fire once to reveal the complete passage. Tap
+again to advance. Hold Fire for roughly 0.6 seconds to skip the remaining
+intro, or click the left mouse button once for an immediate complete skip. A
+plate can contain two or three consecutive passages over the same
+artwork. The existing title, loading screens and game should then continue
+normally.
+
+No diagnostic log is produced; the left mouse button is dedicated to skipping
+this intro. This is a production-style visual/function build, not an A/B or
+cadence measurement.

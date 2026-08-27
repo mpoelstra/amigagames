@@ -3,8 +3,15 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.46`. Roadmap checkpoint: Phase 6C.2 first
-Stormstone Core clearing on the protected rolling renderer Stage 5L baseline.
+Current release: `0.6.0-alpha.47`. Roadmap checkpoint: Phase 6C.3 five-plate
+story intro on the protected rolling renderer Stage 5L baseline. The intro
+establishes the Stormstone, five Cores, Grand Archivolt's damaged order,
+reversed weather stations, Sparkpaws motive and the five-level quest before
+the existing title. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing accepts
+the 64-colour AGA art, multi-passage text, timing, Fire controls, left-mouse
+complete skip and transition through title/loading into gameplay.
+
+The preceding Phase 6C.2 Core-clearing checkpoint remains accepted.
 Supplied FS-UAE/68030 HD testing accepts the centred waystation, animated Core,
 radial pickup, Storm Triumph sound and delayed replay. The matching
 FS-UAE/68020 HD minimal-cadence gate records 49.67 FPS over 3,244 intervals,
@@ -362,10 +369,12 @@ ADF and real hardware remain pending. Detailed intent and measurements live in
 `docs/concepts/story-intro/LEVEL1_CORE_CLEARING_PLAN.md` and
 `docs/concepts/story-intro/LEVEL1_CORE_CLEARING_POLISH_PLAN.md`.
 
-The bootable alpha.46 DOS1/FFS ADF validates at 1,327 blocks (663 KiB), leaving
-433 blocks free. It includes the packed extended foreground/rear assets plus
-the animated Core bitmap and selected Core sound. This proves package
-construction only; alpha.46 ADF gameplay remains pending supplied evidence.
+Alpha.47 packages its five intro plates through the existing bounded streaming
+SPR1 decoder on ADF while HD retains ordinary SPBM files. This preserves exact
+pixels without requiring all five plates in memory; only one is resident at a
+time. The bootable DOS1/FFS ADF validates at 1,707 blocks (853 KiB), leaving
+53 blocks free. This is package/decode evidence only; ADF gameplay and real-
+hardware intro acceptance remain pending supplied evidence.
 
 Current follow-up keeps three contracts separate. Supplied alpha.28 FS-UAE
 evidence rejects the world diamond's transparent dark facets and ragged lower
@@ -728,10 +737,10 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.46.lha`
-- `dist/Sparkpaw-0.6.0-alpha.46.zip`
-- `dist/Sparkpaw-0.6.0-alpha.46.adf`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.46/`
+- `dist/Sparkpaw-0.6.0-alpha.47.lha`
+- `dist/Sparkpaw-0.6.0-alpha.47.zip`
+- `dist/Sparkpaw-0.6.0-alpha.47.adf`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.47/`
 
 The source ZIP is deliberately omitted by default because it is over 100 MB.
 Create it only on explicit request with

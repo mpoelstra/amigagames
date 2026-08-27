@@ -9,7 +9,7 @@
 
 #include "packed_crc32.h"
 
-static struct PlanarAsset title,levelLoading,levelCharging,frontClean,rearWorld;
+static struct PlanarAsset title,introProof,levelLoading,levelCharging,frontClean,rearWorld;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
 static struct PlanarAsset collectibleDiamond;
@@ -293,6 +293,38 @@ BOOL assetsLoadTitle(void)
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-title.spbm",&title,6,TRUE);
 }
 
+BOOL assetsLoadStoryIntro(UWORD plate)
+{
+#ifdef ADF_PACKED_ASSETS
+    static const char *names[5]={
+        "PROGDIR:assets/runtime/intro1.spr1",
+        "PROGDIR:assets/runtime/intro2.spr1",
+        "PROGDIR:assets/runtime/intro3.spr1",
+        "PROGDIR:assets/runtime/intro4.spr1",
+        "PROGDIR:assets/runtime/intro5.spr1"
+    };
+#else
+    static const char *names[5]={
+        "PROGDIR:assets/runtime/intro-plate-01-balance.spbm",
+        "PROGDIR:assets/runtime/intro-plate-02-instruction.spbm",
+        "PROGDIR:assets/runtime/intro-plate-03-reversed-network.spbm",
+        "PROGDIR:assets/runtime/intro-plate-04-motive.spbm",
+        "PROGDIR:assets/runtime/intro-plate-05-quest.spbm"
+    };
+#endif
+    if(plate>=5) return FALSE;
+#ifdef ADF_PACKED_ASSETS
+    return loadPackedAsset(names[plate],&introProof,6,TRUE);
+#else
+    return loadAsset(names[plate],&introProof,6,TRUE);
+#endif
+}
+
+void assetsUnloadStoryIntro(void)
+{
+    freeAsset(&introProof);
+}
+
 void assetsUnloadGameplayConversionSources(void)
 {
     /* These sheets are CPU-read only while rendererPrepareGameplay() converts
@@ -313,8 +345,14 @@ void assetsUnloadTitle(void)
 
 BOOL assetsLoadLevelLoading(void)
 {
+#ifdef ADF_PACKED_ASSETS
+    return loadPackedAsset(
+        "PROGDIR:assets/runtime/sparkpaw-level-loading.spr1",
+        &levelLoading,6,TRUE);
+#else
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-loading.spbm",
                      &levelLoading,6,TRUE);
+#endif
 }
 
 void assetsUnloadLevelLoading(void)
@@ -324,9 +362,15 @@ void assetsUnloadLevelLoading(void)
 
 BOOL assetsLoadLevelCharging(void)
 {
+#ifdef ADF_PACKED_ASSETS
+    return loadPackedAsset(
+        "PROGDIR:assets/runtime/level-charge-patch.spr1",
+        &levelCharging,6,FALSE);
+#else
     return loadAsset(
         "PROGDIR:assets/runtime/level-charge-patch.spbm",
         &levelCharging,6,FALSE);
+#endif
 }
 
 void assetsUnloadLevelCharging(void)
@@ -344,6 +388,7 @@ void assetsUnloadGameplay(void)
 }
 
 const struct PlanarAsset *assetsTitle(void) { return &title; }
+const struct PlanarAsset *assetsStoryIntro(void) { return &introProof; }
 const struct PlanarAsset *assetsLevelLoading(void) { return &levelLoading; }
 const struct PlanarAsset *assetsLevelCharging(void) { return &levelCharging; }
 const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }

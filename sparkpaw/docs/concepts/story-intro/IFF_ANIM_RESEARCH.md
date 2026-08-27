@@ -37,7 +37,7 @@ is approved.
 
 Recommended order:
 
-1. **First proof:** four indexed stills plus scrolling text and palette fades.
+1. **First proof:** five indexed stills plus scrolling text and palette fades.
 2. **Light motion proof:** small pre-authored overlays or a few complete frame
    variants for lightning, pulses and the toast gag.
 3. **IFF ANIM experiment only if measured useful:** build one standalone

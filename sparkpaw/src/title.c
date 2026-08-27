@@ -10,7 +10,7 @@
 
 #include "assets.h"
 
-#define COPPER_WORDS 340
+#define COPPER_WORDS 380
 #define SCREEN_ROW_BYTES 40
 #define BPLCON0_SIX_PLANES_AGA 0x6201
 #define BPLCON2_KILLEHB 0x0200
@@ -23,11 +23,18 @@
 #define CHARGING_PATCH_Y 192
 #define CHARGING_PATCH_W 224
 #define CHARGING_PATCH_H 40
+#define INTRO_PASSAGE_HOLD_FRAMES 240
+#define INTRO_TEXT_SCROLL_ROWS 72
+#define INTRO_SKIP_HOLD_FRAMES 30
+#define INTRO_TEXT_FADE_FRAMES 12
+#define INTRO_TEXT_PAGE_ROWS 176
 
 static volatile struct Custom *hardware=(volatile struct Custom *)0xdff000;
 static struct View *previousView;
 static UWORD *copper[2];
 static UWORD paletteValuePos[2][2][64];
+static UWORD introPointerPos[2][6][2];
+static UWORD introPalettePos[2][2];
 static UWORD copperPos,savedDma;
 static UBYTE buildCopperIndex,currentCopper;
 static BOOL displayed;
@@ -35,6 +42,52 @@ static ULONG titleStartFrame;
 static ULONG chargingStartFrame;
 static const char *failureReason="unknown title failure";
 static ULONG chipFree,chipLargest;
+static BOOL buildingIntroCopper;
+
+#ifdef SPARKPAW_STORY_INTRO
+static void stageIntroText(UWORD passage,UWORD offset);
+static void stageIntroTextColour(const struct PlanarAsset *asset,UWORD level);
+#endif
+
+#ifdef SPARKPAW_STORY_INTRO
+static BOOL introFireHeld(void)
+{
+    return ((*(volatile UBYTE *)0xbfe001)&0x80)==0;
+}
+
+static BOOL introImmediateSkip(void)
+{
+    return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
+}
+
+static BOOL waitIntroPassage(UWORD passage)
+{
+    UWORD frames=0,held;
+    while(introFireHeld()) WaitTOF();
+    while(frames<INTRO_PASSAGE_HOLD_FRAMES) {
+        if(introImmediateSkip()) return TRUE;
+        if(introFireHeld()) {
+            held=0;
+            while(introFireHeld()&&held<INTRO_SKIP_HOLD_FRAMES) {
+                if(introImmediateSkip()) return TRUE;
+                WaitTOF(); held++;
+            }
+            if(held>=INTRO_SKIP_HOLD_FRAMES) {
+                while(introFireHeld()) WaitTOF();
+                return TRUE;
+            }
+            if(frames<=INTRO_TEXT_SCROLL_ROWS) {
+                stageIntroText(passage,INTRO_TEXT_SCROLL_ROWS);
+                frames=INTRO_TEXT_SCROLL_ROWS+1;
+            } else return FALSE;
+        } else {
+            if(frames<=INTRO_TEXT_SCROLL_ROWS) stageIntroText(passage,frames);
+            WaitTOF(); frames++;
+        }
+    }
+    return FALSE;
+}
+#endif
 
 static void cmove(UWORD reg,UWORD value)
 {
@@ -111,6 +164,29 @@ static void buildCopper(const struct PlanarAsset *asset,UBYTE index,UWORD level)
     for(plane=0;plane<6;plane++)
         cptr((UWORD)(0x0e0+plane*4),asset->bitmap->Planes[plane]);
     writePalette(asset,level);
+#ifdef SPARKPAW_STORY_INTRO
+    if(buildingIntroCopper) {
+        /* PAL display row 168 starts at hardware line 44+168=212. Keep the
+           illustration fixed and fetch the lower band from its own tall
+           source window so only the text pointer moves. */
+        copper[index][copperPos++]=0xd401;
+        copper[index][copperPos++]=0xfffe;
+        for(plane=0;plane<6;plane++) {
+            ULONG pointer=(ULONG)(asset->bitmap->Planes[plane]+256L*asset->bitmap->BytesPerRow);
+            introPointerPos[index][plane][0]=copperPos+1;
+            cmove((UWORD)(0x0e0+plane*4),(UWORD)(pointer>>16));
+            introPointerPos[index][plane][1]=copperPos+1;
+            cmove((UWORD)(0x0e2+plane*4),(UWORD)pointer);
+        }
+        cmove(0x106,0x2020);
+        introPalettePos[index][0]=copperPos+1;
+        cmove(0x1be,paletteWord(asset->palette[63],0,FALSE));
+        cmove(0x106,0x2220);
+        introPalettePos[index][1]=copperPos+1;
+        cmove(0x1be,paletteWord(asset->palette[63],0,TRUE));
+        cmove(0x106,0x0020);
+    }
+#endif
     copper[index][copperPos++]=0xffff;
     copper[index][copperPos++]=0xfffe;
 }
@@ -141,6 +217,42 @@ static UWORD rasterLine(void)
     return (UWORD)(((high&7)<<8)|(low>>8));
 }
 
+#ifdef SPARKPAW_STORY_INTRO
+static void stageIntroText(UWORD passage,UWORD offset)
+{
+    const struct PlanarAsset *asset=assetsStoryIntro();
+    UBYTE plane;
+    if(offset>INTRO_TEXT_SCROLL_ROWS) offset=INTRO_TEXT_SCROLL_ROWS;
+    while(rasterLine()<PALETTE_SAFE_LINE) { }
+    for(plane=0;plane<6;plane++) {
+        ULONG pointer=(ULONG)(asset->bitmap->Planes[plane]+
+            (256L+(LONG)passage*INTRO_TEXT_PAGE_ROWS+offset)*asset->bitmap->BytesPerRow);
+        copper[currentCopper][introPointerPos[currentCopper][plane][0]]=(UWORD)(pointer>>16);
+        copper[currentCopper][introPointerPos[currentCopper][plane][1]]=(UWORD)pointer;
+    }
+}
+
+static void stageIntroTextColour(const struct PlanarAsset *asset,UWORD level)
+{
+    const UBYTE *rgb=asset->palette[63];
+    while(rasterLine()<PALETTE_SAFE_LINE) { }
+    copper[currentCopper][introPalettePos[currentCopper][0]]=
+        paletteWord(rgb,level,FALSE);
+    copper[currentCopper][introPalettePos[currentCopper][1]]=
+        paletteWord(rgb,level,TRUE);
+}
+
+static void fadeIntroText(const struct PlanarAsset *asset)
+{
+    UWORD frame;
+    for(frame=0;frame<INTRO_TEXT_FADE_FRAMES;frame++) {
+        stageIntroTextColour(asset,(UWORD)(256-
+            ((ULONG)(frame+1)*256)/INTRO_TEXT_FADE_FRAMES));
+        WaitTOF();
+    }
+}
+#endif
+
 static void stagePalette(const struct PlanarAsset *asset,UWORD level)
 {
     UWORD pen;
@@ -167,11 +279,22 @@ static void fadeTo(const struct PlanarAsset *asset,BOOL fadeIn)
 
 BOOL titleShow(void)
 {
+#ifdef SPARKPAW_STORY_INTRO
+    static const UBYTE passageCounts[5]={2,2,3,2,2};
+    UBYTE plate,passage,next;
+    BOOL skipIntro=FALSE;
+#endif
     chipFree=AvailMem(MEMF_CHIP);
     chipLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
+#ifdef SPARKPAW_STORY_INTRO
+    if(!assetsLoadStoryIntro(0)) {
+        failureReason="six-plane intro proof asset load failed"; return FALSE;
+    }
+#else
     if(!assetsLoadTitle()) {
         failureReason="six-plane title asset load failed"; return FALSE;
     }
+#endif
     if(!allocateCopper()) {
         failureReason="title Copper allocation failed";
         titleRelease(); return FALSE;
@@ -184,7 +307,13 @@ BOOL titleShow(void)
        boot happened to leave an inert View; Workbench does not. */
     LoadView(NULL);
     WaitTOF(); WaitTOF();
+#ifdef SPARKPAW_STORY_INTRO
+    buildingIntroCopper=TRUE;
+    buildCopper(assetsStoryIntro(),0,0);
+    buildingIntroCopper=FALSE;
+#else
     buildCopper(assetsTitle(),0,0);
+#endif
     installCopper(0);
     /* Give scandoublers time to lock to the PAL low-resolution display while
        it is deliberately black, then begin the authored fade. */
@@ -192,6 +321,36 @@ BOOL titleShow(void)
         UWORD frame;
         for(frame=0;frame<DISPLAY_LOCK_FRAMES;frame++) WaitTOF();
     }
+#ifdef SPARKPAW_STORY_INTRO
+    for(plate=0;plate<5&&!skipIntro;plate++) {
+        if(plate) {
+            if(!assetsLoadStoryIntro(plate)) {
+                failureReason="six-plane intro plate asset load failed";
+                titleRelease(); return FALSE;
+            }
+            next=currentCopper^1;
+            buildingIntroCopper=TRUE;
+            buildCopper(assetsStoryIntro(),next,0);
+            buildingIntroCopper=FALSE;
+            installCopper(next);
+        }
+        fadeTo(assetsStoryIntro(),TRUE);
+        for(passage=0;passage<passageCounts[plate]&&!skipIntro;passage++) {
+            stageIntroText(passage,0);
+            stageIntroTextColour(assetsStoryIntro(),256);
+            skipIntro=waitIntroPassage(passage);
+            fadeIntroText(assetsStoryIntro());
+        }
+        fadeTo(assetsStoryIntro(),FALSE);
+        assetsUnloadStoryIntro();
+    }
+    if(!assetsLoadTitle()) {
+        failureReason="six-plane title asset load after intro failed";
+        titleRelease(); return FALSE;
+    }
+    buildCopper(assetsTitle(),currentCopper^1,0);
+    installCopper(currentCopper^1);
+#endif
     fadeTo(assetsTitle(),TRUE);
     titleStartFrame=GfxBase->VBCounter;
     return TRUE;
@@ -290,7 +449,8 @@ void titleRelease(void)
 {
     UBYTE index;
     displayed=FALSE;
-    assetsUnloadTitle(); assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
+    assetsUnloadTitle(); assetsUnloadStoryIntro();
+    assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
     for(index=0;index<2;index++) {
         if(copper[index]) {
             FreeMem(copper[index],COPPER_WORDS*sizeof(UWORD));

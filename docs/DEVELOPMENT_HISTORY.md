@@ -5370,3 +5370,32 @@ remain authoritative. Supplied FS-UAE/68030 HD presentation/function and the
 produces LHA, ZIP, extracted HD drawer and a bootable DOS1/FFS ADF using 1,327
 blocks (663 KiB), leaving 433 free. Both Core runtime files are present. This
 does not establish alpha.46 ADF gameplay or real-hardware acceptance.
+
+### 27 August 2026 - Alpha.47 packages the five-plate story intro
+
+Phase 6C.3 promotes the supplied FS-UAE/68030- and FS-UAE/68020-HD-accepted
+opening story into the normal build before the existing title. Five premium
+64-colour AGA plates explain the Stormstone, its Lightning/Rain/Wind/Warmth/
+Balance Cores, Grand Archivolts damaged `CONTAIN ALL WEATHER. RELEASE NOTHING.`
+order, the reversed stations, Sparkpaws motive and the five-level recovery
+quest. Each plate reuses one resident six-plane allocation, Copper-switches to
+a stable reading band, scrolls passages on whole pixels, holds for roughly 3.4
+seconds and fades text independently. Fire reveals/advances, held Fire skips,
+and left mouse immediately skips the complete intro. Keyboard skip was rejected
+because AmigaOS consumes keyboard serial events while DOS remains active for
+between-plate loading.
+
+The title screen is the accepted art-direction reference. All plates were
+redrawn with stronger cyan/orange/violet hierarchy and native-scale pixel
+clusters. Plate 3 was rebuilt from scratch as a distant valley overview with
+five recessed crystal niches integrated into the Stormstone facade; the
+rejected pasted circular overlay is absent.
+
+HD retains ordinary SPBM files. The ADF-only build streams five compressed
+intro assets plus compressed loading/charging assets through the established
+512-byte SPR1 decoder, keeping one intro plate resident at a time. The release
+packager validates every packed stream against its source. The bootable
+DOS1/FFS ADF uses 1,707 blocks (853 KiB) and leaves 53 free. This proves package
+construction and decode identity, not ADF gameplay. Real-A1200 intro acceptance
+also remains open. The Stage 5L/H7 renderer, Phase 6C.2 gameplay, 2 MB Chip plus
+8 MB Fast minimum and protected 68020 cadence baseline are unchanged.

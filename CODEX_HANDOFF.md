@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 25 August 2026
+Last updated: 27 August 2026
 
 ## Start here
 
@@ -45,16 +45,19 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.46`, Phase 6C.2. A normal release contains:
+Current release is `0.6.0-alpha.47`, Phase 6C.3. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.46.lha`
-- `Sparkpaw-0.6.0-alpha.46.zip`
-- `Sparkpaw-0.6.0-alpha.46.adf`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.46/`
+- `Sparkpaw-0.6.0-alpha.47.lha`
+- `Sparkpaw-0.6.0-alpha.47.zip`
+- `Sparkpaw-0.6.0-alpha.47.adf`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.47/`
 
-The bootable alpha.46 DOS1/FFS ADF validates at 1,327 blocks (663 KiB), leaving
-433 blocks free. This is package evidence, not ADF gameplay or hardware
-acceptance.
+Alpha.47 adds the accepted five-plate 64-colour story intro before the title.
+Supplied FS-UAE/68030 and FS-UAE/68020 HD testing accepts its art, passage
+timing, Fire controls, left-mouse complete skip and transition into gameplay.
+Its bootable DOS1/FFS ADF validates at 1,707 blocks (853 KiB), leaving 53
+blocks free; all packed intro/status streams decode byte-identically. ADF
+gameplay and real-hardware acceptance remain pending.
 
 MrDig mounts `sparkpaw/dist/` directly as an FS-UAE HD volume. Every
 user-facing FS-UAE HD test or diagnostic drawer must therefore be created
