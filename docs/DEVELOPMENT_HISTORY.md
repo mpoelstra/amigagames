@@ -5878,3 +5878,9 @@ WHDLoad LHA
 `5f9384e27da7f5f1c92cafcd11fbceeb754d1915e01e13f939779e15995460ca`
 and WHDLoad ZIP
 `b7f9ab3732cb6e65d0dccd9128c1da151f423e843de77d85083e76a2af94bd14`.
+
+MrDig subsequently confirms that the packaged alpha.58 result also works
+correctly on real hardware and on an Analogue Pocket. No glitch or functional
+regression is reported. That confirmation accepts the observed platforms, but
+the launch path was not supplied with the report; it is therefore not silently
+converted into a new physical-ADF or WHDLoad runtime claim.

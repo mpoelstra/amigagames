@@ -29,6 +29,10 @@ and real-A1200/68030 HD testing accepts idle START GAME/OPTIONS screens, rapid
 menu switching and gameplay entry. ADF and WHDLoad runtime acceptance remain
 pending. The extra hidden display bitmap costs 61,440 bytes Chip RAM; gameplay,
 controls, assets, audio and Stage 5L/H7 are otherwise unchanged.
+Subsequent supplied testing also reports alpha.58 working correctly on real
+hardware and on an Analogue Pocket. Because the launch path was not specified
+for that additional report, ADF and WHDLoad acceptance remain evidence-specific
+rather than inferred from the platform result.
 The alpha.58 bootable DOS1/FFS ADF uses 1,449 blocks (724 KiB) and leaves 311
 free; this is package/decode evidence, not ADF runtime acceptance.
 

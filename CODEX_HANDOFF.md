@@ -77,6 +77,10 @@ GAME/OPTIONS screens, rapid main-menu and JUMP/FIRE switching, and gameplay
 entry. ADF and WHDLoad runtime acceptance remain pending. The second ready
 buffer costs 61,440 bytes Chip RAM; gameplay, controls, assets, audio and Stage
 5L/H7 are otherwise unchanged.
+Subsequent supplied testing also reports the packaged alpha.58 result working
+correctly on real hardware and on an Analogue Pocket. The launch path for that
+additional confirmation was not recorded, so it does not by itself establish a
+new physical-ADF or WHDLoad acceptance claim.
 The alpha.58 bootable DOS1/FFS ADF uses 1,449 blocks (724 KiB) and leaves 311
 free; this is package/decode evidence, not ADF runtime acceptance. Final
 artifacts are 601,246-byte HD LHA

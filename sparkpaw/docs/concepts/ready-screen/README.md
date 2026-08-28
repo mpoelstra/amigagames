@@ -23,6 +23,10 @@ enables it only with its pointer-owning Copper list. This adds one 61,440-byte
 displayable Chip bitmap. Supplied FS-UAE/68030 and real-A1200/68030 HD testing
 accepts idle screens, rapid menu switching and gameplay entry. ADF and WHDLoad
 acceptance remain pending.
+Subsequent supplied testing also reports the packaged alpha.58 behavior as
+correct on real hardware and on an Analogue Pocket. The additional report did
+not identify its launch path, so it broadens platform evidence without
+implicitly claiming a separately verified physical-ADF or WHDLoad route.
 
 This screen appears after `CHARGING`, after gameplay preparation, and before
 the gameplay Copper is published. It uses a separately extracted Sparkpaw logo,
