@@ -96,4 +96,36 @@ for name in fullscreen_assets:
         f"{name}: fullscreen COLOR00 must be black"
     )
 
+# Ready-menu state changes must never patch the bitmap currently being fetched.
+# The hidden displayable buffer is completed first and then published through
+# an inactive Copper list at an owned PAL frame boundary.
+title_source = (ROOT / "src" / "title.c").read_text()
+menu_update = title_source[
+    title_source.index("static void showReadyMenuState") :
+    title_source.index("void titleRunLevelReadyMenu")
+]
+assert "readyMenuBack=AllocBitMap" in title_source
+assert "hidden->Planes[plane]+targetOffset" in menu_update
+assert "waitOwnedCopperArmWindow()" in menu_update
+assert "hardware->cop1lc=(ULONG)copper[next]" in menu_update
+assert "platformSwitchCopper(copper[next])" not in menu_update
+assert "hardware->copjmp1" not in menu_update
+assert "loading->bitmap->Planes[plane]+targetOffset" not in menu_update
+assert "while(rasterLine()<252)" not in menu_update
+
+# Full custom-chip ownership begins while the ready screen is still active.
+# Its Copper list has no sprite-pointer moves, so sprite DMA must remain off
+# until the gameplay Copper list is explicitly installed.
+platform_source = (ROOT / "src" / "platform_amiga.c").read_text()
+finish_takeover = platform_source[
+    platform_source.index("void platformFinishTakeover") :
+    platform_source.index("void platformSwitchCopper")
+]
+switch_copper = platform_source[
+    platform_source.index("void platformSwitchCopper") :
+    platform_source.index("void platformRestore")
+]
+assert "DMAF_SPRITE" not in finish_takeover.split("hardware->dmacon=DMAF_SETCLR", 1)[1]
+assert "hardware->dmacon=DMAF_SETCLR|DMAF_SPRITE" in switch_copper
+
 print("PASS: runtime assets retain the complete reachable display span")

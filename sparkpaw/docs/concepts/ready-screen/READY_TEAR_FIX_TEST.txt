@@ -1,0 +1,34 @@
+Sparkpaw Phase 6C.4 ready-menu tear fix - FS-UAE/68030 HD gate
+================================================================
+
+Purpose
+-------
+
+This production-style candidate changes only ready-menu presentation
+ownership. It builds each new menu state in a hidden 61,440-byte Chip-RAM
+bitmap, prepares an inactive complete Copper list and publishes all six
+bitplane pointers together at the next PAL frame boundary. It contains no
+diagnostic logger or profiling code.
+
+Test
+----
+
+1. Launch Sparkpaw-ReadyTearFix from this drawer in the normal FS-UAE/68030
+   A1200 HD configuration.
+2. At the ready screen, alternate START GAME and OPTIONS rapidly with Up/Down
+   for at least one minute. Watch for a frame containing both cyan selectors,
+   partial rails, broken glyphs, colour flashes or disturbed corner artwork.
+3. Enter OPTIONS. Alternate JUMP and FIRE rapidly with Left/Right for at least
+   one minute. Check both arrows, label and value during every transition.
+4. Return with Fire/Space, re-enter OPTIONS several times and confirm the
+   chosen value is retained. START GAME must remain selected after returning.
+5. Select START GAME and confirm the normal fade and immediate gameplay start.
+6. If a glitch occurs, preserve a MOV or consecutive screenshots and report
+   the exact action. This build intentionally creates no renderdiag.log.
+
+Acceptance boundary
+-------------------
+
+This gate covers only FS-UAE/68030 HD presentation and menu function. It does
+not establish ADF, WHDLoad, FS-UAE/68020 or real-A1200 acceptance. A real-
+hardware package follows only after this gate passes.

@@ -5786,3 +5786,95 @@ WHDLoad LHA
 `f4843eecf730c0e2394182cfca226aad93906385171738e44db96c3575f8f87f`
 and WHDLoad ZIP
 `c9eed9128131394bbf7e4724f7f5d0ad3041af9a55abe65f9e8ccc18841dd62f`.
+
+### 28 August 2026 - Alpha.57 makes ready-menu publication tear-free
+
+Supplied real-A1200 ADF footage rejects intermittent alpha.54-style menu
+transitions. Consecutive frames occasionally contain cyan selector fragments
+from both START GAME and OPTIONS while the fixed background remains stable.
+Source inspection identifies the ownership violation: `showReadyMenuState()`
+waits until raster line 252 and then copies the 160x104, six-plane patch
+directly into the bitmap being fetched. The patch remains visible through
+approximately hardware line 265, and its 12,480-byte Fast-to-Chip copy can also
+cross the next field boundary. Plane-by-plane publication therefore exposes a
+mixed old/new state. Floppy I/O is not active at this point.
+
+The correction allocates one additional 320x256 six-plane displayable bitmap
+(61,440 bytes Chip RAM). Both buffers receive the complete ready background
+while black. Each menu change patches only the hidden buffer, builds the
+inactive complete Copper list around it and publishes all six bitplane pointers
+together at the next owned PAL boundary. The displayed bitmap is never written.
+Gameplay, controls, assets, audio and Stage 5L/H7 remain unchanged. A host
+regression protects the hidden-buffer/Copper-swap contract and the native VBCC
+68020 build passes.
+
+The self-contained production-style FS-UAE/68030 HD gate is accepted after
+rapid main-menu and JUMP/FIRE switching; no logger was present, so this adds no
+cadence measurement. The identical minimal real-A1200 HD ZIP is staged for
+testing. Alpha.57 packages the candidate now so ADF and WHDLoad can be tested
+in parallel, but real-A1200 HD, ADF and WHDLoad runtime acceptance remain
+pending supplied results.
+
+The complete alpha.57 host suite, native HD/ADF/WHDLoad builds and initial
+package validation pass. The bootable DOS1/FFS ADF uses 1,449 blocks (724 KiB)
+and leaves 311 free; this remains package evidence until supplied ADF runtime
+testing accepts it.
+
+Independent Lhasa extraction matches both staged drawers byte-for-byte. The HD
+LHA contains 34 `-lh5-` files and is 601,194 bytes; WHDLoad contains 36 and is
+596,655 bytes. Final SHA-256 values are: HD LHA
+`a39e02ec1324cdde9a16a3bc7078cac55efdf8e2d9f2757a0de4a72599d8abe2`,
+HD ZIP `3794f85b193e78a07afa451494da00e23fac133fdcc36d310885f644547bf772`,
+ADF `6d58eb808ca79cef5558cd8979af5a946932563abda7b7c1304a9687da4011ee`,
+WHDLoad LHA
+`79f2d9ec62715237206c4d1c2ee0662afd2eb7947e62847ea9663eae3507d66c`
+and WHDLoad ZIP
+`03dd43455b627948b55e95d5fe95a5a50fb8ea42f59b3c641566eb031285cd99`.
+
+### 28 August 2026 - Alpha.58 closes the real-A1200 ready-screen glitch
+
+The first alpha.57-style hidden-buffer correction passed rapid switching in
+FS-UAE/68030 but remained rejected on the real A1200: small fragments still
+appeared during fast menu changes. A second candidate armed only COP1LC during
+hardware lines 100..249 and omitted COPJMP1, allowing the Copper to adopt the
+inactive list through its natural vertical restart. That candidate also passed
+FS-UAE/68030, yet real hardware still showed isolated glitches even when START
+GAME or OPTIONS was left completely untouched for 15 seconds or longer. This
+idle reproduction disproved list publication as the complete explanation.
+
+Source review then found the independent hardware-only ownership defect.
+`platformFinishTakeover()` enabled `DMAF_SPRITE` while the active title,
+loading and ready Copper lists contain no sprite-pointer moves. Agnus could
+therefore fetch through stale pointers inherited from prior display state and
+occasionally overlay fragments despite an idle CPU and unchanged bitmap. The
+focused correction keeps sprite DMA disabled throughout presentation and
+enables it only in `platformSwitchCopper()`, whose sole production caller
+installs the gameplay Copper list that initializes the attached-player sprite
+pointers. A regression test now protects this sequencing.
+
+The final production-style candidate retains both safety layers: the displayed
+ready bitmap is never patched, COP1LC is armed without COPJMP1, and sprite DMA
+starts only with its pointer-owning gameplay Copper list. Supplied FS-UAE/68030
+HD testing accepts two-minute idle START GAME and OPTIONS holds, rapid menu and
+JUMP/FIRE switching, and gameplay entry. Supplied real-A1200/68030 HD testing
+then reports no glitches in the matching executable. This accepts only those
+two HD paths; ADF, WHDLoad and FS-UAE/68020 runtime acceptance remain open.
+
+The durable rule is broader than this screen: do not enable any custom-chip DMA
+channel until the active display state owns and initializes every pointer that
+channel may fetch. A static CPU loop is not proof that DMA-visible state is
+static. For intermittent presentation faults, an idle hold is therefore a
+required discriminator alongside rapid state switching.
+
+The complete alpha.58 host suite and native HD/ADF/WHDLoad builds pass. The
+bootable DOS1/FFS ADF uses 1,449 blocks (724 KiB) and leaves 311 free.
+Independent Lhasa extraction matches both staged drawers byte-for-byte. The HD
+LHA contains 34 `-lh5-` files and is 601,246 bytes; WHDLoad contains 36 and is
+596,720 bytes. Final SHA-256 values are: HD LHA
+`069f474984bb0ae6eaa8b69b807307bdfa001c91ad209bacc910b4052c6d2eb2`,
+HD ZIP `b92b630d95f33fdb317065b4ac6896ec87fca16329009ecde6d1854eddc23ab2`,
+ADF `26c3a01a2d56e91474d7a314895d6d26eca4e6930c531aa074b5d519ff187660`,
+WHDLoad LHA
+`5f9384e27da7f5f1c92cafcd11fbceeb754d1915e01e13f939779e15995460ca`
+and WHDLoad ZIP
+`b7f9ab3732cb6e65d0dccd9128c1da151f423e843de77d85083e76a2af94bd14`.

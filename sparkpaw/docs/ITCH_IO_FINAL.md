@@ -98,18 +98,18 @@ actually records.
 
 #### Sparkpaw by the numbers
 
-- **23 days** from the first public repository baseline to alpha.56
+- **23 days** from the first public repository baseline to alpha.58
 - **14 active development dates** recorded in Git
-- **64 Sparkpaw commits**
-- **54 numbered alpha iterations** in the current development line
-- **364 preserved test-evidence files**
-- **79 gameplay and hardware-test videos**
+- **65 Sparkpaw commits**
+- **58 numbered alpha iterations** in the current development line
+- **374 preserved test-evidence files**
+- **81 gameplay and hardware-test videos**
 - **90 diagnostic and performance logs**
-- **49 screenshots** documenting presentation, bugs and hardware differences
-- **145 written test reports and evidence sidecars**
-- **173 preserved old test-build drawers**, including accepted references,
+- **52 screenshots** documenting presentation, bugs and hardware differences
+- **150 written test reports and evidence sidecars**
+- **174 preserved old test-build drawers**, including accepted references,
   rejected experiments and A/B candidates
-- **25,951 lines** across the current C headers/sources, Python tools and
+- **26,352 lines** across the current C headers/sources, Python tools and
   Sparkpaw development/test documentation
 - **1,743 simulated launch cases** for one particularly stubborn traversal fix
 - Approximately **642 KiB of permanent Chip RAM** recovered during the
@@ -308,8 +308,8 @@ is the accumulated result of that conversation.
 
 ## Upload labels
 
-- `Sparkpaw 0.6.0 alpha.56 — Bootable ADF`
-- `Sparkpaw 0.6.0 alpha.56 — HD version (LHA)`
-- `Sparkpaw 0.6.0 alpha.56 — HD version (ZIP)`
-- `Sparkpaw 0.6.0 alpha.56 — WHDLoad (LHA)`
-- `Sparkpaw 0.6.0 alpha.56 — WHDLoad (ZIP)`
+- `Sparkpaw 0.6.0 alpha.58 — Bootable ADF`
+- `Sparkpaw 0.6.0 alpha.58 — HD version (LHA)`
+- `Sparkpaw 0.6.0 alpha.58 — HD version (ZIP)`
+- `Sparkpaw 0.6.0 alpha.58 — WHDLoad (LHA)`
+- `Sparkpaw 0.6.0 alpha.58 — WHDLoad (ZIP)`

@@ -24,6 +24,8 @@
 #define FADE_FRAMES 24
 #define DISPLAY_LOCK_FRAMES 35
 #define PALETTE_SAFE_LINE 100
+#define COPPER_ARM_MIN_LINE 100
+#define COPPER_ARM_MAX_LINE 250
 #define CHARGING_PATCH_X 48
 #define CHARGING_PATCH_Y 192
 #define CHARGING_PATCH_W 224
@@ -56,6 +58,8 @@ static ULONG chargingStartFrame;
 static const char *failureReason="unknown title failure";
 static ULONG chipFree,chipLargest;
 static BOOL buildingIntroCopper;
+static struct BitMap *readyMenuBack;
+static UBYTE readyMenuBufferIndex;
 
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
 static BPTR introDiagnosticFile;
@@ -267,6 +271,16 @@ static void waitOwnedDisplayFrame(void)
        real PAL frame boundary directly from the beam instead. */
     if(rasterLine()<300) while(rasterLine()<300) { }
     while(rasterLine()>=300) { }
+}
+
+static void waitOwnedCopperArmWindow(void)
+{
+    /* Change only COP1LC while the current list is safely in flight. The
+       Copper reloads this address naturally at the next vertical blank; an
+       explicit COPJMP1 here can race that automatic restart on real AGA. */
+    if(rasterLine()>=COPPER_ARM_MAX_LINE)
+        while(rasterLine()>=COPPER_ARM_MAX_LINE) { }
+    while(rasterLine()<COPPER_ARM_MIN_LINE) { }
 }
 
 #ifdef SPARKPAW_STORY_INTRO
@@ -503,6 +517,7 @@ BOOL titleShowLevelReady(void)
     LONG planeBytes;
     const struct PlanarAsset *loading=assetsLevelLoading();
     const struct PlanarAsset *ready;
+    struct PlanarAsset backDisplay;
     if(!displayed||!loading->bitmap) {
         failureReason="loading display unavailable for ready screen";
         return FALSE;
@@ -526,15 +541,30 @@ BOOL titleShowLevelReady(void)
         assetsUnloadLevelReady();
         return FALSE;
     }
-    /* Gameplay is already fully prepared. Replace the resident status bitmap
-       once while black; the temporary source stays in Fast RAM and never adds
-       another displayable Chip bitmap. */
+    readyMenuBack=AllocBitMap(ready->width,ready->height,ready->depth,
+                              BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    if(!readyMenuBack) {
+        failureReason="tear-free ready buffer allocation failed";
+        assetsUnloadLevelReadyMenu();
+        assetsUnloadLevelReady();
+        return FALSE;
+    }
+    /* Gameplay is already fully prepared. Seed both presentation buffers while
+       black; later menu changes patch only the hidden buffer and publish it
+       through the inactive Copper list. */
     fadeTo(loading,FALSE);
     WaitTOF();
     planeBytes=(LONG)loading->bitmap->BytesPerRow*loading->height;
-    for(plane=0;plane<6;plane++)
+    for(plane=0;plane<6;plane++) {
         CopyMem(ready->bitmap->Planes[plane],loading->bitmap->Planes[plane],
                 planeBytes);
+        CopyMem(ready->bitmap->Planes[plane],readyMenuBack->Planes[plane],
+                planeBytes);
+    }
+    readyMenuBufferIndex=0;
+    backDisplay=*ready;
+    backDisplay.bitmap=readyMenuBack;
+    buildCopper(&backDisplay,currentCopper^1,256);
     stagePalette(ready,0);
     fadeTo(ready,TRUE);
     return TRUE;
@@ -555,14 +585,16 @@ static void readReadyMenuInput(BOOL *up,BOOL *down,BOOL *left,BOOL *right,
 
 static void showReadyMenuState(UBYTE state)
 {
-    UBYTE plane;
+    UBYTE next,plane;
     UWORD row;
     LONG sourceRowBytes,targetRowBytes,planeOffset,targetOffset;
     const struct PlanarAsset *loading=assetsLevelLoading();
+    const struct PlanarAsset *ready=assetsLevelReady();
     const struct PlanarAsset *patches=assetsLevelReadyMenu();
-    while(rasterLine()<252) { }
+    struct PlanarAsset hiddenDisplay=*ready;
+    struct BitMap *hidden=readyMenuBufferIndex?loading->bitmap:readyMenuBack;
     sourceRowBytes=patches->bitmap->BytesPerRow;
-    targetRowBytes=loading->bitmap->BytesPerRow;
+    targetRowBytes=hidden->BytesPerRow;
     planeOffset=(LONG)state*READY_MENU_PATCH_H*sourceRowBytes;
     targetOffset=(LONG)READY_MENU_PATCH_Y*targetRowBytes+
                  READY_MENU_PATCH_X/8;
@@ -570,8 +602,16 @@ static void showReadyMenuState(UBYTE state)
         for(row=0;row<READY_MENU_PATCH_H;row++)
             CopyMem(patches->bitmap->Planes[plane]+planeOffset+
                     (LONG)row*sourceRowBytes,
-                    loading->bitmap->Planes[plane]+targetOffset+
+                    hidden->Planes[plane]+targetOffset+
                     (LONG)row*targetRowBytes,sourceRowBytes);
+    hiddenDisplay.bitmap=hidden;
+    next=currentCopper^1;
+    buildCopper(&hiddenDisplay,next,256);
+    waitOwnedCopperArmWindow();
+    hardware->cop1lc=(ULONG)copper[next];
+    waitOwnedDisplayFrame();
+    currentCopper=next;
+    readyMenuBufferIndex^=1;
 }
 
 void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction)
@@ -665,6 +705,10 @@ void titleRelease(void)
 {
     UBYTE index;
     displayed=FALSE;
+    if(readyMenuBack) {
+        FreeBitMap(readyMenuBack);
+        readyMenuBack=NULL;
+    }
     assetsUnloadTitle(); assetsUnloadStoryIntro();
     assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
     assetsUnloadLevelReadyMenu(); assetsUnloadLevelReady();

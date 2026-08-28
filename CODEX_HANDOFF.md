@@ -45,14 +45,14 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.56`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.58`, Phase 6C.4. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.56.lha`
-- `Sparkpaw-0.6.0-alpha.56.zip`
-- `Sparkpaw-0.6.0-alpha.56.adf`
-- `Sparkpaw-0.6.0-alpha.56-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.56-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.56/`
+- `Sparkpaw-0.6.0-alpha.58.lha`
+- `Sparkpaw-0.6.0-alpha.58.zip`
+- `Sparkpaw-0.6.0-alpha.58.adf`
+- `Sparkpaw-0.6.0-alpha.58-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.58-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.58/`
 
 Both LHA artifacts are genuinely compressed with classic `-lh5-`, not stored
 as the former Python-generated `-lh0-` members. Sparkpaw uses the ignored local
@@ -60,6 +60,35 @@ as the former Python-generated `-lh0-` members. Sparkpaw uses the ignored local
 override, CRC-tests each completed archive and rejects output without an
 `-lh5-` member. Homebrew Lhasa remains useful for independent list/test/extract
 verification but cannot create archives.
+
+Alpha.58 removes the intermittent ready-screen fragments visible on supplied
+real-A1200 footage. Alpha.54 patched the displayed six-plane bitmap; alpha.58
+seeds two complete ready buffers and patches only the hidden one. COP1LC is
+armed during hardware lines 100..249 without COPJMP1, allowing the Copper to
+adopt the inactive complete list at its natural vertical restart. The first
+hardware retest still glitched while completely idle, proving publication was
+not the sole cause. Full takeover also enabled hardware-sprite DMA although the
+title/loading/ready Copper lists initialize no sprite pointers. Sprite DMA now
+stays off until the gameplay Copper is installed. Never enable a DMA channel
+before the active Copper/display state owns every pointer it can fetch.
+
+Supplied FS-UAE/68030 HD and real-A1200/68030 HD testing accepts idle START
+GAME/OPTIONS screens, rapid main-menu and JUMP/FIRE switching, and gameplay
+entry. ADF and WHDLoad runtime acceptance remain pending. The second ready
+buffer costs 61,440 bytes Chip RAM; gameplay, controls, assets, audio and Stage
+5L/H7 are otherwise unchanged.
+The alpha.58 bootable DOS1/FFS ADF uses 1,449 blocks (724 KiB) and leaves 311
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 601,246-byte HD LHA
+(`069f474984bb0ae6eaa8b69b807307bdfa001c91ad209bacc910b4052c6d2eb2`),
+600,901-byte HD ZIP
+(`b92b630d95f33fdb317065b4ac6896ec87fca16329009ecde6d1854eddc23ab2`),
+901,120-byte ADF
+(`26c3a01a2d56e91474d7a314895d6d26eca4e6930c531aa074b5d519ff187660`),
+596,720-byte WHDLoad LHA
+(`5f9384e27da7f5f1c92cafcd11fbceeb754d1915e01e13f939779e15995460ca`)
+and 597,374-byte WHDLoad ZIP
+(`b7f9ab3732cb6e65d0dccd9128c1da151f423e843de77d85083e76a2af94bd14`).
 
 Alpha.55 is packaging-only: it promotes this real LHA compression into a new
 release identity so the already published alpha.54 bytes are never reused for

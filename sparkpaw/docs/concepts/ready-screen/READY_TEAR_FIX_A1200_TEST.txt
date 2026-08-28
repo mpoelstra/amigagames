@@ -1,0 +1,34 @@
+Sparkpaw Phase 6C.4 ready-menu tear fix - real A1200 HD gate
+=============================================================
+
+Purpose
+-------
+
+This is the FS-UAE/68030-accepted production-style ready-menu tear correction.
+Every new menu state is completed in a hidden 61,440-byte Chip-RAM bitmap;
+an inactive complete Copper list then publishes all six bitplane pointers
+together at the next PAL frame boundary. There is no logger or profiler.
+
+Test
+----
+
+1. Copy the complete ReadyTearFix-A1200-HD drawer to the Amiga and start
+   Sparkpaw from Shell. Keep the drawer structure and assets together.
+2. Reach the ready screen. Alternate START GAME and OPTIONS rapidly with
+   Up/Down for at least two minutes. Watch both HDMI/Indivision and CRT output
+   if practical.
+3. Enter OPTIONS and alternate JUMP and FIRE rapidly with Left/Right for at
+   least two minutes.
+4. Reject any frame with both cyan selectors, partial rails, broken glyphs,
+   colour flashes, displaced artwork or loss of video sync.
+5. Return repeatedly with Fire, re-enter OPTIONS and confirm the chosen value
+   survives. Then start gameplay and verify the normal fade and controls.
+6. Report available Chip RAM before launch if convenient. If a glitch occurs,
+   preserve a MOV showing repeated transitions.
+
+Acceptance boundary
+-------------------
+
+This package covers real-A1200 HD presentation, allocation and menu function.
+It does not establish ADF or WHDLoad acceptance. The earlier identical binary
+has passed the FS-UAE/68030 HD visual/function gate.

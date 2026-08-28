@@ -1,0 +1,27 @@
+Sparkpaw ready-screen sprite-DMA candidate - FS-UAE/68030 HD gate
+=================================================================
+
+Purpose
+-------
+
+This production-style candidate retains the hidden ready buffers and COP1LC-
+only menu publication. Its one additional change keeps hardware-sprite DMA off
+while title/loading/ready Copper lists are active, because those lists do not
+initialize sprite pointers. Sprite DMA is enabled only when the gameplay
+Copper list is installed. It contains no logger or profiling code.
+
+Test
+----
+
+1. Launch Sparkpaw-SpriteDMA in the normal FS-UAE/68030 A1200 HD setup.
+2. Leave START GAME selected without touching any control for at least two
+   minutes. Watch the entire screen for any isolated flash or fragment.
+3. Switch once to OPTIONS and leave it untouched for at least two minutes.
+4. Rapidly alternate START GAME/OPTIONS and JUMP/FIRE for at least two minutes.
+5. Start gameplay and confirm Sparkpaw and all normal gameplay sprites remain
+   visible and correct.
+
+Supplied FS-UAE/68030 HD testing accepts the idle START GAME and OPTIONS
+screens, rapid menu switching and the transition into gameplay. This does not
+establish real-A1200, ADF, WHDLoad or FS-UAE/68020 acceptance. The matching
+real-A1200 HD ZIP is the next gate.

@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.56`. Roadmap checkpoint: Phase 6C.4 pre-level
+Current release: `0.6.0-alpha.58`. Roadmap checkpoint: Phase 6C.4 pre-level
 ready menu on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -15,8 +15,22 @@ FS-UAE/68020 HD testing accepts presentation, both inputs and the immediate
 gameplay transition. HD retains the complete Phase 6C.3 five-plate story intro;
 the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
-Its bootable DOS1/FFS image validates at 1,446 blocks (723 KiB), leaving 314
-free; this is package/decode evidence, not ADF gameplay acceptance.
+Its bootable DOS1/FFS package statistics are recorded below; package/decode
+evidence is not ADF gameplay acceptance.
+
+Alpha.58 removes the intermittent ready-screen fragments visible on supplied
+real-A1200 footage. Menu changes patch only a hidden ready buffer. COP1LC is
+armed during a safe mid-frame window without COPJMP1, so the Copper adopts the
+complete inactive list at its natural vertical restart. The remaining idle
+glitch was stale hardware-sprite DMA: full takeover enabled sprite DMA although
+the title/loading/ready Copper lists own no sprite pointers. Sprite DMA now
+remains off until the gameplay Copper is installed. Supplied FS-UAE/68030 HD
+and real-A1200/68030 HD testing accepts idle START GAME/OPTIONS screens, rapid
+menu switching and gameplay entry. ADF and WHDLoad runtime acceptance remain
+pending. The extra hidden display bitmap costs 61,440 bytes Chip RAM; gameplay,
+controls, assets, audio and Stage 5L/H7 are otherwise unchanged.
+The alpha.58 bootable DOS1/FFS ADF uses 1,449 blocks (724 KiB) and leaves 311
+free; this is package/decode evidence, not ADF runtime acceptance.
 
 Alpha.49 additionally reserves pure black palette pen 0 in every fullscreen
 intro and ready asset. This removes the one-pixel full-height `COLOR00` border
@@ -839,12 +853,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.56.lha`
-- `dist/Sparkpaw-0.6.0-alpha.56.zip`
-- `dist/Sparkpaw-0.6.0-alpha.56.adf`
-- `dist/Sparkpaw-0.6.0-alpha.56-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.56-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.56/`
+- `dist/Sparkpaw-0.6.0-alpha.58.lha`
+- `dist/Sparkpaw-0.6.0-alpha.58.zip`
+- `dist/Sparkpaw-0.6.0-alpha.58.adf`
+- `dist/Sparkpaw-0.6.0-alpha.58-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.58-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.58/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

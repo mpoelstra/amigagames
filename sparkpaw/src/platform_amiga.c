@@ -87,8 +87,12 @@ void platformFinishTakeover(UWORD *copper)
     Disable(); interruptsDisabled=TRUE;
     hardware->intena=0x7fff; hardware->dmacon=DMAF_ALL;
     hardware->cop1lc=(ULONG)copper; hardware->copjmp1=0;
+    /* Title/loading/ready Copper lists do not own sprite pointers. Keep
+       sprite DMA disabled until the gameplay list that initializes all
+       attached-player pointers is installed. Otherwise stale OS sprite
+       pointers can fetch intermittent fragments over an idle ready screen. */
     hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER|
-                     DMAF_SPRITE|DMAF_BLITTER;
+                     DMAF_BLITTER;
     audioSetHardwareActive(TRUE);
 }
 
@@ -96,6 +100,9 @@ void platformSwitchCopper(UWORD *copper)
 {
     hardware->cop1lc=(ULONG)copper;
     hardware->copjmp1=0;
+    /* The sole production caller installs rendererCopperList(), whose early
+       moves initialize every gameplay sprite pointer before visible fetch. */
+    hardware->dmacon=DMAF_SETCLR|DMAF_SPRITE;
 }
 
 void platformRestore(void)

@@ -1,0 +1,36 @@
+Sparkpaw ready-menu COP1LC arm candidate - FS-UAE/68030 HD gate
+================================================================
+
+Purpose
+-------
+
+This production-style candidate retains the two complete hidden display
+buffers from the first tear fix. Its one deliberate change is how a completed
+menu state becomes visible: COP1LC is armed during hardware lines 100..249,
+without writing COPJMP1, and the Copper adopts the inactive list through its
+natural restart at the next vertical blank. It contains no diagnostic logger
+or profiling code.
+
+Test
+----
+
+1. Launch Sparkpaw-CopperArm from this drawer in the normal FS-UAE/68030
+   A1200 HD configuration.
+2. At the ready screen, alternate START GAME and OPTIONS as rapidly as
+   possible with Up/Down for at least two minutes. Watch especially for a
+   single frame containing both selectors, partial rails, broken glyphs,
+   colour flashes or disturbed corner artwork.
+3. Enter OPTIONS. Alternate JUMP and FIRE as rapidly as possible with
+   Left/Right for at least two minutes. Check both arrows, label and value.
+4. Return with Fire/Space, re-enter OPTIONS repeatedly and confirm the chosen
+   value is retained. START GAME must remain selected after returning.
+5. Select START GAME and confirm the normal fade and immediate gameplay start.
+6. If a glitch occurs, report the exact action. This build intentionally
+   creates no renderdiag.log.
+
+Acceptance boundary
+-------------------
+
+Supplied FS-UAE/68030 HD testing accepts this candidate's presentation and
+menu function. This does not establish ADF, WHDLoad, FS-UAE/68020 or real-
+A1200 acceptance. The matching real-hardware HD package is the next gate.

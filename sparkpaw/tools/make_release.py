@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.56"
+RELEASE_VERSION = "0.6.0-alpha.58"
 ROADMAP_CHECKPOINT = "6C.4"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -107,6 +107,16 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 AGA alpha {RELEASE_VERSION}
 Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
 MrDig Productions - Copyright 2026
+
+Alpha.58 removes the intermittent ready-screen fragments seen on a real A1200.
+Menu changes are composed in a hidden 61,440-byte Chip-RAM bitmap and published
+by arming COP1LC mid-frame without COPJMP1; the Copper adopts the complete list
+at its natural vertical restart. Hardware-sprite DMA remains disabled while
+title/loading/ready lists, which own no sprite pointers, are active and is
+enabled only with the gameplay Copper. Supplied FS-UAE/68030 HD and real-
+A1200/68030 HD testing accepts idle screens, rapid menu switching and gameplay
+entry. ADF and WHDLoad runtime acceptance remain pending. Gameplay, controls,
+assets, audio and Stage 5L/H7 are unchanged.
 
 Alpha.56 promotes the real-A1200-accepted WHDLoad filename correction. All HD,
 WHDLoad and ADF source manifests now share short canonical intro and ready-menu

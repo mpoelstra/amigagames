@@ -1,0 +1,35 @@
+Sparkpaw ready-menu COP1LC arm candidate - real A1200 HD gate
+=============================================================
+
+This is the exact production-style executable and runtime asset set accepted
+in the supplied FS-UAE/68030 HD test. Menu changes are completed in a hidden
+display buffer. COP1LC is then armed safely without COPJMP1, allowing the
+Copper to adopt the new list at its natural vertical-blank restart. There is
+no diagnostic logger or profiling code.
+
+Copy the complete Sparkpaw-CopperArm-A1200 drawer to the Amiga hard drive and
+launch Sparkpaw-CopperArm from that drawer.
+
+Test
+----
+
+1. Alternate START GAME and OPTIONS as rapidly as possible with Up/Down for
+   at least two minutes.
+2. Enter OPTIONS and alternate JUMP and FIRE as rapidly as possible with
+   Left/Right for at least two minutes.
+3. Watch for even a single mixed selector, partial rail, broken glyph, colour
+   flash or disturbed corner graphic.
+4. Re-enter OPTIONS several times and confirm the chosen value is retained.
+5. Select START GAME and confirm the normal fade and gameplay transition.
+
+Please report whether any intermittent glitch remains. Passing this ZIP proves
+only the ordinary HD path on the tested real A1200; it does not establish ADF
+or WHDLoad acceptance.
+
+Result
+------
+
+Rejected on the supplied real A1200. Intermittent fragments remained and could
+appear after 15 seconds or more while the selected screen was completely idle.
+That result ruled out COP1LC/COPJMP1 publication as the sole cause and led to
+the stale sprite-DMA ownership correction.

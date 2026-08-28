@@ -13,6 +13,17 @@ FS-UAE/68030, FS-UAE/68020 and real-A1200/68030 HD testing accepts the final
 presentation, direct start and both secondary-button mappings. The 68020 test
 was production-style and supplies no cadence log. ADF and WHDLoad remain open.
 
+Alpha.58 corrects the intermittent transition and idle fragments captured on a
+real A1200. The previous implementation copied six planes into the displayed
+bitmap. The current implementation seeds two complete ready buffers, patches
+only the hidden buffer, arms COP1LC mid-frame without COPJMP1 and lets vertical
+restart publish the complete list. Full takeover also keeps sprite DMA off
+because these presentation Copper lists own no sprite pointers; gameplay
+enables it only with its pointer-owning Copper list. This adds one 61,440-byte
+displayable Chip bitmap. Supplied FS-UAE/68030 and real-A1200/68030 HD testing
+accepts idle screens, rapid menu switching and gameplay entry. ADF and WHDLoad
+acceptance remain pending.
+
 This screen appears after `CHARGING`, after gameplay preparation, and before
 the gameplay Copper is published. It uses a separately extracted Sparkpaw logo,
 an original Sparkpaw hero composition, a large dark field, Level-1-derived
@@ -36,17 +47,19 @@ OPTIONS
 100% MADE WITH AI
 ```
 
-The implementation decodes the screen temporarily into Fast RAM and
-copies it once into the existing six-plane loading bitmap while faded to black.
-It must not allocate another displayable Chip-RAM bitmap or alter gameplay's
-4+3 dual-playfield, Copper, HUD or renderer timing contracts. Joystick Fire and
-Space both advance only after the level and renderer are fully prepared.
+The implementation decodes the screen temporarily into Fast RAM and seeds two
+six-plane displayable buffers while faded to black. Menu changes patch only the
+hidden buffer; a complete inactive Copper list publishes it atomically at a PAL
+frame boundary. Gameplay's 4+3 dual-playfield, HUD and renderer timing contracts
+remain unchanged. Joystick Fire and Space both advance only after the level and
+renderer are fully prepared.
 
 Four deterministic central bands—Start selected, Options selected, Jump and
 Fire—share the ready screen's exact palette in one Fast-RAM patch atlas. The
-selected band is copied into the existing status bitmap only after the beam has
-passed it. The atlas adds no displayable Chip bitmap. Up/down selects the main
-menu, left/right changes the option and Fire/Space returns from Options.
+selected band is copied only into the hidden ready buffer. The atlas remains in
+Fast RAM; the second displayable bitmap adds 61,440 bytes of Chip RAM. Up/down
+selects the main menu, left/right changes the option and Fire/Space returns
+from Options.
 
 The HD edition retains the complete five-plate cinematic intro. The space-bound
 ADF edition omits those five plates and begins at the existing title, while

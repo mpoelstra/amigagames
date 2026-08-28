@@ -1,0 +1,31 @@
+Sparkpaw ready-screen sprite-DMA candidate - real A1200 HD gate
+================================================================
+
+This ZIP contains the exact production-style executable and runtime assets
+accepted in the supplied FS-UAE/68030 HD test. Hardware-sprite DMA remains off
+while the title/loading/ready Copper lists are active and is enabled only when
+the gameplay Copper list is installed. Hidden ready buffers and COP1LC-only
+menu publication remain enabled. There is no logger or profiling code.
+
+Copy the complete Sparkpaw-SpriteDMA-A1200 drawer to the Amiga hard drive and
+launch Sparkpaw-SpriteDMA from that drawer.
+
+Test
+----
+
+1. Leave START GAME selected without touching a control for at least three
+   minutes. Watch for any isolated flash or fragment.
+2. Switch once to OPTIONS and leave it untouched for at least three minutes.
+3. Rapidly alternate START GAME/OPTIONS and JUMP/FIRE for at least two minutes.
+4. Start gameplay and confirm Sparkpaw and the normal gameplay sprites remain
+   visible and correct.
+
+Please report even a single intermittent glitch. Passing this ZIP establishes
+only the ordinary HD path on the tested real A1200, not ADF or WHDLoad.
+
+Result
+------
+
+Accepted on the supplied real A1200/68030 HD path. No ready-screen glitches
+were observed, and gameplay entry retained normal sprite presentation. This
+does not establish ADF or WHDLoad runtime acceptance.
