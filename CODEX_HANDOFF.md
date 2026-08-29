@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 28 August 2026
+Last updated: 29 August 2026
 
 ## Start here
 
@@ -45,14 +45,37 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.58`, Phase 6C.4. A normal release contains:
+Current release is `0.6.0-alpha.59`, Phase 6C.5. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.58.lha`
-- `Sparkpaw-0.6.0-alpha.58.zip`
-- `Sparkpaw-0.6.0-alpha.58.adf`
-- `Sparkpaw-0.6.0-alpha.58-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.58-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.58/`
+- `Sparkpaw-0.6.0-alpha.59.lha`
+- `Sparkpaw-0.6.0-alpha.59.zip`
+- `Sparkpaw-0.6.0-alpha.59.adf`
+- `Sparkpaw-0.6.0-alpha.59-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.59-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.59/`
+
+Alpha.59 replaces the ordinary 105..202px horizontal camera dead zone with a
+single centred anchor. Sparkpaw's 32px logical body now has its visual centre
+at screen x=160 while the accepted final Core clearing retains its fixed
+maximum-camera composition. MrDig's supplied FS-UAE/68030 HD A/B/C test accepts
+this exact centred candidate as better with no observed problems. The separate
+16px directional-lookahead candidate is rejected because its return to centre
+visibly shifts the image. Renderer, physics, level geometry, animation, assets
+and audio are unchanged. FS-UAE/68020 cadence, ADF, WHDLoad and real-hardware
+runtime acceptance remain pending and must not be inferred from the 68030 HD
+visual/function result.
+The bootable alpha.59 DOS1/FFS ADF uses 1,450 blocks (725 KiB) and leaves 310
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 601,469-byte HD LHA
+(`48573ffec3acfcd132eb7fe36c499836eb758cc1ff6baa34ecc0f0d11ba54801`),
+601,106-byte HD ZIP
+(`5689fba117c7e556c08f9ed383f9ef6a0bf5a484152395f995777c7c6b43c5f1`),
+901,120-byte ADF
+(`c912b6898e21d317f06acf57d41b517131b4ce84dc82f70d284464723d7cb75e`),
+596,689-byte WHDLoad LHA
+(`e37bbcedd4f92eba883e01e386fbe3a0c44836373095000165069e102d11ffcc`)
+and 597,341-byte WHDLoad ZIP
+(`985a5b75db20bebe9cacd60e7bdfa34f99c7ea2994231818d7a9fefd201af3a1`).
 
 Both LHA artifacts are genuinely compressed with classic `-lh5-`, not stored
 as the former Python-generated `-lh0-` members. Sparkpaw uses the ignored local

@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.58"
-ROADMAP_CHECKPOINT = "6C.4"
+RELEASE_VERSION = "0.6.0-alpha.59"
+ROADMAP_CHECKPOINT = "6C.5"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -105,8 +105,18 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} pre-level ready screen
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} centred gameplay camera
 MrDig Productions - Copyright 2026
+
+Alpha.59 replaces the broad 105..202px gameplay-camera dead zone with one
+centred anchor: Sparkpaw's 32px logical body now has its visual centre at
+screen x=160. A supplied FS-UAE/68030 HD A/B/C comparison accepts this exact
+centred candidate as clearly better with no observed problems. The separate
+directional-lookahead candidate is rejected because its return to centre made
+the image visibly shift. The final Core clearing keeps its existing fixed
+maximum-camera composition. Renderer, physics, level data, assets and audio are
+unchanged. FS-UAE/68020 cadence, ADF, WHDLoad and real-hardware runtime remain
+separate checks.
 
 Alpha.58 removes the intermittent ready-screen fragments seen on a real A1200.
 Menu changes are composed in a hidden 61,440-byte Chip-RAM bitmap and published

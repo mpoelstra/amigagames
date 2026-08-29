@@ -3,8 +3,8 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.58`. Roadmap checkpoint: Phase 6C.4 pre-level
-ready menu on the protected rolling renderer Stage 5L baseline. After all
+Current release: `0.6.0-alpha.59`. Roadmap checkpoint: Phase 6C.5 centred
+gameplay camera on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
 centred menu/credits and lower-right Sparkpaw pose. `START GAME` is selected by
@@ -17,6 +17,19 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.59 replaces the ordinary 105..202px horizontal gameplay-camera dead zone
+with one centred anchor. Sparkpaw's 32px logical body now has its visual centre
+at screen x=160 in both directions and while stationary. Supplied
+FS-UAE/68030 HD A/B/C testing accepts this exact centred version as better with
+no observed problems. A separate 16px directional-lookahead candidate is
+rejected because its return to centre visibly shifts the image. The final Core
+clearing keeps its accepted fixed maximum-camera composition. Renderer,
+physics, level geometry, animation, assets and audio remain unchanged.
+FS-UAE/68020 cadence, ADF, WHDLoad and real-hardware runtime acceptance remain
+separate pending checks.
+The bootable alpha.59 DOS1/FFS ADF uses 1,450 blocks (725 KiB) and leaves 310
+free; this is package/decode evidence, not ADF runtime acceptance.
 
 Alpha.58 removes the intermittent ready-screen fragments visible on supplied
 real-A1200 footage. Menu changes patch only a hidden ready buffer. COP1LC is
@@ -857,12 +870,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.58.lha`
-- `dist/Sparkpaw-0.6.0-alpha.58.zip`
-- `dist/Sparkpaw-0.6.0-alpha.58.adf`
-- `dist/Sparkpaw-0.6.0-alpha.58-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.58-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.58/`
+- `dist/Sparkpaw-0.6.0-alpha.59.lha`
+- `dist/Sparkpaw-0.6.0-alpha.59.zip`
+- `dist/Sparkpaw-0.6.0-alpha.59.adf`
+- `dist/Sparkpaw-0.6.0-alpha.59-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.59-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.59/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

@@ -15,7 +15,36 @@ Audit and update the compact repository-root `CODEX_HANDOFF.md` at the same
 time, but keep chronological detail here rather than allowing that handoff to
 become a diary again.
 
-Last updated: 28 August 2026
+Last updated: 29 August 2026
+
+### 29 August 2026 - Alpha.59 centres the gameplay camera
+
+A supplied YouTube comment independently identified the existing horizontal
+composition problem: while travelling right, Sparkpaw settled roughly two
+thirds across the viewport and left less space ahead than behind. Source review
+confirmed that the established camera used the player's logical left edge in a
+105..202px dead zone; at the right boundary the 32px actor's visual centre sat
+at screen x=218.
+
+Three production-style FS-UAE/68030 HD drawers isolated only camera behavior.
+A retained alpha.58 exactly, B placed Sparkpaw's visual centre at x=160, and C
+returned to centre at rest while adding 16px lookahead from actual velocity.
+MrDig reports that B is clearly better and showed no problems. C is rejected
+because its occasional return to centre visibly shifts the whole image.
+
+Alpha.59 promotes the exact accepted B formula and removes the temporary A/B/C
+compile paths. A host contract fixes the logical left anchor at x=144 and the
+32px visual centre at x=160. The final Core clearing still overrides ordinary
+tracking with its accepted maximum camera x=3072. Renderer, Stage 5L/H7,
+physics, level data, animation, assets and audio do not change. This is supplied
+FS-UAE/68030 HD visual/function acceptance only; 68020 cadence, ADF, WHDLoad
+and real hardware remain unverified for alpha.59.
+
+The complete host suite and native HD, ADF and WHDLoad builds pass. Release
+packaging produces genuine CRC-tested `-lh5-` archives; independent Lhasa
+extraction matches both staged drawers byte for byte. The bootable DOS1/FFS ADF
+uses 1,450 blocks (725 KiB) and leaves 310 free. These host checks establish
+package integrity only and do not expand the supplied runtime acceptance.
 
 ## Purpose of this file
 

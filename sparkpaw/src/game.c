@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "audio.h"
+#include "camera_contract.h"
 #include "collision.h"
 #include "collectibles.h"
 #include "enemies.h"
@@ -52,10 +53,7 @@ static void updateCamera(void)
     const struct PlayerState *player=playerState();
     LONG playerX=player->x>>8,wanted=game.cameraX;
     if(playerX>=3072||game.coreCollectTimer) wanted=WORLD_W-SCREEN_W;
-    else {
-        if(playerX-game.cameraX>202) wanted=playerX-202;
-        if(playerX-game.cameraX<105) wanted=playerX-105;
-    }
+    else wanted=cameraCenteredTarget(playerX);
     if(wanted<0) wanted=0;
     if(wanted>WORLD_W-SCREEN_W) wanted=WORLD_W-SCREEN_W;
     if(wanted>game.cameraX+5) game.cameraX+=5;
