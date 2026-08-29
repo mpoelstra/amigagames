@@ -1,6 +1,6 @@
 ---
 name: ship-sparkpaw-checkpoint
-description: Complete and verify a Sparkpaw roadmap checkpoint by synchronizing source, SemVer, roadmap status, handoff, development history, packaged notes and the sole current release artifact set. Use when finishing, releasing, tagging, committing or pushing a Sparkpaw gameplay, renderer, art, audio, memory or packaging step.
+description: Complete and verify a Sparkpaw roadmap checkpoint by synchronizing source, SemVer, roadmap status, handoff, development history, packaged notes and the sole current release artifact set, then compare it with the currently downloadable itch.io version and produce player-facing release notes. Use when finishing, releasing, tagging, committing or pushing a Sparkpaw gameplay, renderer, art, audio, memory or packaging step.
 ---
 
 # Ship Sparkpaw Checkpoint
@@ -16,6 +16,26 @@ not replace careful source selection for a commit.
    Keep unrelated user changes, ignored backups and test evidence untouched.
 3. Confirm source, version strings and docs describe the same implementation.
    Preserve the PAL A1200/68020 minimum of 2 MB Chip plus 8 MB Fast RAM.
+
+## Establish the public itch baseline
+
+Before choosing the release delta or writing user-facing notes, determine the
+version currently downloadable from `https://mrdig.itch.io/sparkpaw`:
+
+1. Run `scripts/detect_itch_release.py` from this skill directory. It reads the
+   public page and derives the baseline from versioned Sparkpaw download names,
+   not from the local repository version.
+2. Cross-check the newest public devlog title or visible page text when
+   available. Treat the downloadable artifacts as authoritative if an older
+   devlog remains visible.
+3. Record both the public baseline and the candidate version. Build the release
+   note delta across every shipped checkpoint after that public baseline; do
+   not describe only the final local commit when itch skipped intervening
+   alphas.
+4. If itch is unreachable, rate-limited or contains no recognizable versioned
+   downloads, state that the public baseline is unverified and ask the user for
+   the current itch version. Never silently substitute the repository's latest
+   release or a remembered value.
 
 ## Build and package
 
@@ -90,3 +110,28 @@ files are expected and that renderer changes are not mixed with unrelated
 gameplay or asset changes. Summarize what changed, both build commands, the
 artifact set, supplied verification level and remaining risks. Commit and push
 only when requested, using the generic `git-ship` skill after these gates pass.
+
+## Write player-facing itch release notes
+
+End every completed release handoff with a separate copy-ready section headed
+exactly:
+
+```text
+Dit kun je als release notes gebruiken op basis van de huidige versie op itch:
+```
+
+Under it, provide:
+
+- a short devlog title naming the new alpha;
+- `What's new since alpha.N`, using the verified public itch baseline;
+- concise bullets describing only changes a player can see, hear, control or
+  experience;
+- an optional brief compatibility/test note when it materially helps players.
+
+Exclude build tooling, generators, internal architecture, cache strategies,
+profilers, hashes, archive validation, source-file names and implementation
+jargon. Translate technical work into its player-visible result: for example,
+say “smoother combat on 68020 systems”, not “coalesced projectile sweep”. Do
+not advertise fixes or platform support beyond supplied acceptance evidence.
+Keep engineering verification and artifact details in the preceding developer
+handoff, outside the copy-ready release notes.
