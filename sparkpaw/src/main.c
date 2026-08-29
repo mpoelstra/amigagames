@@ -18,7 +18,8 @@ enum AppState {
     APP_TITLE_LOADING,
     APP_TITLE_READY,
     APP_LEVEL_LOADING,
-    APP_PLAYING
+    APP_PLAYING,
+    APP_LEVEL_COMPLETE
 };
 
 static void cleanup(void)
@@ -178,6 +179,7 @@ int main(void)
 #endif
     titleRelease();
     state=APP_PLAYING;
+    for(;;) {
     while(state==APP_PLAYING) {
         ULONG profileStart;
 #ifdef SPARKPAW_WHDLOAD
@@ -200,6 +202,10 @@ int main(void)
         profileStart=performanceProfileBegin();
         gameUpdate();
         performanceProfileEnd(PERF_GAME_UPDATE,profileStart);
+        if(gameLevelComplete()) {
+            state=APP_LEVEL_COMPLETE;
+            break;
+        }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         rendererDiagnosticPublicationEntry(platformRasterLine());
 #endif
@@ -249,6 +255,61 @@ int main(void)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         if(platformLeftMouse()) state=APP_BOOT;
 #endif
+    }
+    if(state==APP_LEVEL_COMPLETE) {
+        const struct GameState *result=gameState();
+        UWORD enemies=result->enemiesDefeated;
+        UWORD diamonds=result->diamondsCollected;
+        ULONG elapsed=result->elapsedFields;
+        ULONG score=result->score;
+        platformReleaseForLoading(FALSE);
+        rendererCleanup();
+        if(!titleShowLevelComplete()) {
+            PutStr("Sparkpaw: level-complete screen unavailable.\n");
+            PutStr((STRPTR)titleFailureReason()); PutStr("\n");
+            platformRestore(); titleRelease(); audioUnload();
+            platformClose(); return 10;
+        }
+        platformFinishTakeover(titleCopperList());
+        titleRunLevelComplete(enemies,diamonds,elapsed,score);
+        /* Fade the custom score display completely before Exec/DOS and the
+           loader regain the machine. Keeping that display live exposed one
+           corrupted frame while graphics/Blitter work prepared Level 1. */
+        titleFadeOut();
+        platformReleaseForLoading(FALSE);
+        if(!titleShowReplayLoading()) {
+            PutStr("Sparkpaw: replay loading screen unavailable.\n");
+            PutStr((STRPTR)titleFailureReason()); PutStr("\n");
+            platformRestore(); titleRestoreSystemView(); titleRelease();
+            audioUnload(); rendererCleanup(); platformClose(); return 10;
+        }
+        platformResetGameInput();
+        audioUnload();
+        DateStamp(&levelTime);
+        enemySeed=(ULONG)levelTime.ds_Days*86400UL+
+                  (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
+        gameInit(enemySeed^0x53504157UL);
+        if(!loadLevelFiles()||!rendererPrepareGameplay()) {
+            PutStr("Sparkpaw: Level 1 reload failed.\n");
+            platformRestore(); titleRestoreSystemView(); titleRelease();
+            audioUnload(); rendererCleanup(); platformClose(); return 10;
+        }
+        /* Drop keyboard state accumulated while DOS and the loader owned the
+           machine. playerInit() separately clears joystick/action edges. */
+        platformResetGameInput();
+        platformFinishTakeover(titleCopperList());
+        rendererUpdateGameplay();
+        /* COPJMP1 restarts a complete gameplay list. Arm it immediately after
+           PAL wrap so no lower-screen wait from a partial list can briefly
+           affect the outgoing score frame. */
+        while(platformRasterLine()<300) { }
+        while(platformRasterLine()>=300) { }
+        platformSwitchCopper(rendererCopperList());
+        titleRelease();
+        state=APP_PLAYING;
+        continue;
+    }
+    break;
     }
 #ifdef SPARKPAW_WHDLOAD
     platformRestore(); cleanup(); return 0;

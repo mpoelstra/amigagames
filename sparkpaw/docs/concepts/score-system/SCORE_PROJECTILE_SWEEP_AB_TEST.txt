@@ -1,0 +1,17 @@
+SPARKPAW PROJECTILE SWEEP A/B - FS-UAE 68030
+
+Candidate diagnostic only: unnumbered, not a release.
+
+A Pixel uses the accepted per-pixel collision walk. B Coalesced finds the first
+solid tile entry and nearest eligible enemy once. Both include the accepted HUD
+score fast-copy candidate and otherwise identical centred-camera gameplay.
+
+Test both drawers on FS-UAE/68030. Fire right and left while standing,
+crouching and airborne. Check shots against nearby walls, platform sides,
+floor and elevated beetles, Striders, overlapping combat, off-screen edges and
+rapid repeated fire. Damage, death, impact position and sounds must match.
+
+After 30-60 seconds press the left mouse button once. The image freezes while
+renderdiag.log is saved. Wait several seconds, then stop/reset FS-UAE. Leave
+each log in its own drawer. This gate is presentation/gameplay first; its FPS
+is observer-contaminated by the detailed profiler.

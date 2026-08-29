@@ -7,6 +7,11 @@ struct GameState {
     LONG cameraX;
     LONG frameCounter;
     ULONG enemySeed;
+    ULONG score;
+    ULONG elapsedFields;
+    ULONG lastFieldCounter;
+    UWORD enemiesDefeated;
+    UWORD diamondsCollected;
     UBYTE lives;
     UBYTE diamonds;
     UBYTE waterSplashTimer;
@@ -20,6 +25,7 @@ struct GameState {
 
 void gameInit(ULONG enemySeed);
 void gameUpdate(void);
+BOOL gameLevelComplete(void);
 const struct GameState *gameState(void);
 
 #endif

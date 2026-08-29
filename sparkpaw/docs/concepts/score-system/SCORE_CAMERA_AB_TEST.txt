@@ -1,0 +1,33 @@
+SPARKPAW SCORE/CAMERA 68020 CADENCE A/B
+
+Candidate only: unnumbered, not a release.
+
+Hypothesis
+----------
+The accepted centred camera may increase rolling-column frequency relative to
+the old 105..202px dead zone. This A/B changes only that camera rule. Both
+drawers otherwise contain the current score system, assets, gameplay, rolling
+renderer and identical minimal-cadence instrumentation.
+
+Builds
+------
+- A Centre: current preferred camera, Sparkpaw centred at screen x=160.
+- B Deadzone: measurement reference using the former 105..202px dead zone.
+
+Test route
+----------
+1. Use stock A1200/68020 FS-UAE settings for both drawers.
+2. Run each for 30-60 seconds over as similar a route as practical.
+3. Stress both equally: hold/repeatedly press Fire, collect diamonds, fight the
+   same busy enemy area, and keep moving/jumping.
+4. Do not touch the Core. During ordinary gameplay press the left mouse button
+   once. The image should freeze while `renderdiag.log` is saved. Wait several
+   seconds, then stop/reset FS-UAE.
+5. Leave each log in its original drawer.
+
+Acceptance and interpretation
+-----------------------------
+This A/B diagnoses cost; it does not propose restoring the inferior deadzone.
+Compare effective FPS, one/two/three-field intervals, rolling-column events,
+ownership violations and perceived smoothness. A material B advantage means
+the renderer should be optimized to retain A's centred composition.

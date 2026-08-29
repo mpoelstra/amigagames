@@ -6058,3 +6058,51 @@ WHDLoad LHA
 `ddd767ac9b7125cafeed21c8ba4dcdd5f565b0a40449933368ac5a86d82d4f85`
 and WHDLoad ZIP
 `58ce16f369cee57b39980729adfdaa672c0707c93e0d4a3b8a9829240dbb7cb2`.
+
+### 29 August 2026 - Alpha.64 adds score and level-complete results
+
+Phase 6C.6 fills the authored right HUD panel with a four-digit event-driven
+score. Each unique enemy spawn awards 20 points once and every diamond awards
+5 while retaining the separate extra-life counter. Elapsed time accumulates
+from PAL fields across deaths and reloads; Core completion converts the unused
+portion of a 120-second par into a 10-point-per-second bonus. The HUD clamps
+only its presentation at 9999 while the internal and final totals remain
+32-bit.
+
+Core completion now stops gameplay, releases its renderer and presents an
+original double-buffered 320x256 six-plane results composition. Native 5x7
+labels and fixed-width yellow glyphs share a hard pixel grid. Enemy, diamond
+and time rows transfer into the total with one bounded Paula tick per visible
+step; Fire finishes the active row, and a final `PRESS FIRE TO CONTINUE` prompt
+starts a deliberately temporary Level-1-only replay. The replay performs a
+complete state, asset and renderer rebuild. A supplied FS-UAE/68020 result
+showed that rebuild as an apparently indefinite black screen although the same
+binary completed quickly on 68030. Alpha.64 therefore keeps the existing
+LOADING composition visible during the rebuild without changing reset
+semantics. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing accepts the final
+gameplay, score screen, tally audio, prompt and replay transition. ADF, WHDLoad
+and real-A1200 runtime acceptance remain open.
+
+Performance work was isolated and measured before inclusion. Native HUD digit
+copies replace repeated tiny `CopyMem` calls. Projectile sweeps coalesce solid
+geometry by tile and query the nearest eligible enemy once while retaining an
+exact pixel-reference build and geometry-wins-ties ordering. The optimized
+68020 projectile profile reduces average sweep cost from 1,415 to 406 CIA
+ticks, p95 from 2,256 to 722 and maximum from 6,093 to 838. The later minimal-
+cadence run records 1,610 one-field and 45 two-field intervals over 1,655
+intervals, no three-field misses or ownership violations, and 48.67 effective
+FPS. Workload differences prevent treating this as a perfectly paired gameplay
+benchmark, but it clears the protected 48.58-FPS alpha.45 regression floor.
+
+The complete host suite and native HD/ADF/WHDLoad builds pass. The bootable
+DOS1/FFS ADF uses 1,615 blocks (807 KiB), leaving 145 free. Independent Lhasa
+extraction matches both staged drawers byte-for-byte; both LHAs contain real
+`-lh5-` members and all ZIP path components are at most 28 characters. Final
+SHA-256 values are: HD LHA
+`96647fa518a554fecda1d70bcf82c2c7cd4f200caa08d31a0115fc86f3a8ba76`,
+HD ZIP `538214bad315a394d6491de793d40411ff9948c57bc9e97d64ebeac6a49277ae`,
+ADF `3dd0da235c77904ef0a38c49c09aa30745b3d69086eb8ab68d93948ff477fde9`,
+WHDLoad LHA
+`71b21b33ae1966d7d0d87bd571d13effb5228b3329ab9cb0477fbc03ff5b5293`
+and WHDLoad ZIP
+`efd8b140363c52fd1879107f038aa700e0cceed81c3bd7e89220df284e31d8d3`.

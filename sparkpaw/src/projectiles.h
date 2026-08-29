@@ -18,10 +18,12 @@ struct Projectile {
 };
 
 typedef BOOL (*ProjectileSolidAt)(WORD x,WORD y);
+typedef BOOL (*ProjectileFirstSolid)(WORD start,WORD end,WORD y,WORD *hitX);
 #define PROJECTILE_ENEMY_MISS 0
 #define PROJECTILE_ENEMY_HIT 1
 #define PROJECTILE_ENEMY_KILL 2
 typedef UBYTE (*ProjectileEnemyHit)(WORD x,WORD y);
+typedef BOOL (*ProjectileFirstEnemyHit)(WORD start,WORD end,WORD y,WORD *hitX);
 typedef void (*ProjectilePlaySound)(void);
 
 void projectilesInit(void);
@@ -30,7 +32,9 @@ void projectilesSpawn(WORD playerX,WORD playerY,BOOL facingLeft,BOOL crouching,
                       BOOL airborne,ProjectilePlaySound playSound);
 BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft);
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
+                       ProjectileFirstSolid firstSolid,
                        ProjectileEnemyHit hitEnemy,
+                       ProjectileFirstEnemyHit firstEnemyHit,
                        ProjectilePlaySound playEnemyHitSound,
                        ProjectilePlaySound playEnemyDeathSound);
 BOOL projectilesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,

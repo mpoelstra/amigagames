@@ -36,6 +36,10 @@ HUD_SEAM_H6_REAR_ISOLATION_TARGET = build/sparkpaw-hud-seam-h6-rear8-black
 HUD_SEAM_H7_PRODUCTION_TARGET = build/sparkpaw-hud-seam-h7-production
 STAGE2_PROFILE_TARGET = build/sparkpaw-stage2-profile
 STAGE2_MINIMAL_CADENCE_TARGET = build/sparkpaw-stage2-minimal-cadence
+SCORE_CAMERA_CENTER_TARGET = build/sparkpaw-score-camera-center
+SCORE_CAMERA_DEADZONE_TARGET = build/sparkpaw-score-camera-deadzone
+SCORE_PROJECTILE_PIXEL_TARGET = build/sparkpaw-score-projectile-pixel
+SCORE_PROJECTILE_COALESCED_TARGET = build/sparkpaw-score-projectile-coalesced
 STAGE2_DYNAMIC_REFERENCE_TARGET = build/sparkpaw-stage2-dynamic-reference
 STAGE2_DYNAMIC_WORD_COPY_TARGET = build/sparkpaw-stage2-dynamic-word-copy
 STAGE2_DYNAMIC_UNROLLED_TARGET = build/sparkpaw-stage2-dynamic-unrolled
@@ -77,7 +81,8 @@ ADF_INTRO_ASSETS = build/adf-assets/intro1.spr1 \
 ADF_STATUS_ASSETS = build/adf-assets/sparkpaw-level-loading.spr1 \
 	build/adf-assets/level-charge-patch.spr1 \
 	build/adf-assets/level-ready.spr1 \
-	build/adf-assets/level-ready-menu.spr1
+	build/adf-assets/level-ready-menu.spr1 \
+	build/adf-assets/level-complete.spr1
 ADF_ASSETS = $(ADF_FRONT_ASSET) $(ADF_REAR_ASSET) $(ADF_STRIDER_ASSET) \
 	$(ADF_PLAYER_ASSET) $(ADF_STATUS_ASSETS)
 BENCH_TARGETS = sparkpaw-renderbench-4plus3 sparkpaw-renderbench-4plus4
@@ -110,6 +115,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-hud-health.spbm \
 	assets/runtime/sparkpaw-hud-lives.spbm \
 	assets/runtime/sparkpaw-hud-diamonds.spbm \
+	assets/runtime/sparkpaw-hud-score.spbm \
 	assets/runtime/sparkpaw-diamond.spbm \
 	assets/runtime/stormstone-core.spbm \
 	assets/runtime/storm-front.spbm \
@@ -124,6 +130,9 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/collect-spark.raw \
 	assets/runtime/water-splash.raw \
 	assets/runtime/stormstone-core.raw \
+	assets/runtime/tally-tick.raw \
+	assets/runtime/sparkpaw-level-complete.spbm \
+	assets/runtime/sparkpaw-score-glyphs.spbm \
 	assets/runtime/clockwork-beetle.spbm \
 	assets/runtime/clockwork-storm-strider.spbm \
 	assets/runtime/sparkpaw-sprites.spbm \
@@ -376,7 +385,8 @@ $(READY_SCREEN_ASSET) $(READY_MENU_ASSET): tools/generate_ready_screen.py tools/
 	docs/concepts/ready-screen/assets/sparkpaw-logo-wordmark-source-v2.png
 	$(PYTHON) tools/generate_ready_screen.py
 
-$(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
+$(RUNTIME_ASSETS): tools/generate_runtime_assets.py tools/generate_score_screen.py \
+	docs/concepts/score-system/sparkpaw-level-complete-score-concept-v4-title-character.png \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
 	assets/concept/sparkpaw-level-loading-concept-v3.png \
 	assets/concept/sparkpaw-level-charging-concept-v2.png \
@@ -408,7 +418,8 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py \
 	sfx/raw/enemy-hit.raw \
 	sfx/raw/enemy-death.raw \
 	sfx/raw/strider-shot.raw \
-	sfx/raw/jump.raw
+	sfx/raw/jump.raw \
+	sfx/raw/tally-tick.raw
 	$(PYTHON) tools/generate_runtime_assets.py
 
 $(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
@@ -420,7 +431,7 @@ $(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
 	$(PYTHON) tools/generate_intro_proof.py
 
 sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/enemy-death.raw sfx/raw/strider-shot.raw \
-	sfx/raw/jump.raw sfx/raw/collect-spark.raw: \
+sfx/raw/jump.raw sfx/raw/collect-spark.raw sfx/raw/tally-tick.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
@@ -499,6 +510,9 @@ build/adf-assets/level-ready.spr1: assets/runtime/sparkpaw-ready-screen.spbm too
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 build/adf-assets/level-ready-menu.spr1: assets/runtime/readymenu.spbm tools/pack_adf_asset.py
+	$(PYTHON) tools/pack_adf_asset.py $< $@
+
+build/adf-assets/level-complete.spr1: assets/runtime/sparkpaw-level-complete.spbm tools/pack_adf_asset.py
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 
@@ -1096,6 +1110,36 @@ $(STAGE2_MINIMAL_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSET
 		-DSPARKPAW_RENDER_DIAGNOSTIC \
 		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
 		-DSPARKPAW_DISABLE_WAIT_PROFILE $(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+$(SCORE_CAMERA_CENTER_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE $(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+$(SCORE_CAMERA_DEADZONE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE \
+		-DSPARKPAW_CAMERA_DEADZONE_REFERENCE $(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+$(SCORE_PROJECTILE_PIXEL_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_PROJECTILE_PIXEL_SWEEP_REFERENCE \
+		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(SCORE_PROJECTILE_COALESCED_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC $(RELEASE_RENDERER_FLAGS) \
 		-o $@ $(SOURCES)
 
 $(STAGE2_DYNAMIC_REFERENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)

@@ -78,7 +78,9 @@ BOOL projectilesSpawnEnemy(WORD x,WORD y,BOOL facingLeft)
 }
 
 void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
+                       ProjectileFirstSolid firstSolid,
                        ProjectileEnemyHit hitEnemy,
+                       ProjectileFirstEnemyHit firstEnemyHit,
                        ProjectilePlaySound playEnemyHitSound,
                        ProjectilePlaySound playEnemyDeathSound)
 {
@@ -96,8 +98,10 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         x=(WORD)(projectile->x>>8)+(projectile->vx>0?PROJECTILE_W-1:0);
         y=(WORD)(projectile->y>>8)+(PROJECTILE_H>>1);
         enemyHitResult=PROJECTILE_ENEMY_MISS;
-        /* Sweep every crossed pixel. Solid geometry wins at each position,
-           including the physical muzzle edge, before enemy dispatch. */
+        /* Preserve the exact pixel reference for diagnostics.  Production
+           finds the first solid tile entry and nearest eligible enemy once;
+           geometry still wins when both occupy the same X. */
+#ifdef SPARKPAW_PROJECTILE_PIXEL_SWEEP_REFERENCE
         for(;;) {
             WORD sampleX=projectile->collisionX;
             if(solidAt(sampleX,y)) { contacted=TRUE; x=sampleX; break; }
@@ -106,6 +110,22 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
             if(sampleX==x) break;
             projectile->collisionX=projectileSweepNext(sampleX,x);
         }
+#else
+        {
+            WORD solidX=0,enemyX=0;
+            BOOL solidFound=firstSolid(projectile->collisionX,x,y,&solidX);
+            BOOL enemyFound=!projectile->hostile&&
+                firstEnemyHit(projectile->collisionX,x,y,&enemyX);
+            if(projectileSweepGeometryWins(projectile->collisionX,x,
+                                           solidFound,solidX,
+                                           enemyFound,enemyX)) {
+                contacted=TRUE; x=solidX;
+            } else if(enemyFound) {
+                enemyHitResult=hitEnemy(enemyX,y);
+                if(enemyHitResult) { contacted=TRUE; x=enemyX; }
+            }
+        }
+#endif
         projectile->collisionX=x;
         if(enemyHitResult==PROJECTILE_ENEMY_KILL) playEnemyDeathSound();
         else if(enemyHitResult==PROJECTILE_ENEMY_HIT) playEnemyHitSound();

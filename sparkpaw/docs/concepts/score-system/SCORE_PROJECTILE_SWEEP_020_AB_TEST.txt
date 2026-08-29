@@ -1,0 +1,18 @@
+SPARKPAW PROJECTILE SWEEP A/B - FS-UAE 68020
+
+Candidate diagnostic only: unnumbered, not a release.
+
+A Pixel is the accepted per-pixel collision reference. B Sweep is the
+FS-UAE/68030-accepted coalesced first-hit candidate. Both use the centred camera,
+HUD score fast-copy and identical detailed profiling.
+
+Use stock A1200/68020 settings. Play each for 30-60 seconds over as similar a
+busy route as practical. Fire heavily in both directions, collect diamonds and
+fight beetles and Striders. Check that impacts, hits, deaths and sounds remain
+correct. Do not touch the Core.
+
+Press the left mouse button once during gameplay. The image freezes while
+renderdiag.log is written. Wait several seconds, then stop/reset FS-UAE. Leave
+each log in its own drawer. Compare projectile average, p95 and maximum first;
+the detailed profiler materially lowers displayed cadence, so its FPS is only
+a like-for-like secondary signal.

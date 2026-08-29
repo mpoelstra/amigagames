@@ -1,8 +1,8 @@
 # Sparkpaw score-system concept package
 
-Status: research and concept art only. Nothing in this directory is a runtime
-asset or an accepted implementation contract. It does not modify the active
-renderer, HUD, performance diagnostics, build, package, version or release.
+Status: accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD testing and
+promoted as the alpha.64 Phase 6C.6 release checkpoint. ADF, WHDLoad and real-
+hardware runtime acceptance remain separate.
 
 Contents:
 
@@ -16,6 +16,9 @@ Contents:
   alternative using Sparkpaw's project-owned title identity;
 - `sparkpaw-level-complete-score-concept-v4-title-character.png` — combined
   title-emblem and character direction with a balanced Stormstone counterweight;
+- `sparkpaw-level-complete-score-aga64-preview.png` — exact 320x256 indexed
+  64-colour implementation preview with fixed tabular columns;
+- `SCORE_SYSTEM_TEST.txt` — first FS-UAE/68030 visual-gate instructions;
 - `ANIMATION_STORYBOARD.md` — proposed results-counting sequence and timing;
 - `IMAGEGEN_PROMPT.md` — exact prompt and reference roles used for concept v1;
 - `IMAGEGEN_ALTERNATIVE_PROMPTS.md` — exact prompts for concepts v2 through v4.
@@ -35,10 +38,8 @@ The shared hierarchy is:
 3. one dominant total score;
 4. Sparkpaw victory pose and Stormstone energy as original game identity.
 
-The storyboard also defines a three-level original tally-sound family: one
-short tick for every visible score transfer, a higher row-lock confirmation and
-a fuller Stormstone resolve when the final total settles. These are design
-notes only; no audio sample or Paula integration exists yet.
+The candidate implements the essential short tick for every visible score
+transfer. Separate row-lock and final-resolve sounds remain optional polish.
 
 The ThunderCats recording was used only to study the principle of transferring
 bonus values into a total. No reference pixels, logo, typography, characters or

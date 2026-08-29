@@ -4,6 +4,7 @@
 #include <graphics/gfxbase.h>
 #include <graphics/view.h>
 #include <hardware/custom.h>
+#include <hardware/cia.h>
 #include <hardware/dmabits.h>
 #include <proto/exec.h>
 #include <proto/graphics.h>
@@ -14,6 +15,7 @@
 struct GfxBase *GfxBase;
 
 static volatile struct Custom *hardware=(volatile struct Custom *)0xdff000;
+static volatile struct CIA *ciaa=(volatile struct CIA *)0xbfe001;
 static struct View *systemView;
 static UWORD oldDma,oldIntena;
 static BOOL systemLocked,interruptsDisabled;
@@ -25,8 +27,12 @@ static BOOL whdloadQuitRequested;
 #define CIAA_SDR (*(volatile UBYTE *)0xbfec01)
 #define CIAA_ICR (*(volatile UBYTE *)0xbfed01)
 #define CIAA_CRA (*(volatile UBYTE *)0xbfee01)
+#ifndef CIAICRF_SP
 #define CIAICRF_SP 0x08
+#endif
+#ifndef CIACRAF_SPMODE
 #define CIACRAF_SPMODE 0x40
+#endif
 
 /* Controller port 2 pin 5 holds a CD32 pad's shift register in its reset
    state, where pin 9 exposes Blue as the ordinary Amiga second button.
@@ -70,6 +76,14 @@ void platformClose(void)
     }
 }
 
+ULONG platformFieldCounter(void)
+{
+    UBYTE high=ciaa->ciatodhi;
+    UBYTE middle=ciaa->ciatodmid;
+    UBYTE low=ciaa->ciatodlow;
+    return ((ULONG)high<<16)|((ULONG)middle<<8)|low;
+}
+
 void platformBeginTakeover(void)
 {
     gameKeys=0;
@@ -105,6 +119,33 @@ void platformSwitchCopper(UWORD *copper)
     hardware->dmacon=DMAF_SETCLR|DMAF_SPRITE;
 }
 
+void platformReleaseForLoading(BOOL keepDisplay)
+{
+    if(interruptsDisabled) {
+        audioSetHardwareActive(FALSE);
+        if(!keepDisplay) {
+            hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
+            hardware->color[0]=0;
+        }
+        /* Re-enable only the saved disk channel in addition to the current
+           presentation DMA. DOS may now load the next resident state while
+           Workbench remains detached and therefore cannot flash on screen. */
+        hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|(oldDma&DMAF_DISK);
+        hardware->intena=0x7fff;
+        hardware->intena=0x8000|oldIntena;
+        Enable(); interruptsDisabled=FALSE;
+    }
+    hardware->potgo=0;
+    if(systemLocked) {
+        DisownBlitter(); Permit(); systemLocked=FALSE;
+    }
+}
+
+void platformResetGameInput(void)
+{
+    gameKeys=0;
+}
+
 void platformRestore(void)
 {
     if(interruptsDisabled) {
@@ -130,6 +171,9 @@ void platformRestore(void)
     hardware->potgo=0;
     if(systemLocked) {
         DisownBlitter(); Permit(); systemLocked=FALSE;
+    }
+    if(!interruptsDisabled&&systemView&&GfxBase->ActiView!=systemView) {
+        LoadView(systemView); WaitTOF(); WaitTOF();
     }
 }
 

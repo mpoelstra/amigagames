@@ -54,6 +54,8 @@ static BOOL ledgeSideClear(WORD x,WORD y,BOOL missingLeft)
 void playerInit(void)
 {
     memset(&player,0,sizeof(player));
+    jumpInputHeld=FALSE;
+    joystickFireHeld=FALSE;
     crouchInputHeld=FALSE;
     player.x=36L<<8; player.y=156L<<8;
     player.health=PLAYER_MAX_HEALTH;

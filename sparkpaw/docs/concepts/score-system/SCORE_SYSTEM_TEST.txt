@@ -1,0 +1,51 @@
+SPARKPAW SCORE SYSTEM - FS-UAE/68030 VISUAL GATE
+
+Candidate only: unnumbered, not a release.
+
+Hypothesis
+----------
+The empty right HUD panel can show a four-digit event-driven score without
+disturbing gameplay presentation, and touching the Stormstone Core can leave
+the gameplay renderer cleanly for a tear-free 64-colour tally screen.
+
+Setup
+-----
+- A1200 / AGA, PAL, 68030, 2 MB Chip RAM and 8 MB Fast RAM.
+- Launch Sparkpaw-Score-Test from this drawer.
+- This is a production/visual build: it intentionally writes no performance
+  log. The accepted 68020 cadence gate follows only after this visual gate.
+
+Controls
+--------
+- A/D or joystick: move
+- W or configured second button: jump
+- S/down: crouch
+- Space or joystick Fire: plasma / menu confirmation
+
+Test route
+----------
+1. Collect several diamonds and defeat at least one beetle or Strider.
+2. Check that the score at far right is sharp, stable and increases by 5 per
+   diamond and 20 only for the first defeat of an authored enemy spawn.
+3. Lose one life if practical; score and level time should not reset.
+   The time bonus uses a 120-second par and becomes zero at or beyond 120
+   accumulated seconds across all attempts.
+4. Reach and touch the Stormstone Core at the far right.
+5. Check the native LEVEL COMPLETE screen: fixed columns, enemy/diamond/time
+   counts transferring into TOTAL SCORE, one short tick per visible step, no
+   tearing, stale gameplay graphics or audio corruption. After tallying,
+   `PRESS FIRE TO CONTINUE` should appear centred at the bottom.
+6. Fire may finish the active row immediately. After the final total, press
+   Fire once: the score screen should fade fully to black before loading and
+   restart Level 1 with score, time, lives and encounters reset. This
+   instant resident Level-1 replay is temporary test scaffolding; a later
+   multi-level flow will replace it rather than reuse this shortcut.
+
+Please report separately:
+- startup and gameplay still correct;
+- HUD score readable and stable;
+- result transition and composition correct;
+- tally alignment, cadence and sound pleasant;
+- Fire skip/final Level 1 reload correct and free of a Workbench/level flash
+  or one-frame lower-screen glitch;
+- any flicker, tearing, silence, distorted tick or crash.

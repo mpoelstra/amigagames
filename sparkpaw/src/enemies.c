@@ -58,7 +58,7 @@
 struct EnemySpawnState {
     struct Enemy enemy;
     UWORD respawnTimer;
-    BOOL selected,respawnPending,exhausted;
+    BOOL selected,respawnPending,exhausted,scoreAwarded;
     UBYTE loadedSlot;
 };
 
@@ -66,6 +66,7 @@ static struct Enemy enemies[MAX_ENEMIES];
 static struct EnemySpawnState spawnStates[MAX_LEVEL_ENEMY_SPAWNS];
 static UBYTE spawnCount;
 static ULONG randomState;
+static UWORD pendingScoreAward;
 #ifndef SPARKPAW_ENEMY_TRAVERSAL_LINEAR_REFERENCE
 static UBYTE traversalLookup[ENEMY_SURFACE_COUNT][2];
 static BOOL traversalLookupValid;
@@ -112,6 +113,7 @@ static void initializeSpawnState(struct EnemySpawnState *state,
         levelEnemyPatrolSurface(spawn->surfaceId);
     WORD speed=speeds[randomBelow(3)];
     BOOL selected=state->selected;
+    BOOL scoreAwarded=state->scoreAwarded;
     if(!surface) return;
     memset(state,0,sizeof(*state));
     enemy->x=(LONG)(spawn->minX+randomBelow(
@@ -129,6 +131,7 @@ static void initializeSpawnState(struct EnemySpawnState *state,
     if(spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER)
         enemy->shootCooldown=(UBYTE)(75+randomBelow(100));
     state->selected=preserveSelection?selected:TRUE;
+    state->scoreAwarded=preserveSelection?scoreAwarded:FALSE;
     state->loadedSlot=INVALID_SPAWN;
 }
 
@@ -450,7 +453,11 @@ void enemiesResetPreservingDrawn(ULONG seed)
     BOOL wasDrawn[MAX_ENEMIES];
     WORD oldX[MAX_ENEMIES],oldY[MAX_ENEMIES];
     UBYTE oldType[MAX_ENEMIES];
+    BOOL scoreAwarded[MAX_LEVEL_ENEMY_SPAWNS];
     UBYTE slot;
+    UBYTE spawnIndex;
+    for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++)
+        scoreAwarded[spawnIndex]=spawnStates[spawnIndex].scoreAwarded;
     for(slot=0;slot<MAX_ENEMIES;slot++) {
         wasDrawn[slot]=enemies[slot].drawn;
         oldX[slot]=enemies[slot].drawnX;
@@ -464,6 +471,8 @@ void enemiesResetPreservingDrawn(ULONG seed)
         enemies[slot].drawnType=oldType[slot];
     }
     generateLevelEnemies(seed);
+    for(spawnIndex=0;spawnIndex<spawnCount;spawnIndex++)
+        spawnStates[spawnIndex].scoreAwarded=scoreAwarded[spawnIndex];
     activateVisibleSpawns(0,TRUE);
 }
 
@@ -722,6 +731,10 @@ UBYTE enemiesHitProjectile(WORD x,WORD y)
                     enemy->vx=0; enemy->vy=0;
                     enemy->animFrame=STRIDER_DEATH_FIRST_FRAME;
                     enemy->walkTick=0;
+                    if(!spawnStates[enemy->spawnIndex].scoreAwarded) {
+                        spawnStates[enemy->spawnIndex].scoreAwarded=TRUE;
+                        pendingScoreAward+=20;
+                    }
                 } else if(enemy->health>1) enemy->health--;
                 if(enemy->traversalState) {
                     /* Route frames 18..23 remain authoritative. The plasma
@@ -748,6 +761,10 @@ UBYTE enemiesHitProjectile(WORD x,WORD y)
             if(!--enemy->health) {
                 enemy->dying=TRUE; enemy->deathTimer=20;
                 enemy->vx=0; enemy->animFrame=5;
+                if(!spawnStates[enemy->spawnIndex].scoreAwarded) {
+                    spawnStates[enemy->spawnIndex].scoreAwarded=TRUE;
+                    pendingScoreAward+=20;
+                }
             } else {
                 enemy->hitTimer=8; enemy->animFrame=4;
             }
@@ -755,6 +772,45 @@ UBYTE enemiesHitProjectile(WORD x,WORD y)
         }
     }
     return PROJECTILE_ENEMY_MISS;
+}
+
+BOOL enemiesFirstProjectileHitOnSweep(WORD start,WORD end,WORD y,WORD *hitX)
+{
+    BOOL found=FALSE;
+    WORD best=0,index;
+    for(index=0;index<MAX_ENEMIES;index++) {
+        const struct Enemy *enemy=&enemies[index];
+        WORD left,right,candidate,enemyX;
+        if(!enemy->active||enemy->dying) continue;
+        enemyX=(WORD)(enemy->x>>8);
+        if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
+            if(y<enemy->y+STRIDER_CONTACT_TOP||
+               y>enemy->y+STRIDER_CONTACT_BOTTOM) continue;
+            left=(WORD)(enemyX+STRIDER_CONTACT_LEFT);
+            right=(WORD)(enemyX+STRIDER_CONTACT_RIGHT);
+        } else if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE) {
+            if(y<enemy->y+7||y>enemy->y+ENEMY_H-1) continue;
+            left=(WORD)(enemyX+2); right=(WORD)(enemyX+ENEMY_W-3);
+        } else continue;
+        if(start<=end) {
+            if(right<start||left>end) continue;
+            candidate=left<start?start:left;
+            if(!found||candidate<best) { best=candidate; found=TRUE; }
+        } else {
+            if(left>start||right<end) continue;
+            candidate=right>start?start:right;
+            if(!found||candidate>best) { best=candidate; found=TRUE; }
+        }
+    }
+    if(found) *hitX=best;
+    return found;
+}
+
+UWORD enemiesConsumeScoreAward(void)
+{
+    UWORD value=pendingScoreAward;
+    pendingScoreAward=0;
+    return value;
 }
 
 BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,

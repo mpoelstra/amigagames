@@ -6,6 +6,7 @@
 #include "collision_hazard_cache.h"
 #endif
 #include "level_data.h"
+#include "projectile_sweep.h"
 #include "world_config.h"
 
 #include <dos/dos.h>
@@ -61,6 +62,29 @@ BOOL collisionSolidAt(WORD x,WORD y)
 #endif
     tileX=x/TILE_SIZE; tileY=y/TILE_SIZE;
     return collision[tileY*MAP_COLS+tileX]!=0;
+}
+
+BOOL collisionFirstSolidOnSweep(WORD start,WORD end,WORD y,WORD *hitX)
+{
+    WORD x=start;
+    /* Above the floor, collision is constant inside each authored 16px tile.
+       Probe the current pixel and then only the first pixel of every crossed
+       tile.  The floor/hazard region may change at authored pixel boundaries,
+       so retain the exact reference walk there. */
+    if(y<LEVEL_FLOOR_Y&&y>=0) {
+        for(;;) {
+            WORD next;
+            if(collisionSolidAt(x,y)) { *hitX=x; return TRUE; }
+            if(x==end) return FALSE;
+            next=projectileSweepNextTileProbe(x,end,TILE_SIZE);
+            x=next;
+        }
+    }
+    for(;;) {
+        if(collisionSolidAt(x,y)) { *hitX=x; return TRUE; }
+        if(x==end) return FALSE;
+        x=(WORD)(x<end?x+1:x-1);
+    }
 }
 
 BOOL collisionSolidHorizontal(WORD left,WORD right,WORD y)

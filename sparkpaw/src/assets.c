@@ -11,8 +11,9 @@
 
 static struct PlanarAsset title,introProof,levelLoading,levelCharging,levelReady;
 static struct PlanarAsset levelReadyMenu,frontClean,rearWorld;
+static struct PlanarAsset levelComplete,scoreGlyphs;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
-static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds;
+static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds,hudScore;
 static struct PlanarAsset collectibleDiamond;
 static struct PlanarAsset stormstoneCore;
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
@@ -298,6 +299,8 @@ BOOL assetsLoadGameplay(void)
                      &hudLives,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-diamonds.spbm",
                      &hudDiamonds,3,TRUE)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-score.spbm",
+                     &hudScore,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
                      &collectibleDiamond,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
@@ -426,9 +429,31 @@ void assetsUnloadLevelReadyMenu(void)
     freeAsset(&levelReadyMenu);
 }
 
+BOOL assetsLoadLevelComplete(void)
+{
+#ifdef ADF_PACKED_ASSETS
+    return loadPackedAsset("PROGDIR:assets/runtime/level-complete.spr1",
+                           &levelComplete,6,FALSE);
+#else
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-complete.spbm",
+                     &levelComplete,6,FALSE);
+#endif
+}
+
+void assetsUnloadLevelComplete(void) { freeAsset(&levelComplete); }
+
+BOOL assetsLoadScoreGlyphs(void)
+{
+    return loadAsset("PROGDIR:assets/runtime/sparkpaw-score-glyphs.spbm",
+                     &scoreGlyphs,6,FALSE);
+}
+
+void assetsUnloadScoreGlyphs(void) { freeAsset(&scoreGlyphs); }
+
 void assetsUnloadGameplay(void)
 {
-    assetsUnloadGameplayConversionSources(); freeAsset(&hudDiamonds);
+    assetsUnloadGameplayConversionSources(); freeAsset(&hudScore);
+    freeAsset(&hudDiamonds);
     freeAsset(&hudLives); freeAsset(&hudHealth); freeAsset(&hudBase);
     freeAsset(&striderSprites); freeAsset(&enemySprites);
     freeAsset(&playerSprites);
@@ -441,6 +466,8 @@ const struct PlanarAsset *assetsLevelLoading(void) { return &levelLoading; }
 const struct PlanarAsset *assetsLevelCharging(void) { return &levelCharging; }
 const struct PlanarAsset *assetsLevelReady(void) { return &levelReady; }
 const struct PlanarAsset *assetsLevelReadyMenu(void) { return &levelReadyMenu; }
+const struct PlanarAsset *assetsLevelComplete(void) { return &levelComplete; }
+const struct PlanarAsset *assetsScoreGlyphs(void) { return &scoreGlyphs; }
 const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }
@@ -450,6 +477,7 @@ const struct PlanarAsset *assetsHudBase(void) { return &hudBase; }
 const struct PlanarAsset *assetsHudHealth(void) { return &hudHealth; }
 const struct PlanarAsset *assetsHudLives(void) { return &hudLives; }
 const struct PlanarAsset *assetsHudDiamonds(void) { return &hudDiamonds; }
+const struct PlanarAsset *assetsHudScore(void) { return &hudScore; }
 const struct PlanarAsset *assetsCollectibleDiamond(void)
 {
     return &collectibleDiamond;

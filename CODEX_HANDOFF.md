@@ -45,14 +45,38 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.63`, Phase 6C.5. A normal release contains:
+Current release is `0.6.0-alpha.64`, Phase 6C.6. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.63.lha`
-- `Sparkpaw-0.6.0-alpha.63.zip`
-- `Sparkpaw-0.6.0-alpha.63.adf`
-- `Sparkpaw-0.6.0-alpha.63-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.63-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.63/`
+- `Sparkpaw-0.6.0-alpha.64.lha`
+- `Sparkpaw-0.6.0-alpha.64.zip`
+- `Sparkpaw-0.6.0-alpha.64.adf`
+- `Sparkpaw-0.6.0-alpha.64-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.64-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.64/`
+
+Alpha.64 is the Phase 6C.6 score/results checkpoint. It adds an event-driven
+four-digit HUD score, one-shot enemy and diamond awards, elapsed PAL-field
+timing against a 120-second par, and an original double-buffered level-complete
+tally with a bounded Paula tick and Fire-to-continue flow. Replay deliberately
+performs a complete temporary Level-1 reload; the existing LOADING composition
+remains visible during the slower 68020 rebuild. Native HUD digit copying and
+coalesced projectile sweeps retain the accepted presentation while recovering
+measured 68020 cost. Supplied FS-UAE/68030 and FS-UAE/68020 HD playthroughs
+accept gameplay, score presentation, audio and replay. ADF, WHDLoad and real-
+hardware runtime acceptance remain pending, as does replacement of the one-
+level replay with a future multi-level state machine.
+The bootable alpha.64 DOS1/FFS ADF uses 1,615 blocks (807 KiB) and leaves 145
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 651,307-byte HD LHA
+(`96647fa518a554fecda1d70bcf82c2c7cd4f200caa08d31a0115fc86f3a8ba76`),
+650,739-byte HD ZIP
+(`538214bad315a394d6491de793d40411ff9948c57bc9e97d64ebeac6a49277ae`),
+901,120-byte ADF
+(`3dd0da235c77904ef0a38c49c09aa30745b3d69086eb8ab68d93948ff477fde9`),
+645,107-byte WHDLoad LHA
+(`71b21b33ae1966d7d0d87bd571d13effb5228b3329ab9cb0477fbc03ff5b5293`)
+and 645,733-byte WHDLoad ZIP
+(`efd8b140363c52fd1879107f038aa700e0cceed81c3bd7e89220df284e31d8d3`).
 
 Alpha.63 establishes one semantic native 16x21 diamond master for both the
 world Bob and fixed HUD emblem. Generated SPBMs share an exact mask and

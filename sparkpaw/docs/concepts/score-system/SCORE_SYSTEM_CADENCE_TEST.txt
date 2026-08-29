@@ -1,0 +1,34 @@
+SPARKPAW SCORE SYSTEM - MINIMAL CADENCE GATE
+
+Candidate only: unnumbered, not a release.
+
+Purpose
+-------
+Measure whether the event-driven four-digit HUD score and hidden PAL timer
+preserve the accepted rolling-renderer cadence. This build records only
+presentation intervals, deadline flags and ownership violations; broad
+per-subsystem profiling is compiled out.
+
+Test order
+----------
+1. Run the 68030 drawer first for 30-60 seconds. Confirm normal graphics,
+   controls, HUD and score changes.
+2. Repeat the same approximate route in the 68020 drawer with FS-UAE set to a
+   stock A1200/68020 configuration.
+3. In each run collect several diamonds, defeat at least one enemy, run and
+   jump through a mixed-enemy area, and fall into water once. Do not touch the
+   final Core; this gate measures gameplay cadence, not the separate tally.
+4. Press the left mouse button once. The image is expected to freeze while the
+   bounded `renderdiag.log` is written in that drawer. Wait several seconds,
+   then stop/reset FS-UAE; the diagnostic does not return to Workbench.
+
+Acceptance checks
+-----------------
+- no new visual corruption, HUD instability or gameplay difference;
+- no ownership violations or three-field presentation misses;
+- 68020 effective cadence remains comparable to the protected 48.58 FPS
+  low-overhead baseline, allowing for scene and sample-length variation;
+- each drawer retains its own non-empty `renderdiag.log`.
+
+Please report perceived smoothness separately for 68030 and 68020 and leave
+both logs in their original drawers for direct analysis.

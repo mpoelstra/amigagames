@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.63`. Roadmap checkpoint: Phase 6C.5 with accepted
+Current release: `0.6.0-alpha.64`. Roadmap checkpoint: Phase 6C.6 with accepted
 Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -17,6 +17,28 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.64 adds an event-driven four-digit live score to the HUD, awards 20
+points once per unique enemy defeat and 5 per diamond, and tracks elapsed PAL
+fields against a 120-second par without placing a countdown in gameplay. Core
+completion opens an original double-buffered 320x256 six-plane results screen.
+Enemy, diamond and time values transfer into the total with a bounded Paula
+tally tick; Fire can finish a row and later confirms `PRESS FIRE TO CONTINUE`.
+The temporary one-level replay performs a complete state, asset and renderer
+reload and keeps the existing LOADING composition visible during the slower
+68020 rebuild. Supplied FS-UAE/68030 and FS-UAE/68020 HD playthroughs accept
+gameplay, score presentation, tally audio and replay transition.
+
+The final candidate also retains two measured 68020 safeguards discovered
+during this feature: native HUD digit copies replace repeated tiny `CopyMem`
+calls, and projectile collision coalesces geometry traversal by tile while
+preserving exact floor/enemy ordering. The clean production run contains no
+diagnostic logger. ADF, WHDLoad and real-A1200 runtime acceptance remain
+pending; the replay is deliberately Level-1-only until multi-level flow exists.
+The bootable alpha.64 DOS1/FFS ADF uses 1,615 blocks (807 KiB) and leaves 145
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 651,307-byte HD LHA, 650,739-byte HD ZIP, 901,120-byte ADF,
+645,107-byte WHDLoad LHA and 645,733-byte WHDLoad ZIP.
 
 Alpha.63 establishes one semantic native 16x21 diamond master for the world Bob
 and fixed HUD emblem. Both generated SPBMs now contain pixel-identical mask and
@@ -940,12 +962,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.63.lha`
-- `dist/Sparkpaw-0.6.0-alpha.63.zip`
-- `dist/Sparkpaw-0.6.0-alpha.63.adf`
-- `dist/Sparkpaw-0.6.0-alpha.63-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.63-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.63/`
+- `dist/Sparkpaw-0.6.0-alpha.64.lha`
+- `dist/Sparkpaw-0.6.0-alpha.64.zip`
+- `dist/Sparkpaw-0.6.0-alpha.64.adf`
+- `dist/Sparkpaw-0.6.0-alpha.64-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.64-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.64/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

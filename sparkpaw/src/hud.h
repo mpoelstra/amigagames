@@ -6,7 +6,7 @@
 
 BOOL hudPrepare(void);
 void hudRelease(void);
-void hudSetState(UBYTE health,UBYTE lives,UBYTE diamonds);
+void hudSetState(UBYTE health,UBYTE lives,UBYTE diamonds,ULONG score);
 const struct BitMap *hudDisplayBitmap(void);
 const UBYTE *hudBlankPlane(void);
 UWORD hudBytesPerRow(void);

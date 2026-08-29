@@ -1397,7 +1397,7 @@ static void setHudPointers(void)
                                                   PLAYER_MAX_HEALTH;
     const struct BitMap *display;
     WORD plane;
-    hudSetState(health,game->lives,game->diamonds);
+    hudSetState(health,game->lives,game->diamonds,game->score);
     display=hudDisplayBitmap();
     for(plane=0;plane<
 #ifdef SPARKPAW_HUD_NATIVE_3PLANE
@@ -2425,6 +2425,23 @@ BOOL rendererPrepareGameplay(void)
 } while(0)
 #endif
     game=gameState();
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    /* A resident Level-1 replay allocates fresh bitmaps but reuses this
+       module's static storage. Never let Bob restore history from the
+       completed Core scene describe those new, blank targets. */
+    memset(prototypeTarget,0,sizeof(prototypeTarget));
+    memset(prototypeCopper,0,sizeof(prototypeCopper));
+    prototypeActiveCopper=0;
+    prototypePreparedCopper=0;
+    prototypeCopperReady=FALSE;
+    prototypeOwnershipViolations=0;
+#ifdef SPARKPAW_CANONICAL_BOB_RESTORE
+    memset(prototypeEnemyWorldX,0,sizeof(prototypeEnemyWorldX));
+    memset(prototypeProjectileWorldX,0,sizeof(prototypeProjectileWorldX));
+    prototypeSplashWorldX=0;
+#endif
+#endif
+    splashDrawn=FALSE;
 #ifdef SPARKPAW_STARTUP_DIAGNOSTIC
     writeStartupStage("renderer_prepare_entry");
 #endif

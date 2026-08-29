@@ -7,8 +7,12 @@
 BOOL titleShow(void);
 BOOL titlePrepareLevelLoading(void);
 BOOL titleShowLevelLoading(void);
+BOOL titleShowReplayLoading(void);
 BOOL titleShowLevelCharging(void);
 BOOL titleShowLevelReady(void);
+BOOL titleShowLevelComplete(void);
+void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
+                           ULONG elapsedFields,ULONG liveScore);
 void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction);
 UWORD *titleCopperList(void);
 void titleWaitLevelCharging(UWORD frames);

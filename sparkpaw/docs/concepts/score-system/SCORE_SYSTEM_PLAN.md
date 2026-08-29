@@ -1,8 +1,38 @@
 # Sparkpaw HUD right-panel feature research
 
-Status: planning only. This document proposes no runtime, renderer, asset,
-build, version or release change. Performance and hardware validation remain
-owned by the separate active workstream.
+Status: accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD testing and
+promoted as the alpha.64 Phase 6C.6 release checkpoint. ADF, WHDLoad and real-
+hardware runtime acceptance remain pending.
+
+## Implemented candidate contract
+
+- unique authored enemy spawn: 20 points; a respawn cannot score twice;
+- diamond: 5 points, independently of the existing extra-life counter;
+- death/restart preserves score and elapsed time;
+- hidden PAL field counter, 120-second par and 10 points per saved second;
+- four-digit HUD display clamps visually at 9999 while the internal total is
+  32-bit;
+- Core completion stops gameplay simulation, frees the gameplay renderer and
+  loads a separate double-buffered 320x256 six-plane results presenter;
+- tally rows redraw only their small hidden numeric strips, play one bounded
+  tick for every visible transfer and allow Fire to finish the active row.
+- the four cyan row labels are regenerated as native 5x7 pixel faces on the
+  same hard-pixel grid as the dynamic yellow values; no reduced concept-art
+  lettering remains inside the table;
+- after the final tally, a centred native `PRESS FIRE TO CONTINUE` prompt is
+  revealed; the resident replay installs its gameplay Copper list only just
+  after PAL frame wrap to avoid executing a partial lower-screen list;
+- final Fire fades the result presenter fully to black before Exec/DOS reloads
+  Level 1. During that full reload, the existing `LOADING` composition remains
+  visible so the slower 68020 renderer rebuild cannot resemble a black-screen
+  hang; completion then enters a fresh attempt without exposing the system
+  View. A
+  supplied 60-fps recording rejected keeping the custom score display visible
+  during loading because graphics/Blitter preparation leaked one corrupted
+  pre-fade frame. This
+  resident replay is an explicitly temporary, Level-1-only convenience while
+  the game has one playable level. A multi-level build must replace it with a
+  level-flow/state-machine transition that selects and loads the next level.
 
 ## Existing contract and available space
 
@@ -91,17 +121,17 @@ time_bonus_seconds = max(0, par_seconds - elapsed_seconds)
 time_bonus = time_bonus_seconds * level_time_multiplier
 ```
 
-For example, a 180-second par completed in 144 seconds leaves 36 bonus seconds.
-At 100 points per second that yields 3,600 points. Going over par gives zero
+For example, a 120-second par completed in 84 seconds leaves 36 bonus seconds.
+At 10 points per second that yields 360 points. Going over par gives zero
 time bonus, not a failure. This rewards mastery without turning normal play
 into a hard countdown. Per-level gold/silver/bronze time bands are an even
 simpler alternative if exact seconds feel too dominant.
 
 ### HUD presentation options
 
-1. **Recommended:** one score emblem plus four or five compact digits in the
-   right panel. Internally allow a larger score and clamp or abbreviate only the
-   HUD representation if native-scale review proves five digits illegible.
+1. **Selected:** four compact digits in the right panel. Supplied native-scale
+   review rejected five digits because they crowded the right frame. The point
+   economy was reduced rather than merely hiding the fifth digit.
 2. **Score on two rows:** `SC` or a small storm-bolt/paw icon above/beside four
    digits. This is clearer than squeezing a literal `SCORE` label into the
    panel.
@@ -225,7 +255,7 @@ hardware acceptance.
 
 ### Gameplay HUD score
 
-The right panel can show a four- or five-digit live score using the existing
+The right panel shows a four-digit live score using the existing
 three-plane/eight-colour HUD language. Do not create complete HUD bitmaps for
 every possible score. Use a compact fixed-width digit atlas and patch only the
 digits that changed into the inactive HUD buffer, following the existing
@@ -233,9 +263,8 @@ health/lives/diamond model.
 
 Score changes are event-driven—enemy defeat and collectible pickup—not a
 per-frame animation. An internal 32-bit score may exceed what the small HUD can
-display; the visual policy (five-digit clamp, rollover or abbreviated display)
-must be chosen before implementation. The dedicated results screen can show
-more digits than the HUD.
+display. The selected policy clamps the HUD at 9999 while retaining a 32-bit
+internal total. The dedicated results screen can show more digits than the HUD.
 
 An elapsed-time accumulator is computationally negligible, but it should use
 PAL display-field progression rather than completed gameplay updates. Because

@@ -1,0 +1,19 @@
+SPARKPAW SCORE OPTIMIZED CADENCE - FS-UAE 68020
+
+Final candidate gate, unnumbered and not a release.
+
+This centred-camera build combines the accepted HUD score fast-copy and the
+68030/68020-accepted coalesced projectile first-hit sweep. Only minimal cadence
+instrumentation is enabled; detailed CIA scopes and per-family timers are
+compiled out.
+
+Use stock A1200/68020 FS-UAE settings. Play 45-60 seconds over the same busy
+route. Fire heavily in both directions, fight beetles and Striders, collect
+diamonds and keep moving/jumping. Confirm score digits, projectile impacts,
+damage, deaths and sounds remain correct. Do not touch the Core.
+
+Press the left mouse button once during gameplay. The image freezes while
+renderdiag.log is saved. Wait several seconds, then stop/reset FS-UAE. This log
+is the cadence acceptance result: compare effective FPS and one/two/three-field
+intervals with the earlier 44.89 centred-camera stress run and protected 48.58
+FPS alpha.45 baseline. Ownership violations must remain zero.

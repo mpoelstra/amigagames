@@ -1,0 +1,27 @@
+SPARKPAW SCORE/COMBAT COST PROFILE - FS-UAE 68020
+
+Candidate diagnostic only: unnumbered, not a release.
+
+Purpose
+-------
+Locate the current stock-68020 frame cost while retaining the preferred centred
+camera and current score feature. This build enables CIA section timers. Its
+displayed/effective FPS includes profiler overhead and must not be compared as
+a production cadence result.
+
+Test
+----
+1. Use the same stock A1200/68020 FS-UAE configuration as the camera A/B.
+2. Play for 30-60 seconds. Keep moving and jumping, fire heavily, collect
+   diamonds and fight the same busy middle section used previously.
+3. Do not touch the Core. During gameplay press the left mouse button once.
+4. The image freezes while renderdiag.log is written. Wait several seconds,
+   then stop/reset FS-UAE. Workbench does not return from this diagnostic.
+5. Leave renderdiag.log in this drawer.
+
+Interpretation
+--------------
+Rank game_update, bob_pass, ring_roll, projectiles and blitter/final-wait
+measurements by average, p95, maximum, calls per frame and overlap. Use cadence
+only to confirm the expected observer effect. Zero ownership violations and
+normal presentation remain mandatory.

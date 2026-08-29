@@ -217,6 +217,9 @@ def water_splash():
 def checkpoint(): return notes((392,523,659,784),.10)
 def stormstone(): return mix(notes((523,659,784,1047),.13),delay(tone(.55,1319,5,-180),.22))
 def menu(): return tone(.07,780,18,2100)
+def tally_tick():
+    return mix(gain(tone(.045,1047,30,1450),.72),
+               gain(delay(tone(.035,1568,34,-500),.008),.36))
 
 EFFECTS=[
     ("jump",jump,58,4,4),("land",land,48,2,4),
@@ -227,6 +230,7 @@ EFFECTS=[
     ("collect-spark",collect,52,4,3),("water-splash",water_splash,64,10,20),
     ("checkpoint",checkpoint,60,7,15),
     ("stormstone",stormstone,64,10,30),("menu-select",menu,48,1,3),
+    ("tally-tick",tally_tick,54,3,1),
 ]
 
 HURT_PREVIEW_VARIANTS=[

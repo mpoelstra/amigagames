@@ -19,6 +19,7 @@ from collections import Counter
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageOps
+from generate_score_screen import build as build_score_screen
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "assets" / "runtime"
@@ -360,7 +361,7 @@ def load_aga_screen(path: Path) -> tuple[Image.Image, list[tuple[int, int, int]]
     return image, palette
 
 
-def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
+def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image, Image.Image]:
     """Build one static HUD plus compact dynamic-panel patch atlases."""
     with Image.open(HUD_SOURCE) as source:
         rgb = source.convert("RGB").crop((14, 238, 1969, 550))
@@ -397,6 +398,7 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
     health_box = (48, 12, 128, 44)
     lives_box = (160, 12, 192, 36)
     diamonds_box = (224, 12, 256, 36)
+    score_box = (272, 12, 304, 36)
     draw = ImageDraw.Draw(base)
     draw.rectangle((49 + HUD_X_OFFSET, 11 + HUD_SEPARATOR_H,
                     125 + HUD_X_OFFSET, 40 + HUD_SEPARATOR_H), fill=1)
@@ -445,6 +447,19 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
                         top=14+HUD_SEPARATOR_H+y*3
                         draw.rectangle((left,top,left+1,top+2),fill=4)
 
+    def draw_score_digit(frame: Image.Image, position: int, value: int) -> None:
+        draw = ImageDraw.Draw(frame)
+        cell_left = 272 + position * 8
+        left = cell_left + 1
+        draw.rectangle((cell_left, 14 + HUD_SEPARATOR_H,
+                        cell_left + 7, 32 + HUD_SEPARATOR_H), fill=1)
+        for y,row in enumerate(digits[value]):
+            for x in range(3):
+                if row&(0x4>>x):
+                    draw.rectangle((left+x*2, 14+HUD_SEPARATOR_H+y*3,
+                                    left+x*2+1, 16+HUD_SEPARATOR_H+y*3),
+                                   fill=4)
+
     health_atlas = indexed_image((health_box[2]-health_box[0],
                                   (health_box[3]-health_box[1])*7),
                                  HUD_PALETTE, 0)
@@ -474,12 +489,23 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
         diamonds_atlas.paste(
             patch, (0, count*(diamonds_box[3]-diamonds_box[1])))
 
+    score_atlas = indexed_image((8, 19 * 4 * 10), HUD_PALETTE, 0)
+    for position in range(4):
+        for value in range(10):
+            frame = base.copy()
+            draw_score_digit(frame, position, value)
+            patch = frame.crop((272 + position * 8, 14 + HUD_SEPARATOR_H,
+                                280 + position * 8, 33 + HUD_SEPARATOR_H))
+            score_atlas.paste(patch, (0, (position * 10 + value) * 19))
+
     preview = base.copy()
     draw_health(preview, 6)
     draw_lives(preview, HUD_PREVIEW_LIVES)
     draw_diamonds(preview, 0)
+    for position, value in enumerate((1, 2, 4, 5)):
+        draw_score_digit(preview, position, value)
     preview.crop((0, 0, 320, HUD_HEIGHT)).save(HUD_RUNTIME_PREVIEW)
-    return base, health_atlas, lives_atlas, diamonds_atlas
+    return base, health_atlas, lives_atlas, diamonds_atlas, score_atlas
 
 
 def make_collectible_diamond() -> tuple[Image.Image, bytes]:
@@ -1691,7 +1717,7 @@ def main() -> None:
     title,title_palette = reserve_black_pen_zero(title,title_palette)
     title.save(TITLE_RUNTIME_PREVIEW)
     level_loading,level_charging,level_loading_palette = make_level_loading()
-    hud_base,hud_health,hud_lives,hud_diamonds = make_hud()
+    hud_base,hud_health,hud_lives,hud_diamonds,hud_score = make_hud()
     collectible_diamond,collectible_diamond_mask = make_collectible_diamond()
     stormstone_core,stormstone_core_mask = make_stormstone_core()
 
@@ -1711,6 +1737,8 @@ def main() -> None:
     save_spbm(RUNTIME / "sparkpaw-hud-lives.spbm",hud_lives,
               HUD_PALETTE,depth=3)
     save_spbm(RUNTIME / "sparkpaw-hud-diamonds.spbm",hud_diamonds,
+              HUD_PALETTE,depth=3)
+    save_spbm(RUNTIME / "sparkpaw-hud-score.spbm",hud_score,
               HUD_PALETTE,depth=3)
     save_spbm(RUNTIME / "sparkpaw-diamond.spbm",collectible_diamond,
               FRONT16,depth=4,mask=collectible_diamond_mask)
@@ -1770,6 +1798,8 @@ def main() -> None:
         (ROOT / "sfx" / "raw" / "water-splash.raw").read_bytes())
     (RUNTIME / "stormstone-core.raw").write_bytes(
         make_stormstone_core_triumph_raw())
+    (RUNTIME / "tally-tick.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "tally-tick.raw").read_bytes())
     world = indexed_image((WORLD_W, WORLD_H), WORLD_PALETTE, 16)
     shifted_bg = bg.point(lambda p: p + 16)
     for x in range(0, WORLD_W, PARALLAX_W):
@@ -1848,6 +1878,7 @@ def main() -> None:
     }
     (RUNTIME / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print("Generated Sparkpaw planar runtime assets")
+    build_score_screen()
 
 
 if __name__ == "__main__":

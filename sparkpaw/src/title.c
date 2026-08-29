@@ -13,6 +13,7 @@
 #endif
 
 #include "assets.h"
+#include "audio.h"
 #include "platform_amiga.h"
 
 #define COPPER_WORDS 380
@@ -60,6 +61,24 @@ static ULONG chipFree,chipLargest;
 static BOOL buildingIntroCopper;
 static struct BitMap *readyMenuBack;
 static UBYTE readyMenuBufferIndex;
+static struct BitMap *scoreBuffers[2];
+static UBYTE scoreBufferIndex;
+
+#define SCORE_NUMBER_X 176
+#define SCORE_TILE_W 8
+#define SCORE_TILE_H 12
+#define SCORE_CLEAR_H 16
+#define SCORE_FIELD_CELLS 7
+#define SCORE_ROW_COUNT 4
+#define SCORE_VALUE_Y_OFFSET 3
+#define SCORE_CHAR_COUNT 11
+#define SCORE_GLYPH_ATLAS_W 144
+#define SCORE_PROMPT_X 88
+#define SCORE_PROMPT_Y 232
+#define SCORE_PROMPT_W 144
+#define SCORE_PAR_SECONDS 120
+#define SCORE_TIME_MULTIPLIER 10
+static const UWORD scoreRowY[SCORE_ROW_COUNT]={116,137,158,179};
 
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
 static BPTR introDiagnosticFile;
@@ -511,6 +530,27 @@ BOOL titleShowLevelLoading(void)
     return TRUE;
 }
 
+BOOL titleShowReplayLoading(void)
+{
+    UBYTE next=currentCopper^1;
+    if(!displayed) {
+        failureReason="score display unavailable for replay loading";
+        return FALSE;
+    }
+    if(!assetsLoadLevelLoading()) {
+        failureReason="six-plane replay loading image asset load failed";
+        return FALSE;
+    }
+    /* The score display has already faded to black and Exec/DOS own the
+       machine again.  Install the ordinary loading image while they remain
+       available, so the much slower 68020 renderer rebuild is not presented
+       as an indefinite black-screen hang. */
+    buildCopper(assetsLevelLoading(),next,0);
+    installCopper(next);
+    fadeTo(assetsLevelLoading(),TRUE);
+    return TRUE;
+}
+
 BOOL titleShowLevelReady(void)
 {
     UBYTE plane;
@@ -568,6 +608,182 @@ BOOL titleShowLevelReady(void)
     stagePalette(ready,0);
     fadeTo(ready,TRUE);
     return TRUE;
+}
+
+static void copyScoreBase(struct BitMap *destination)
+{
+    const struct BitMap *source=assetsLevelComplete()->bitmap;
+    UBYTE plane;
+    LONG bytes=(LONG)source->BytesPerRow*256;
+    for(plane=0;plane<6;plane++)
+        CopyMem(source->Planes[plane],destination->Planes[plane],bytes);
+}
+
+BOOL titleShowLevelComplete(void)
+{
+    struct PlanarAsset display;
+    UBYTE index;
+    chipFree=AvailMem(MEMF_CHIP);
+    chipLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
+    if(!assetsLoadLevelComplete()||!assetsLoadScoreGlyphs()) {
+        failureReason="level-complete assets unavailable";
+        return FALSE;
+    }
+    if(assetsLevelComplete()->width!=320||assetsLevelComplete()->height!=256||
+       assetsScoreGlyphs()->width!=SCORE_GLYPH_ATLAS_W||
+       assetsScoreGlyphs()->height!=SCORE_TILE_H*(SCORE_CHAR_COUNT+1)) {
+        failureReason="level-complete assets have invalid geometry";
+        return FALSE;
+    }
+    if(!allocateCopper()) {
+        failureReason="level-complete Copper allocation failed"; return FALSE;
+    }
+    for(index=0;index<2;index++) {
+        scoreBuffers[index]=AllocBitMap(320,256,6,
+                                        BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+        if(!scoreBuffers[index]) {
+            failureReason="level-complete display allocation failed";
+            return FALSE;
+        }
+        copyScoreBase(scoreBuffers[index]);
+    }
+    previousView=GfxBase->ActiView;
+    savedDma=hardware->dmaconr&DMAF_ALL;
+    LoadView(NULL); WaitTOF(); WaitTOF();
+    display=*assetsLevelComplete(); display.bitmap=scoreBuffers[0];
+    buildCopper(&display,0,0); installCopper(0);
+    scoreBufferIndex=0;
+    fadeTo(&display,TRUE);
+    return TRUE;
+}
+
+static UBYTE scoreGlyphIndex(char value)
+{
+    if(value>='0'&&value<='9') return (UBYTE)(value-'0');
+    return 10;
+}
+
+static void scoreCopyRect(const struct BitMap *source,struct BitMap *dest,
+                          UWORD sourceX,UWORD sourceY,UWORD destX,UWORD destY,
+                          UWORD width,UWORD height)
+{
+    UBYTE plane; UWORD row; UWORD bytes=width>>3;
+    for(plane=0;plane<6;plane++) for(row=0;row<height;row++)
+        CopyMem(source->Planes[plane]+(LONG)(sourceY+row)*
+                source->BytesPerRow+(sourceX>>3),
+                dest->Planes[plane]+(LONG)(destY+row)*dest->BytesPerRow+
+                (destX>>3),bytes);
+}
+
+static void scoreDrawText(struct BitMap *dest,UBYTE row,const char *text,
+                          UBYTE length)
+{
+    const struct BitMap *glyphs=assetsScoreGlyphs()->bitmap;
+    UWORD x=(UWORD)(SCORE_NUMBER_X+
+                    (SCORE_FIELD_CELLS-length)*SCORE_TILE_W);
+    UBYTE index;
+    for(index=0;index<length;index++,x+=SCORE_TILE_W) {
+        char value=text[index];
+        if(value==' ') continue;
+        scoreCopyRect(glyphs,dest,0,
+                      (UWORD)(scoreGlyphIndex(value)*SCORE_TILE_H),
+                      x,(UWORD)(scoreRowY[row]+SCORE_VALUE_Y_OFFSET),
+                      SCORE_TILE_W,SCORE_TILE_H);
+    }
+}
+
+static UBYTE appendDecimal(char *target,ULONG value,UBYTE minimum)
+{
+    char reverse[10]; UBYTE count=0,index;
+    do { reverse[count++]=(char)('0'+value%10); value/=10; } while(value);
+    while(count<minimum) reverse[count++]='0';
+    for(index=0;index<count;index++) target[index]=reverse[count-1-index];
+    return count;
+}
+
+static void scoreExpression(char *text,UBYTE *length,ULONG count,UWORD value,
+                            UBYTE minimum)
+{
+    UBYTE at=appendDecimal(text,count,minimum);
+    text[at++]='X';
+    at+=appendDecimal(text+at,value,3);
+    *length=at;
+}
+
+static void publishScoreState(UWORD enemies,UWORD diamonds,UWORD timeSeconds,
+                              ULONG total,BOOL showPrompt)
+{
+    struct BitMap *hidden=scoreBuffers[scoreBufferIndex^1];
+    struct PlanarAsset display=*assetsLevelComplete();
+    char text[10]; UBYTE length,row,next=(UBYTE)(currentCopper^1);
+    for(row=0;row<SCORE_ROW_COUNT;row++)
+        scoreCopyRect(assetsLevelComplete()->bitmap,hidden,SCORE_NUMBER_X,
+                      scoreRowY[row],SCORE_NUMBER_X,scoreRowY[row],
+                      SCORE_FIELD_CELLS*SCORE_TILE_W,SCORE_CLEAR_H);
+    scoreCopyRect(assetsLevelComplete()->bitmap,hidden,SCORE_PROMPT_X,
+                  SCORE_PROMPT_Y,SCORE_PROMPT_X,SCORE_PROMPT_Y,
+                  SCORE_PROMPT_W,SCORE_TILE_H);
+    scoreExpression(text,&length,enemies,20,3); scoreDrawText(hidden,0,text,length);
+    scoreExpression(text,&length,diamonds,5,3); scoreDrawText(hidden,1,text,length);
+    scoreExpression(text,&length,timeSeconds,10,3); scoreDrawText(hidden,2,text,length);
+    length=appendDecimal(text,total,6); scoreDrawText(hidden,3,text,length);
+    if(showPrompt)
+        scoreCopyRect(assetsScoreGlyphs()->bitmap,hidden,0,
+                      SCORE_CHAR_COUNT*SCORE_TILE_H,
+                      SCORE_PROMPT_X,SCORE_PROMPT_Y,
+                      SCORE_PROMPT_W,SCORE_TILE_H);
+    display.bitmap=hidden; buildCopper(&display,next,256);
+    waitOwnedCopperArmWindow(); hardware->cop1lc=(ULONG)copper[next];
+    currentCopper=next; scoreBufferIndex^=1;
+}
+
+static BOOL resultFire(void)
+{
+    BOOL left,right,down,jump,fire;
+    platformReadGameKeys(&left,&right,&down,&jump,&fire);
+    return fire||((*(volatile UBYTE *)0xbfe001)&0x80)==0;
+}
+
+void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
+                           ULONG elapsedFields,ULONG liveScore)
+{
+    UWORD elapsed=(UWORD)(elapsedFields/50UL);
+    UWORD timeSeconds=elapsed<SCORE_PAR_SECONDS?
+                      (UWORD)(SCORE_PAR_SECONDS-elapsed):0;
+    UWORD shownEnemies=enemies,shownDiamonds=diamonds,shownTime=timeSeconds;
+    ULONG total=0,expected=liveScore+(ULONG)timeSeconds*SCORE_TIME_MULTIPLIER;
+    UBYTE phase=0,tick=0;
+    publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
+    while(phase<3) {
+        BOOL fire=resultFire();
+        waitOwnedDisplayFrame(); audioUpdate();
+        if(fire) {
+            if(phase==0) { total+=(ULONG)shownEnemies*20UL; shownEnemies=0; }
+            else if(phase==1) { total+=(ULONG)shownDiamonds*5UL; shownDiamonds=0; }
+            else { total+=(ULONG)shownTime*10UL; shownTime=0; }
+            publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
+            phase++;
+            while(resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
+            continue;
+        }
+        if(++tick<4) continue;
+        tick=0;
+        if(phase==0&&shownEnemies) { shownEnemies--; total+=20; }
+        else if(phase==1&&shownDiamonds) {
+            UWORD step=shownDiamonds>20?2:1;
+            shownDiamonds-=step; total+=(ULONG)step*5UL;
+        } else if(phase==2&&shownTime) {
+            UWORD step=shownTime>60?10:shownTime>20?5:1;
+            if(step>shownTime) step=shownTime;
+            shownTime-=step; total+=(ULONG)step*10UL;
+        } else { phase++; continue; }
+        audioPlayTallyTick();
+        publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
+    }
+    if(total!=expected) total=expected;
+    publishScoreState(0,0,0,total,TRUE);
+    while(resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
+    while(!resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
 }
 
 static void readReadyMenuInput(BOOL *up,BOOL *down,BOOL *left,BOOL *right,
@@ -668,7 +884,14 @@ UWORD *titleCopperList(void) { return copper[currentCopper]; }
 
 void titleFadeOut(void)
 {
-    if(displayed&&assetsLevelReady()->bitmap) {
+    if(displayed&&assetsLevelComplete()->bitmap) {
+        UWORD frame;
+        for(frame=1;frame<=FADE_FRAMES;frame++) {
+            stagePalette(assetsLevelComplete(),(UWORD)(
+                ((ULONG)(FADE_FRAMES-frame)*256)/FADE_FRAMES));
+            waitOwnedDisplayFrame();
+        }
+    } else if(displayed&&assetsLevelReady()->bitmap) {
         UWORD frame;
         for(frame=1;frame<=FADE_FRAMES;frame++) {
             stagePalette(assetsLevelReady(),(UWORD)(
@@ -709,9 +932,13 @@ void titleRelease(void)
         FreeBitMap(readyMenuBack);
         readyMenuBack=NULL;
     }
+    for(index=0;index<2;index++) if(scoreBuffers[index]) {
+        FreeBitMap(scoreBuffers[index]); scoreBuffers[index]=NULL;
+    }
     assetsUnloadTitle(); assetsUnloadStoryIntro();
     assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
     assetsUnloadLevelReadyMenu(); assetsUnloadLevelReady();
+    assetsUnloadScoreGlyphs(); assetsUnloadLevelComplete();
     for(index=0;index<2;index++) {
         if(copper[index]) {
             FreeMem(copper[index],COPPER_WORDS*sizeof(UWORD));

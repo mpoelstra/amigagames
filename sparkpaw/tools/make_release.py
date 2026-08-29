@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.63"
-ROADMAP_CHECKPOINT = "6C.5"
+RELEASE_VERSION = "0.6.0-alpha.64"
+ROADMAP_CHECKPOINT = "6C.6"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -45,6 +45,7 @@ ADF_STATUS_ASSETS = (
     ROOT / "build" / "adf-assets" / "level-charge-patch.spr1",
     ROOT / "build" / "adf-assets" / "level-ready.spr1",
     ROOT / "build" / "adf-assets" / "level-ready-menu.spr1",
+    ROOT / "build" / "adf-assets" / "level-complete.spr1",
 )
 ADF_RAW_NAMES = {
     "intro1.spr1": "intro1.spbm",
@@ -56,6 +57,7 @@ ADF_RAW_NAMES = {
     "level-charge-patch.spr1": "level-charge-patch.spbm",
     "level-ready.spr1": "sparkpaw-ready-screen.spbm",
     "level-ready-menu.spr1": "readymenu.spbm",
+    "level-complete.spr1": "sparkpaw-level-complete.spbm",
 }
 LHA = Path(os.environ.get("LHA", ROOT / ".toolchain" / "lha" / "bin" / "lha"))
 
@@ -69,6 +71,9 @@ RUNTIME_FILES = (
     "sparkpaw-hud-health.spbm",
     "sparkpaw-hud-lives.spbm",
     "sparkpaw-hud-diamonds.spbm",
+    "sparkpaw-hud-score.spbm",
+    "sparkpaw-level-complete.spbm",
+    "sparkpaw-score-glyphs.spbm",
     "sparkpaw-diamond.spbm",
     "stormstone-core.spbm",
     "storm-front.spbm",
@@ -86,6 +91,7 @@ RUNTIME_FILES = (
     "collect-spark.raw",
     "water-splash.raw",
     "stormstone-core.raw",
+    "tally-tick.raw",
     "intro1.spbm",
     "intro2.spbm",
     "intro3.spbm",
@@ -105,8 +111,20 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} shared diamond master
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} score and results flow
 MrDig Productions - Copyright 2026
+
+Alpha.64 adds an event-driven four-digit HUD score, one-shot points for unique
+enemy defeats and diamonds, and a field-based 120-second par timer. Collecting
+the Level-1 Core now opens an original double-buffered 64-colour results screen
+that transfers enemy, diamond and time bonuses into the total with a bounded
+Paula tally tick. Fire can finish each row and, after the final prompt, performs
+a complete temporary Level-1 replay reset. The existing LOADING composition
+remains visible during the slower 68020 rebuild. Supplied FS-UAE/68030 and
+FS-UAE/68020 HD testing accepts gameplay, presentation, tally audio and replay.
+HUD updates remain event-driven; optimized digit copies and coalesced projectile
+sweeps recover the measured 68020 cost introduced during feature testing. ADF,
+WHDLoad and real-hardware runtime acceptance remain separate.
 
 Alpha.63 replaces the independently reduced HUD emblem and separately authored
 world collectible with one semantic native 16x21 diamond master. The world Bob

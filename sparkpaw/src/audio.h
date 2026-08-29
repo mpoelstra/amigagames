@@ -18,6 +18,7 @@ void audioPlayJump(void);
 void audioPlayCollect(void);
 void audioPlayWaterSplash(void);
 void audioPlayStormstoneCore(void);
+void audioPlayTallyTick(void);
 void audioUpdate(void);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 void audioDiagnosticWrite(BPTR file);

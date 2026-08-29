@@ -7,12 +7,20 @@
 #include "enemies.h"
 #include "level_data.h"
 #include "performance_profile.h"
+#include "platform_amiga.h"
 #include "player.h"
 #include "projectiles.h"
 #include "world_config.h"
 
 #define SCREEN_W 320
 static struct GameState game;
+
+static void accountElapsedFields(void)
+{
+    ULONG now=platformFieldCounter();
+    game.elapsedFields+=(now-game.lastFieldCounter)&0x00ffffffUL;
+    game.lastFieldCounter=now;
+}
 
 static void resetLevelRuntime(void)
 {
@@ -27,6 +35,7 @@ static void resetLevelRuntime(void)
     game.cameraX=0; game.frameCounter=0;
     game.waterSplashTimer=0;
     game.coreCollectTimer=0;
+    game.lastFieldCounter=platformFieldCounter();
 }
 
 static BOOL applyEnemyDamage(WORD sourceCenterX)
@@ -53,7 +62,14 @@ static void updateCamera(void)
     const struct PlayerState *player=playerState();
     LONG playerX=player->x>>8,wanted=game.cameraX;
     if(playerX>=3072||game.coreCollectTimer) wanted=WORLD_W-SCREEN_W;
-    else wanted=cameraCenteredTarget(playerX);
+    else {
+#ifdef SPARKPAW_CAMERA_DEADZONE_REFERENCE
+        if(playerX-game.cameraX>202) wanted=playerX-202;
+        if(playerX-game.cameraX<105) wanted=playerX-105;
+#else
+        wanted=cameraCenteredTarget(playerX);
+#endif
+    }
     if(wanted<0) wanted=0;
     if(wanted>WORLD_W-SCREEN_W) wanted=WORLD_W-SCREEN_W;
     if(wanted>game.cameraX+5) game.cameraX+=5;
@@ -66,8 +82,11 @@ void gameInit(ULONG enemySeed)
     game.cameraX=0; game.frameCounter=0;
     game.lives=GAME_START_LIVES;
     game.diamonds=0;
+    game.score=0; game.elapsedFields=0;
+    game.enemiesDefeated=0; game.diamondsCollected=0;
     game.coreCollectTimer=0;
     game.enemySeed=enemySeed?enemySeed:0x53504157UL;
+    game.lastFieldCounter=platformFieldCounter();
     playerInit(); enemiesInit(game.enemySeed); collectiblesInit(); projectilesInit();
 }
 
@@ -80,11 +99,12 @@ void gameUpdate(void)
     BOOL left,right,down,jump,fire,wasGrounded;
     WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
+    if(!game.coreCollectTimer) accountElapsedFields();
     if(game.coreCollectTimer) {
         audioUpdate();
         updateCamera();
         game.frameCounter++;
-        if(!--game.coreCollectTimer) resetLevelRuntime();
+        if(game.coreCollectTimer>1) game.coreCollectTimer--;
         return;
     }
     if(game.waterSplashTimer) {
@@ -176,12 +196,23 @@ void gameUpdate(void)
             }
             game.diamonds=(UBYTE)(total<GAME_DIAMONDS_PER_LIFE?
                                   total:GAME_DIAMONDS_PER_LIFE-1);
+            game.diamondsCollected+=picked;
+            game.score+=(ULONG)picked*5UL;
             audioPlayCollect();
         }
     }
     profileStart=performanceProfileBegin();
-    projectilesUpdate((WORD)game.cameraX,collisionSolidAt,enemiesHitProjectile,
+    projectilesUpdate((WORD)game.cameraX,collisionSolidAt,
+                      collisionFirstSolidOnSweep,enemiesHitProjectile,
+                      enemiesFirstProjectileHitOnSweep,
                       audioPlayEnemyHit,audioPlayEnemyDeath);
+    {
+        UWORD award=enemiesConsumeScoreAward();
+        if(award) {
+            game.score+=award;
+            game.enemiesDefeated+=(UWORD)(award/20);
+        }
+    }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     detailProfileStart=performanceProfileBegin();
     left=projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
@@ -218,4 +249,9 @@ void gameUpdate(void)
 const struct GameState *gameState(void)
 {
     return &game;
+}
+
+BOOL gameLevelComplete(void)
+{
+    return game.coreCollectTimer==1;
 }
