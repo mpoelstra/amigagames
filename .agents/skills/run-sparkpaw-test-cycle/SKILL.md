@@ -17,9 +17,23 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
    acceptance criterion. Do not mix unrelated candidates.
 4. Preserve the accepted renderer, gameplay and packaging contracts unless the
    test explicitly targets one of them.
+5. Treat every unaccepted change as an unnumbered candidate. Do not edit
+   SemVer, release notes, roadmap completion, packaged notes or release
+   artifact names, and do not run `make release`. Only
+   `ship-sparkpaw-checkpoint`, after explicit user release/shipping intent,
+   may cross that boundary.
+6. Inventory and hash every current `sparkpaw/dist/Sparkpaw-*` release file
+   before staging. Stop if the documented current release set is unexpectedly
+   absent unless the user explicitly authorizes candidate work while recovery
+   remains pending. Require the inventory to be byte-identical afterwards.
 
 ## Package self-contained test drawers
 
+- Stage ordinary HD candidates only with `tools/stage_hd_test.py`. It consumes
+  `tools/make_release.py:RUNTIME_FILES`, validates exact byte parity and
+  Amiga-safe names, preserves a replaced drawer under `dist/older-builds` and
+  rejects any release-inventory change. Do not hand-copy assets or use a
+  Makefile asset list as an independent package manifest.
 - Put every user-testable build inside `sparkpaw/dist`; the user mounts this
   directory directly in FS-UAE.
 - Make each active drawer self-contained: include its uniquely named
@@ -37,6 +51,10 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
   runtime filenames, at 30 characters or fewer. Reuse production's canonical
   short asset names across HD, WHDLoad and ADF tests; do not rely on a ZIP/LHA
   extractor to preserve longer names.
+- Before handoff, compare the staged drawer with the complete authoritative
+  manifest and exercise the full reachable startup boundary. A focused intro
+  build must traverse intro, title, LOADING, CHARGING and the ready menu;
+  checking only the changed first screen is insufficient package validation.
 
 ### Keep quick real-A1200 HD ZIPs minimal
 
@@ -191,3 +209,6 @@ Keep an accepted optimization only after the requested gates pass. Return
 superseded active drawers to `dist/older-builds`, leave the current release plus
 at most the next active test set in the root, and report the exact remaining
 drawer names. Do not create a release, commit, tag or push unless the user asks.
+If the current release set was already missing before the cycle, report that
+separately; never recreate a published SemVer from new bytes merely to refill
+`dist`.

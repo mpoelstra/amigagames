@@ -67,6 +67,24 @@ def reserve_black_pen_zero(image, palette, colour_count=64):
                         [0] * (768-len(palette)*3))
     return remapped, palette
 
+def reserve_white_hint_pen(image, palette, colour_count=63):
+    """Merge the least-used art pen and reserve it as stable hint white."""
+    palette = list(palette)
+    histogram = image.histogram()[:colour_count]
+    hint_pen = min(range(1, colour_count), key=lambda pen: histogram[pen])
+    replacement = min(
+        (pen for pen in range(1, colour_count) if pen != hint_pen),
+        key=lambda pen: sum((palette[hint_pen][channel]-palette[pen][channel])**2
+                            for channel in range(3)),
+    )
+    mapping = list(range(256))
+    mapping[hint_pen] = replacement
+    remapped = image.point(mapping)
+    palette[hint_pen] = (255, 255, 255)
+    remapped.putpalette([value for rgb in palette for value in rgb] +
+                        [0] * (768-len(palette)*3))
+    return remapped, palette, hint_pen
+
 GLYPHS = {
  "A":("01110","10001","10001","11111","10001","10001","10001"), "B":("11110","10001","10001","11110","10001","10001","11110"),
  "C":("01111","10000","10000","10000","10000","10000","01111"), "E":("11111","10000","10000","11110","10000","10000","11111"),
@@ -85,6 +103,25 @@ GLYPHS = {
  " ":("00000",)*7,
 }
 
+INTRO_HINT_X = 8
+INTRO_HINT_Y = 157
+INTRO_HINT_TEXT = "LMB to skip intro"
+
+SMALL_GLYPHS = {
+    "L": ("10000", "10000", "10000", "10000", "10000", "10000", "11111"),
+    "M": ("10001", "11011", "10101", "10101", "10001", "10001", "10001"),
+    "B": ("11110", "10001", "10001", "11110", "10001", "10001", "11110"),
+    "t": ("00100", "00100", "11111", "00100", "00100", "00101", "00010"),
+    "o": ("00000", "00000", "01110", "10001", "10001", "10001", "01110"),
+    "s": ("00000", "00000", "01111", "10000", "01110", "00001", "11110"),
+    "k": ("10000", "10000", "10010", "10100", "11000", "10100", "10010"),
+    "i": ("00100", "00000", "01100", "00100", "00100", "00100", "01110"),
+    "p": ("00000", "00000", "11110", "10001", "11110", "10000", "10000"),
+    "n": ("00000", "00000", "11110", "10001", "10001", "10001", "10001"),
+    "r": ("00000", "00000", "10110", "11001", "10000", "10000", "10000"),
+    " ": ("00000",) * 7,
+}
+
 def medium_text(draw, text, x, y, colour):
     """Render the 5x7 face at a crisp 3:2 scale without antialiasing."""
     for char in text:
@@ -96,6 +133,15 @@ def medium_text(draw, text, x, y, colour):
                     draw.rectangle((x0,y0,x1,y1),fill=colour)
         x+=9
 
+def small_text(draw, text, x, y, colour):
+    """Render the unobtrusive mixed-case intro-skip hint at native pixels."""
+    for char in text:
+        for gy,bits in enumerate(SMALL_GLYPHS[char]):
+            for gx,bit in enumerate(bits):
+                if bit == "1":
+                    draw.point((x+gx,y+gy),fill=colour)
+        x += 6
+
 def build_plate(name, preview_name, source_name, passages):
     source=Image.open(ASSET_DIR/source_name).convert("RGB").resize((320,256),Image.Resampling.LANCZOS)
     height=256+176*len(passages)
@@ -106,11 +152,18 @@ def build_plate(name, preview_name, source_name, passages):
     palette_data=indexed.getpalette()[:192]
     palette=[tuple(palette_data[index:index+3]) for index in range(0,192,3)]
     indexed,palette=reserve_black_pen_zero(indexed,palette,63)
+    hint_pen=None
+    if name == "intro1":
+        indexed,palette,hint_pen=reserve_white_hint_pen(indexed,palette,63)
     palette[63]=(238,220,173)
     indexed.putpalette([value for rgb in palette for value in rgb] + [0]*576)
     draw=ImageDraw.Draw(indexed)
+    if hint_pen is not None:
+        small_text(draw,INTRO_HINT_TEXT,INTRO_HINT_X+1,INTRO_HINT_Y+1,0)
+        small_text(draw,INTRO_HINT_TEXT,INTRO_HINT_X,INTRO_HINT_Y,hint_pen)
     for passage,lines in enumerate(passages):
-        text_top=256+passage*176+88
+        page_top=256+passage*176
+        text_top=page_top+88
         first_y=text_top+(18 if len(lines)==2 else 0)
         for row,value in enumerate(lines):
             medium_text(draw,value,(320-len(value)*9)//2,first_y+row*18,63)

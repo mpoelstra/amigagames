@@ -21,6 +21,7 @@ WHDLOAD_INTRO_DIAG_TARGET = build/sparkpaw-whdload-introdiag
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
 INTRO_PROOF_TARGET = build/sparkpaw-intro-proof
+INTRO_PROOF_DRAWER ?= IntroProof-030-HD
 STORY_INTRO_ASSETS = assets/runtime/intro1.spbm assets/runtime/intro2.spbm \
 	assets/runtime/intro3.spbm assets/runtime/intro4.spbm \
 	assets/runtime/intro5.spbm
@@ -440,19 +441,17 @@ $(WHDLOAD_INTRO_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $
 		-o $@ $(SOURCES)
 
 $(INTRO_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
-		$(STORY_INTRO_ASSETS)
+		$(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DSPARKPAW_STORY_INTRO -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
 
 intro-proof-package: $(INTRO_PROOF_TARGET)
-	@mkdir -p dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/assets/runtime
-	cp $(INTRO_PROOF_TARGET) \
-		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/Sparkpaw-Intro-Proof
-	cp $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) \
-		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/assets/runtime/
-	cp docs/concepts/story-intro/INTRO_PROOF_TEST.txt \
-		dist/Intro-Five-Plate-Proof-FS-UAE-68030-HD/ReadMe.txt
+	$(PYTHON) tools/stage_hd_test.py \
+		--drawer $(INTRO_PROOF_DRAWER) \
+		--executable $(INTRO_PROOF_TARGET) \
+		--executable-name Sparkpaw-Intro-Proof \
+		--readme docs/concepts/story-intro/INTRO_PROOF_TEST.txt
 
 $(ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"

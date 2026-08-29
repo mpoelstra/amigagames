@@ -51,6 +51,8 @@ the next passage appears over the same still.
 - text-only fade between passages, full palette fade between plates;
 - Fire during entrance completes it, another tap advances, held Fire skips;
 - left mouse immediately skips every remaining plate and returns to the title;
+- plate 1 alone keeps a fixed lower-left white `LMB to skip intro` hint with a
+  one-pixel black shadow; plates 2..5 remain unlabelled;
 - only one tall plate asset is resident at a time;
 - optional later motion is limited to cloud drift, Core/station pulses,
   Archivolt's eye or bell, lightning and Sparkpaws scarf.

@@ -17,6 +17,46 @@ become a diary again.
 
 Last updated: 29 August 2026
 
+### 29 August 2026 - Alpha.62 adds and hardens the intro skip affordance
+
+The accepted candidate adds the exact mixed-case `LMB to skip intro` label to
+the fixed illustration region of plate 1 only at native x=8, y=157. A 5x7
+white face plus one-pixel black shadow remains static while both passages enter,
+hold and fade. Repeating the hint in every scrolling passage was rejected as
+distracting; repeating the later fixed version on all five plates was also
+rejected once the first plate had already taught the control. Plates 2..5 are
+therefore byte-identical to their pre-candidate generated previews.
+
+Plate 1 reserves one dedicated white pen by merging its least-used art pen into
+the nearest palette neighbour. Pure-black COLOR00, SPBM dimensions, six-plane
+allocation, Copper construction, presenter timing and the established
+left-mouse immediate skip path remain unchanged. A host regression decodes all
+five SPBMs, proves the complete white/shadow glyph on plate 1 and rejects a
+repeated label on later plates.
+
+The first unnumbered FS-UAE/68030 HD drawer is packaging-rejected at CHARGING.
+The supplied screenshot shows upper-left cyan fragments; source and drawer
+inspection proves that the obsolete `intro-proof-package` Makefile subset
+omitted `sparkpaw-ready-screen.spbm` and `readymenu.spbm`. That result does not
+implicate the intro pixels. The corrected drawer is staged from the authoritative
+`make_release.py:RUNTIME_FILES` manifest and contains all 31 runtime files.
+MrDig accepts the final FS-UAE/68030 presentation and full transition through
+title, LOADING, CHARGING and the ready menu.
+
+The durable workflow correction adds `tools/stage_hd_test.py`, changes the
+intro package target to use it, and updates the visual/test skills. Unaccepted
+candidates must remain unnumbered; only the shipping workflow may advance
+SemVer or run `make release`. The stager builds temporarily, enforces exact
+manifest bytes and 30-character components, archives replaced drawers and
+proves the existing release inventory unchanged. FS-UAE/68020, ADF, WHDLoad
+and real-hardware runtime acceptance remain separate.
+
+The final release build passes the complete host suite. Independent Lhasa
+extraction is byte-identical to both staged drawers; all 34 HD and 36 WHDLoad
+archive members use `-lh5-`, and all package path components stay within 30
+characters. The bootable DOS1/FFS ADF uses 1,459 blocks (729 KiB) and leaves
+301 free. Final artifact SHA-256 values are recorded in the compact handoff.
+
 ### 29 August 2026 - Alpha.61 completes isolated player scale continuity
 
 After accepting alpha.60's idle family, Sparkpaw still read slightly smaller

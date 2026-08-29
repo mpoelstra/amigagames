@@ -3,8 +3,8 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.61`. Roadmap checkpoint: Phase 6C.5 player
-animation scale continuity on the protected rolling renderer Stage 5L
+Current release: `0.6.0-alpha.62`. Roadmap checkpoint: Phase 6C.5 with accepted
+Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
 centred menu/credits and lower-right Sparkpaw pose. `START GAME` is selected by
@@ -17,6 +17,23 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.62 adds one fixed `LMB to skip intro` label to story plate 1 only. The
+native 5x7 mixed-case white face and one-pixel black shadow sit at x=8, y=157,
+above the cyan divider, and remain still while both passages scroll, hold and
+fade. Plates 2..5 remain unlabelled. The generator reserves one dedicated
+white pen only on plate 1 by merging its least-used art pen into the nearest
+palette neighbour. Bitmap dimensions, memory allocation, Copper code, black
+COLOR00 and the existing immediate LMB skip path are unchanged. Supplied
+FS-UAE/68030 HD testing accepts presentation and the complete transition through
+title, LOADING, CHARGING and the ready menu. A rejected first test drawer
+omitted the two ready assets; the corrected manifest-driven package passes.
+The ADF still deliberately omits the cinematic. FS-UAE/68020, ADF, WHDLoad and
+real-hardware runtime acceptance remain pending.
+The bootable alpha.62 DOS1/FFS ADF uses 1,459 blocks (729 KiB) and leaves 301
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 604,338-byte HD LHA, 603,884-byte HD ZIP, 901,120-byte ADF,
+598,675-byte WHDLoad LHA and 599,318-byte WHDLoad ZIP.
 
 Alpha.61 completes the isolated scale-continuity pass without reconnecting the
 rejected whole-family reconstruction. Ordinary jump slots 10..13 and their
@@ -909,12 +926,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.61.lha`
-- `dist/Sparkpaw-0.6.0-alpha.61.zip`
-- `dist/Sparkpaw-0.6.0-alpha.61.adf`
-- `dist/Sparkpaw-0.6.0-alpha.61-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.61-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.61/`
+- `dist/Sparkpaw-0.6.0-alpha.62.lha`
+- `dist/Sparkpaw-0.6.0-alpha.62.zip`
+- `dist/Sparkpaw-0.6.0-alpha.62.adf`
+- `dist/Sparkpaw-0.6.0-alpha.62-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.62-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.62/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

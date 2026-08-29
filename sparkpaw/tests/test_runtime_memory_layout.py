@@ -96,6 +96,83 @@ for name in fullscreen_assets:
         f"{name}: fullscreen COLOR00 must be black"
     )
 
+# HD review drawers must be staged from the release manifest, never from the
+# older Makefile runtime subset that predates the ready screen and menu atlas.
+makefile_source = (ROOT / "Makefile").read_text()
+intro_package = makefile_source[
+    makefile_source.index("intro-proof-package:") :
+    makefile_source.index("$(ADF_TARGET):")
+]
+stager_source = (ROOT / "tools" / "stage_hd_test.py").read_text()
+assert "tools/stage_hd_test.py" in intro_package
+assert "cp $(RUNTIME_ASSETS)" not in intro_package
+assert "from make_release import DIST, ROOT, RUNTIME_FILES" in stager_source
+assert '"sparkpaw-ready-screen.spbm"' in (ROOT / "tools" / "make_release.py").read_text()
+assert '"readymenu.spbm"' in (ROOT / "tools" / "make_release.py").read_text()
+
+# Plate 1 carries one fixed white lower-left skip affordance in its
+# non-scrolling illustration. Decode its exact native pixels and guard later
+# plates against accidentally retaining the repeated label.
+skip_hint = "LMB to skip intro"
+small_glyphs = {
+    "L": ("10000", "10000", "10000", "10000", "10000", "10000", "11111"),
+    "M": ("10001", "11011", "10101", "10101", "10001", "10001", "10001"),
+    "B": ("11110", "10001", "10001", "11110", "10001", "10001", "11110"),
+    "t": ("00100", "00100", "11111", "00100", "00100", "00101", "00010"),
+    "o": ("00000", "00000", "01110", "10001", "10001", "10001", "01110"),
+    "s": ("00000", "00000", "01111", "10000", "01110", "00001", "11110"),
+    "k": ("10000", "10000", "10010", "10100", "11000", "10100", "10010"),
+    "i": ("00100", "00000", "01100", "00100", "00100", "00100", "01110"),
+    "p": ("00000", "00000", "11110", "10001", "11110", "10000", "10000"),
+    "n": ("00000", "00000", "11110", "10001", "10001", "10001", "10001"),
+    "r": ("00000", "00000", "10110", "11001", "10000", "10000", "10000"),
+    " ": ("00000",) * 7,
+}
+for plate in range(1, 6):
+    name = f"intro{plate}.spbm"
+    data = (RUNTIME / name).read_bytes()
+    width, height, depth, masked, row_bytes = struct.unpack(">HHBBH", data[4:12])
+    assert (width, depth, masked, row_bytes) == (320, 6, 0, 40)
+    bitmap = 12 + 64 * 3
+    plane_bytes = row_bytes * height
+    palette = [tuple(data[12 + pen * 3 : 15 + pen * 3]) for pen in range(64)]
+    white_matches = 0
+    foreground_pixels = 0
+    for char_index, char in enumerate(skip_hint):
+        for glyph_y, bits in enumerate(small_glyphs[char]):
+            for glyph_x, bit in enumerate(bits):
+                pen = 0
+                pixel_x = 8 + char_index * 6 + glyph_x
+                pixel_y = 157 + glyph_y
+                byte_offset = pixel_y * row_bytes + pixel_x // 8
+                mask = 0x80 >> (pixel_x & 7)
+                for plane in range(6):
+                    if data[bitmap + plane * plane_bytes + byte_offset] & mask:
+                        pen |= 1 << plane
+                if bit == "1":
+                    foreground_pixels += 1
+                    if palette[pen] == (255, 255, 255):
+                        white_matches += 1
+    if plate == 1:
+        assert palette.count((255, 255, 255)) == 1
+        assert white_matches == foreground_pixels, (
+            f"{name}: missing fixed white LMB hint"
+        )
+        # This pixel is the black shadow of the L's top-left pixel and is not
+        # overwritten by the white foreground glyph.
+        shadow_x, shadow_y = 9, 158
+        shadow_pen = 0
+        shadow_offset = shadow_y * row_bytes + shadow_x // 8
+        shadow_mask = 0x80 >> (shadow_x & 7)
+        for plane in range(6):
+            if data[bitmap + plane * plane_bytes + shadow_offset] & shadow_mask:
+                shadow_pen |= 1 << plane
+        assert shadow_pen == 0, f"{name}: fixed LMB hint lost its black shadow"
+    else:
+        assert white_matches != foreground_pixels, (
+            f"{name}: repeated fixed LMB hint must be absent after plate 1"
+        )
+
 # Ready-menu state changes must never patch the bitmap currently being fetched.
 # The hidden displayable buffer is completed first and then published through
 # an inactive Copper list at an owned PAL frame boundary.

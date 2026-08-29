@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.61"
+RELEASE_VERSION = "0.6.0-alpha.62"
 ROADMAP_CHECKPOINT = "6C.5"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -105,8 +105,19 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} player animation scale continuity
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} intro skip affordance
 MrDig Productions - Copyright 2026
+
+Alpha.62 adds one fixed `LMB to skip intro` affordance to the lower-left of
+story plate 1 only. The native 5x7 white face has a one-pixel black shadow and
+stays still while both passages enter, hold and fade. Plates 2..5 retain their
+unlabelled composition. The generator reserves one dedicated white pen only on
+plate 1 by merging its least-used art pen into the nearest neighbour; black
+COLOR00, bitmap dimensions, memory allocation, Copper code and the existing
+immediate left-mouse skip path remain unchanged. Supplied FS-UAE/68030 HD
+testing accepts the presentation and complete transition through title,
+LOADING, CHARGING and the ready menu. The ADF still omits the cinematic.
+FS-UAE/68020, WHDLoad, ADF and real-hardware acceptance remain separate.
 
 Alpha.61 completes the isolated player-scale follow-up. Ordinary jump frames
 10..13 and their exact mirrors now occupy 45..46 visible rows instead of

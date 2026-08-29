@@ -3,6 +3,9 @@ Status: five-plate story intro accepted in supplied FS-UAE/68030 and 68020 HD
 testing and promoted as the alpha.47 Phase 6C.3 release checkpoint. From
 alpha.48 onward the complete cinematic remains in HD/LHA/ZIP builds, while the
 space-bound ADF omits the five plates and begins at the existing title. The
+alpha.62 usability polish adds a fixed white `LMB to skip intro` hint only to
+plate 1; supplied FS-UAE/68030 HD testing accepts it and the complete transition
+through the ready menu. The
 alpha.49 generators reserve pure-black palette pen 0; supplied real-A1200/
 Indivision HD testing accepts removal of the exposed full-height `COLOR00`
 border from all five plates. The

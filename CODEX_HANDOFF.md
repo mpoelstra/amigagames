@@ -45,14 +45,41 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.61`, Phase 6C.5. A normal release contains:
+Current release is `0.6.0-alpha.62`, Phase 6C.5. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.61.lha`
-- `Sparkpaw-0.6.0-alpha.61.zip`
-- `Sparkpaw-0.6.0-alpha.61.adf`
-- `Sparkpaw-0.6.0-alpha.61-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.61-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.61/`
+- `Sparkpaw-0.6.0-alpha.62.lha`
+- `Sparkpaw-0.6.0-alpha.62.zip`
+- `Sparkpaw-0.6.0-alpha.62.adf`
+- `Sparkpaw-0.6.0-alpha.62-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.62-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.62/`
+
+Alpha.62 changes only intro plate 1 at runtime. A fixed mixed-case
+`LMB to skip intro` label sits at x=8, y=157 in a native 5x7 white face with a
+one-pixel black shadow, immediately above the cyan divider. It remains static
+through both scrolling passages; plates 2..5 stay unlabelled. One dedicated
+white palette pen is reserved on plate 1 by merging its least-used art pen into
+the nearest neighbour. Pure-black COLOR00, six-plane dimensions, allocation,
+Copper code and immediate LMB skip input are unchanged. MrDig's supplied
+FS-UAE/68030 HD test accepts the final presentation and full traversal through
+title, LOADING, CHARGING and the ready menu. The first unnumbered drawer was
+rejected because an obsolete Makefile subset omitted both ready assets; the
+corrected manifest-driven drawer is accepted. Test tooling now stages from the
+authoritative release manifest, preserves release inventories and forbids
+SemVer/release work before acceptance. FS-UAE/68020, ADF, WHDLoad and real-
+hardware runtime acceptance remain pending.
+The bootable alpha.62 DOS1/FFS ADF uses 1,459 blocks (729 KiB) and leaves 301
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 604,338-byte HD LHA
+(`298e7574883d9c2f8f60a0b507422126af85de5fc8dd3a5bea1ef94535a34fcf`),
+603,884-byte HD ZIP
+(`1dc104503e652a5b60f64bf06f743a7abcdce013e905d3f24bf8c3fef406ee61`),
+901,120-byte ADF
+(`4b18b6280b4a71b4902319bc7c5f116b251d41ed97dc1caac1bad4859a99c443`),
+598,675-byte WHDLoad LHA
+(`1fcf8fb03d7cfe7659b556968cab71b0041cbe576b57abcd50b3451391fa6c5b`)
+and 599,318-byte WHDLoad ZIP
+(`b0a28532ebb79f2094bfffe4323b3cbb88a82d651dc5d1b0b887fb5751cec2cf`).
 
 Alpha.61 changes only ordinary jump slots 10..13, crouch-fire slot 48 and their
 deterministic mirrors. Jump retains its accepted poses, bottom anchor, timing

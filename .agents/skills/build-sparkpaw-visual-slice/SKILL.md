@@ -70,7 +70,10 @@ integration. Do not combine renderer work with enemy, player, collision, audio
 or unrelated level changes. For animation families, also apply
 `extend-sparkpaw-animations`.
 
-After implementation, run `make PYTHON=../.venv/bin/python3` and
-`make release PYTHON=../.venv/bin/python3` from `sparkpaw/`. Synchronize the
-checkpoint documentation and sole current four-file artifact set. State only
-host-build facts until the user supplies FS-UAE or real-hardware evidence.
+After candidate implementation, run `make PYTHON=../.venv/bin/python3` and the
+host tests from `sparkpaw/`, then apply `run-sparkpaw-test-cycle` to create an
+unnumbered review drawer. Do not advance SemVer, edit release/checkpoint notes
+or run `make release` while visual acceptance is pending. Only after explicit
+user release/shipping intent, apply `ship-sparkpaw-checkpoint` to run the
+release build and synchronize documentation. State only host-build facts until
+the user supplies FS-UAE or real-hardware evidence.
