@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.65"
-ROADMAP_CHECKPOINT = "6C.7"
+RELEASE_VERSION = "0.6.0-alpha.66"
+ROADMAP_CHECKPOINT = "6C.8"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -111,8 +111,23 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} completion integrity
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} audio integrity
 MrDig Productions - Copyright 2026
+
+Alpha.66 corrects Paula one-shot playback across every current effect. Samples
+now reload a two-byte Chip-RAM silence word instead of restarting from their
+beginning, DMA restarts use a deterministic two-raster-line latch wait, and
+voice ownership follows each sample's byte-derived duration rather than an
+independent hardcoded approximation. This removes the repeated tail measured
+after the 45-ms results-tally tick and prevents longer effects such as Storm
+Triumph from being cut short. Player plasma remains on channel 0; prioritized
+gameplay effects remain on channel 1; channels 2-3 remain reserved. Supplied
+FS-UAE/68030 HD A/B evidence proves the repeated tally head is absent and the
+user reports the candidate sounds better. A focused real-A1200/68030 HD phone
+recording accepts Core, the complete tally, replay loading and return to
+gameplay without a new click, persistent whine or missing tally sequence. The
+user considers it improved without claiming the sample timbre is perfect.
+FS-UAE/68020, ADF and WHDLoad runtime acceptance remain separate.
 
 Alpha.65 makes Stormstone Core collection the sole Level-1 completion trigger;
 pressing against the far-right wall no longer invokes the retired test replay.

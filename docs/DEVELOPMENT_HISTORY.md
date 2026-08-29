@@ -6146,3 +6146,47 @@ WHDLoad LHA
 `fe5420b8991fae69446ecd5be47b0a61113ca2bf6e8be8596ab91e653f2b1eda`
 and WHDLoad ZIP
 `bd7b48f7eb7fe06919866248111057d7d5a2cc91d758ad7d99d53e1dd22f5e26`.
+
+### 30 August 2026 - Alpha.66 corrects Paula one-shot effect playback
+
+User review of a public alpha.58 YouTube video and a new direct FS-UAE capture
+identified a raspy, phone-near-speaker character in gameplay effects and the
+isolated results tally. The 48-kHz capture itself did not clip. Source and raw-
+sample inspection found a deterministic lifecycle defect: the 496-byte tally
+sample lasts about 45 ms at period 322, while its hardcoded three-field lifetime
+left Paula channel 1 enabled for 60 ms. Paula therefore reloaded roughly 15 ms
+of the sample beginning. Other effects had independent duration mismatches, and
+the 1.15-second Storm Triumph sample was stopped after one second.
+
+Phase 6C.8 makes every current effect a true one-shot. A shared start path
+disables its owned DMA channel, waits for two raster-line changes independent of
+CPU speed, programs and enables the sample, waits for Paula to latch it and
+redirects the next reload to one cleared word in Chip RAM. The active voice
+duration is calculated from sample bytes, period 322 and the PAL clock, with one
+guard field for update-in-the-starting-field paths. This adds two Chip bytes.
+Sample bytes, volumes, triggers, cooldowns, priorities and channel layout remain
+unchanged; plasma owns channel 0 and prioritized effects own channel 1.
+
+A new host contract verifies representative tally, plasma, hurt and complete
+Storm Triumph durations. The complete host suite and native 68020 build pass.
+Supplied matched FS-UAE/68030 HD A/B recordings measure baseline tally bursts at
+about 61 ms and corrected bursts at about 41 ms above threshold. The post-sample
+onset is absent, and MrDig reports that B sounds better without claiming its
+artistic timbre is perfect. A focused real-A1200/68030 HD phone recording shows
+Core, the complete unskipped tally, prompt, replay loading and return to gameplay
+without a new hard click, persistent whine or missing tally sequence. This
+accepts the one-shot lifecycle on those two HD paths only. FS-UAE/68020, ADF,
+WHDLoad, Analogue Pocket and broader real-hardware alpha.66 acceptance remain
+open.
+
+The release pipeline produced the sole current five-file alpha.66 artifact set.
+The bootable DOS1/FFS ADF uses 1,621 blocks (810 KiB) and leaves 139 free. Both
+LHA archives use `-lh5-`; independently extracted ZIP/LHA drawer trees compare
+identically, and the longest archive path component is 28 characters. Final
+artifacts and SHA-256 checksums are:
+
+- `Sparkpaw-0.6.0-alpha.66.zip` — 651,621 bytes — `7d733d84791555b9f7d46665f1370af9c2dc26ff18f34f08fb194a53ad91231d`
+- `Sparkpaw-0.6.0-alpha.66.lha` — 652,140 bytes — `e8a1744ac3ad3ecc108c305c1d6250d7bf24e87358dc052b5a02b52018868cc3`
+- `Sparkpaw-0.6.0-alpha.66.adf` — 901,120 bytes — `f99bd3e4e7bb68f41455a2ee8cdbfbf478aa19a0941a1df271d0b78c83686d00`
+- `Sparkpaw-0.6.0-alpha.66-WHDLoad.zip` — 646,023 bytes — `11af6135436325e55de8d330817f3b15b3fb1dc0f5e110037dc4d636d421459a`
+- `Sparkpaw-0.6.0-alpha.66-WHDLoad.lha` — 645,318 bytes — `8864b34f9146cdc65725d73e18ffa88b08205184dbede93c6b961db12c3cd90d`

@@ -1,0 +1,51 @@
+Sparkpaw alpha.66 one-shot audio acceptance
+============================================
+
+Scope
+-----
+
+Phase 6C.8 changes only Paula effect lifecycle. Generated sample bytes,
+volumes, trigger sites, cooldowns, priorities and channel ownership remain
+unchanged. Player plasma stays on channel 0; prioritized gameplay effects stay
+on channel 1; channels 2-3 remain reserved.
+
+Confirmed source defect
+-----------------------
+
+Alpha.65's tally sample is 496 bytes, about 45 ms at Paula period 322. Its
+hardcoded three-field DMA lifetime kept channel 1 active for 60 ms, so Paula
+reloaded the sample beginning for roughly 15 ms. Other hardcoded lifetimes also
+differed from their sample byte lengths and Storm Triumph was truncated.
+
+Correction
+----------
+
+Each channel now disables DMA, waits for two deterministic raster-line changes,
+starts the requested sample, waits for Paula to latch it and redirects the next
+reload to a two-byte Chip-RAM silence word. Active duration is the ceiling of
+the byte-derived PAL-field duration plus one guard field for call paths that
+update audio in the starting field.
+
+Supplied evidence
+-----------------
+
+FS-UAE A1200/68030 HD A/B captures retain identical 48-kHz OBS settings and
+runtime assets. Baseline tally bursts remain above threshold for about 61 ms;
+the candidate bursts last about 41 ms and contain no second onset. MrDig reports
+that B sounds better, while remaining unsure whether the sample timbre itself
+is fully perfect.
+
+A supplied phone recording of the unnumbered candidate on the real
+A1200/68030 from HD shows Core completion, the full unskipped tally, final
+prompt, replay loading and return to gameplay. It contains no persistent whine,
+new hard restart click or missing tally sequence, and no baseline-style second
+onset after the source sample ends. Room/speaker response prevents treating the
+phone waveform as direct-capture equivalence.
+
+Acceptance boundary
+-------------------
+
+Accept the one-shot lifecycle and improvement in supplied FS-UAE/68030 HD and
+focused real-A1200/68030 HD evidence. Do not claim that every sample's artistic
+timbre is final. FS-UAE/68020, ADF, WHDLoad, Analogue Pocket and broader
+real-hardware alpha.66 runtime acceptance remain pending.

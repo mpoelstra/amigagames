@@ -3,8 +3,10 @@
 Status: score/results accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD
 testing as alpha.64 Phase 6C.6. Core-only completion and non-farmable diamonds
 are accepted in supplied FS-UAE/68030 HD testing and promoted as alpha.65 Phase
-6C.7. ADF, WHDLoad, alpha.65 FS-UAE/68020 and real-hardware runtime acceptance
-remain pending.
+6C.7. Alpha.66 Phase 6C.8 removes the measured Paula tally-sample reload and is
+accepted as better in supplied FS-UAE/68030 HD A/B evidence plus a focused
+real-A1200/68030 HD tally/replay recording. ADF, WHDLoad and alpha.66
+FS-UAE/68020 runtime acceptance remain pending.
 
 ## Implemented candidate contract
 

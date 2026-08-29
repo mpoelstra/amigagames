@@ -1,6 +1,6 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 29 August 2026
+Last updated: 30 August 2026
 
 ## Start here
 
@@ -45,14 +45,36 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.65`, Phase 6C.7. A normal release contains:
+Current release is `0.6.0-alpha.66`, Phase 6C.8. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.65.lha`
-- `Sparkpaw-0.6.0-alpha.65.zip`
-- `Sparkpaw-0.6.0-alpha.65.adf`
-- `Sparkpaw-0.6.0-alpha.65-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.65-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.65/`
+- `Sparkpaw-0.6.0-alpha.66.lha`
+- `Sparkpaw-0.6.0-alpha.66.zip`
+- `Sparkpaw-0.6.0-alpha.66.adf`
+- `Sparkpaw-0.6.0-alpha.66-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.66-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.66/`
+
+Alpha.66 is the Phase 6C.8 Paula one-shot audio-integrity checkpoint. All
+current effects reload a two-byte Chip-RAM silence word after their first pass,
+DMA restarts use a deterministic two-raster-line latch wait and voice ownership
+is derived from each sample's byte duration with one update guard field. This
+removes the measured repeated head after the 45-ms tally tick and lets Storm
+Triumph resolve for its complete 1.15 seconds. Samples, triggers, volumes,
+priorities and channel ownership are unchanged: player plasma owns Paula 0,
+prioritized effects own Paula 1 and channels 2-3 remain reserved.
+
+Supplied FS-UAE/68030 HD A/B evidence measures the baseline tally burst at about
+61 ms and the corrected candidate at about 41 ms above threshold; the user says
+B sounds better without claiming perfect timbre. A focused real-A1200/68030 HD
+phone recording accepts Core, complete tally, prompt, replay loading and return
+to gameplay without a new click, persistent whine or missing tally sequence.
+This accepts the focused one-shot lifecycle on those two HD paths only.
+FS-UAE/68020, ADF, WHDLoad and broader real-hardware alpha.66 acceptance remain
+pending. The only memory addition is one two-byte Chip allocation; renderer,
+gameplay, score arithmetic, controls and assets remain alpha.65.
+The bootable DOS1/FFS ADF uses 1,621 blocks (810 KiB) and leaves 139 free.
+Final artifact sizes are 652,140-byte HD LHA, 651,621-byte HD ZIP,
+901,120-byte ADF, 645,318-byte WHDLoad LHA and 646,023-byte WHDLoad ZIP.
 
 Alpha.65 is the Phase 6C.7 completion-integrity checkpoint. Stormstone Core
 collection is now the sole Level-1 completion trigger; the obsolete far-right

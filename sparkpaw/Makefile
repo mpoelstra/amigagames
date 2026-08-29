@@ -104,7 +104,7 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
-HEADERS = src/assets.h src/audio.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
+HEADERS = src/assets.h src/audio.h src/audio_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
@@ -168,6 +168,8 @@ test:
 	$(PYTHON) tests/test_runtime_memory_layout.py
 	$(PYTHON) tests/test_sparkpaw_icon.py
 	$(PYTHON) tests/test_shared_diamond_master.py
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-audio-contract tests/test_audio_contract.c
+	build/host-tests/test-audio-contract
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-control-options tests/test_control_options.c
 	build/host-tests/test-control-options
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-camera-contract tests/test_camera_contract.c

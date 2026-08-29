@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.65`. Roadmap checkpoint: Phase 6C.7 with accepted
+Current release: `0.6.0-alpha.66`. Roadmap checkpoint: Phase 6C.8 with accepted
 Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -17,6 +17,30 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.66 corrects the lifecycle of all current Paula effects without changing
+their generated sample bytes, channel layout, gameplay triggers or priorities.
+Every effect now plays once and reloads a two-byte Chip-RAM silence word rather
+than restarting from its beginning. DMA disable/enable transitions wait for two
+deterministic PAL raster-line changes, and active voice duration is derived from
+the sample byte count with one update guard field. The former 45-ms tally tick
+therefore no longer restarts for roughly 15 ms, while the 1.15-second Storm
+Triumph sample is no longer cut at one second. Player plasma remains on Paula 0;
+prioritized gameplay effects remain on Paula 1; channels 2-3 stay reserved.
+
+Supplied FS-UAE/68030 HD A/B captures measure the baseline tick at about 61 ms
+and the corrected burst at about 41 ms above threshold, with its post-sample
+onset removed. MrDig reports B sounds better while remaining unsure whether its
+timbre is artistically perfect. A focused real-A1200/68030 HD phone recording
+accepts Core, the complete automatic tally, prompt, replay loading and return to
+gameplay without a new hard click, persistent whine or missing tally sequence.
+This is focused audio/function evidence, not broad ADF, WHDLoad or FS-UAE/68020
+acceptance. The correction adds only one two-byte Chip-RAM silence allocation;
+renderer, display, controls, score arithmetic, physics and assets are unchanged.
+The bootable alpha.66 DOS1/FFS ADF uses 1,621 blocks (810 KiB) and leaves 139
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 652,140-byte HD LHA, 651,621-byte HD ZIP, 901,120-byte ADF,
+645,318-byte WHDLoad LHA and 646,023-byte WHDLoad ZIP.
 
 Alpha.65 retires the obsolete far-right test replay. Pressing or crouch-walking
 against the solid final wall no longer restarts Level 1; collecting the
@@ -975,12 +999,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.65.lha`
-- `dist/Sparkpaw-0.6.0-alpha.65.zip`
-- `dist/Sparkpaw-0.6.0-alpha.65.adf`
-- `dist/Sparkpaw-0.6.0-alpha.65-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.65-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.65/`
+- `dist/Sparkpaw-0.6.0-alpha.66.lha`
+- `dist/Sparkpaw-0.6.0-alpha.66.zip`
+- `dist/Sparkpaw-0.6.0-alpha.66.adf`
+- `dist/Sparkpaw-0.6.0-alpha.66-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.66-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.66/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

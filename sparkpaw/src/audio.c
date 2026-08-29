@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "audio_contract.h"
 
 #include <exec/memory.h>
 #include <dos/dos.h>
@@ -28,6 +29,7 @@ static UBYTE *stormstoneCoreSample;
 static LONG stormstoneCoreSampleBytes;
 static UBYTE *tallyTickSample;
 static LONG tallyTickSampleBytes;
+static UWORD *silenceSample;
 static UBYTE shotDmaTicks;
 static UBYTE gameplayDmaTicks;
 static UBYTE gameplayPriority;
@@ -67,32 +69,53 @@ static ULONG diagnosticStarts[AUDIO_DIAG_COUNT];
 
 #define GAMEPLAY_CHANNEL 1
 #define PLAYER_HURT_PRIORITY 9
-#define PLAYER_HURT_TICKS 12
 #define PLAYER_HURT_COOLDOWN 16
 #define ENEMY_HIT_PRIORITY 6
-#define ENEMY_HIT_TICKS 8
 #define ENEMY_HIT_COOLDOWN 4
 #define ENEMY_DEATH_PRIORITY 8
-#define ENEMY_DEATH_TICKS 13
 #define ENEMY_DEATH_COOLDOWN 6
 #define STRIDER_SHOT_PRIORITY 7
-#define STRIDER_SHOT_TICKS 10
 #define STRIDER_SHOT_COOLDOWN 12
 #define JUMP_PRIORITY 4
-#define JUMP_TICKS 12
 #define JUMP_COOLDOWN 4
 #define COLLECT_PRIORITY 5
-#define COLLECT_TICKS 11
 #define COLLECT_COOLDOWN 3
 #define WATER_SPLASH_PRIORITY 10
-#define WATER_SPLASH_TICKS 16
 #define WATER_SPLASH_COOLDOWN 20
 #define STORMSTONE_CORE_PRIORITY 11
-#define STORMSTONE_CORE_TICKS 50
 #define STORMSTONE_CORE_COOLDOWN 55
 #define TALLY_TICK_PRIORITY 3
-#define TALLY_TICK_TICKS 3
 #define TALLY_TICK_COOLDOWN 1
+
+static void waitAudioLatch(void)
+{
+    UWORD line=(UWORD)(((hardware->vposr&7)<<8)|(hardware->vhposr>>8));
+    UWORD changes=0;
+    /* Paula needs a deterministic DMA-off/on settling interval. Two PAL
+       raster-line changes are independent of CPU speed and match the existing
+       CIA keyboard acknowledgement convention. */
+    while(changes<2) {
+        UWORD next=(UWORD)(((hardware->vposr&7)<<8)|(hardware->vhposr>>8));
+        if(next!=line) { line=next; changes++; }
+    }
+}
+
+static void startOneShot(UBYTE channel,UWORD dmaMask,UBYTE *sample,
+                         LONG sampleBytes,UBYTE volume)
+{
+    hardware->dmacon=dmaMask;
+    waitAudioLatch();
+    hardware->aud[channel].ac_ptr=(UWORD *)sample;
+    hardware->aud[channel].ac_len=(UWORD)(sampleBytes>>1);
+    hardware->aud[channel].ac_per=(UWORD)AUDIO_EFFECT_PERIOD;
+    hardware->aud[channel].ac_vol=volume;
+    hardware->dmacon=DMAF_SETCLR|dmaMask;
+    waitAudioLatch();
+    /* Paula has latched the real one-shot. Its next reload must be silence,
+       never the beginning of the effect. */
+    hardware->aud[channel].ac_ptr=silenceSample;
+    hardware->aud[channel].ac_len=1;
+}
 
 static BOOL loadSample(CONST_STRPTR name,UBYTE **sample,LONG *sampleBytes)
 {
@@ -112,8 +135,12 @@ static BOOL loadSample(CONST_STRPTR name,UBYTE **sample,LONG *sampleBytes)
 
 BOOL audioLoad(void)
 {
+    silenceSample=(UWORD *)AllocMem(sizeof(UWORD),MEMF_CHIP|MEMF_CLEAR);
+    if(!silenceSample) return FALSE;
     if(!loadSample("PROGDIR:assets/runtime/energy-shot.raw",
-                   &shotSample,&shotSampleBytes)) return FALSE;
+                   &shotSample,&shotSampleBytes)) {
+        audioUnload(); return FALSE;
+    }
     if(!loadSample("PROGDIR:assets/runtime/player-hurt.raw",
                    &hurtSample,&hurtSampleBytes)) {
         audioUnload(); return FALSE;
@@ -155,6 +182,10 @@ BOOL audioLoad(void)
 
 void audioUnload(void)
 {
+    if(silenceSample) {
+        FreeMem(silenceSample,sizeof(UWORD));
+        silenceSample=NULL;
+    }
     if(shotSample) {
         FreeMem(shotSample,shotSampleBytes);
         shotSample=NULL; shotSampleBytes=0;
@@ -216,18 +247,13 @@ void audioPlayShot(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_SHOT);
     if(!shotSample||!hardwareActive) return;
-    hardware->dmacon=DMAF_AUD0;
-    hardware->aud[0].ac_ptr=(UWORD *)shotSample;
-    hardware->aud[0].ac_len=(UWORD)(shotSampleBytes>>1);
-    hardware->aud[0].ac_per=322;
-    hardware->aud[0].ac_vol=60;
-    hardware->dmacon=DMAF_SETCLR|DMAF_AUD0;
+    startOneShot(0,DMAF_AUD0,shotSample,shotSampleBytes,60);
     AUDIO_START(AUDIO_DIAG_SHOT);
-    shotDmaTicks=9;
+    shotDmaTicks=(UBYTE)audioSampleFields((ULONG)shotSampleBytes);
 }
 
 static void playGameplaySample(UBYTE *sample,LONG sampleBytes,UBYTE priority,
-                               UBYTE ticks,UBYTE *cooldown,UBYTE cooldownTicks,
+                               UBYTE *cooldown,UBYTE cooldownTicks,
                                UBYTE volume
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                                ,UBYTE diagnosticEvent
@@ -238,16 +264,12 @@ static void playGameplaySample(UBYTE *sample,LONG sampleBytes,UBYTE priority,
        gameplay-effect voice; channels 2-3 stay free for future music. */
     if(!sample||!hardwareActive||*cooldown) return;
     if(gameplayDmaTicks&&gameplayPriority>priority) return;
-    hardware->dmacon=DMAF_AUD1;
-    hardware->aud[GAMEPLAY_CHANNEL].ac_ptr=(UWORD *)sample;
-    hardware->aud[GAMEPLAY_CHANNEL].ac_len=(UWORD)(sampleBytes>>1);
-    hardware->aud[GAMEPLAY_CHANNEL].ac_per=322;
-    hardware->aud[GAMEPLAY_CHANNEL].ac_vol=volume;
-    hardware->dmacon=DMAF_SETCLR|DMAF_AUD1;
+    startOneShot(GAMEPLAY_CHANNEL,DMAF_AUD1,sample,sampleBytes,volume);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     AUDIO_START(diagnosticEvent);
 #endif
-    gameplayDmaTicks=ticks; gameplayPriority=priority;
+    gameplayDmaTicks=(UBYTE)audioSampleFields((ULONG)sampleBytes);
+    gameplayPriority=priority;
     *cooldown=cooldownTicks;
 }
 
@@ -255,7 +277,7 @@ void audioPlayPlayerHurt(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_HURT);
     playGameplaySample(hurtSample,hurtSampleBytes,PLAYER_HURT_PRIORITY,
-                       PLAYER_HURT_TICKS,&hurtCooldown,
+                       &hurtCooldown,
                        PLAYER_HURT_COOLDOWN,64
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_HURT
@@ -267,7 +289,7 @@ void audioPlayEnemyHit(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_ENEMY_HIT);
     playGameplaySample(enemyHitSample,enemyHitSampleBytes,ENEMY_HIT_PRIORITY,
-                       ENEMY_HIT_TICKS,&enemyHitCooldown,
+                       &enemyHitCooldown,
                        ENEMY_HIT_COOLDOWN,60
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_ENEMY_HIT
@@ -279,8 +301,8 @@ void audioPlayEnemyDeath(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_ENEMY_DEATH);
     playGameplaySample(enemyDeathSample,enemyDeathSampleBytes,
-                       ENEMY_DEATH_PRIORITY,ENEMY_DEATH_TICKS,
-                       &enemyDeathCooldown,ENEMY_DEATH_COOLDOWN,64
+                       ENEMY_DEATH_PRIORITY,&enemyDeathCooldown,
+                       ENEMY_DEATH_COOLDOWN,64
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_ENEMY_DEATH
 #endif
@@ -291,8 +313,8 @@ void audioPlayStriderShot(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_STRIDER_SHOT);
     playGameplaySample(striderShotSample,striderShotSampleBytes,
-                       STRIDER_SHOT_PRIORITY,STRIDER_SHOT_TICKS,
-                       &striderShotCooldown,STRIDER_SHOT_COOLDOWN,64
+                       STRIDER_SHOT_PRIORITY,&striderShotCooldown,
+                       STRIDER_SHOT_COOLDOWN,64
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_STRIDER_SHOT
 #endif
@@ -302,7 +324,7 @@ void audioPlayStriderShot(void)
 void audioPlayJump(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_JUMP);
-    playGameplaySample(jumpSample,jumpSampleBytes,JUMP_PRIORITY,JUMP_TICKS,
+    playGameplaySample(jumpSample,jumpSampleBytes,JUMP_PRIORITY,
                        &jumpCooldown,JUMP_COOLDOWN,58
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_JUMP
@@ -314,7 +336,7 @@ void audioPlayCollect(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_COLLECT);
     playGameplaySample(collectSample,collectSampleBytes,COLLECT_PRIORITY,
-                       COLLECT_TICKS,&collectCooldown,COLLECT_COOLDOWN,58
+                       &collectCooldown,COLLECT_COOLDOWN,58
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_COLLECT
 #endif
@@ -325,8 +347,8 @@ void audioPlayWaterSplash(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_WATER);
     playGameplaySample(waterSplashSample,waterSplashSampleBytes,
-                       WATER_SPLASH_PRIORITY,WATER_SPLASH_TICKS,
-                       &waterSplashCooldown,WATER_SPLASH_COOLDOWN,64
+                       WATER_SPLASH_PRIORITY,&waterSplashCooldown,
+                       WATER_SPLASH_COOLDOWN,64
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_WATER
 #endif
@@ -337,8 +359,8 @@ void audioPlayStormstoneCore(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_STORMSTONE_CORE);
     playGameplaySample(stormstoneCoreSample,stormstoneCoreSampleBytes,
-                       STORMSTONE_CORE_PRIORITY,STORMSTONE_CORE_TICKS,
-                       &stormstoneCoreCooldown,STORMSTONE_CORE_COOLDOWN,64
+                       STORMSTONE_CORE_PRIORITY,&stormstoneCoreCooldown,
+                       STORMSTONE_CORE_COOLDOWN,64
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_STORMSTONE_CORE
 #endif
@@ -349,8 +371,8 @@ void audioPlayTallyTick(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_TALLY_TICK);
     playGameplaySample(tallyTickSample,tallyTickSampleBytes,
-                       TALLY_TICK_PRIORITY,TALLY_TICK_TICKS,
-                       &tallyTickCooldown,TALLY_TICK_COOLDOWN,54
+                       TALLY_TICK_PRIORITY,&tallyTickCooldown,
+                       TALLY_TICK_COOLDOWN,54
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_TALLY_TICK
 #endif
