@@ -3,10 +3,10 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.60`. Roadmap checkpoint: Phase 6C.5 player-idle
-scale polish on the protected rolling renderer Stage 5L baseline. After all
-loading and renderer preparation, a unique 64-colour AGA composition presents
-the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
+Current release: `0.6.0-alpha.61`. Roadmap checkpoint: Phase 6C.5 player
+animation scale continuity on the protected rolling renderer Stage 5L
+baseline. After all loading and renderer preparation, a unique 64-colour AGA
+composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
 centred menu/credits and lower-right Sparkpaw pose. `START GAME` is selected by
 default, so joystick Fire or Space still fades directly into the already
 prepared level. `OPTIONS` assigns the secondary button to `JUMP` or `FIRE` for
@@ -17,6 +17,28 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.61 completes the isolated scale-continuity pass without reconnecting the
+rejected whole-family reconstruction. Ordinary jump slots 10..13 and their
+exact mirrors retain the accepted poses, bottom anchor, timing and physics but
+now occupy 45..46 visible rows instead of 43..44. Supplied FS-UAE/68030 HD
+review accepts the revised jump. The unchanged 42..44-row airborne-fire poses
+remain slightly more compact, but supplied review accepts that as an authored
+shooting posture with no disruptive zoom, enlarged weapon or clipping.
+Crouch-fire slot 48 previously contained a redundant cyan/white source muzzle
+flare in addition to the separately rendered projectile. Its 439-pixel source
+span triggered a per-pose emergency fit from 56x29 to 48x25 and shrank the
+complete character. Removing only that flare retains the tail, gauntlet and
+boots inside the 48x48 cell while restoring 28 visible rows between the
+surrounding 29..30-row poses. Supplied FS-UAE/68030 HD review accepts the final
+crouch-fire result. Only slots 10..13 and 48 plus their deterministic mirrors
+differ from alpha.60; animation selection, gameplay, collision, renderer,
+memory layout and audio are unchanged. FS-UAE/68020, ADF, WHDLoad and real-
+hardware runtime acceptance remain pending.
+The bootable alpha.61 DOS1/FFS ADF uses 1,458 blocks (729 KiB) and leaves 302
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 603,924-byte HD LHA, 603,502-byte HD ZIP, 901,120-byte ADF,
+598,552-byte WHDLoad LHA and 599,205-byte WHDLoad ZIP.
 
 Alpha.60 enlarges only the accepted side-idle/blink frames 0/1 and the complete
 long turn/front idle family 26..37 to one 46-row authored target. Frame 26 is
@@ -887,12 +909,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.60.lha`
-- `dist/Sparkpaw-0.6.0-alpha.60.zip`
-- `dist/Sparkpaw-0.6.0-alpha.60.adf`
-- `dist/Sparkpaw-0.6.0-alpha.60-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.60-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.60/`
+- `dist/Sparkpaw-0.6.0-alpha.61.lha`
+- `dist/Sparkpaw-0.6.0-alpha.61.zip`
+- `dist/Sparkpaw-0.6.0-alpha.61.adf`
+- `dist/Sparkpaw-0.6.0-alpha.61-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.61-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.61/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

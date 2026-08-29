@@ -58,6 +58,12 @@ preview generated from the same formula as runtime code.
 
 1. Crop the approved source as one family and use one scale for all character
    frames; never resize cells independently.
+   Audit every later fit or clamp too: a shared family-scale variable is not
+   sufficient if an oversized frame subsequently triggers a per-frame fallback.
+   Measure the final indexed bounds of every frame and flag unexpected outliers.
+   Separate embedded muzzle flashes, trails and projectiles from actor bounds
+   before scaling when runtime already renders that effect independently; do
+   not shrink the complete character merely to retain a redundant effect.
 2. Preserve pen-0 transparency and remap to the established target palette.
    A shared palette bank alone does not prove character/material consistency.
 3. Append frame IDs unless the user explicitly replaces rejected, unaccepted
@@ -68,6 +74,9 @@ preview generated from the same formula as runtime code.
 5. Inspect a nearest-neighbour enlargement of exact indexed runtime frames.
    Check anatomy/material identity, mass, grounding, clipping, palette balance,
    masks, facing continuity and first/last-frame loop closure.
+   When replacing frames inside an accepted sheet, binary-compare the resulting
+   SPBM with that baseline and require that only the intended logical slots and
+   their deterministic mirrors differ.
 6. Measure source/runtime/Chip growth and reject silent frame-count or package
    drift.
 

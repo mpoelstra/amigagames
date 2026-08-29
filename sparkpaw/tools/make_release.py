@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.60"
+RELEASE_VERSION = "0.6.0-alpha.61"
 ROADMAP_CHECKPOINT = "6C.5"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -105,8 +105,30 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} centred gameplay camera
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} player animation scale continuity
 MrDig Productions - Copyright 2026
+
+Alpha.61 completes the isolated player-scale follow-up. Ordinary jump frames
+10..13 and their exact mirrors now occupy 45..46 visible rows instead of
+43..44 while retaining their poses, common baseline, timing and physics.
+Supplied FS-UAE/68030 HD review accepts the revised ordinary jump and the
+unchanged airborne-fire family; its slightly more compact 42..44-row firing
+silhouette reads as posture rather than a disruptive zoom. Crouch-fire slot 48
+no longer includes a redundant source muzzle flare that forced an emergency
+whole-pose fit from 56x29 to 48x25. The separately rendered projectile remains,
+while Sparkpaw now occupies 28 rows between the surrounding 29..30-row poses.
+Only slots 10..13 and 48 plus their deterministic mirrors differ from alpha.60;
+animation timing, gameplay, collision, renderer and memory layout are unchanged.
+Supplied FS-UAE/68030 HD review accepts ordinary jump, airborne fire and the
+final crouch-fire correction. FS-UAE/68020, ADF, WHDLoad and real-hardware
+runtime acceptance remain separate checks.
+
+Alpha.60 enlarges only player side-idle/blink slots 0/1 and long-idle slots
+26..37 to one 46-row target. Slot 26 is pixel-identical to slot 0, removing the
+return height step. Supplied FS-UAE/68030 HD review accepts the idle/run and
+front-pose continuity as good enough. The rejected whole-family PlayerRig v1
+sources remain disconnected because they clipped crouch-fire's tail, enlarged
+airborne fire and broke run/facing continuity.
 
 Alpha.59 replaces the broad 105..202px gameplay-camera dead zone with one
 centred anchor: Sparkpaw's 32px logical body now has its visual centre at

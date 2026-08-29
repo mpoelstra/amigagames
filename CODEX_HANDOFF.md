@@ -45,14 +45,40 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.60`, Phase 6C.5. A normal release contains:
+Current release is `0.6.0-alpha.61`, Phase 6C.5. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.60.lha`
-- `Sparkpaw-0.6.0-alpha.60.zip`
-- `Sparkpaw-0.6.0-alpha.60.adf`
-- `Sparkpaw-0.6.0-alpha.60-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.60-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.60/`
+- `Sparkpaw-0.6.0-alpha.61.lha`
+- `Sparkpaw-0.6.0-alpha.61.zip`
+- `Sparkpaw-0.6.0-alpha.61.adf`
+- `Sparkpaw-0.6.0-alpha.61-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.61-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.61/`
+
+Alpha.61 changes only ordinary jump slots 10..13, crouch-fire slot 48 and their
+deterministic mirrors. Jump retains its accepted poses, bottom anchor, timing
+and physics but moves from 43..44 to 45..46 visible rows. Crouch-fire slot 48
+removes only a redundant source muzzle flare: the separate runtime projectile
+remains, and avoiding the former 56x29-to-48x25 emergency fit restores the
+character to 28 visible rows between its 29..30-row neighbours. MrDig's
+supplied FS-UAE/68030 HD review accepts ordinary jump, unchanged airborne fire
+and corrected crouch fire. Air-fire remains intentionally 42..44 rows because
+its compact posture is accepted and enlarging its long silhouette previously
+caused weapon/anatomy regressions. Idle, run, landing, animation selection,
+gameplay, collision, renderer, memory layout and audio otherwise remain
+alpha.60. FS-UAE/68020, ADF, WHDLoad and real-hardware runtime acceptance
+remain pending.
+The bootable alpha.61 DOS1/FFS ADF uses 1,458 blocks (729 KiB) and leaves 302
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 603,924-byte HD LHA
+(`54466ce9e6a428ad453da0e6b7fe4f91e47d54bbcdfbcf24a1963373d1a37534`),
+603,502-byte HD ZIP
+(`ae695ca3e03035ee3916890aa6904bdd4ca57ae991c7d91ea22a85b51caef81d`),
+901,120-byte ADF
+(`c7f8ebde3c95eda33e83e6be95f93e6748fe5ced9160924e912102e3548683de`),
+598,552-byte WHDLoad LHA
+(`507e1e6bf43a0e644e00ef6f067387ea907cb3cb607f7b1daf66cc1da089cda7`)
+and 599,205-byte WHDLoad ZIP
+(`b74f07f8b6d20f044dcc1f4e9d9a43715a7bbe1e8e73c47aced8998c57933595`).
 
 Alpha.60 changes only player side-idle/blink slots 0/1 and long-idle slots
 26..37. They now share one 46-row scale, and slot 26 is pixel-identical to slot

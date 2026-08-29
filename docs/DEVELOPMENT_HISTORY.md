@@ -17,6 +17,38 @@ become a diary again.
 
 Last updated: 29 August 2026
 
+### 29 August 2026 - Alpha.61 completes isolated player scale continuity
+
+After accepting alpha.60's idle family, Sparkpaw still read slightly smaller
+during the ordinary jump. The correction stayed family-local: slots 10..13
+move from 43..44 to 45..46 visible rows with the same authored silhouettes,
+bottom anchor, frame timing, exact mirrors and physics. Binary sheet comparison
+confirmed that only those four logical frames and their mirrors changed.
+MrDig's supplied FS-UAE/68030 HD recording accepts ordinary jumping and the
+unchanged airborne-fire sequence. Air-fire remains 42..44 rows: the residual
+difference reads as its compact shooting posture, while the rejected broad rig
+proved that blindly enlarging the long gun silhouette creates worse anatomy and
+weapon-scale regressions.
+
+Native inspection then found a separate deterministic cause in crouch-fire.
+Slot 48's source contained a long cyan/white muzzle flare even though gameplay
+already draws the plasma projectile separately. That effect expanded the pose
+to 439 source pixels; at the crouch family scale it became 56x29 and activated
+the generic 48x48 emergency fit, shrinking the complete character to 48x25.
+Removing only the redundant flare keeps the authored character, tail, gauntlet,
+boots and ground baseline, produces a 48x28 indexed silhouette between the
+surrounding 29..30-row poses, and leaves the live projectile unchanged. Binary
+comparison confirmed only logical slot 48 and its exact mirror changed. MrDig
+accepts the supplied FS-UAE/68030 HD crouch-fire candidate.
+
+The lasting lesson is to measure each generated native frame and inspect the
+inputs to fallback fitting before redrawing anatomy. Embedded flashes, trails
+or projectiles must be separated from the actor before family scaling whenever
+runtime already owns that effect. A shared scale variable does not guarantee a
+shared output scale if a later per-frame cell-fit silently overrides it. Build
+and packaging verification establish source/package integrity only; 68020,
+ADF, WHDLoad and real-hardware runtime acceptance remain separate.
+
 ### 29 August 2026 - Alpha.60 isolates and corrects player idle scale
 
 Online feedback and native-frame measurement identified that Sparkpaw's

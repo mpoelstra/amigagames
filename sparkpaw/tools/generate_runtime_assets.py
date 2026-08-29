@@ -1480,12 +1480,25 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     combat_poses = [cropped_component(grid_cell(combat_sheet, 4, 1, i)) for i in range(4)]
     air_fire_poses = [cropped_component(grid_cell(air_fire_sheet, 4, 1, i)) for i in range(4)]
     crouch_fire_poses = [cropped_component(grid_cell(crouch_fire_sheet, 4, 1, i)) for i in range(4)]
+    # Slot 48's authored source includes a long cyan/white muzzle flare beyond
+    # the gauntlet. The live projectile is already rendered separately, while
+    # this redundant extension makes the 439px-wide pose trigger fixed_scale_pose's
+    # emergency whole-frame fit (56x29 -> 48x25), visibly shrinking Sparkpaw for
+    # the firing frame. Remove only that flare at its transparent visual break;
+    # the complete character, tail and gauntlet then retain the crouch family's
+    # native vertical scale inside the 48x48 hardware-sprite cell.
+    fire_pose = crouch_fire_poses[2]
+    crouch_fire_poses[2] = fire_pose.crop((0, 0, 374, fire_pose.height))
     hurt_poses = [cropped_component(grid_cell(hurt_sheet, 4, 1, i)) for i in range(4)]
     crouch_hurt_poses = [cropped_component(grid_cell(crouch_hurt_sheet, 4, 1, i)) for i in range(4)]
     ledge_poses = [cropped_component(grid_cell(ledge_sheet, 4, 1, i))
                    for i in range(4)]
     run_scale = family_scale(run_poses)
-    jump_scale = family_scale(jump_poses)
+    # The accepted jump silhouettes preserve their poses but read smaller than
+    # the 46-row idle baseline. Give the complete four-frame family the same
+    # native height target; per-pose compensation below remains deliberately
+    # tiny and only offsets quantisation in the open apex/contact silhouettes.
+    jump_scale = family_scale(jump_poses, max_width=48, max_height=46)
     landing_scale = family_scale(landing_poses)
     turn_scale = family_scale(turn_poses)
     crouch_scale = family_scale(crouch_poses, max_width=48)
