@@ -6017,3 +6017,44 @@ correctly on real hardware and on an Analogue Pocket. No glitch or functional
 regression is reported. That confirmation accepts the observed platforms, but
 the launch path was not supplied with the report; it is therefore not silently
 converted into a new physical-ADF or WHDLoad runtime claim.
+
+### 29 August 2026 - diamond iteration exposes competing raster masters
+
+Five unnumbered world-diamond candidates progressively removed the original
+HUD-crop fringe, corrected inverted visual weight, restored broader geometry,
+rebalanced cream/cyan/blue facets and removed an internal black slit. Supplied
+FS-UAE/68030 HD screenshots made each local improvement reviewable, but also
+showed that world-only iteration could never close the comparison reliably:
+the HUD emblem still came from a separately LANCZOS-reduced full-HUD source.
+
+The approved direction stops this loop. Alpha.63 implements one semantic native
+16x21 master owning mask and facet roles for both consumers. The world Bob
+consumes it directly; HUD generation stamps the same geometry after source
+reduction through a documented HUD8 palette mapping. The lower facet maps to
+FRONT16 blue pen 5 and existing HUD8 dark-grey pen 3; no palette entry changes.
+A new host regression decodes both actual generated SPBMs and requires exact
+mask and semantic-role equality. Supplied FS-UAE/68030 HD review visibly shows
+the same clean design in HUD and world, and the user and assistant explicitly
+accept it. Gameplay, Bob dimensions, 48 positions, hover, collision, renderer
+ownership and counter/life behavior remain unchanged. FS-UAE/68020, ADF,
+WHDLoad and real-hardware runtime acceptance remain open.
+
+The broader workflow lesson is explicit: when repeated art requests compare
+two outputs, inspect whether they have competing sources of truth before
+producing another variant. Challenge the pipeline assumption and remove the
+structural mismatch instead of indefinitely polishing its symptoms. The full
+technical contract is recorded in `sparkpaw/docs/DIAMOND_ART_PLAN.md`.
+
+Alpha.63 packages the accepted shared master. The complete host suite, native
+68020 HD/ADF/WHDLoad builds, SPBM role-equality regression, archive name guards,
+classic-LHa CRC tests and icon checks pass. The bootable DOS1/FFS ADF uses 1,461
+blocks (730 KiB) and leaves 299 free. Independent Lhasa extraction matches both
+the staged HD and WHDLoad drawers byte-for-byte, and both LHA archives contain
+real `-lh5-` members. Final SHA-256 values are: HD LHA
+`f044aa16b95cca2b626b34a607f9a1f6034d0e407a3ce400edf6d9decc88dc44`,
+HD ZIP `b4e0d4581dba7e512c31ff0c239a8ae106f918cff840144cee77bb2c8e290bb4`,
+ADF `1d43a3c2ce52c690bf01ea8e5785302717f7b84b88e753faa7cb0a86dbe7a2da`,
+WHDLoad LHA
+`ddd767ac9b7125cafeed21c8ba4dcdd5f565b0a40449933368ac5a86d82d4f85`
+and WHDLoad ZIP
+`58ce16f369cee57b39980729adfdaa672c0707c93e0d4a3b8a9829240dbb7cb2`.

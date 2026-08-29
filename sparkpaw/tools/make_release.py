@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.62"
+RELEASE_VERSION = "0.6.0-alpha.63"
 ROADMAP_CHECKPOINT = "6C.5"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -105,8 +105,18 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} intro skip affordance
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} shared diamond master
 MrDig Productions - Copyright 2026
+
+Alpha.63 replaces the independently reduced HUD emblem and separately authored
+world collectible with one semantic native 16x21 diamond master. The world Bob
+and fixed HUD now share pixel-identical mask and facet-role geometry; only the
+fixed palette mapping differs, with a blue FRONT16 lower facet and the existing
+dark-grey HUD8 role. A host regression decodes the generated SPBMs and requires
+exact equality. Supplied FS-UAE/68030 HD review accepts both as one clean design.
+Gameplay, 48 positions, hover, collision, counter/life award, Bob dimensions,
+mask/cache and renderer ordering are unchanged. FS-UAE/68020, ADF, WHDLoad and
+real-hardware runtime acceptance remain separate.
 
 Alpha.62 adds one fixed `LMB to skip intro` affordance to the lower-left of
 story plate 1 only. The native 5x7 white face has a one-pixel black shadow and

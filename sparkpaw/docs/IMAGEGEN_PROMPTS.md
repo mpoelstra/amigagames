@@ -1,5 +1,31 @@
 # Built-in ImageGen prompts
 
+## World diamond native-art direction v1 (concept reference)
+
+Use case: visual design reference for one native 16x21 Amiga AGA masked Bob
+collectible. The existing generated HUD preview and world-diamond preview were
+supplied as separate identity/runtime references. The request retained the HUD
+diamond's tall faceted identity and lighting direction while asking for a clean
+symmetric silhouette, crisp lower point, opaque dark contour, cream upper
+facet and cyan/blue inner facets. It explicitly forbade gradients,
+antialiasing, semi-transparency, glow, shadows, text, extra gems and scenery.
+
+Saved as `assets/concept/sparkpaw-diamond-world-direction-v1.png`. Retained as
+concept history only: its enlarged generated pixels and extra shades are not
+runtime input. The independently authored first 16x21 runtime interpretation
+was rejected in supplied FS-UAE evidence because its visual weight read 180
+degrees inverted relative to the HUD and its contour looked too rounded. V2
+fixed that orientation but was also rejected because its narrow kite geometry
+and simple cream slab no longer matched the broader HUD emblem. V3 reconstructs
+the HUD's cream stem/left arm, cyan planes and blue lower core inside one clean
+closed native polygon, but supplied review found its cream L too dominant and
+its dark/blue facets too weak. V4 retains the v3 polygon and mask while reducing
+and angling the cream highlight and restoring a stronger dark central cut and
+blue lower/right mass. Supplied v4 evidence rejects the internal pen-1 cut as
+a black slit. V5 reserves pen 1 for the contour and moves all depth into an
+expanded blue lower half with a narrow cyan seam. FRONT16 pens 1/4/5/6 and the
+Bob contract remain fixed.
+
 ## Player unified-rig reconstruction study v1 (rejected)
 
 Use case: production-source experiment for rebuilding all 62 right-facing

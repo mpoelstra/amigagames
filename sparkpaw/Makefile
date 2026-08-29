@@ -158,6 +158,7 @@ test:
 	@mkdir -p build/host-tests
 	$(PYTHON) tests/test_runtime_memory_layout.py
 	$(PYTHON) tests/test_sparkpaw_icon.py
+	$(PYTHON) tests/test_shared_diamond_master.py
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-control-options tests/test_control_options.c
 	build/host-tests/test-control-options
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-camera-contract tests/test_camera_contract.c

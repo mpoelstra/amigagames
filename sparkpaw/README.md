@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.62`. Roadmap checkpoint: Phase 6C.5 with accepted
+Current release: `0.6.0-alpha.63`. Roadmap checkpoint: Phase 6C.5 with accepted
 Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -17,6 +17,20 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.63 establishes one semantic native 16x21 diamond master for the world Bob
+and fixed HUD emblem. Both generated SPBMs now contain pixel-identical mask and
+facet-role geometry without scaling or filtering; only their fixed palette
+mapping differs, using blue for the FRONT16 lower facet and existing dark grey
+in HUD8. A host regression decodes both runtime assets and requires exact role
+equality. Supplied FS-UAE/68030 HD review accepts the shared result as one clean,
+readable design. All 48 positions, hover, collision, counter/life award, Bob
+dimensions, mask/cache and target-local renderer ordering remain unchanged.
+FS-UAE/68020, ADF, WHDLoad and real-hardware runtime acceptance remain pending.
+The bootable alpha.63 DOS1/FFS ADF uses 1,461 blocks (730 KiB) and leaves 299
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 604,520-byte HD LHA, 604,014-byte HD ZIP, 901,120-byte ADF,
+598,605-byte WHDLoad LHA and 599,247-byte WHDLoad ZIP.
 
 Alpha.62 adds one fixed `LMB to skip intro` label to story plate 1 only. The
 native 5x7 mixed-case white face and one-pixel black shadow sit at x=8, y=157,
@@ -926,12 +940,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.62.lha`
-- `dist/Sparkpaw-0.6.0-alpha.62.zip`
-- `dist/Sparkpaw-0.6.0-alpha.62.adf`
-- `dist/Sparkpaw-0.6.0-alpha.62-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.62-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.62/`
+- `dist/Sparkpaw-0.6.0-alpha.63.lha`
+- `dist/Sparkpaw-0.6.0-alpha.63.zip`
+- `dist/Sparkpaw-0.6.0-alpha.63.adf`
+- `dist/Sparkpaw-0.6.0-alpha.63-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.63-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.63/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

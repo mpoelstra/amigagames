@@ -45,14 +45,35 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.62`, Phase 6C.5. A normal release contains:
+Current release is `0.6.0-alpha.63`, Phase 6C.5. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.62.lha`
-- `Sparkpaw-0.6.0-alpha.62.zip`
-- `Sparkpaw-0.6.0-alpha.62.adf`
-- `Sparkpaw-0.6.0-alpha.62-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.62-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.62/`
+- `Sparkpaw-0.6.0-alpha.63.lha`
+- `Sparkpaw-0.6.0-alpha.63.zip`
+- `Sparkpaw-0.6.0-alpha.63.adf`
+- `Sparkpaw-0.6.0-alpha.63-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.63-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.63/`
+
+Alpha.63 establishes one semantic native 16x21 diamond master for both the
+world Bob and fixed HUD emblem. Generated SPBMs share an exact mask and
+facet-role layout; only their fixed FRONT16/HUD8 palette mappings differ. The
+host regression decodes both runtime assets and requires equality. Supplied
+FS-UAE/68030 HD review accepts the clean shared design. All 48 positions, hover,
+collision, counter/life award, Bob size, mask/cache and target-local renderer
+ordering remain unchanged. FS-UAE/68020, ADF, WHDLoad and real-hardware runtime
+acceptance remain pending.
+The bootable alpha.63 DOS1/FFS ADF uses 1,461 blocks (730 KiB) and leaves 299
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 604,520-byte HD LHA
+(`f044aa16b95cca2b626b34a607f9a1f6034d0e407a3ce400edf6d9decc88dc44`),
+604,014-byte HD ZIP
+(`b4e0d4581dba7e512c31ff0c239a8ae106f918cff840144cee77bb2c8e290bb4`),
+901,120-byte ADF
+(`1d43a3c2ce52c690bf01ea8e5785302717f7b84b88e753faa7cb0a86dbe7a2da`),
+598,605-byte WHDLoad LHA
+(`ddd767ac9b7125cafeed21c8ba4dcdd5f565b0a40449933368ac5a86d82d4f85`)
+and 599,247-byte WHDLoad ZIP
+(`58ce16f369cee57b39980729adfdaa672c0707c93e0d4a3b8a9829240dbb7cb2`).
 
 Alpha.62 changes only intro plate 1 at runtime. A fixed mixed-case
 `LMB to skip intro` label sits at x=8, y=157 in a native 5x7 white face with a
@@ -739,7 +760,17 @@ recorded later in this file.
 Only after HD and performance acceptance, replace the world diamond as a
 separate art checkpoint: native 16x21 indexed sprite, pen 0 only outside the
 silhouette, opaque dark contour/facets and a clean lower point. Preserve Bob
-size, mask/cache, hover and draw/restore order.
+size, mask/cache, hover and draw/restore order. Do not maintain independent HUD
+and world raster masters. Author one semantic native 16x21 diamond master;
+generate the pixel-perfect world Bob directly from it and stamp the identical
+mask/facet-role geometry into the HUD after HUD-source reduction, using only a
+documented palette-role mapping. Protect equality with a host regression. See
+`sparkpaw/docs/DIAMOND_ART_PLAN.md`.
+
+Workflow lesson: when repeated subjective asset revisions keep comparing two
+outputs, challenge whether the pipeline has two competing sources of truth
+before producing another variant. Prefer removing the structural comparison
+error over blindly iterating the requested symptom.
 
 ### 4. Deferred ADF loading optimization
 

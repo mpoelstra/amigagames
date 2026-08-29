@@ -143,6 +143,29 @@ HUD_PREVIEW_LIVES = 3
 HUD_X_OFFSET = 2
 HUD_SEPARATOR_H = 2
 HUD_DIAMOND_STATES = 50
+DIAMOND_W = 16
+DIAMOND_H = 21
+HUD_DIAMOND_X = 207
+HUD_DIAMOND_Y = 14
+DIAMOND_EMPTY = 0
+DIAMOND_CONTOUR = 1
+DIAMOND_CREAM = 2
+DIAMOND_CYAN = 3
+DIAMOND_SHADE = 4
+WORLD_DIAMOND_PENS = {
+    DIAMOND_EMPTY: 0,
+    DIAMOND_CONTOUR: 1,
+    DIAMOND_CREAM: 4,
+    DIAMOND_CYAN: 6,
+    DIAMOND_SHADE: 5,
+}
+HUD_DIAMOND_PENS = {
+    DIAMOND_EMPTY: 1,
+    DIAMOND_CONTOUR: 2,
+    DIAMOND_CREAM: 4,
+    DIAMOND_CYAN: 7,
+    DIAMOND_SHADE: 3,
+}
 WATER_GAPS = ((99,104),(152,157))
 DRY_GAPS = ((132,136),(174,179))
 GROUND_CAP_TOP = 200
@@ -162,6 +185,73 @@ def indexed_image(size: tuple[int, int], palette: list[tuple[int, int, int]], fi
     flat = [v for rgb in palette for v in rgb] + [0] * (768 - len(palette) * 3)
     image.putpalette(flat)
     return image
+
+
+def diamond_roles() -> tuple[tuple[int, ...], ...]:
+    """Return the sole semantic 16x21 diamond art master."""
+    roles = [[DIAMOND_EMPTY for _ in range(DIAMOND_W)]
+             for _ in range(DIAMOND_H)]
+    spans = (
+        (6,8),(6,9),(5,9),(4,10),(4,11),(3,11),(3,12),
+        (2,12),(2,13),(1,13),(0,14),(0,14),(0,14),(1,13),
+        (2,12),(3,11),(4,10),(5,9),(6,8),(7,8),(0,-1),
+    )
+    for y,(left,right) in enumerate(spans):
+        for x in range(left,right+1):
+            roles[y][x] = (DIAMOND_CONTOUR if
+                           x==left or x==right or y==0 else DIAMOND_CYAN)
+    for x,y,role in (
+            (7,1,DIAMOND_CREAM),(7,2,DIAMOND_CREAM),
+            (7,3,DIAMOND_CREAM),(6,4,DIAMOND_CREAM),
+            (7,4,DIAMOND_CREAM),(6,5,DIAMOND_CREAM),
+            (7,5,DIAMOND_CREAM),(6,6,DIAMOND_CREAM),
+            (7,6,DIAMOND_CREAM),(5,7,DIAMOND_CREAM),
+            (6,7,DIAMOND_CREAM),(5,8,DIAMOND_CREAM),
+            (6,8,DIAMOND_CREAM),(4,9,DIAMOND_CREAM),
+            (5,9,DIAMOND_CREAM),(6,9,DIAMOND_CREAM),
+            (3,10,DIAMOND_CREAM),(4,10,DIAMOND_CREAM),
+            (5,10,DIAMOND_CREAM),(4,11,DIAMOND_CREAM),
+            (5,11,DIAMOND_CREAM),
+            (10,8,DIAMOND_SHADE),(10,9,DIAMOND_SHADE),
+            (11,9,DIAMOND_SHADE),(10,10,DIAMOND_SHADE),
+            (11,10,DIAMOND_SHADE),(9,11,DIAMOND_SHADE),
+            (10,11,DIAMOND_SHADE),(11,11,DIAMOND_SHADE),
+            (12,11,DIAMOND_SHADE),(7,12,DIAMOND_SHADE),
+            (8,12,DIAMOND_SHADE),(9,12,DIAMOND_SHADE),
+            (10,12,DIAMOND_SHADE),(11,12,DIAMOND_SHADE),
+            (12,12,DIAMOND_SHADE),(5,13,DIAMOND_SHADE),
+            (6,13,DIAMOND_SHADE),(7,13,DIAMOND_SHADE),
+            (8,13,DIAMOND_SHADE),(9,13,DIAMOND_SHADE),
+            (10,13,DIAMOND_SHADE),(11,13,DIAMOND_SHADE),
+            (12,13,DIAMOND_SHADE),(4,14,DIAMOND_SHADE),
+            (5,14,DIAMOND_SHADE),(6,14,DIAMOND_SHADE),
+            (7,14,DIAMOND_SHADE),(8,14,DIAMOND_SHADE),
+            (9,14,DIAMOND_SHADE),(10,14,DIAMOND_SHADE),
+            (11,14,DIAMOND_SHADE),(5,15,DIAMOND_SHADE),
+            (6,15,DIAMOND_SHADE),(7,15,DIAMOND_SHADE),
+            (8,15,DIAMOND_SHADE),(9,15,DIAMOND_SHADE),
+            (10,15,DIAMOND_SHADE),(6,16,DIAMOND_SHADE),
+            (7,16,DIAMOND_SHADE),(8,16,DIAMOND_SHADE),
+            (9,16,DIAMOND_SHADE),(6,17,DIAMOND_SHADE),
+            (7,17,DIAMOND_SHADE),(8,17,DIAMOND_SHADE),
+            (7,13,DIAMOND_CYAN),(7,14,DIAMOND_CYAN),
+            (7,15,DIAMOND_CYAN),(7,16,DIAMOND_CYAN),
+            (7,17,DIAMOND_CYAN)):
+        roles[y][x] = role
+    for y,(left,right) in enumerate(spans):
+        if left<=right:
+            roles[y][left] = DIAMOND_CONTOUR
+            roles[y][right] = DIAMOND_CONTOUR
+    return tuple(tuple(row) for row in roles)
+
+
+def stamp_diamond(image: Image.Image, left: int, top: int,
+                  pens: dict[int, int]) -> None:
+    """Stamp the shared native master without scaling or filtering."""
+    dst = image.load()
+    for y,row in enumerate(diamond_roles()):
+        for x,role in enumerate(row):
+            dst[left+x,top+y] = pens[role]
 
 
 def planar_bytes(image: Image.Image, depth: int) -> tuple[int, bytes]:
@@ -288,6 +378,10 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
         for x in range(320):
             dst[x + HUD_X_OFFSET, y + HUD_SEPARATOR_H] = nearest_index(
                 src[x, y], HUD_PALETTE)
+    # The full-HUD concept is filtered as one composition, but its diamond is
+    # not authoritative. Replace that complete 16x21 cell with the exact shared
+    # native role master so HUD and world geometry cannot drift.
+    stamp_diamond(base, HUD_DIAMOND_X, HUD_DIAMOND_Y, HUD_DIAMOND_PENS)
 
     heart_rows = (0x36, 0x7f, 0x7f, 0x3e, 0x1c, 0x08)
     def shape(x: int, y: int) -> bool:
@@ -389,18 +483,9 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image]:
 
 
 def make_collectible_diamond() -> tuple[Image.Image, bytes]:
-    """Copy the exact 16x21 HUD diamond pixels into the gameplay bank."""
-    hud = Image.open(HUD_RUNTIME_PREVIEW)
-    # This is the connected diamond component in the generated HUD preview.
-    source = hud.crop((207,14,223,35))
+    """Render the shared semantic master into the padded world Bob row."""
     image=indexed_image((32,21),FRONT8,0)
-    src,dst=source.load(),image.load()
-    # HUD 0/2/4/7 = black/shadow/cream/cyan. Map them directly to the
-    # corresponding gameplay-bank roles; no scaling or geometry redraw.
-    mapping={0:0,2:1,4:4,7:6}
-    for y in range(21):
-        for x in range(16):
-            dst[x,y]=mapping.get(int(src[x,y]),0)
+    stamp_diamond(image, 0, 0, WORLD_DIAMOND_PENS)
     image.crop((0,0,16,21)).save(DIAMOND_RUNTIME_PREVIEW)
     return image,bitmap_mask(image)
 

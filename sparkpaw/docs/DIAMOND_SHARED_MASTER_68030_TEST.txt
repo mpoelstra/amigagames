@@ -1,0 +1,22 @@
+Sparkpaw shared diamond master - FS-UAE/68030 HD visual gate
+============================================================
+
+Launch Sparkpaw-Diamond-Shared from this drawer.
+
+This unnumbered candidate establishes one semantic native 16x21 diamond master
+for both the world Bob and fixed HUD emblem. Their mask and facet-role geometry
+are now generated pixel-for-pixel identically. Only their fixed palette mapping
+differs: the lower facet is blue in FRONT16 and dark grey in HUD8.
+
+Please inspect the HUD before collecting anything, then walk through several
+diamond clusters. Check that:
+
+- HUD and world now unmistakably show the same geometry and facet layout;
+- the world Bob remains clean and pixel-perfect while hovering and scrolling;
+- the HUD replacement sits cleanly inside its original panel with no old edge
+  pixels or damage to the frame/counter;
+- enemy overlap, pickup and the 00..49 counter remain visually normal.
+
+No diagnostic logger is enabled. Exit normally with the left mouse button.
+Please report accepted/rejected and any single concrete remaining art issue.
+No FS-UAE/68020, ADF or real-hardware claim is inferred.
