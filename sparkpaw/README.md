@@ -3,8 +3,8 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.59`. Roadmap checkpoint: Phase 6C.5 centred
-gameplay camera on the protected rolling renderer Stage 5L baseline. After all
+Current release: `0.6.0-alpha.60`. Roadmap checkpoint: Phase 6C.5 player-idle
+scale polish on the protected rolling renderer Stage 5L baseline. After all
 loading and renderer preparation, a unique 64-colour AGA composition presents
 the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
 centred menu/credits and lower-right Sparkpaw pose. `START GAME` is selected by
@@ -17,6 +17,23 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.60 enlarges only the accepted side-idle/blink frames 0/1 and the complete
+long turn/front idle family 26..37 to one 46-row authored target. Frame 26 is
+the exact same indexed side pose as frame 0, so entry into and return from the
+idle performance cannot cross a scale discontinuity. Supplied FS-UAE/68030 HD
+testing accepts the improved ordinary idle-to-run relationship and the final
+uniform long-idle candidate as good enough for this checkpoint. The earlier
+whole-family PlayerRig v1 experiment is rejected: it clipped crouch-fire's
+tail, enlarged airborne-fire anatomy and introduced broken run/facing frames;
+none of those sources feed runtime generation. Run, jump, crouch, shooting,
+turn timing, collision, physics, camera, renderer, environment, enemies and
+audio remain alpha.59. FS-UAE/68020, ADF, WHDLoad and real-hardware runtime
+acceptance remain pending.
+The bootable alpha.60 DOS1/FFS ADF uses 1,453 blocks (726 KiB) and leaves 307
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 602,841-byte HD LHA, 602,305-byte HD ZIP, 901,120-byte ADF,
+598,058-byte WHDLoad LHA and 598,539-byte WHDLoad ZIP.
 
 Alpha.59 replaces the ordinary 105..202px horizontal gameplay-camera dead zone
 with one centred anchor. Sparkpaw's 32px logical body now has its visual centre
@@ -870,12 +887,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.59.lha`
-- `dist/Sparkpaw-0.6.0-alpha.59.zip`
-- `dist/Sparkpaw-0.6.0-alpha.59.adf`
-- `dist/Sparkpaw-0.6.0-alpha.59-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.59-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.59/`
+- `dist/Sparkpaw-0.6.0-alpha.60.lha`
+- `dist/Sparkpaw-0.6.0-alpha.60.zip`
+- `dist/Sparkpaw-0.6.0-alpha.60.adf`
+- `dist/Sparkpaw-0.6.0-alpha.60-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.60-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.60/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

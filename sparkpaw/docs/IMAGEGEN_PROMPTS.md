@@ -1,5 +1,52 @@
 # Built-in ImageGen prompts
 
+## Player unified-rig reconstruction study v1 (rejected)
+
+Use case: production-source experiment for rebuilding all 62 right-facing
+Sparkpaw runtime poses around one canonical head and body rig. The supplied
+indexed 48x48 runtime sheet was used as the authoritative pose-order, costume,
+palette and identity reference. The request required a strict 4x16 sheet,
+exactly 62 isolated poses, one skull/muzzle/ear/torso/limb/boot/gauntlet scale,
+one ground baseline, hard 1993 AGA pixels and a flat `#ff00ff` background.
+
+Saved as `assets/sprites/sparkpaw-unified-rig-study-v1-rejected.png`.
+Rejected before runtime integration: the generated study contains only 50
+poses, replaces or omits required actions and is not a trustworthy one-to-one
+62-frame source. Its more stable anatomy supports the diagnosis, but no frame
+IDs, generator inputs or runtime pixels consume it. The next attempt must be
+split into small complete action families derived from one approved canonical
+rig and validated together at exact 48x48 indexed size.
+
+## Player unified-rig production families v1/v2 (rejected)
+
+The attempted reconstruction begins with
+`sparkpaw-canonical-rig-v1-{chroma,transparent}.png`: four model poses defining
+one skull, muzzle, ear, torso, limb, boot and gauntlet scale. Built-in ImageGen
+then derived small, exactly counted action sheets on flat `#ff00ff`, always
+requiring the same anatomy, right-facing source, fixed ground baseline and no
+per-pose zoom:
+
+- `sparkpaw-unified-idle-blink-v1-*`: neutral plus eye-only blink;
+- `sparkpaw-unified-run-v2-*`: corrected eight-stage loop with no idle cells;
+- `sparkpaw-unified-jump-land-v1-*`: four air and three landing stages;
+- `sparkpaw-unified-turn-idle-v1-*`: six momentum-turn plus twelve idle stages;
+- `sparkpaw-unified-crouch-combat-v1-*`: crouch and grounded/low fire sources;
+- `sparkpaw-unified-air-hurt-ledge-v1-*`: air fire and both hurt families;
+- `sparkpaw-unified-ledge-v2-*`: isolated four-stage teeter without scenery.
+
+Supplied FS-UAE/HD recordings reject this entire family set. Crouch-fire clips
+the tail; air-fire enlarges the head and gauntlet; the idle strip rotates to
+the opposite facing instead of returning through front; and the run/reversal
+cycle contains compressed, clipped and wrong-facing frames. None of these
+sources remain connected to runtime generation. They are preserved as rejected
+review history because their anatomy experiment must not be mistaken for an
+accepted replacement.
+
+The useful converter lesson is retained independently: wide limbs and
+gauntlets may clip at the 48px canvas edge but may never trigger per-frame
+fit-to-cell scaling of the complete actor. Runtime generation returns to the
+accepted alpha.59 sources, stable frame IDs 0..61 and exact mirrored facings.
+
 These project-bound concept assets were generated with the built-in ImageGen tool and then copied into this workspace.
 
 ## Title concept

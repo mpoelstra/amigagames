@@ -45,14 +45,38 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.59`, Phase 6C.5. A normal release contains:
+Current release is `0.6.0-alpha.60`, Phase 6C.5. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.59.lha`
-- `Sparkpaw-0.6.0-alpha.59.zip`
-- `Sparkpaw-0.6.0-alpha.59.adf`
-- `Sparkpaw-0.6.0-alpha.59-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.59-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.59/`
+- `Sparkpaw-0.6.0-alpha.60.lha`
+- `Sparkpaw-0.6.0-alpha.60.zip`
+- `Sparkpaw-0.6.0-alpha.60.adf`
+- `Sparkpaw-0.6.0-alpha.60-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.60-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.60/`
+
+Alpha.60 changes only player side-idle/blink slots 0/1 and long-idle slots
+26..37. They now share one 46-row scale, and slot 26 is pixel-identical to slot
+0 so the long front-facing performance returns without a height step. MrDig's
+supplied FS-UAE/68030 HD review accepts the ordinary idle/run improvement and
+the final uniform idle family as good enough for this checkpoint. A rejected
+whole-family reconstruction remains preserved only as source/evidence history
+and must not be reconnected: it clipped crouch-fire's tail, enlarged airborne
+fire and broke run/facing continuity. Runtime run, jump, crouch, shooting, hurt,
+ledge, timing, gameplay, collision, camera, renderer and audio otherwise remain
+alpha.59. FS-UAE/68020, ADF, WHDLoad and real-hardware acceptance remain
+pending.
+The bootable alpha.60 DOS1/FFS ADF uses 1,453 blocks (726 KiB) and leaves 307
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 602,841-byte HD LHA
+(`6cda312013e4e499f0d10c99a325560ca64fc2b0723572cb3debebb57bab3858`),
+602,305-byte HD ZIP
+(`e4aa45236bd1acf6fe9634e65215b6dfa0ffac335832f32c6edaab5810d548b6`),
+901,120-byte ADF
+(`b375098577d9328d72ac4f13d1ffe723c598250b2565c1a1d94ced10da409a6c`),
+598,058-byte WHDLoad LHA
+(`9be547b968ecca9fcc63d8e77ba4a872bff15688271365ab59ac34b6c45fab06`)
+and 598,539-byte WHDLoad ZIP
+(`383d1e1c501b6dda8dc13f189a3cd6c365faf7ef7facd33354954116e4ceed28`).
 
 Alpha.59 replaces the ordinary 105..202px horizontal camera dead zone with a
 single centred anchor. Sparkpaw's 32px logical body now has its visual centre

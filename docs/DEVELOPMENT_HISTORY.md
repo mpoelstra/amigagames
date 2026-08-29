@@ -17,6 +17,38 @@ become a diary again.
 
 Last updated: 29 August 2026
 
+### 29 August 2026 - Alpha.60 isolates and corrects player idle scale
+
+Online feedback and native-frame measurement identified that Sparkpaw's
+ordinary side idle read smaller than his accepted run. A first attempt rebuilt
+all 62 poses around a new generated rig. Five supplied FS-UAE/HD recordings
+reject that broad experiment: crouch-fire loses its tail, airborne fire changes
+head and gauntlet size, the run loop contains compressed/clipped silhouettes,
+and right-facing idle source cells rotate through the opposite facing. The
+experiment is preserved and documented as rejected but no longer feeds the
+runtime generator.
+
+The accepted correction returns every action family to alpha.59 and isolates
+only idle scale. Existing side-idle/blink slots 0/1 move from a 44-row to a
+46-row source target. Supplied FS-UAE/68030 HD review reports the ordinary
+idle-to-run transition is better. A first bridge made slot 26 equal slot 0 but
+exposed the older 27-to-26 height step. The final candidate therefore applies
+the same 46-row target to all long-idle slots 26..37 while retaining slot 26 as
+the exact indexed slot-0 bridge. Native bounds are consistently 45--46 visible
+rows and all feet remain bottom-aligned. MrDig accepts this as better and good
+enough for the checkpoint.
+
+Frame IDs, exact mirrored facings, animation timing, run, jump, crouch,
+shooting, hurt, ledge, physics, collision, camera, Stage 5L renderer,
+environment, enemies and audio are unchanged. Host tests and native builds
+pass. Supplied runtime acceptance is FS-UAE/68030 HD only; FS-UAE/68020, ADF,
+WHDLoad and real hardware remain separate pending gates.
+
+Release packaging also passes: both LHA artifacts contain genuine `-lh5-`
+members, independent Lhasa extraction matches the staged HD and WHDLoad
+drawers, and the DOS1/FFS ADF uses 1,453 blocks (726 KiB), leaving 307 free.
+Artifact SHA-256 values are recorded in the compact handoff.
+
 ### 29 August 2026 - Alpha.59 centres the gameplay camera
 
 A supplied YouTube comment independently identified the existing horizontal

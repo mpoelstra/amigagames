@@ -1466,7 +1466,10 @@ def make_sprites() -> tuple[Image.Image, bytes]:
                                       (frame >> 2) * cell_h + y))
 
     idle_source = old_pose(0)
-    legacy_scale = 44 / idle_source.height
+    # The original side idle/blink reads slightly smaller than the accepted
+    # run family, especially in the head. Raise only these two existing poses
+    # by two native rows; keep their shared bottom anchor and source anatomy.
+    legacy_scale = 46 / idle_source.height
     run_poses = [cropped_component(grid_cell(run_sheet, 4, 2, i)) for i in range(8)]
     jump_poses = [cropped_component(grid_cell(jump_sheet, 4, 1, i)) for i in range(4)]
     landing_poses = [cropped_component(grid_cell(landing_sheet, 3, 1, i)) for i in range(3)]
@@ -1486,7 +1489,10 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     landing_scale = family_scale(landing_poses)
     turn_scale = family_scale(turn_poses)
     crouch_scale = family_scale(crouch_poses, max_width=48)
-    idle_scale = family_scale(idle_poses)
+    # Match the accepted 46-row ordinary idle. Keeping the long turn/front
+    # family at its former 44-row target made Sparkpaw appear to sink before
+    # the final side pose, with visibly shorter head/boot mass.
+    idle_scale = family_scale(idle_poses, max_width=48, max_height=46)
     combat_scale = family_scale(combat_poses, max_width=48)
     hurt_scale = family_scale(hurt_poses, max_width=48)
     crouch_hurt_scale = family_scale(crouch_hurt_poses,
@@ -1518,7 +1524,11 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     for i, pose in enumerate(turn_poses):
         place(20 + i, pose, turn_scale)
     for i, pose in enumerate(idle_poses):
-        place(26 + i, pose, idle_scale)
+        # The long idle enters and exits through slot 26. Use the exact same
+        # enlarged side-idle pixels as slot 0 there, so both boundaries are
+        # seamless; preserve authored rotation slots 27..37 unchanged.
+        place(26 + i, old_pose(0) if i == 0 else pose,
+              legacy_scale if i == 0 else idle_scale)
     for i, pose in enumerate(combat_poses):
         place(38 + i, pose, combat_scale)
     for i, pose in enumerate(air_fire_poses):
