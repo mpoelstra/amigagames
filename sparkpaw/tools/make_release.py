@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.64"
-ROADMAP_CHECKPOINT = "6C.6"
+RELEASE_VERSION = "0.6.0-alpha.65"
+ROADMAP_CHECKPOINT = "6C.7"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -111,8 +111,17 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} score and results flow
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} completion integrity
 MrDig Productions - Copyright 2026
+
+Alpha.65 makes Stormstone Core collection the sole Level-1 completion trigger;
+pressing against the far-right wall no longer invokes the retired test replay.
+Diamonds collected during the current level attempt remain absent after water,
+dry-gap or life-loss restarts, so their HUD count and score cannot be earned
+again by deliberately entering a hazard. A complete post-results replay still
+starts a fresh attempt with all diamonds restored. Supplied FS-UAE/68030 HD
+testing accepts both corrections and the preserved Core/results/replay flow.
+ADF, WHDLoad, FS-UAE/68020 and real-hardware runtime acceptance remain separate.
 
 Alpha.64 adds an event-driven four-digit HUD score, one-shot points for unique
 enemy defeats and diamonds, and a field-based 120-second par timer. Collecting

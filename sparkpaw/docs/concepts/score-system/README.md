@@ -1,8 +1,10 @@
 # Sparkpaw score-system concept package
 
-Status: accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD testing and
-promoted as the alpha.64 Phase 6C.6 release checkpoint. ADF, WHDLoad and real-
-hardware runtime acceptance remain separate.
+Status: score/results accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD
+testing and promoted as alpha.64 Phase 6C.6. The Core-only completion and
+non-farmable diamond correction is accepted in supplied FS-UAE/68030 HD testing
+and promoted as alpha.65 Phase 6C.7. ADF, WHDLoad, alpha.65 FS-UAE/68020 and
+real-hardware runtime acceptance remain separate.
 
 Contents:
 

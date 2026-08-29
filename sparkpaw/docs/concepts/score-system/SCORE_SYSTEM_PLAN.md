@@ -1,19 +1,25 @@
 # Sparkpaw HUD right-panel feature research
 
-Status: accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD testing and
-promoted as the alpha.64 Phase 6C.6 release checkpoint. ADF, WHDLoad and real-
-hardware runtime acceptance remain pending.
+Status: score/results accepted in supplied FS-UAE/68030 and FS-UAE/68020 HD
+testing as alpha.64 Phase 6C.6. Core-only completion and non-farmable diamonds
+are accepted in supplied FS-UAE/68030 HD testing and promoted as alpha.65 Phase
+6C.7. ADF, WHDLoad, alpha.65 FS-UAE/68020 and real-hardware runtime acceptance
+remain pending.
 
 ## Implemented candidate contract
 
 - unique authored enemy spawn: 20 points; a respawn cannot score twice;
 - diamond: 5 points, independently of the existing extra-life counter;
 - death/restart preserves score and elapsed time;
+- diamonds already collected in the current level attempt remain absent after
+  water, dry-gap and life-loss restarts, preventing repeat score farming;
 - hidden PAL field counter, 120-second par and 10 points per saved second;
 - four-digit HUD display clamps visually at 9999 while the internal total is
   32-bit;
 - Core completion stops gameplay simulation, frees the gameplay renderer and
   loads a separate double-buffered 320x256 six-plane results presenter;
+- Core collection is the sole Level-1 completion trigger; reaching or crouching
+  against the solid right world boundary never restarts or completes the level;
 - tally rows redraw only their small hidden numeric strips, play one bounded
   tick for every visible transfer and allow Fire to finish the active row.
 - the four cyan row labels are regenerated as native 5x7 pixel faces on the

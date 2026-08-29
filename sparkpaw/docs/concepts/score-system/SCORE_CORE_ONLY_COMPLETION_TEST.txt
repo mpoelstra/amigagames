@@ -1,0 +1,22 @@
+SPARKPAW CORE-ONLY LEVEL COMPLETION - FS-UAE/68030 HD
+
+Unnumbered production-style candidate. No diagnostic logger is included.
+
+1. Reach the final Core clearing without collecting the Core.
+2. Walk into the far-right solid boundary while standing.
+3. Crouch and move against the same boundary.
+4. Confirm that neither action restarts or completes Level 1.
+5. Move back to the Core and collect it.
+6. Confirm the Core response, results tally, tally sound, final prompt and
+   Fire -> LOADING -> fresh Level-1 replay still work normally.
+
+Diamond persistence check:
+
+1. Collect one or more diamonds and note the HUD score/count.
+2. Fall into water or a dry gap.
+3. Return to the same positions: those diamonds must remain absent and the
+   prior HUD score/count must be preserved.
+4. Complete the level and start the fresh replay: all diamonds must exist
+   again because this is a new level attempt.
+
+This gate does not establish ADF, WHDLoad or real-hardware acceptance.

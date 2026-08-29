@@ -13,7 +13,7 @@ struct Collectible {
 };
 
 void collectiblesInit(void);
-void collectiblesResetPreservingDrawn(void);
+void collectiblesResetPreservingProgress(void);
 UBYTE collectiblesCollect(WORD left,WORD top,WORD right,WORD bottom);
 struct Collectible *collectibleAt(WORD index);
 

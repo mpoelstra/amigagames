@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.64`. Roadmap checkpoint: Phase 6C.6 with accepted
+Current release: `0.6.0-alpha.65`. Roadmap checkpoint: Phase 6C.7 with accepted
 Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -17,6 +17,20 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.65 retires the obsolete far-right test replay. Pressing or crouch-walking
+against the solid final wall no longer restarts Level 1; collecting the
+Stormstone Core is now the sole completion trigger. Diamonds already collected
+in the current attempt remain absent after water, dry-gap and life-loss
+restarts, preventing the same pickups from awarding repeated score. A complete
+post-results replay remains a new attempt and restores every diamond. Supplied
+FS-UAE/68030 HD testing accepts the right boundary, hazard persistence and the
+preserved Core/results/replay flow. FS-UAE/68020, ADF, WHDLoad and real-A1200
+runtime acceptance remain pending.
+The bootable alpha.65 DOS1/FFS ADF uses 1,616 blocks (808 KiB) and leaves 144
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 651,536-byte HD LHA, 651,018-byte HD ZIP, 901,120-byte ADF,
+645,127-byte WHDLoad LHA and 645,815-byte WHDLoad ZIP.
 
 Alpha.64 adds an event-driven four-digit live score to the HUD, awards 20
 points once per unique enemy defeat and 5 per diamond, and tracks elapsed PAL
@@ -770,10 +784,10 @@ gameplay channel;
 the existing rapid plasma sound remains independently available. Destroyed
 beetles receive a five-to-ten-second cooldown and can respawn indefinitely only
 after their complete patrol zone is safely outside the camera. Returning through
-earlier level areas therefore creates fresh encounters. Reaching the far-right
-world edge temporarily resets the player, camera, projectiles, collectibles and
-enemy encounter state in memory without reloading resident level assets. This
-right-edge replay stands in for the later `LEVEL_COMPLETE -> next level` flow.
+earlier level areas therefore creates fresh encounters. The former temporary
+far-right test replay has been retired: the world edge is now only a solid
+boundary, and collecting the Stormstone Core is the sole Level-1 completion
+trigger.
 Alpha.40 HD still supports clean left-mouse Workbench restoration and writes
 its high-water log only after takeover ends. This is now classified as temporary
 review instrumentation: the next official HD and ADF builds are reset-to-exit,
@@ -932,9 +946,8 @@ accepted the resulting cue in supplied testing.
 The HUD also shows the current attempt stock. A new test run starts at `x3`;
 each zero-health reset steps through `x2` and `x1`. Until the dedicated
 game-over state is implemented, losing the third attempt starts a fresh `x3`
-test cycle. Reaching the right edge replays the test level while preserving the
-current life stock and diamond count; final level-completion persistence will
-be defined with real progression.
+test cycle. The earlier right-edge test replay has been retired now that Core
+collection owns the explicit level-complete and results flow.
 The HUD is modular rather than a table of complete life/health combinations:
 one static base, compact health and lives patch atlases, and two presentation
 buffers keep updates tear-free. Only a stale dynamic panel is copied with the
@@ -962,12 +975,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.64.lha`
-- `dist/Sparkpaw-0.6.0-alpha.64.zip`
-- `dist/Sparkpaw-0.6.0-alpha.64.adf`
-- `dist/Sparkpaw-0.6.0-alpha.64-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.64-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.64/`
+- `dist/Sparkpaw-0.6.0-alpha.65.lha`
+- `dist/Sparkpaw-0.6.0-alpha.65.zip`
+- `dist/Sparkpaw-0.6.0-alpha.65.adf`
+- `dist/Sparkpaw-0.6.0-alpha.65-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.65-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.65/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

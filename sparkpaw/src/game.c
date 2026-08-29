@@ -29,7 +29,7 @@ static void resetLevelRuntime(void)
     game.enemySeed=game.enemySeed*1664525UL+
                    (ULONG)game.frameCounter+1013904223UL;
     enemiesResetPreservingDrawn(game.enemySeed);
-    collectiblesResetPreservingDrawn();
+    collectiblesResetPreservingProgress();
     projectilesResetPreservingDrawn();
     playerInit();
     game.cameraX=0; game.frameCounter=0;
@@ -163,13 +163,6 @@ void gameUpdate(void)
                   (WORD)((playerTop+playerBottom)>>1),
                   spawnEnemyProjectile);
     performanceProfileEnd(PERF_ENEMIES,profileStart);
-    /* Temporary level exit: reaching the authored right edge reuses the
-       in-memory replay path until LEVEL_COMPLETE can select a next level. */
-    if(playerReachedWorldRight(WORLD_W-1)) {
-        resetLevelRuntime();
-        audioUpdate();
-        return;
-    }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     detailProfileStart=performanceProfileBegin();
     left=enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,

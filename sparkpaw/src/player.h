@@ -29,7 +29,6 @@ BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);
 void playerUpdateShot(void);
 void playerAnimate(BOOL landed,LONG frameCounter);
 void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom);
-BOOL playerReachedWorldRight(WORD worldRight);
 BOOL playerTakeEnemyHit(WORD enemyCenterX);
 const struct PlayerState *playerState(void);
 

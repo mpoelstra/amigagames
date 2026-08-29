@@ -6106,3 +6106,43 @@ WHDLoad LHA
 `71b21b33ae1966d7d0d87bd571d13effb5228b3329ab9cb0477fbc03ff5b5293`
 and WHDLoad ZIP
 `efd8b140363c52fd1879107f038aa700e0cceed81c3bd7e89220df284e31d8d3`.
+
+### 29 August 2026 - Alpha.65 closes completion and diamond farming loopholes
+
+Supplied FS-UAE/68030 HD testing of alpha.64 exposed two obsolete reset
+contracts after the score system became authoritative. Pressing against the
+far-right solid wall, especially while crouched, still invoked the old
+pre-Core in-memory test replay. That path reset only runtime gameplay state and
+therefore appeared instant, unlike the score-screen replay that must release
+its fullscreen presenter and rebuild gameplay assets and renderer caches. The
+temporary right-edge condition and its now-unused player predicate are removed;
+Stormstone Core collection is the sole Level-1 completion trigger.
+
+The same review identified a scoring loophole. Hazard and life-loss restarts
+correctly preserved live score, HUD diamond count, elapsed time and per-enemy
+score-awarded flags, but the collectible reset reactivated every world diamond.
+Repeatedly collecting early diamonds and entering water or a dry gap could
+therefore farm unlimited points. The reset now preserves each collectible's
+active/inactive progress as well as its old drawn rectangle. Collected diamonds
+remain absent throughout the current attempt, while `gameInit()` still restores
+all diamonds after the complete results-screen replay starts a genuinely new
+attempt.
+
+MrDig's supplied FS-UAE/68030 HD test accepts both corrections: standing and
+crouch-walking against the right boundary no longer restarts, Core collection
+still opens the results/replay flow, collected diamonds remain absent after a
+hazard restart, and a fresh post-results attempt restores them. FS-UAE/68020,
+ADF, WHDLoad and real-A1200 alpha.65 runtime acceptance remain open.
+
+The complete host suite and native HD/ADF/WHDLoad builds pass. The bootable
+DOS1/FFS ADF uses 1,616 blocks (808 KiB), leaving 144 free. Independent Lhasa
+extraction matches both staged drawers byte-for-byte; both LHAs contain real
+`-lh5-` members and all ZIP path components are at most 28 characters. Final
+SHA-256 values are: HD LHA
+`45982aff27068dbb2e2b33dea6b3f7116d9a39a5355ba720bd704f87bd39219a`,
+HD ZIP `c686444e24cf6a4b308ddf4c3a263848c657b88fb2dc06ba218a2830586eb28c`,
+ADF `e9bb7b850d564176467b8ff14cd6e5060de6bb1629a8e5328a34aac44d174b45`,
+WHDLoad LHA
+`fe5420b8991fae69446ecd5be47b0a61113ca2bf6e8be8596ab91e653f2b1eda`
+and WHDLoad ZIP
+`bd7b48f7eb7fe06919866248111057d7d5a2cc91d758ad7d99d53e1dd22f5e26`.

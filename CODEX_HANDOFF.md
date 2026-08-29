@@ -45,14 +45,35 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.64`, Phase 6C.6. A normal release contains:
+Current release is `0.6.0-alpha.65`, Phase 6C.7. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.64.lha`
-- `Sparkpaw-0.6.0-alpha.64.zip`
-- `Sparkpaw-0.6.0-alpha.64.adf`
-- `Sparkpaw-0.6.0-alpha.64-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.64-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.64/`
+- `Sparkpaw-0.6.0-alpha.65.lha`
+- `Sparkpaw-0.6.0-alpha.65.zip`
+- `Sparkpaw-0.6.0-alpha.65.adf`
+- `Sparkpaw-0.6.0-alpha.65-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.65-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.65/`
+
+Alpha.65 is the Phase 6C.7 completion-integrity checkpoint. Stormstone Core
+collection is now the sole Level-1 completion trigger; the obsolete far-right
+test replay is removed. Diamonds collected in the current attempt remain
+inactive across water, dry-gap and life-loss restarts, so their score cannot be
+farmed, while a complete post-results replay correctly restores all diamonds
+for a new attempt. Supplied FS-UAE/68030 HD testing accepts the solid right
+boundary, diamond persistence and preserved Core/results/replay path.
+FS-UAE/68020, ADF, WHDLoad and real-hardware alpha.65 acceptance remain pending.
+The bootable alpha.65 DOS1/FFS ADF uses 1,616 blocks (808 KiB) and leaves 144
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 651,536-byte HD LHA
+(`45982aff27068dbb2e2b33dea6b3f7116d9a39a5355ba720bd704f87bd39219a`),
+651,018-byte HD ZIP
+(`c686444e24cf6a4b308ddf4c3a263848c657b88fb2dc06ba218a2830586eb28c`),
+901,120-byte ADF
+(`e9bb7b850d564176467b8ff14cd6e5060de6bb1629a8e5328a34aac44d174b45`),
+645,127-byte WHDLoad LHA
+(`fe5420b8991fae69446ecd5be47b0a61113ca2bf6e8be8596ab91e653f2b1eda`)
+and 645,815-byte WHDLoad ZIP
+(`bd7b48f7eb7fe06919866248111057d7d5a2cc91d758ad7d99d53e1dd22f5e26`).
 
 Alpha.64 is the Phase 6C.6 score/results checkpoint. It adds an event-driven
 four-digit HUD score, one-shot enemy and diamond awards, elapsed PAL-field

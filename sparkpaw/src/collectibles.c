@@ -31,17 +31,22 @@ void collectiblesInit(void)
     }
 }
 
-void collectiblesResetPreservingDrawn(void)
+void collectiblesResetPreservingProgress(void)
 {
-    BOOL wasDrawn[MAX_COLLECTIBLES];
+    BOOL wasActive[MAX_COLLECTIBLES],wasDrawn[MAX_COLLECTIBLES];
     WORD oldX[MAX_COLLECTIBLES],oldY[MAX_COLLECTIBLES],index;
     for(index=0;index<MAX_COLLECTIBLES;index++) {
+        wasActive[index]=collectibles[index].active;
         wasDrawn[index]=collectibles[index].drawn;
         oldX[index]=collectibles[index].drawnX;
         oldY[index]=collectibles[index].drawnY;
     }
     collectiblesInit();
     for(index=0;index<MAX_COLLECTIBLES;index++) {
+        /* A life-loss restart belongs to the same level attempt. Keep every
+           collected diamond inactive so its HUD count and score cannot be
+           earned repeatedly by deliberately entering a hazard. */
+        collectibles[index].active=wasActive[index];
         collectibles[index].drawn=wasDrawn[index];
         collectibles[index].drawnX=oldX[index];
         collectibles[index].drawnY=oldY[index];
