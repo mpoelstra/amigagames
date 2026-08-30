@@ -6269,3 +6269,26 @@ component at or below 28 characters. Final artifacts and SHA-256 checksums are:
 - `Sparkpaw-0.6.0-alpha.68.adf` — 901,120 bytes — `d3bc35b04b571fed5befe379c691d43e88389098757f55f3e54e04ad836b2547`
 - `Sparkpaw-0.6.0-alpha.68-WHDLoad.zip` — 651,576 bytes — `ee3b255885247dba56746f2cec18a465df4733d8d0ed619d5028ec2eb2025109`
 - `Sparkpaw-0.6.0-alpha.68-WHDLoad.lha` — 650,860 bytes — `5fe72aee00277d9f923e813d0c975fa3137299904fa637a8eeac6c5786cd66c0`
+
+### 30 August 2026 - Alpha.68 real-A1200 launch paths accepted
+
+After the packaged checkpoint, MrDig reports successful alpha.68 testing on
+his real A1200/68030 through each shipped launch path: physical floppy/ADF,
+WHDLoad and the ordinary HD drawer. No alpha.68 fault was reported in those
+runs. This is supplied whole-build acceptance for that machine/configuration;
+it does not establish physical stock-68020, other accelerators or every FPGA
+core. The immutable alpha.68 archives and their checksums remain unchanged.
+
+The living documentation is synchronized to that later acceptance. Current
+score regression routes now specify `REPLAY LEVEL`, a complete black fade and
+instant resident return without a LOADING screen. The itch.io feature copy now
+includes the shared diamond art, live score, results statistics, hidden extra
+life, one-shot audio correction and instant replay without revealing the
+secret's location. Obsolete current references to three attached player pairs,
+six player sprite channels and an active Phase 6C.2 test drawer are corrected;
+historical alpha descriptions retain the behaviour true of their own release.
+
+Phase 6C is closed through Phase 6C.10. The next engine boundary is documented
+as Phase 6D: separate `REPLAY CURRENT` from a future `CONTINUE NEXT` decision
+and define the cross-level persistence/reset matrix. Level-2 concept, art and
+route planning remain deliberately owned by the separate Level-2 session.

@@ -31,11 +31,21 @@ Supplied FS-UAE/68030 HD retesting accepts the corrected replay as working
 well. Bounded automatic native proofs also complete on the configured 68030 and
 68020 profiles with valid collectible positions and more than 1 MiB Chip RAM
 free after replay. This does not establish ADF, WHDLoad or real-hardware runtime
-acceptance.
+acceptance by itself. MrDig subsequently reports successful alpha.68 testing
+on his real A1200/68030 from physical floppy/ADF, WHDLoad and the ordinary HD
+drawer, with no alpha.68 fault reported. Other real CPUs/accelerators and
+Analogue Pocket alpha.68 remain separate compatibility checks.
 The bootable alpha.68 DOS1/FFS ADF uses 1,641 blocks (820 KiB) and leaves 119
 free; this is package/decode evidence, not ADF runtime acceptance. Final
 artifacts are 658,307-byte HD LHA, 657,742-byte HD ZIP, 901,120-byte ADF,
 650,860-byte WHDLoad LHA and 651,576-byte WHDLoad ZIP.
+
+Phase 6C is complete through this checkpoint. The next engine boundary is
+[Phase 6D multi-level progression](docs/PHASE6D_PROGRESSION_PLAN.md): keep the
+accepted instant Level-1 replay as one explicit branch and add a distinct
+continue-to-next-level branch only when a real second level exists. Level-2
+concept, art and route planning are intentionally handled in a separate
+session.
 
 Alpha.67 adds one secret extra life in the chamber beyond the Level-1 Core.
 Reaching the far-right threshold reveals a native masked `1UP` Bob at world
@@ -806,7 +816,8 @@ bounded clockwork-beetle vertical slice.
 - 2 MB Chip RAM plus 8 MB Fast RAM minimum
 - PAL 320x256 at a fixed 50 Hz
 - Two stable 8-colour AGA playfields with true quarter-speed rear parallax
-- 48x48 Sparkpaw poses made from three attached sprite pairs, with 24-bit AGA colour
+- 48x48, 15-colour Sparkpaw poses packed into one transparent-padded attached
+  AGA sprite pair
 - C with VBCC; small reproducible Python asset and release tools
 
 The earlier 2 MB Chip/no-Fast Phase 6A result is retained only as a historical
@@ -1164,7 +1175,7 @@ it switches to `CHARGING` during the silent sprite, Bob, bitplane and Copper
 preparation phase. This second phase remains visible for at least two seconds,
 including on accelerated systems. Both screens share one 64-colour palette.
 - `src/renderer.c` / `src/renderer.h`: gameplay display, Copper construction,
-  six-channel hardware-sprite player, fixed bottom HUD Copper split, packed
+  one attached-pair hardware-sprite player, fixed bottom HUD Copper split, packed
   render caches and Bob rendering behind an explicit renderer API
 - `src/game.c` / `src/game.h`: gameplay initialization and update ordering,
   frame progression and camera state

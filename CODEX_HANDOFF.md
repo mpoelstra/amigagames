@@ -68,7 +68,12 @@ spawn positions. Supplied FS-UAE/68030 HD retesting accepts the corrected replay
 as working well. Bounded native FS-UAE/68030 and FS-UAE/68020 proofs both reach
 fresh gameplay frame 11 at camera x=0 with valid collectible coordinates,
 1,049,392 Chip bytes free and a 985,984-byte largest Chip block. ADF, WHDLoad
-and real-hardware runtime acceptance remain pending.
+and real-hardware runtime acceptance were initially pending at packaging time.
+MrDig subsequently reports successful alpha.68 testing on his real
+A1200/68030 through all three shipped launch paths: physical floppy/ADF,
+WHDLoad and the ordinary HD drawer. No alpha.68 fault was reported on those
+paths. This closes the supplied real-machine gate for that configuration only;
+stock real-68020 and other accelerators remain unverified.
 The bootable DOS1/FFS ADF uses 1,641 blocks (820 KiB) and leaves 119 free.
 Final artifact sizes are 658,307-byte HD LHA, 657,742-byte HD ZIP,
 901,120-byte ADF, 650,860-byte WHDLoad LHA and 651,576-byte WHDLoad ZIP.
@@ -629,6 +634,20 @@ Water/route:
 
 ## Current work order
 
+### 0. Current handoff after Phase 6C.10
+
+Phase 6C is complete through alpha.68. Do not reopen the accepted Level-1
+score/results, secret-extra-life, one-shot-audio or instant-replay work without
+new evidence. The next engine boundary is Phase 6D: introduce an explicit
+multi-level progression state that can choose replay or continue without
+embedding Level-2 design in the Level-1 reset. Level-2 creative/layout work is
+owned by a separate session. See `sparkpaw/docs/PHASE6D_PROGRESSION_PLAN.md`.
+
+The supplied real-A1200/68030 alpha.68 gate now covers physical ADF, WHDLoad
+and ordinary HD launch. Analogue Pocket alpha.68 and a physical stock-68020
+remain optional separate compatibility checks, not blockers for beginning the
+Phase 6D design.
+
 ### 1. Preserve the completed Stage 5L/H7 renderer baseline
 
 Stage 5L plus H7 is the immutable renderer baseline. Do not change the fixed-HUD
@@ -714,12 +733,11 @@ foreground Copper-palette lift; player sprites, HUD palette, Bob dimensions,
 world geometry and draw order remain fixed. Host tests and native 68020 compile
 pass. Require a fresh FS-UAE/68030 visual gate before any 68020 timing gate.
 
-The supplied 60 fps radial-burst MOV and explicit user verdict now accept that
+The supplied 60 fps radial-burst MOV and explicit user verdict accept that
 FS-UAE/68030 HD visual/function gate. Idle, two-field foreground illumination,
 radial fragments, Storm Triumph and delayed replay all pass; HUD and rear
-palette remain stable. The active next drawer is the matching minimal-cadence
-FS-UAE/68020 HD gate. It must be compared with alpha.45's 48.58 FPS result and
-must show no three-field misses or ownership violations.
+palette remain stable. The matching minimal-cadence FS-UAE/68020 HD gate was
+then compared with alpha.45's 48.58 FPS result.
 
 That matching FS-UAE/68020 HD minimal-cadence gate is now accepted as well.
 The user reports normal visuals/gameplay; the exact drawer log contains 3,244

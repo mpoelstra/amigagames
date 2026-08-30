@@ -23,7 +23,10 @@ traced to zeroed presentation coordinates before their staggered hover slot;
 fresh collectibles now start at their authored spawn positions. Supplied
 FS-UAE/68030 HD retesting accepts the correction. Automatic native 68030 and
 68020 proofs validate the fresh camera, collectible coordinates and remaining
-Chip memory; ADF, WHDLoad and real-hardware runtime acceptance remain open.
+Chip memory. MrDig subsequently reports successful alpha.68 operation on his
+real A1200/68030 from physical floppy/ADF, WHDLoad and ordinary HD. This closes
+those three supplied real-machine launch gates for that configuration; other
+hardware remains separate.
 
 ## Implemented candidate contract
 

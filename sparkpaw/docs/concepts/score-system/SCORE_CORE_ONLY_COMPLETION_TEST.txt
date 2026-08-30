@@ -1,14 +1,17 @@
-SPARKPAW CORE-ONLY LEVEL COMPLETION - FS-UAE/68030 HD
+SPARKPAW CORE-ONLY LEVEL COMPLETION - REGRESSION ROUTE
 
-Unnumbered production-style candidate. No diagnostic logger is included.
+Originally written for the unnumbered alpha.65 production-style candidate and
+updated to the accepted alpha.68 replay behaviour. No diagnostic logger is
+required.
 
 1. Reach the final Core clearing without collecting the Core.
 2. Walk into the far-right solid boundary while standing.
 3. Crouch and move against the same boundary.
 4. Confirm that neither action restarts or completes Level 1.
 5. Move back to the Core and collect it.
-6. Confirm the Core response, results tally, tally sound, final prompt and
-   Fire -> LOADING -> fresh Level-1 replay still work normally.
+6. Confirm the Core response, results tally, tally sound and `REPLAY LEVEL`.
+7. Fire should fade fully to black and return almost immediately to a clean
+   fresh Level 1 without showing the LOADING screen.
 
 Diamond persistence check:
 
@@ -19,4 +22,6 @@ Diamond persistence check:
 4. Complete the level and start the fresh replay: all diamonds must exist
    again because this is a new level attempt.
 
-This gate does not establish ADF, WHDLoad or real-hardware acceptance.
+Historical note: the original alpha.65 gate established only FS-UAE/68030 HD.
+The corrected alpha.68 resident replay was subsequently reported successful on
+the supplied real A1200/68030 through physical ADF, WHDLoad and ordinary HD.

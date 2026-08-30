@@ -43,11 +43,16 @@ audio and PAL raster timing.
 - Dual AGA playfields with quarter-speed rear parallax
 - A fluid 15-colour, 48x48 Sparkpaw built from an attached AGA sprite pair
 - Running, variable jumping, crouching, crouch-walking and dedicated combat poses
-- Rapid energy fire, animated impacts, health, lives and Storm Shard collection
+- Rapid energy fire, animated impacts, health, lives and newly unified native
+  Storm Shard artwork shared by the world and HUD
+- Four-digit live score with one-time enemy awards and diamond points
+- Animated Level Complete statistics for enemies, diamonds, time bonus and total
+- A hidden Level-1 extra life with a falling `1UP` pickup and unique sound
+- Near-instant `REPLAY LEVEL` flow after the results screen
 - Clockwork Beetles and 64x64 Storm Striders with patrol, traversal, ranged
   attack, hurt, destruction and respawn behaviour
 - Animated water hazards, splashes and ledge-balance animation
-- Original Amiga-ready sound effects played through Paula
+- Corrected one-shot Paula effects without repeated tails or truncated endings
 - HD, bootable ADF and WHDLoad packages
 
 This is an **in-development alpha**, not the finished five-world adventure.
@@ -65,8 +70,9 @@ and package type are included.
 
 The game is actively stress-tested at stock-68020 speed in FS-UAE. The most
 complete supplied real-hardware acceptance so far is from an A1200 with a
-roughly 34.5 MHz 68030. Performance on every accelerator, FPGA core or exact
-stock configuration is not implied.
+roughly 34.5 MHz 68030; alpha.68 was reported successful there through physical
+floppy/ADF, WHDLoad and the ordinary HD version. Performance on every
+accelerator, FPGA core or exact stock configuration is not implied.
 
 ### Controls
 
@@ -96,7 +102,7 @@ If you are unsure, use the HD or WHDLoad edition for the complete presentation.
 This was not a one-prompt game. Before the story, here is what the repository
 actually records.
 
-#### Sparkpaw by the numbers
+#### Sparkpaw by the numbers — alpha.58 publication snapshot
 
 - **23 days** from the first public repository baseline to alpha.58
 - **14 active development dates** recorded in Git
@@ -306,10 +312,10 @@ quickly. Human taste, repeated play, physical hardware and the willingness to
 say “this build is rejected” decided which ideas survived. The current alpha
 is the accumulated result of that conversation.
 
-## Upload labels
+## Current alpha.68 upload labels
 
-- `Sparkpaw 0.6.0 alpha.58 — Bootable ADF`
-- `Sparkpaw 0.6.0 alpha.58 — HD version (LHA)`
-- `Sparkpaw 0.6.0 alpha.58 — HD version (ZIP)`
-- `Sparkpaw 0.6.0 alpha.58 — WHDLoad (LHA)`
-- `Sparkpaw 0.6.0 alpha.58 — WHDLoad (ZIP)`
+- `Sparkpaw 0.6.0 alpha.68 — Bootable ADF`
+- `Sparkpaw 0.6.0 alpha.68 — HD version (LHA)`
+- `Sparkpaw 0.6.0 alpha.68 — HD version (ZIP)`
+- `Sparkpaw 0.6.0 alpha.68 — WHDLoad (LHA)`
+- `Sparkpaw 0.6.0 alpha.68 — WHDLoad (ZIP)`

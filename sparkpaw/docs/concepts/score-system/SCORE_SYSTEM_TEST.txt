@@ -1,6 +1,7 @@
-SPARKPAW SCORE SYSTEM - FS-UAE/68030 VISUAL GATE
+SPARKPAW SCORE SYSTEM - FS-UAE/68030 REGRESSION ROUTE
 
-Candidate only: unnumbered, not a release.
+Historical unnumbered visual gate, updated with the accepted alpha.68 prompt
+and replay behaviour so it remains usable as a regression route.
 
 Hypothesis
 ----------
@@ -34,11 +35,12 @@ Test route
 5. Check the native LEVEL COMPLETE screen: fixed columns, enemy/diamond/time
    counts transferring into TOTAL SCORE, one short tick per visible step, no
    tearing, stale gameplay graphics or audio corruption. After tallying,
-   `PRESS FIRE TO CONTINUE` should appear centred at the bottom.
+   `REPLAY LEVEL` should appear centred at the bottom.
 6. Fire may finish the active row immediately. After the final total, press
-   Fire once: the score screen should fade fully to black before loading and
-   restart Level 1 with score, time, lives and encounters reset. This
-   instant resident Level-1 replay is temporary test scaffolding; a later
+   Fire once: the score screen should fade fully to black and restart Level 1
+   almost immediately with score, time, lives and encounters reset. No LOADING
+   screen or top-edge diamond flash should appear. This resident Level-1 replay
+   is temporary one-level flow; a later
    multi-level flow will replace it rather than reuse this shortcut.
 
 Please report separately:
@@ -46,6 +48,6 @@ Please report separately:
 - HUD score readable and stable;
 - result transition and composition correct;
 - tally alignment, cadence and sound pleasant;
-- Fire skip/final Level 1 reload correct and free of a Workbench/level flash
+- Fire skip/final Level 1 replay correct and free of a Workbench/level flash
   or one-frame lower-screen glitch;
 - any flicker, tearing, silence, distorted tick or crash.

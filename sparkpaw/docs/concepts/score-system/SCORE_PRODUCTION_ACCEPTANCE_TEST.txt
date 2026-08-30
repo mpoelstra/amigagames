@@ -1,17 +1,18 @@
-SPARKPAW SCORE SYSTEM - CLEAN PRODUCTION ACCEPTANCE
+SPARKPAW SCORE SYSTEM - CLEAN PRODUCTION REGRESSION ROUTE
 
-Unnumbered candidate, not a release. This executable contains no diagnostic
-logger or performance profiler. It retains the centred camera, HUD score
-fast-copy and coalesced projectile sweep accepted in the earlier A/B gates.
+Originally written for the unnumbered alpha.64 candidate and updated for
+alpha.68. A production executable contains no diagnostic logger or performance
+profiler and retains the centred camera, optimized HUD score updates and
+coalesced projectile sweep accepted in the earlier A/B gates.
 
 FS-UAE/68020
 ------------
 Play Level 1 from start to Core with ordinary and heavy combat. Check standing,
 crouching and airborne shots, walls/platforms, beetles, Striders, diamonds,
 lives, HUD score and audio. Collect the Core and verify the complete tally,
-tally sound and PRESS FIRE TO CONTINUE. After Fire, expect a black fade, the
-ordinary LOADING image during the full Level-1 rebuild, and then a clean fresh
-Level 1. It must not remain indefinitely black. Repeat once if practical.
+tally sound and `REPLAY LEVEL`. After Fire, expect a complete black fade and an
+almost immediate clean fresh Level 1, with no LOADING screen, top-edge diamonds,
+stale Core/1UP/enemy pixels or carried input. Repeat once if practical.
 Judge visual cadence directly; this build writes no log.
 
 Real A1200/68030 HD
@@ -20,4 +21,6 @@ After the 68020 gate passes, run this exact same drawer/executable from HD.
 Repeat the complete route and checks above. Record subjective cadence, audio,
 score-screen presentation and replay transition separately from FS-UAE.
 
-Do not treat either result as ADF or WHDLoad acceptance.
+Acceptance update: MrDig later reported alpha.68 successful on his real
+A1200/68030 through physical ADF, WHDLoad and ordinary HD. Retain this document
+as a regression route rather than an open alpha.68 acceptance gate.
