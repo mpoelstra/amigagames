@@ -29,6 +29,8 @@ static UBYTE *stormstoneCoreSample;
 static LONG stormstoneCoreSampleBytes;
 static UBYTE *tallyTickSample;
 static LONG tallyTickSampleBytes;
+static UBYTE *extraLifeSample;
+static LONG extraLifeSampleBytes;
 static UWORD *silenceSample;
 static UBYTE shotDmaTicks;
 static UBYTE gameplayDmaTicks;
@@ -42,6 +44,7 @@ static UBYTE collectCooldown;
 static UBYTE waterSplashCooldown;
 static UBYTE stormstoneCoreCooldown;
 static UBYTE tallyTickCooldown;
+static UBYTE extraLifeCooldown;
 static BOOL hardwareActive;
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -56,6 +59,7 @@ enum AudioDiagnosticEvent {
     AUDIO_DIAG_WATER,
     AUDIO_DIAG_STORMSTONE_CORE,
     AUDIO_DIAG_TALLY_TICK,
+    AUDIO_DIAG_EXTRA_LIFE,
     AUDIO_DIAG_COUNT
 };
 static ULONG diagnosticRequests[AUDIO_DIAG_COUNT];
@@ -86,6 +90,8 @@ static ULONG diagnosticStarts[AUDIO_DIAG_COUNT];
 #define STORMSTONE_CORE_COOLDOWN 55
 #define TALLY_TICK_PRIORITY 3
 #define TALLY_TICK_COOLDOWN 1
+#define EXTRA_LIFE_PRIORITY 10
+#define EXTRA_LIFE_COOLDOWN 20
 
 static void waitAudioLatch(void)
 {
@@ -177,6 +183,10 @@ BOOL audioLoad(void)
                    &tallyTickSample,&tallyTickSampleBytes)) {
         audioUnload(); return FALSE;
     }
+    if(!loadSample("PROGDIR:assets/runtime/extra-life.raw",
+                   &extraLifeSample,&extraLifeSampleBytes)) {
+        audioUnload(); return FALSE;
+    }
     return TRUE;
 }
 
@@ -226,6 +236,10 @@ void audioUnload(void)
         FreeMem(tallyTickSample,tallyTickSampleBytes);
         tallyTickSample=NULL; tallyTickSampleBytes=0;
     }
+    if(extraLifeSample) {
+        FreeMem(extraLifeSample,extraLifeSampleBytes);
+        extraLifeSample=NULL; extraLifeSampleBytes=0;
+    }
 }
 
 void audioSetHardwareActive(BOOL active)
@@ -240,6 +254,7 @@ void audioSetHardwareActive(BOOL active)
         jumpCooldown=0; collectCooldown=0; waterSplashCooldown=0;
         stormstoneCoreCooldown=0;
         tallyTickCooldown=0;
+        extraLifeCooldown=0;
     }
 }
 
@@ -379,6 +394,18 @@ void audioPlayTallyTick(void)
                        );
 }
 
+void audioPlayExtraLife(void)
+{
+    AUDIO_REQUEST(AUDIO_DIAG_EXTRA_LIFE);
+    playGameplaySample(extraLifeSample,extraLifeSampleBytes,
+                       EXTRA_LIFE_PRIORITY,&extraLifeCooldown,
+                       EXTRA_LIFE_COOLDOWN,62
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_EXTRA_LIFE
+#endif
+                       );
+}
+
 void audioUpdate(void)
 {
     if(hardwareActive&&shotDmaTicks&&!--shotDmaTicks)
@@ -396,6 +423,7 @@ void audioUpdate(void)
     if(waterSplashCooldown) waterSplashCooldown--;
     if(stormstoneCoreCooldown) stormstoneCoreCooldown--;
     if(tallyTickCooldown) tallyTickCooldown--;
+    if(extraLifeCooldown) extraLifeCooldown--;
 }
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -404,7 +432,7 @@ void audioDiagnosticWrite(BPTR file)
     static const char *const names[AUDIO_DIAG_COUNT]={
         "shot","hurt","enemy_hit","enemy_death",
         "strider_shot","jump","collect","water","stormstone_core",
-        "tally_tick"
+        "tally_tick","extra_life"
     };
     UWORD event;
     for(event=0;event<AUDIO_DIAG_COUNT;event++)

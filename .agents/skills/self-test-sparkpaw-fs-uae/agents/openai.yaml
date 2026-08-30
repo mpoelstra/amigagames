@@ -1,0 +1,4 @@
+interface:
+  display_name: "Self-test Sparkpaw in FS-UAE"
+  short_description: "Run fast native framebuffer proofs in FS-UAE"
+  default_prompt: "Use $self-test-sparkpaw-fs-uae to build and verify this Sparkpaw change through an automatic FS-UAE framebuffer proof."

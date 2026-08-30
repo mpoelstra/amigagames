@@ -16,6 +16,7 @@ static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds,hudScore;
 static struct PlanarAsset collectibleDiamond;
 static struct PlanarAsset stormstoneCore;
+static struct PlanarAsset extraLife;
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
 static const char *loadFailureReason="none";
 const char *assetsLoadFailureReason(void) { return loadFailureReason; }
@@ -304,7 +305,9 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
                      &collectibleDiamond,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
-                     &stormstoneCore,4,FALSE);
+                     &stormstoneCore,4,FALSE)&&
+           loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
+                     &extraLife,4,FALSE);
 }
 
 BOOL assetsLoadTitle(void)
@@ -351,6 +354,7 @@ void assetsUnloadGameplayConversionSources(void)
        both representations in Chip RAM after conversion wastes 325,220 bytes. */
     freeAsset(&collectibleDiamond);
     freeAsset(&stormstoneCore);
+    freeAsset(&extraLife);
     freeAsset(&striderSprites);
     freeAsset(&enemySprites);
     freeAsset(&playerSprites);
@@ -483,3 +487,4 @@ const struct PlanarAsset *assetsCollectibleDiamond(void)
     return &collectibleDiamond;
 }
 const struct PlanarAsset *assetsStormstoneCore(void) { return &stormstoneCore; }
+const struct PlanarAsset *assetsExtraLife(void) { return &extraLife; }

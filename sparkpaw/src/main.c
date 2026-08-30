@@ -38,9 +38,10 @@ static BOOL loadLevelFiles(void)
 #ifdef SPARKPAW_STARTUP_DIAGNOSTIC
 static void writeStartupStage(const char *stage)
 {
-    BPTR file=Open("PROGDIR:startupdiag.log",MODE_NEWFILE);
+    BPTR file=Open("PROGDIR:startupdiag.log",MODE_READWRITE);
+    if(!file) file=Open("PROGDIR:startupdiag.log",MODE_NEWFILE);
     if(!file) return;
-    FPrintf(file,"Sparkpaw Phase 6C.2 startup diagnostic\n");
+    Seek(file,0,OFFSET_END);
     FPrintf(file,"stage=%s world_width=%ld\n",(STRPTR)stage,
             (LONG)SPARKPAW_WORLD_W);
     FPrintf(file,"chip_free=%ld chip_largest=%ld\n",
@@ -49,6 +50,7 @@ static void writeStartupStage(const char *stage)
     FPrintf(file,"fast_free=%ld fast_largest=%ld\n",
             (LONG)AvailMem(MEMF_FAST),
             (LONG)AvailMem(MEMF_FAST|MEMF_LARGEST));
+    Flush(file);
     Close(file);
 }
 #endif
@@ -91,6 +93,9 @@ int main(void)
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     BOOL prototypePublished;
 #endif
+#ifdef SPARKPAW_REPLAY_PROOF
+    UBYTE replayProofCompletions=0;
+#endif
     BOOL platformReady=platformOpen();
     state=APP_TITLE_LOADING;
     if(!platformReady||!titleShow()) {
@@ -108,7 +113,11 @@ int main(void)
         PutStr((STRPTR)titleFailureReason()); PutStr("\n");
         cleanup(); return 10;
     }
+#if defined(SPARKPAW_EXTRA_LIFE_VISUAL_PROOF)||defined(SPARKPAW_REPLAY_PROOF)
+    titleWaitFrames(1);
+#else
     titleWaitFrames(225);
+#endif
     DateStamp(&levelTime);
     enemySeed=(ULONG)levelTime.ds_Days*86400UL+
               (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
@@ -154,7 +163,11 @@ int main(void)
 #endif
     /* Keep the second status readable even when preparation finishes quickly
        on Fast RAM systems or accelerated/emulated CPUs. */
+#if defined(SPARKPAW_EXTRA_LIFE_VISUAL_PROOF)||defined(SPARKPAW_REPLAY_PROOF)
+    titleWaitLevelCharging(1);
+#else
     titleWaitLevelCharging(100);
+#endif
     if(!titleShowLevelReady()) {
         PutStr("Sparkpaw: ready screen unavailable.\n");
         PutStr((STRPTR)titleFailureReason()); PutStr("\n");
@@ -164,7 +177,9 @@ int main(void)
        while the ready screen remains displayed so Space shares the gameplay
        raw-key path with joystick Fire. */
     platformFinishTakeover(titleCopperList());
+#if !defined(SPARKPAW_EXTRA_LIFE_VISUAL_PROOF)&&!defined(SPARKPAW_REPLAY_PROOF)
     titleRunLevelReadyMenu(&secondaryButtonAction);
+#endif
 #ifdef SPARKPAW_WHDLOAD
     if(platformWHDLoadQuitRequested()) {
         platformRestore(); cleanup(); return 0;
@@ -202,7 +217,14 @@ int main(void)
         profileStart=performanceProfileBegin();
         gameUpdate();
         performanceProfileEnd(PERF_GAME_UPDATE,profileStart);
-        if(gameLevelComplete()) {
+        if(gameLevelComplete()
+#ifdef SPARKPAW_REPLAY_PROOF
+           ||(!replayProofCompletions&&gameState()->frameCounter>5)
+#endif
+           ) {
+#ifdef SPARKPAW_REPLAY_PROOF
+            replayProofCompletions++;
+#endif
             state=APP_LEVEL_COMPLETE;
             break;
         }
@@ -255,6 +277,31 @@ int main(void)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         if(platformLeftMouse()) state=APP_BOOT;
 #endif
+#ifdef SPARKPAW_EXTRA_LIFE_VISUAL_PROOF
+        if(gameState()->frameCounter>90) {
+            state=APP_BOOT;
+            break;
+        }
+#endif
+#ifdef SPARKPAW_REPLAY_PROOF
+        if(replayProofCompletions&&gameState()->frameCounter>10) {
+            BPTR proof;
+            platformRestore();
+            proof=Open("PROGDIR:replay-proof.log",MODE_NEWFILE);
+            if(proof) {
+                FPrintf(proof,"replay=resident frame=%ld camera=%ld collectibles=%s\n",
+                        (LONG)gameState()->frameCounter,
+                        (LONG)gameState()->cameraX,
+                        rendererReplayPresentationValid()?"valid":"invalid");
+                FPrintf(proof,"chip_free=%ld chip_largest=%ld\n",
+                        (LONG)AvailMem(MEMF_CHIP),
+                        (LONG)AvailMem(MEMF_CHIP|MEMF_LARGEST));
+                Close(proof);
+            }
+            cleanup();
+            return proof&&rendererReplayPresentationValid()?0:10;
+        }
+#endif
     }
     if(state==APP_LEVEL_COMPLETE) {
         const struct GameState *result=gameState();
@@ -263,7 +310,6 @@ int main(void)
         ULONG elapsed=result->elapsedFields;
         ULONG score=result->score;
         platformReleaseForLoading(FALSE);
-        rendererCleanup();
         if(!titleShowLevelComplete()) {
             PutStr("Sparkpaw: level-complete screen unavailable.\n");
             PutStr((STRPTR)titleFailureReason()); PutStr("\n");
@@ -272,32 +318,22 @@ int main(void)
         }
         platformFinishTakeover(titleCopperList());
         titleRunLevelComplete(enemies,diamonds,elapsed,score);
-        /* Fade the custom score display completely before Exec/DOS and the
-           loader regain the machine. Keeping that display live exposed one
-           corrupted frame while graphics/Blitter work prepared Level 1. */
+        /* Fade the custom score display completely before restoring the
+           resident gameplay targets. The rejected visible-score reload proved
+           that renderer mutation must never overlap a bright score frame. */
         titleFadeOut();
         platformReleaseForLoading(FALSE);
-        if(!titleShowReplayLoading()) {
-            PutStr("Sparkpaw: replay loading screen unavailable.\n");
-            PutStr((STRPTR)titleFailureReason()); PutStr("\n");
-            platformRestore(); titleRestoreSystemView(); titleRelease();
-            audioUnload(); rendererCleanup(); platformClose(); return 10;
-        }
         platformResetGameInput();
-        audioUnload();
         DateStamp(&levelTime);
         enemySeed=(ULONG)levelTime.ds_Days*86400UL+
                   (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
         gameInit(enemySeed^0x53504157UL);
-        if(!loadLevelFiles()||!rendererPrepareGameplay()) {
-            PutStr("Sparkpaw: Level 1 reload failed.\n");
-            platformRestore(); titleRestoreSystemView(); titleRelease();
-            audioUnload(); rendererCleanup(); platformClose(); return 10;
-        }
+        titleRelease();
+        rendererResetGameplay();
         /* Drop keyboard state accumulated while DOS and the loader owned the
            machine. playerInit() separately clears joystick/action edges. */
         platformResetGameInput();
-        platformFinishTakeover(titleCopperList());
+        platformFinishTakeover(rendererCopperList());
         rendererUpdateGameplay();
         /* COPJMP1 restarts a complete gameplay list. Arm it immediately after
            PAL wrap so no lower-screen wait from a partial list can briefly
@@ -305,12 +341,17 @@ int main(void)
         while(platformRasterLine()<300) { }
         while(platformRasterLine()>=300) { }
         platformSwitchCopper(rendererCopperList());
-        titleRelease();
         state=APP_PLAYING;
         continue;
     }
     break;
     }
+#ifdef SPARKPAW_EXTRA_LIFE_VISUAL_PROOF
+    platformRestore();
+    rendererWriteExtraLifeProof();
+    cleanup();
+    return 0;
+#endif
 #ifdef SPARKPAW_WHDLOAD
     platformRestore(); cleanup(); return 0;
 #endif

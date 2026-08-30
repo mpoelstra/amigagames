@@ -2,6 +2,7 @@
 #define SPARKPAW_GAME_H
 
 #include <exec/types.h>
+#include "extra_life_contract.h"
 
 struct GameState {
     LONG cameraX;
@@ -16,6 +17,8 @@ struct GameState {
     UBYTE diamonds;
     UBYTE waterSplashTimer;
     UBYTE coreCollectTimer;
+    UBYTE extraLifeState;
+    WORD extraLifeY;
     WORD waterSplashX;
 };
 

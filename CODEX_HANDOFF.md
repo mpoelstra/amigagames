@@ -45,14 +45,54 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.66`, Phase 6C.8. A normal release contains:
+Current release is `0.6.0-alpha.68`, Phase 6C.10. A normal release contains:
 
-- `Sparkpaw-0.6.0-alpha.66.lha`
-- `Sparkpaw-0.6.0-alpha.66.zip`
-- `Sparkpaw-0.6.0-alpha.66.adf`
-- `Sparkpaw-0.6.0-alpha.66-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.66-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.66/`
+- `Sparkpaw-0.6.0-alpha.68.lha`
+- `Sparkpaw-0.6.0-alpha.68.zip`
+- `Sparkpaw-0.6.0-alpha.68.adf`
+- `Sparkpaw-0.6.0-alpha.68-WHDLoad.lha`
+- `Sparkpaw-0.6.0-alpha.68-WHDLoad.zip`
+- extracted review drawer `Sparkpaw-0.6.0-alpha.68/`
+
+Alpha.68 is the Phase 6C.10 instant-Level-1-replay checkpoint. The results
+prompt reads `REPLAY LEVEL`; confirmation still fades the six-plane score
+display completely to black, but no longer unloads and reloads gameplay files,
+audio, conversion caches or renderer allocations. Both rolling playfield
+targets are restored from the clean canonical world, their dynamic histories
+are cleared and the new gameplay Copper is published just after PAL frame wrap.
+
+The first resident candidate was rejected by supplied FS-UAE/68030 HD evidence:
+staggered collectible updates temporarily drew several diamonds at y=0. Fresh
+collectibles now initialize their presentation coordinates from their authored
+spawn positions. Supplied FS-UAE/68030 HD retesting accepts the corrected replay
+as working well. Bounded native FS-UAE/68030 and FS-UAE/68020 proofs both reach
+fresh gameplay frame 11 at camera x=0 with valid collectible coordinates,
+1,049,392 Chip bytes free and a 985,984-byte largest Chip block. ADF, WHDLoad
+and real-hardware runtime acceptance remain pending.
+The bootable DOS1/FFS ADF uses 1,641 blocks (820 KiB) and leaves 119 free.
+Final artifact sizes are 658,307-byte HD LHA, 657,742-byte HD ZIP,
+901,120-byte ADF, 650,860-byte WHDLoad LHA and 651,576-byte WHDLoad ZIP.
+
+Alpha.67 is the Phase 6C.9 secret-extra-life checkpoint. Reaching the chamber
+beyond the Level-1 Core reveals one native masked `1UP` Bob at world x=3328.
+It falls from playfield y=0 to the floor at y=178 and remains collectible there.
+The level geometry makes crouching under the Core the route into the chamber,
+but the reveal itself is based only on reaching the far-right x threshold.
+Pickup awards one attempt up to x9, plays the unique `extra-life.raw` four-note
+Paula cue and cannot be repeated after a hazard/life restart in the same level
+attempt. A complete results replay creates a fresh attempt and restores it.
+
+Supplied FS-UAE/68030 HD review accepts the final presentation and behaviour as
+“wel ok voor nu”. The native framebuffer self-test also verifies the generated
+mask, palette and corrected planar-row addressing without the story intro or
+`dist/`; its PNG matches the accepted proof byte-for-byte. This is not
+FS-UAE/68020, ADF, WHDLoad or real-hardware runtime acceptance. The reusable
+self-test harness stages an ordinary temporary host directory as FS-UAE DH0
+and compiles all shortcuts behind `SPARKPAW_EXTRA_LIFE_VISUAL_PROOF`, so normal
+release binaries retain the complete intro and interactive flow.
+The bootable DOS1/FFS ADF uses 1,639 blocks (819 KiB) and leaves 121 free.
+Final artifact sizes are 657,959-byte HD LHA, 657,416-byte HD ZIP,
+901,120-byte ADF, 650,888-byte WHDLoad LHA and 651,589-byte WHDLoad ZIP.
 
 Alpha.66 is the Phase 6C.8 Paula one-shot audio-integrity checkpoint. All
 current effects reload a two-byte Chip-RAM silence word after their first pass,

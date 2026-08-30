@@ -6190,3 +6190,82 @@ artifacts and SHA-256 checksums are:
 - `Sparkpaw-0.6.0-alpha.66.adf` — 901,120 bytes — `f99bd3e4e7bb68f41455a2ee8cdbfbf478aa19a0941a1df271d0b78c83686d00`
 - `Sparkpaw-0.6.0-alpha.66-WHDLoad.zip` — 646,023 bytes — `11af6135436325e55de8d330817f3b15b3fb1dc0f5e110037dc4d636d421459a`
 - `Sparkpaw-0.6.0-alpha.66-WHDLoad.lha` — 645,318 bytes — `8864b34f9146cdc65725d73e18ffa88b08205184dbede93c6b961db12c3cd90d`
+
+### 30 August 2026 - Alpha.67 hides one extra life beyond the Level-1 Core
+
+Phase 6C.9 turns the previously quiet far-right pocket into one optional
+secret. When Sparkpaw reaches the chamber beyond the Core, a native masked
+`1UP` Bob appears at world x=3328 and falls from playfield y=0 to the floor at
+y=178. Crouching remains the natural way through the level geometry, but the
+trigger deliberately depends only on reaching the x threshold. Collection
+awards one attempt up to the existing x9 cap and plays a unique generated
+four-note `extra-life.raw` effect through prioritized Paula channel 1.
+
+The secret is single-use for the current level attempt. Hazard, dry-gap and
+life-loss restarts preserve its state alongside existing attempt progress; a
+complete post-results replay calls `gameInit()` and therefore restores it for
+the fresh attempt. The production renderer converts its compact 32x22x4 masked
+SPBM into the existing FRONT16 Bob layout. A host contract covers reveal,
+fall, collision and every planar-row offset; a generated-asset test covers the
+aligned transparent mask. These checks caught and corrected an early doubled
+row-offset defect that produced the striped wedge seen in rejected builds.
+
+Supplied FS-UAE/68030 HD review of the final candidate accepts the icon and
+behaviour as “wel ok voor nu”. A compile-guarded FS-UAE framebuffer proof also
+reaches the final camera directly, runs for a bounded number of native frames
+and writes its planar display for host decoding. The new reusable self-test
+harness stages a temporary ordinary directory as DH0, bypasses neither Amiga
+rendering nor native code and keeps all shortcuts out of production builds. Its
+final decoded PNG is byte-identical to the accepted proof. This does not imply
+FS-UAE/68020, ADF, WHDLoad or real-hardware runtime acceptance.
+
+The complete host suite and native HD/ADF/WHDLoad builds pass. The bootable
+DOS1/FFS ADF uses 1,639 blocks (819 KiB), leaving 121 free. Both LHA archives
+CRC-test clean with real `-lh5-` members; independently extracted ZIP/LHA trees
+compare identically. The active ExtraLife test drawer was archived intact under
+`dist/older-builds`, leaving the sole current alpha.67 release set. Final
+artifacts and SHA-256 checksums are:
+
+- `Sparkpaw-0.6.0-alpha.67.zip` — 657,416 bytes — `25d1093a0f553cfd33086ac741bc1ddf2a2774d23ac5d2f1d938a13e03be3685`
+- `Sparkpaw-0.6.0-alpha.67.lha` — 657,959 bytes — `0399f553b1f2dad695eb2cb64f7266a90a0342a7073f00554951eb3586a30dfd`
+- `Sparkpaw-0.6.0-alpha.67.adf` — 901,120 bytes — `b49c39c4edb4e0789d4da5103c084dee831f0bb15411b2468860969ae1826451`
+- `Sparkpaw-0.6.0-alpha.67-WHDLoad.zip` — 651,589 bytes — `744602ebdccf9af65830063e7dc42a6985544f0eb5d98ff3e4207e06d5e719a6`
+- `Sparkpaw-0.6.0-alpha.67-WHDLoad.lha` — 650,888 bytes — `a77f937eb52679ca0380c5f83ba53aff1db3c4e9e685e89dd2869176ed469a60`
+
+### 30 August 2026 - Alpha.68 makes Level-1 results replay instant
+
+Phase 6C.10 replaces alpha.64's complete post-results asset/renderer rebuild
+with a resident Level-1 reset. The final score prompt is regenerated as
+`REPLAY LEVEL`. Fire still fades the complete score display to black, preserving
+the accepted protection against the earlier bright-score corruption, but
+gameplay files, Paula samples, converted Bob patterns, Copper allocations and
+rolling targets remain in memory. Both targets are restored from the clean
+canonical world, all dynamic histories are cleared and the fresh gameplay list
+is published just after PAL frame wrap. The LOADING pause is removed.
+
+The first manual FS-UAE/68030 HD candidate was rejected when several diamonds
+flickered at the upper edge immediately after replay. Source tracing established
+that `collectiblesInit()` left presentation `drawnY` at zero; the normal loader
+hid this because preparation completed before publication, while the resident
+path exposed three staggered hover-update groups before their first slot. Fresh
+collectibles now initialize both presentation coordinates from their authored
+spawn. The rejected screenshot and analysis remain paired in `testresults`.
+
+Bounded native self-tests on the configured FS-UAE/68030 and FS-UAE/68020
+profiles both traverse score presentation, black fade, resident reset and eleven
+new gameplay frames. Each reports camera x=0, valid collectible coordinates,
+1,049,392 Chip bytes free and a 985,984-byte largest Chip block. MrDig's renewed
+manual FS-UAE/68030 HD playthrough accepts the corrected result as working well.
+These results do not imply ADF, WHDLoad or real-hardware runtime acceptance.
+
+The complete host suite and native HD/ADF/WHDLoad builds pass. The bootable
+DOS1/FFS ADF uses 1,641 blocks (820 KiB), leaving 119 free. Both LHA archives
+CRC-test clean and contain genuine `-lh5-` members. Independently extracted
+ZIP/LHA trees compare identically, and both archive families keep every path
+component at or below 28 characters. Final artifacts and SHA-256 checksums are:
+
+- `Sparkpaw-0.6.0-alpha.68.zip` — 657,742 bytes — `20d0997b0747673d4d8b4fbcc108e46330a6181462dd28de1b14073181dc8ce0`
+- `Sparkpaw-0.6.0-alpha.68.lha` — 658,307 bytes — `657116701b0ea90cc92c669fd51237951f4badd85e3e05659cd9b965db0957a2`
+- `Sparkpaw-0.6.0-alpha.68.adf` — 901,120 bytes — `d3bc35b04b571fed5befe379c691d43e88389098757f55f3e54e04ad836b2547`
+- `Sparkpaw-0.6.0-alpha.68-WHDLoad.zip` — 651,576 bytes — `ee3b255885247dba56746f2cec18a465df4733d8d0ed619d5028ec2eb2025109`
+- `Sparkpaw-0.6.0-alpha.68-WHDLoad.lha` — 650,860 bytes — `5fe72aee00277d9f923e813d0c975fa3137299904fa637a8eeac6c5786cd66c0`

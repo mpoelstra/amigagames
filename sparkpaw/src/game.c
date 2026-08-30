@@ -59,6 +59,10 @@ static BOOL spawnEnemyProjectile(WORD x,WORD y,BOOL facingLeft)
 
 static void updateCamera(void)
 {
+#ifdef SPARKPAW_EXTRA_LIFE_VISUAL_PROOF
+    game.cameraX=WORLD_W-SCREEN_W;
+    return;
+#else
     const struct PlayerState *player=playerState();
     LONG playerX=player->x>>8,wanted=game.cameraX;
     if(playerX>=3072||game.coreCollectTimer) wanted=WORLD_W-SCREEN_W;
@@ -75,6 +79,7 @@ static void updateCamera(void)
     if(wanted>game.cameraX+5) game.cameraX+=5;
     else if(wanted<game.cameraX-5) game.cameraX-=5;
     else game.cameraX=wanted;
+#endif
 }
 
 void gameInit(ULONG enemySeed)
@@ -86,8 +91,14 @@ void gameInit(ULONG enemySeed)
     game.enemiesDefeated=0; game.diamondsCollected=0;
     game.coreCollectTimer=0;
     game.enemySeed=enemySeed?enemySeed:0x53504157UL;
+    game.extraLifeState=EXTRA_LIFE_HIDDEN;
+    game.extraLifeY=EXTRA_LIFE_START_Y;
     game.lastFieldCounter=platformFieldCounter();
     playerInit(); enemiesInit(game.enemySeed); collectiblesInit(); projectilesInit();
+#ifdef SPARKPAW_EXTRA_LIFE_VISUAL_PROOF
+    game.cameraX=WORLD_W-SCREEN_W;
+    game.extraLifeState=EXTRA_LIFE_DROPPING;
+#endif
 }
 
 void gameUpdate(void)
@@ -133,6 +144,26 @@ void gameUpdate(void)
     performanceProfileEnd(PERF_PLAYER,profileStart);
     playerUpdateShot();
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+    /* Reaching the chamber beyond the Core reveals the secret. Crouching is
+       merely how the level geometry admits Sparkpaw, not the trigger itself. */
+    if(extraLifeShouldReveal(game.extraLifeState,playerLeft,playerRight)) {
+        game.extraLifeState=EXTRA_LIFE_DROPPING;
+        game.extraLifeY=EXTRA_LIFE_START_Y;
+    }
+    if(game.extraLifeState==EXTRA_LIFE_DROPPING) {
+        game.extraLifeY=extraLifeDropY(game.extraLifeY);
+        if(game.extraLifeY>=EXTRA_LIFE_GROUND_Y) {
+            game.extraLifeY=EXTRA_LIFE_GROUND_Y;
+            game.extraLifeState=EXTRA_LIFE_READY;
+        }
+    }
+    if(game.extraLifeState==EXTRA_LIFE_READY&&
+       extraLifeTouches(playerLeft,playerTop,playerRight,playerBottom,
+                        game.extraLifeY)) {
+        if(game.lives<GAME_MAX_LIVES) game.lives++;
+        game.extraLifeState=EXTRA_LIFE_COLLECTED;
+        audioPlayExtraLife();
+    }
     if(levelPlayerTouchesWater(playerLeft,playerRight,playerBottom)) {
         if(game.lives>1) game.lives--;
         else game.lives=GAME_START_LIVES;

@@ -55,5 +55,6 @@ const struct PlanarAsset *assetsHudDiamonds(void);
 const struct PlanarAsset *assetsHudScore(void);
 const struct PlanarAsset *assetsCollectibleDiamond(void);
 const struct PlanarAsset *assetsStormstoneCore(void);
+const struct PlanarAsset *assetsExtraLife(void);
 
 #endif

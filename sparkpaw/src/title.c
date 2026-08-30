@@ -753,6 +753,12 @@ void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
     UWORD shownEnemies=enemies,shownDiamonds=diamonds,shownTime=timeSeconds;
     ULONG total=0,expected=liveScore+(ULONG)timeSeconds*SCORE_TIME_MULTIPLIER;
     UBYTE phase=0,tick=0;
+#ifdef SPARKPAW_REPLAY_PROOF
+    publishScoreState(0,0,0,liveScore,TRUE);
+    waitOwnedDisplayFrame();
+    waitOwnedDisplayFrame();
+    return;
+#endif
     publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
     while(phase<3) {
         BOOL fire=resultFire();

@@ -3,7 +3,7 @@
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.66`. Roadmap checkpoint: Phase 6C.8 with accepted
+Current release: `0.6.0-alpha.68`. Roadmap checkpoint: Phase 6C.10 with accepted
 Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -17,6 +17,44 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Alpha.68 makes the one-level results replay instant. The final prompt now reads
+`REPLAY LEVEL`; Fire fades the score screen fully to black and starts a fresh
+attempt without returning to the LOADING screen or reading gameplay files
+again. Both rolling playfields are restored from the clean level before the
+new frame appears, while gameplay art, audio and prepared effects remain in
+memory. The first candidate was rejected because some staggered diamonds
+briefly appeared at the top edge after replay. Initial presentation positions
+now come directly from every diamond's authored spawn.
+
+Supplied FS-UAE/68030 HD retesting accepts the corrected replay as working
+well. Bounded automatic native proofs also complete on the configured 68030 and
+68020 profiles with valid collectible positions and more than 1 MiB Chip RAM
+free after replay. This does not establish ADF, WHDLoad or real-hardware runtime
+acceptance.
+The bootable alpha.68 DOS1/FFS ADF uses 1,641 blocks (820 KiB) and leaves 119
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 658,307-byte HD LHA, 657,742-byte HD ZIP, 901,120-byte ADF,
+650,860-byte WHDLoad LHA and 651,576-byte WHDLoad ZIP.
+
+Alpha.67 adds one secret extra life in the chamber beyond the Level-1 Core.
+Reaching the far-right threshold reveals a native masked `1UP` Bob at world
+x=3328; it falls from the playfield top to floor y=178 and remains there until
+collected. Crouching beneath the Core is the level route into the chamber, not
+an extra input condition on the trigger. Pickup increases attempt stock once,
+up to x9, and plays a unique four-note Paula cue. Hazard and life-loss restarts
+preserve its collected state during the current attempt; the complete
+post-results replay restores it as part of a fresh attempt.
+
+Supplied FS-UAE/68030 HD review accepts the final icon and behaviour as “wel ok
+voor nu”. A compile-guarded, intro-free native framebuffer proof separately
+verifies the generated transparency mask, palette and planar addressing outside
+`dist/`; those shortcuts are absent from production builds. FS-UAE/68020, ADF,
+WHDLoad and real-hardware alpha.67 runtime acceptance remain pending.
+The bootable alpha.67 DOS1/FFS ADF uses 1,639 blocks (819 KiB) and leaves 121
+free; this is package/decode evidence, not ADF runtime acceptance. Final
+artifacts are 657,959-byte HD LHA, 657,416-byte HD ZIP, 901,120-byte ADF,
+650,888-byte WHDLoad LHA and 651,589-byte WHDLoad ZIP.
 
 Alpha.66 corrects the lifecycle of all current Paula effects without changing
 their generated sample bytes, channel layout, gameplay triggers or priorities.
@@ -999,12 +1037,12 @@ make
 This regenerates planar runtime assets and builds the native executable
 `sparkpaw`. Run `make release` to rebuild all test packages:
 
-- `dist/Sparkpaw-0.6.0-alpha.66.lha`
-- `dist/Sparkpaw-0.6.0-alpha.66.zip`
-- `dist/Sparkpaw-0.6.0-alpha.66.adf`
-- `dist/Sparkpaw-0.6.0-alpha.66-WHDLoad.lha`
-- `dist/Sparkpaw-0.6.0-alpha.66-WHDLoad.zip`
-- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.66/`
+- `dist/Sparkpaw-0.6.0-alpha.68.lha`
+- `dist/Sparkpaw-0.6.0-alpha.68.zip`
+- `dist/Sparkpaw-0.6.0-alpha.68.adf`
+- `dist/Sparkpaw-0.6.0-alpha.68-WHDLoad.lha`
+- `dist/Sparkpaw-0.6.0-alpha.68-WHDLoad.zip`
+- extracted review drawer `dist/Sparkpaw-0.6.0-alpha.68/`
 
 Release LHA files use genuine `-lh5-` compression. Packaging requires classic
 LHa 1.14i at `.toolchain/lha/bin/lha` (ignored, project-local), or an equivalent

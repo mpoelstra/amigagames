@@ -1,0 +1,37 @@
+Sparkpaw instant Level-1 replay candidate
+==========================================
+
+Target: A1200/68030 HD (also compiles and completes the automatic proof on
+FS-UAE/68020).
+
+What changed
+------------
+
+- The final score prompt now reads REPLAY LEVEL.
+- Fire still fades the score screen completely to black.
+- Level 1 then restarts from resident gameplay assets and renderer buffers;
+  there is no LOADING screen and no DOS asset reload.
+- Both rolling playfield targets are restored from the clean canonical world
+  before the new gameplay Copper list is published. This is specifically meant
+  to prevent the old score/reload corruption from returning.
+
+Please test
+-----------
+
+1. Complete Level 1 normally by collecting the Stormstone Core.
+2. Let the tally finish, or skip rows with Fire.
+3. Confirm that the final prompt says REPLAY LEVEL.
+4. Press Fire once.
+5. Check that Level 1 returns quickly with no LOADING screen, corrupt frame,
+   old Core/1UP/enemy fragments, wrong HUD values, audio glitch or input carry.
+6. Walk and fire for a few seconds after the replay to expose delayed damage.
+
+Automatic native proof already passed on FS-UAE A1200/68030 and A1200/68020:
+both reached gameplay frame 11 after resident replay at camera x=0, with
+1,049,392 bytes Chip RAM free and a 985,984-byte largest Chip block. This is
+bounded emulator evidence, not acceptance of the complete manual transition.
+
+The first manual candidate was rejected because staggered diamond updates drew
+some newly initialized Bobs temporarily at y=0. This build initializes every
+diamond at its authored spawn position before the first resident frame. The
+repeated 68030 and 68020 native proofs report `collectibles=valid` after replay.

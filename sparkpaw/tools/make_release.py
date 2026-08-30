@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.6.0-alpha.66"
-ROADMAP_CHECKPOINT = "6C.8"
+RELEASE_VERSION = "0.6.0-alpha.68"
+ROADMAP_CHECKPOINT = "6C.10"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -76,6 +76,7 @@ RUNTIME_FILES = (
     "sparkpaw-score-glyphs.spbm",
     "sparkpaw-diamond.spbm",
     "stormstone-core.spbm",
+    "sparkpaw-extra-life.spbm",
     "storm-front.spbm",
     "storm-rear.spbm",
     "storm-collision.bin",
@@ -92,6 +93,7 @@ RUNTIME_FILES = (
     "water-splash.raw",
     "stormstone-core.raw",
     "tally-tick.raw",
+    "extra-life.raw",
     "intro1.spbm",
     "intro2.spbm",
     "intro3.spbm",
@@ -111,8 +113,34 @@ RUNTIME_README = f"""Sparkpaw: The Stormstone Quest
 =================================
 
 AGA alpha {RELEASE_VERSION}
-Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} audio integrity
+Roadmap checkpoint: Phase {ROADMAP_CHECKPOINT} instant Level-1 replay
 MrDig Productions - Copyright 2026
+
+Alpha.68 replaces the post-results Level-1 asset reload with an instant resident
+replay. The final prompt now reads `REPLAY LEVEL`; Fire still fades the complete
+score display to black before both rolling gameplay targets are restored from
+the clean canonical world and a fresh attempt is published at PAL frame wrap.
+Gameplay assets, converted Bob caches, audio and renderer allocations stay in
+memory, removing the LOADING pause that was especially noticeable on 68020.
+The first candidate exposed staggered diamonds at y=0 and was rejected. Every
+collectible now initializes its presentation coordinates from its authored
+spawn before the first replay frame. Supplied FS-UAE/68030 HD testing accepts
+the corrected transition, and bounded native FS-UAE/68030 and FS-UAE/68020
+proofs both reach new gameplay with valid collectible positions. ADF, WHDLoad
+and real-hardware runtime acceptance remain separate.
+
+Alpha.67 adds one hidden extra life beyond the Level-1 Stormstone Core. Reaching
+the far-right chamber reveals a native masked `1UP` Bob that falls from the top
+of the playfield and rests on the floor until collected. The geometry still
+makes crouching beneath the Core the natural route, but crouch state is not the
+trigger. Collection raises the current attempt stock once, capped at x9, and
+plays a unique four-note Paula effect on the prioritized gameplay channel. The
+secret remains collected across hazard or life-loss restarts within the same
+attempt and returns only after the complete post-results replay. Supplied
+FS-UAE/68030 HD review accepts the final icon and behaviour as good enough for
+now. A compile-guarded native framebuffer proof independently verifies the
+generated mask, palette and bitplane layout without changing production code.
+FS-UAE/68020, ADF, WHDLoad and real-hardware runtime acceptance remain separate.
 
 Alpha.66 corrects Paula one-shot playback across every current effect. Samples
 now reload a two-byte Chip-RAM silence word instead of restarting from their

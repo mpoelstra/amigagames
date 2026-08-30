@@ -27,6 +27,11 @@ void collectiblesInit(void)
     for(index=0;index<MAX_COLLECTIBLES;index++) {
         collectibles[index].x=spawnX[index];
         collectibles[index].y=spawnY[index];
+        /* Resident replay may draw a collectible before its staggered hover
+           update slot. Give that first Bob a valid world position instead of
+           the zeroed y=0 presentation coordinate. */
+        collectibles[index].drawnX=spawnX[index];
+        collectibles[index].drawnY=spawnY[index];
         collectibles[index].active=TRUE;
     }
 }

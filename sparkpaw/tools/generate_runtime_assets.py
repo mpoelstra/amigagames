@@ -508,6 +508,35 @@ def make_hud() -> tuple[Image.Image, Image.Image, Image.Image, Image.Image, Imag
     return base, health_atlas, lives_atlas, diamonds_atlas, score_atlas
 
 
+def make_extra_life_pickup(_hud: Image.Image) -> tuple[Image.Image, bytes]:
+    """Build a native, compact and unambiguous stacked 1UP pickup."""
+    # Match the accepted diamond source exactly: one visible 16px cell followed
+    # by a physically stored zero guard word in the SPBM itself.
+    image=indexed_image((32,22),FRONT16,0)
+    glyphs={
+        "1":(0b010,0b110,0b010,0b010,0b111),
+        "U":(0b101,0b101,0b101,0b101,0b111),
+        "P":(0b110,0b101,0b110,0b100,0b100),
+    }
+    pixels=image.load()
+    cells=[]
+    for char,left,top,pen in (("1",5,1,4),("U",1,12,6),("P",9,12,5)):
+        for row,bits in enumerate(glyphs[char]):
+            for col in range(3):
+                if bits&(0b100>>col):
+                    for yy in range(top+row*2,top+row*2+2):
+                        for xx in range(left+col*2,left+col*2+2):
+                            cells.append((xx,yy,pen))
+    # One dark pixel of outline gives the cream/cyan/blue glyphs separation
+    # from both storm scenery and the warm Core clearing.
+    for x,y,_pen in cells:
+        for yy in range(max(0,y-1),min(22,y+2)):
+            for xx in range(max(0,x-1),min(16,x+2)):
+                pixels[xx,yy]=1
+    for x,y,pen in cells: pixels[x,y]=pen
+    return image,bitmap_mask(image)
+
+
 def make_collectible_diamond() -> tuple[Image.Image, bytes]:
     """Render the shared semantic master into the padded world Bob row."""
     image=indexed_image((32,21),FRONT8,0)
@@ -1718,6 +1747,7 @@ def main() -> None:
     title.save(TITLE_RUNTIME_PREVIEW)
     level_loading,level_charging,level_loading_palette = make_level_loading()
     hud_base,hud_health,hud_lives,hud_diamonds,hud_score = make_hud()
+    extra_life,extra_life_mask = make_extra_life_pickup(hud_base)
     collectible_diamond,collectible_diamond_mask = make_collectible_diamond()
     stormstone_core,stormstone_core_mask = make_stormstone_core()
 
@@ -1744,6 +1774,11 @@ def main() -> None:
               FRONT16,depth=4,mask=collectible_diamond_mask)
     save_spbm(RUNTIME / "stormstone-core.spbm",stormstone_core,
               FRONT16,depth=4,mask=stormstone_core_mask)
+    save_spbm(RUNTIME / "sparkpaw-extra-life.spbm",extra_life,
+              FRONT16,depth=4,mask=extra_life_mask)
+    extra_life.crop((0,0,16,22)).resize(
+        (64,88),Image.Resampling.NEAREST).save(
+        ROOT / "assets" / "concept" / "sparkpaw-extra-life-aga16-preview.png")
     core_preview=stormstone_core.resize(
         (64*4,48*CORE_RUNTIME_FRAMES*4),Image.Resampling.NEAREST)
     core_preview.save(ROOT / "assets" / "concept" /
@@ -1800,6 +1835,8 @@ def main() -> None:
         make_stormstone_core_triumph_raw())
     (RUNTIME / "tally-tick.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "tally-tick.raw").read_bytes())
+    (RUNTIME / "extra-life.raw").write_bytes(
+        (ROOT / "sfx" / "raw" / "extra-life.raw").read_bytes())
     world = indexed_image((WORLD_W, WORLD_H), WORLD_PALETTE, 16)
     shifted_bg = bg.point(lambda p: p + 16)
     for x in range(0, WORLD_W, PARALLAX_W):

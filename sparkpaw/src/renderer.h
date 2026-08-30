@@ -5,11 +5,20 @@
 
 BOOL rendererLoadGameplay(void);
 BOOL rendererPrepareGameplay(void);
+void rendererResetGameplay(void);
 void rendererCleanup(void);
 UWORD *rendererCopperList(void);
 void rendererUpdateGameplay(void);
 BOOL rendererPublishGameplay(UWORD rasterLine);
 void rendererDrawGameplayBobs(void);
+
+#ifdef SPARKPAW_EXTRA_LIFE_VISUAL_PROOF
+BOOL rendererWriteExtraLifeProof(void);
+#endif
+
+#ifdef SPARKPAW_REPLAY_PROOF
+BOOL rendererReplayPresentationValid(void);
+#endif
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 void rendererDiagnosticUpdateEntry(UWORD line);

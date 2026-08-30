@@ -21,6 +21,7 @@ WHDLOAD_INTRO_DIAG_TARGET = build/sparkpaw-whdload-introdiag
 PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
 INTRO_PROOF_TARGET = build/sparkpaw-intro-proof
+REPLAY_PROOF_TARGET = build/sparkpaw-replay-proof
 INTRO_PROOF_DRAWER ?= IntroProof-030-HD
 STORY_INTRO_ASSETS = assets/runtime/intro1.spbm assets/runtime/intro2.spbm \
 	assets/runtime/intro3.spbm assets/runtime/intro4.spbm \
@@ -104,7 +105,7 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
-HEADERS = src/assets.h src/audio.h src/audio_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
+HEADERS = src/assets.h src/audio.h src/audio_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
@@ -118,6 +119,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-hud-score.spbm \
 	assets/runtime/sparkpaw-diamond.spbm \
 	assets/runtime/stormstone-core.spbm \
+	assets/runtime/sparkpaw-extra-life.spbm \
 	assets/runtime/storm-front.spbm \
 	assets/runtime/storm-rear.spbm \
 	assets/runtime/storm-collision.bin \
@@ -131,6 +133,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/water-splash.raw \
 	assets/runtime/stormstone-core.raw \
 	assets/runtime/tally-tick.raw \
+	assets/runtime/extra-life.raw \
 	assets/runtime/sparkpaw-level-complete.spbm \
 	assets/runtime/sparkpaw-score-glyphs.spbm \
 	assets/runtime/clockwork-beetle.spbm \
@@ -168,8 +171,11 @@ test:
 	$(PYTHON) tests/test_runtime_memory_layout.py
 	$(PYTHON) tests/test_sparkpaw_icon.py
 	$(PYTHON) tests/test_shared_diamond_master.py
+	$(PYTHON) tests/test_extra_life_asset.py
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-audio-contract tests/test_audio_contract.c
 	build/host-tests/test-audio-contract
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-extra-life-contract tests/test_extra_life_contract.c
+	build/host-tests/test-extra-life-contract
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-control-options tests/test_control_options.c
 	build/host-tests/test-control-options
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-camera-contract tests/test_camera_contract.c
@@ -421,7 +427,8 @@ $(RUNTIME_ASSETS): tools/generate_runtime_assets.py tools/generate_score_screen.
 	sfx/raw/enemy-death.raw \
 	sfx/raw/strider-shot.raw \
 	sfx/raw/jump.raw \
-	sfx/raw/tally-tick.raw
+	sfx/raw/tally-tick.raw \
+	sfx/raw/extra-life.raw
 	$(PYTHON) tools/generate_runtime_assets.py
 
 $(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
@@ -433,7 +440,7 @@ $(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
 	$(PYTHON) tools/generate_intro_proof.py
 
 sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/enemy-death.raw sfx/raw/strider-shot.raw \
-sfx/raw/jump.raw sfx/raw/collect-spark.raw sfx/raw/tally-tick.raw: \
+sfx/raw/jump.raw sfx/raw/collect-spark.raw sfx/raw/tally-tick.raw sfx/raw/extra-life.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
@@ -459,6 +466,15 @@ $(INTRO_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DSPARKPAW_STORY_INTRO -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+
+$(REPLAY_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		$(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_REPLAY_PROOF -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-o $@ $(SOURCES)
+
+replay-proof: $(REPLAY_PROOF_TARGET)
 
 intro-proof-package: $(INTRO_PROOF_TARGET)
 	$(PYTHON) tools/stage_hd_test.py \

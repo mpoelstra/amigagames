@@ -16,6 +16,7 @@ void audioPlayEnemyDeath(void);
 void audioPlayStriderShot(void);
 void audioPlayJump(void);
 void audioPlayCollect(void);
+void audioPlayExtraLife(void);
 void audioPlayWaterSplash(void);
 void audioPlayStormstoneCore(void);
 void audioPlayTallyTick(void);

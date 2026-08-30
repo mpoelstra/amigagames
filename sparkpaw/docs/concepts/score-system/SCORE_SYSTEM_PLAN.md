@@ -8,6 +8,23 @@ accepted as better in supplied FS-UAE/68030 HD A/B evidence plus a focused
 real-A1200/68030 HD tally/replay recording. ADF, WHDLoad and alpha.66
 FS-UAE/68020 runtime acceptance remain pending.
 
+Phase 6C.9 adds the accepted Level-1 secret extra life beyond the Core. Its
+collected state survives hazard/life restarts inside the current attempt, while
+the existing complete post-results replay starts a fresh attempt and restores
+the secret. The score-screen replay itself is intentionally unchanged in this
+checkpoint; the planned resident/instant replay optimization remains a separate
+candidate so it cannot destabilize the accepted alpha.67 feature set.
+
+Phase 6C.10 promotes the corrected resident replay as alpha.68. The final
+prompt is `REPLAY LEVEL`; gameplay files, audio, caches and renderer allocations
+remain resident while both rolling targets are restored from the canonical
+world behind a complete fade to black. The first candidate's y=0 diamonds were
+traced to zeroed presentation coordinates before their staggered hover slot;
+fresh collectibles now start at their authored spawn positions. Supplied
+FS-UAE/68030 HD retesting accepts the correction. Automatic native 68030 and
+68020 proofs validate the fresh camera, collectible coordinates and remaining
+Chip memory; ADF, WHDLoad and real-hardware runtime acceptance remain open.
+
 ## Implemented candidate contract
 
 - unique authored enemy spawn: 20 points; a respawn cannot score twice;
@@ -18,8 +35,9 @@ FS-UAE/68020 runtime acceptance remain pending.
 - hidden PAL field counter, 120-second par and 10 points per saved second;
 - four-digit HUD display clamps visually at 9999 while the internal total is
   32-bit;
-- Core completion stops gameplay simulation, frees the gameplay renderer and
-  loads a separate double-buffered 320x256 six-plane results presenter;
+- Core completion stops gameplay simulation while retaining the gameplay
+  renderer, then loads a separate double-buffered 320x256 six-plane results
+  presenter alongside it;
 - Core collection is the sole Level-1 completion trigger; reaching or crouching
   against the solid right world boundary never restarts or completes the level;
 - tally rows redraw only their small hidden numeric strips, play one bounded
@@ -27,18 +45,16 @@ FS-UAE/68020 runtime acceptance remain pending.
 - the four cyan row labels are regenerated as native 5x7 pixel faces on the
   same hard-pixel grid as the dynamic yellow values; no reduced concept-art
   lettering remains inside the table;
-- after the final tally, a centred native `PRESS FIRE TO CONTINUE` prompt is
+- after the final tally, a centred native `REPLAY LEVEL` prompt is
   revealed; the resident replay installs its gameplay Copper list only just
   after PAL frame wrap to avoid executing a partial lower-screen list;
-- final Fire fades the result presenter fully to black before Exec/DOS reloads
-  Level 1. During that full reload, the existing `LOADING` composition remains
-  visible so the slower 68020 renderer rebuild cannot resemble a black-screen
-  hang; completion then enters a fresh attempt without exposing the system
-  View. A
-  supplied 60-fps recording rejected keeping the custom score display visible
-  during loading because graphics/Blitter preparation leaked one corrupted
-  pre-fade frame. This
-  resident replay is an explicitly temporary, Level-1-only convenience while
+- final Fire fades the result presenter fully to black before both resident
+  rolling targets are restored from the clean canonical world and their
+  dynamic history is cleared. No gameplay file load or LOADING screen remains.
+  A supplied 60-fps recording still establishes why the black fade is required:
+  keeping the score display bright during renderer mutation leaked a corrupted
+  frame. This resident replay is an explicitly temporary, Level-1-only
+  convenience while
   the game has one playable level. A multi-level build must replace it with a
   level-flow/state-machine transition that selects and loads the next level.
 

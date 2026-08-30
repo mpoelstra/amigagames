@@ -30,11 +30,12 @@ RUNTIME_FILES = (
     "level-charge-patch.spbm", "sparkpaw-hud-base.spbm",
     "sparkpaw-hud-health.spbm", "sparkpaw-hud-lives.spbm",
     "sparkpaw-hud-diamonds.spbm", "sparkpaw-diamond.spbm",
+    "sparkpaw-extra-life.spbm",
     "storm-front.spbm", "storm-rear.spbm", "storm-collision.bin",
     "sparkpaw-sprites4.spbm", "clockwork-beetle.spbm",
     "clockwork-storm-strider.spbm", "energy-shot.raw", "player-hurt.raw",
     "enemy-hit.raw", "enemy-death.raw", "strider-shot.raw", "jump.raw",
-    "collect-spark.raw", "water-splash.raw",
+    "collect-spark.raw", "water-splash.raw", "extra-life.raw",
 )
 
 
