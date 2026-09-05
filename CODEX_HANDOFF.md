@@ -10,6 +10,16 @@ Performance research is explicitly parked. Completed local alpha.1 and disk
 candidates are archived intact. Older dated entries below are historical,
 not instructions to reactivate tests or claims about current native acceptance.
 
+## Standing release-notes agreement
+
+All player-facing "What's new since the latest itch version" content must be
+written in English: devlog title, headings, bullets and compatibility note,
+even when the conversation is Dutch. Save the complete text in the versioned
+`sparkpaw/docs/RELEASE_NOTES_*.md` file and use that English text in the handoff.
+Cover the full visible delta since the verified public version, not merely the
+last local commit or a five-bullet packaging summary. Keep technical lessons
+and unsupported performance/platform claims out of player-facing feature lists.
+
 ## Start here
 
 Sparkpaw is the active project. At the start of a task:

@@ -114,6 +114,19 @@ only when requested, using the generic `git-ship` skill after these gates pass.
 
 ## Write player-facing itch release notes
 
+Standing user agreement: all player-facing release-note content MUST be in
+English: devlog title, What's new heading, body/bullets and compatibility note.
+This applies even when the conversation is Dutch. The fixed Dutch handoff
+wrapper below is not part of the player-facing copy. Save the full English text
+in sparkpaw/docs/RELEASE_NOTES_<version>.md and reuse that canonical text.
+
+Cover the complete visible delta since the verified public itch version, not
+only the final local commit or packaging work. Scale detail to the actual
+changes: campaign flow, new playable content, scenery, enemies/rewards/hazards,
+finale/audio/results and edition-specific changes. Distinguish retained baseline
+features from new ones. Avoid a token five-bullet summary when it hides most of
+the release, and do not inflate length with internal implementation details.
+
 End every completed release handoff with a separate copy-ready section headed
 exactly:
 

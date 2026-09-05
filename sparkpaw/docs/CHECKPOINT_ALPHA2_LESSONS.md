@@ -54,3 +54,15 @@
   alpha.62. Record the live baseline and write the complete player-facing delta.
 - Runtime assets and tools must be reproducible from committed sources; do not
   depend on a temporary audit manifest for production compiler flags or hashes.
+
+
+## Release-notes language and completeness
+
+Standing user agreement: all player-facing "What's new since the latest itch
+version" text is English, including title/headings/compatibility note, even in
+a Dutch conversation. Keep a versioned RELEASE_NOTES_*.md as the canonical copy.
+The first handoff was incorrectly Dutch and too short. Compare the whole public
+baseline delta: campaign progression, boarding/flight, scenery, enemies/rewards,
+debris, finale/audio/results and package-specific changes. Do not present an
+existing alpha.68 feature as new (Level-1 instant replay and button assignment
+already existed), or turn speculative performance work into a promised gain.

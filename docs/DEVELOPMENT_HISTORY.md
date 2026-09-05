@@ -6655,3 +6655,15 @@ live devlog agrees. A stale web result showed alpha.62 and was not used as the
 release baseline. No upload performed. Existing optimizer warnings remain.
 Lessons are recorded in CHECKPOINT_ALPHA2_LESSONS.md and project test/release
 skills. Full artifact SHA256/byte inventory: RELEASE_0_7_0_ALPHA_2.md.
+
+
+## Alpha.2 release-note correction and standing agreement
+
+User requires the player-facing What's new since the public itch version to
+always be English and saved as Markdown. The initial handoff was Dutch and
+underrepresented the full alpha.68 -> alpha.2 delta. Expanded the canonical
+RELEASE_NOTES_0_7_0_ALPHA_2.md across campaign progression, departure/boarding,
+flight environments, formations/rewards/debris, Harrier attacks/audio, results
+and the package changes. Preserve distinctions between retained alpha.68
+features, new content and medium-specific test claims. Documentation only;
+no game binary, assets or release package changed.
