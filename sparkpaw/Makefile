@@ -22,6 +22,29 @@ PHASE6_MEMORY_TARGET = build/sparkpaw-phase6-memory
 RENDER_DIAG_TARGET = build/sparkpaw-renderdiag
 INTRO_PROOF_TARGET = build/sparkpaw-intro-proof
 REPLAY_PROOF_TARGET = build/sparkpaw-replay-proof
+STORMRAIL_PROOF_TARGET = build/sparkpaw-stormrail-proof
+STORMRAIL_TEST_TARGET = build/sparkpaw-stormrail-test
+STORMRAIL_WRAP_TARGET = build/sparkpaw-stormrail-wrap-proof
+STORMRAIL_CADENCE_TARGET = build/sparkpaw-stormrail-cadence-proof
+STORMRAIL_USER_CADENCE_TARGET = build/sparkpaw-stormrail-user-cadence
+STORMRAIL_PROFILE_TARGET = build/sparkpaw-stormrail-profile
+STORMRAIL_FINALE_PROOF_TARGET = build/sparkpaw-stormrail-finale-proof
+STORMRAIL_FINALE_TEST_TARGET = build/sparkpaw-stormrail-finale-test
+STORMRAIL_FINALE_CADENCE_TARGET = build/sparkpaw-stormrail-finale-cadence
+STORMRAIL_FINALE_PROFILE_TARGET = build/sparkpaw-stormrail-finale-profile
+STORMRAIL_INTERLUDE_TEST_TARGET = build/sparkpaw-stormrail-interlude-test
+STORMRAIL_INTERLUDE_CADENCE_TARGET = build/sparkpaw-stormrail-interlude-cadence
+STORMRAIL_RESULTS_TEST_TARGET = build/sparkpaw-stormrail-results-test
+CAMPAIGN_TEST_TARGET = build/sparkpaw-campaign-test
+CAMPAIGN_SPLIT_RENDERER_TARGET = build/sparkpaw-campaign-split-renderer
+CAMPAIGN_PLAY_TARGET = build/sparkpaw-campaign-play
+CAMPAIGN_CADENCE_TARGET = build/sparkpaw-campaign-cadence
+CAMPAIGN_LEVEL1_CADENCE_TARGET = build/sparkpaw-campaign-level1-cadence
+CAMPAIGN_LEVEL1_RENDERER_ISO_TARGET = build/sparkpaw-campaign-level1-renderer-iso
+CAMPAIGN_LEVEL1_PHYSICAL_SPLIT_TARGET = build/sparkpaw-campaign-level1-physical-split
+LEVEL1_ISOLATED_CADENCE_TARGET = build/sparkpaw-level1-isolated-cadence
+CAMPAIGN_LEVEL1_PROFILE_TARGET = build/sparkpaw-campaign-level1-profile
+STORMRAIL_OBSTACLE_ASSET = assets/runtime/stormrail-obstacles.spbm
 INTRO_PROOF_DRAWER ?= IntroProof-030-HD
 STORY_INTRO_ASSETS = assets/runtime/intro1.spbm assets/runtime/intro2.spbm \
 	assets/runtime/intro3.spbm assets/runtime/intro4.spbm \
@@ -105,9 +128,13 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c
-HEADERS = src/assets.h src/audio.h src/audio_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
+SPLIT_RENDERER_SOURCES = $(filter-out src/renderer.c,$(SOURCES)) \
+	src/renderer_level1_unit.c src/renderer_stormrail_unit.c src/renderer_dispatch.c
+HEADERS = src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
+HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
+	src/stormrail_results_contract.h
 RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \
@@ -118,6 +145,7 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-hud-diamonds.spbm \
 	assets/runtime/sparkpaw-hud-score.spbm \
 	assets/runtime/sparkpaw-diamond.spbm \
+	assets/runtime/stormrail-heart.spbm \
 	assets/runtime/stormstone-core.spbm \
 	assets/runtime/sparkpaw-extra-life.spbm \
 	assets/runtime/storm-front.spbm \
@@ -128,6 +156,10 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/enemy-hit.raw \
 	assets/runtime/enemy-death.raw \
 	assets/runtime/strider-shot.raw \
+	assets/runtime/harrier-fan-charge.raw \
+	assets/runtime/harrier-fan-fire.raw \
+	assets/runtime/harrier-hunter-charge.raw \
+	assets/runtime/harrier-hunter-fire.raw \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
 	assets/runtime/water-splash.raw \
@@ -140,9 +172,11 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 	assets/runtime/clockwork-storm-strider.spbm \
 	assets/runtime/sparkpaw-sprites.spbm \
 	assets/runtime/sparkpaw-sprites3.spbm \
-	assets/runtime/sparkpaw-sprites4.spbm
+	assets/runtime/sparkpaw-sprites4.spbm \
+	assets/runtime/sparkpaw-sprites4-storm.spbm
 
 .PHONY: all clean test assets release whdload whdload-introdiag-package bench bench-package renderdiag
+.PHONY: stormrail-interlude-test stormrail-interlude-cadence stormrail-results-test campaign-test campaign-split-renderer campaign-cadence campaign-level1-cadence campaign-level1-renderer-iso campaign-level1-physical-split level1-isolated-cadence campaign-level1-profile
 .PHONY: aga32-scroll-proof aga32-scroll-proof-package aga-origin-ab-proof aga-origin-ab-proof-package aga-origin-corrected-proof aga-origin-corrected-proof-package aga-left-guard-proof-package
 .PHONY: aga64-origin-proof-package aga64-origin-corrected-proof-package aga64-ring-ab-proof-package fmode0-early-word-ab-proof-package fmode0-early-word-corrected-package aga64-player-sprite-proof-package aga64-gameplay-package aga32-gameplay-corrected-package aga32-left-guard-gameplay-package
 .PHONY: renderdiag-package renderdiag-adf-package hud-seam-diagnostic-package hud-seam-h2-diagnostic-package hud-seam-h3-diagnostic-package hud-seam-h4-diagnostic-package hud-seam-h5-source-isolation-package hud-seam-h6-playfield-isolation-package hud-seam-h7-production-package
@@ -167,13 +201,30 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 all: assets $(TARGET)
 
 test:
+	$(PYTHON) tests/test_campaign_level1_isolation.py
+	$(PYTHON) tests/test_campaign_asset_ownership.py
 	@mkdir -p build/host-tests
 	$(PYTHON) tests/test_runtime_memory_layout.py
 	$(PYTHON) tests/test_sparkpaw_icon.py
 	$(PYTHON) tests/test_shared_diamond_master.py
 	$(PYTHON) tests/test_extra_life_asset.py
+	$(PYTHON) tests/test_stormrail_heart_asset.py
+	$(PYTHON) tests/test_stormrail_compact_asset.py
+	$(PYTHON) tests/test_stormrail_obstacle_asset.py
+	$(PYTHON) tests/test_stormrail_finale_render_bounds.py
+	$(PYTHON) tests/test_stormrail_debris_timeline.py
+	$(PYTHON) tests/test_stormrail_results_integration.py
+	$(PYTHON) tests/test_campaign_integration.py
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-audio-contract tests/test_audio_contract.c
 	build/host-tests/test-audio-contract
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-stormrail-contract tests/test_stormrail_contract.c
+	build/host-tests/test-stormrail-contract
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -Wno-unused-function -o build/host-tests/test-stormrail-finale-contract tests/test_stormrail_finale_contract.c
+	build/host-tests/test-stormrail-finale-contract
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -Wno-unused-function -o build/host-tests/test-stormrail-results-contract tests/test_stormrail_results_contract.c
+	build/host-tests/test-stormrail-results-contract
+	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -Wno-unused-function -o build/host-tests/test-campaign-contract tests/test_campaign_contract.c
+	build/host-tests/test-campaign-contract
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-extra-life-contract tests/test_extra_life_contract.c
 	build/host-tests/test-extra-life-contract
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -o build/host-tests/test-control-options tests/test_control_options.c
@@ -440,19 +491,14 @@ $(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
 	$(PYTHON) tools/generate_intro_proof.py
 
 sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/enemy-death.raw sfx/raw/strider-shot.raw \
+sfx/raw/harrier-fan-charge.raw sfx/raw/harrier-fan-fire.raw sfx/raw/harrier-hunter-charge.raw sfx/raw/harrier-hunter-fire.raw \
 sfx/raw/jump.raw sfx/raw/collect-spark.raw sfx/raw/tally-tick.raw sfx/raw/extra-life.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
 
-$(TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
-	@mkdir -p "$(TMPDIR)"
-	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
-		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
-
-$(WHDLOAD_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
-	@mkdir -p "$(TMPDIR)" "$(dir $@)"
-	$(CC) $(CFLAGS) -DSPARKPAW_WHDLOAD -DSPARKPAW_ROLLING_PROTOTYPE \
-		$(RELEASE_RENDERER_FLAGS) -o $@ $(SOURCES)
+# The shipping HD game is exactly the accepted complete, logger-free campaign.
+$(TARGET): $(CAMPAIGN_PLAY_TARGET)
+	cp $< $@
 
 $(WHDLOAD_INTRO_DIAG_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) $(STORY_INTRO_ASSETS) $(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
@@ -471,7 +517,346 @@ $(REPLAY_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
 		$(READY_SCREEN_ASSET) $(READY_MENU_ASSET)
 	@mkdir -p "$(TMPDIR)" "$(dir $@)"
 	$(CC) $(CFLAGS) -DSPARKPAW_REPLAY_PROOF -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-o $@ $(SOURCES)
+
+assets/runtime/stormrail-family.spbm: tools/generate_stormrail_assets.py \
+		tools/generate_stormrail_v6_native_family.py \
+		assets/concept/sparkpaw-stormrail-runtime-family-v3-chroma.png \
+		assets/concept/sparkpaw-stormrail-skimmer-v6-head-only-chroma.png \
+		assets/concept/sparkpaw-stormrail-skimmer-v6-empty-chroma.png \
+		assets/sprites/sparkpaw-48x48-aga16-source.png
+	$(PYTHON) tools/generate_stormrail_assets.py
+
+$(STORMRAIL_OBSTACLE_ASSET): tools/generate_stormrail_obstacles.py \
+		tools/generate_runtime_assets.py \
+		tools/generate_stormrail_debris_native_animation_study.py \
+		tools/generate_stormrail_debris_native_family.py \
+		tools/generate_stormrail_debris_native_v2_study.py \
+		assets/concept/sparkpaw-stormrail-debris-study-v2.png
+	$(PYTHON) tools/generate_stormrail_obstacles.py
+
+assets/runtime/stormrail-front.spbm assets/runtime/stormrail-rear.spbm \
+		assets/runtime/stormrail-flight-rear.spbm \
+		assets/runtime/stormrail-loading.spbm src/stormrail_palette_table.h: \
+		tools/generate_stormrail_environment.py \
+		assets/concept/sparkpaw-stormrail-rear-panorama-v3.png \
+		assets/concept/sparkpaw-stormrail-route-spans-concept-v2.png \
+		assets/concept/sparkpaw-stormrail-foreground-kit-v1-chroma.png \
+		assets/concept/sparkpaw-stormrail-loading-concept-v1.png
+	$(PYTHON) tools/generate_stormrail_environment.py
+
+$(STORMRAIL_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
 		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_AUTO_BOARD \
+		-DSPARKPAW_STORMRAIL_DUST \
+		-o $@ $(SOURCES)
+
+$(STORMRAIL_TEST_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST \
+		-o $@ $(SOURCES)
+
+$(STORMRAIL_FINALE_PROOF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_AUTO_BOARD \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_DIRECT_START \
+		-o $@ $(SOURCES)
+
+$(STORMRAIL_FINALE_TEST_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_DIRECT_START \
+		-o $@ $(SOURCES)
+
+stormrail-finale-proof: $(STORMRAIL_FINALE_PROOF_TARGET)
+
+stormrail-finale-test: $(STORMRAIL_FINALE_TEST_TARGET)
+
+$(STORMRAIL_FINALE_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_HUD_SEAM_FRONT_BLACK \
+		-DSPARKPAW_SPRITE_STAGE_CACHE -DSPARKPAW_STORMRAIL_PROOF \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_DIRECT_START \
+		-DSPARKPAW_STORMRAIL_USER_TEST -DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_USER_CADENCE_TEST \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-o $@ $(SOURCES)
+
+stormrail-finale-cadence: $(STORMRAIL_FINALE_CADENCE_TARGET)
+
+$(STORMRAIL_FINALE_PROFILE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_HUD_SEAM_FRONT_BLACK \
+		-DSPARKPAW_SPRITE_STAGE_CACHE -DSPARKPAW_STORMRAIL_PROOF \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_DIRECT_START \
+		-DSPARKPAW_STORMRAIL_AUTO_BOARD -DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_CADENCE_PROOF \
+		-DSPARKPAW_STORMRAIL_TARGETED_PROFILE \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE -o $@ $(SOURCES)
+
+stormrail-finale-profile: $(STORMRAIL_FINALE_PROFILE_TARGET)
+
+$(STORMRAIL_INTERLUDE_TEST_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-o $@ $(SOURCES)
+
+stormrail-interlude-test: $(STORMRAIL_INTERLUDE_TEST_TARGET)
+
+$(STORMRAIL_RESULTS_TEST_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -o $@ $(SOURCES)
+
+stormrail-results-test: $(STORMRAIL_RESULTS_TEST_TARGET)
+
+$(CAMPAIGN_TEST_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_CAMPAIGN_TRANSITION_TRACE -o $@ $(SOURCES)
+
+campaign-test: $(CAMPAIGN_TEST_TARGET)
+
+$(CAMPAIGN_SPLIT_RENDERER_TARGET) $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET): Makefile src/renderer.c $(SPLIT_RENDERER_SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_SPLIT_RENDERER_CLIENT \
+		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),-DSPARKPAW_CAMPAIGN_PLAY,-DSPARKPAW_CAMPAIGN_TRANSITION_TRACE) \
+		$(if $(filter $(WHDLOAD_TARGET),$@),-DSPARKPAW_WHDLOAD) -o $@ $(SPLIT_RENDERER_SOURCES)
+
+campaign-split-renderer: $(CAMPAIGN_SPLIT_RENDERER_TARGET)
+
+$(CAMPAIGN_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_USER_CADENCE_TEST \
+		-DSPARKPAW_STORMRAIL_INTERLUDE_CADENCE_TEST \
+		-DSPARKPAW_CAMPAIGN_CADENCE_TEST -o $@ $(SOURCES)
+
+campaign-cadence: $(CAMPAIGN_CADENCE_TARGET)
+
+$(CAMPAIGN_LEVEL1_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_LEVEL1_CADENCE_TEST \
+		-o $@ $(SOURCES)
+
+campaign-level1-cadence: $(CAMPAIGN_LEVEL1_CADENCE_TARGET)
+
+$(CAMPAIGN_LEVEL1_RENDERER_ISO_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_LEVEL1_RENDERER_TU_ISOLATION \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_LEVEL1_CADENCE_TEST \
+		-o $@ $(SOURCES)
+
+campaign-level1-renderer-iso: $(CAMPAIGN_LEVEL1_RENDERER_ISO_TARGET)
+
+$(CAMPAIGN_LEVEL1_PHYSICAL_SPLIT_TARGET): Makefile $(SOURCES) \
+		src/renderer_level1_unit.c src/renderer_stormrail_unit.c \
+		src/renderer_dispatch.c $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_SPLIT_RENDERER_CLIENT \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_LEVEL1_CADENCE_TEST \
+		-o $@ $(SPLIT_RENDERER_SOURCES)
+
+campaign-level1-physical-split: $(CAMPAIGN_LEVEL1_PHYSICAL_SPLIT_TARGET)
+
+$(LEVEL1_ISOLATED_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_LEVEL1_CADENCE_TEST \
+		-o $@ $(SOURCES)
+
+level1-isolated-cadence: $(LEVEL1_ISOLATED_CADENCE_TARGET)
+
+$(CAMPAIGN_LEVEL1_PROFILE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(RELEASE_RENDERER_FLAGS) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_USER_TEST \
+		-DSPARKPAW_STORMRAIL_DUST -DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_LEVEL1_CADENCE_TEST \
+		-o $@ $(SOURCES)
+
+campaign-level1-profile: $(CAMPAIGN_LEVEL1_PROFILE_TARGET)
+
+$(STORMRAIL_INTERLUDE_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_HUD_SEAM_FRONT_BLACK \
+		-DSPARKPAW_SPRITE_STAGE_CACHE -DSPARKPAW_STORMRAIL_PROOF \
+		-DSPARKPAW_STORMRAIL_USER_TEST -DSPARKPAW_STORMRAIL_DUST \
+		-DSPARKPAW_STORMRAIL_FINALE_PROOF \
+		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_USER_CADENCE_TEST \
+		-DSPARKPAW_STORMRAIL_INTERLUDE_CADENCE_TEST \
+		-o $@ $(SOURCES)
+
+stormrail-interlude-cadence: $(STORMRAIL_INTERLUDE_CADENCE_TARGET)
+
+$(STORMRAIL_WRAP_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(filter-out -DSPARKPAW_STORY_INTRO,$(RELEASE_RENDERER_FLAGS)) \
+		-DSPARKPAW_STORMRAIL_PROOF -DSPARKPAW_STORMRAIL_AUTO_BOARD \
+		-DSPARKPAW_STORMRAIL_WRAP_PROOF -o $@ $(SOURCES)
+
+$(STORMRAIL_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_HUD_SEAM_FRONT_BLACK \
+		-DSPARKPAW_SPRITE_STAGE_CACHE -DSPARKPAW_STORMRAIL_PROOF \
+		-DSPARKPAW_STORMRAIL_DUST \
+		-DSPARKPAW_STORMRAIL_AUTO_BOARD -DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_CADENCE_PROOF \
+		-o $@ $(SOURCES)
+
+$(STORMRAIL_USER_CADENCE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_HUD_SEAM_FRONT_BLACK \
+		-DSPARKPAW_SPRITE_STAGE_CACHE -DSPARKPAW_STORMRAIL_PROOF \
+		-DSPARKPAW_STORMRAIL_DUST \
+		-DSPARKPAW_STORMRAIL_USER_TEST -DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_USER_CADENCE_TEST \
+		-o $@ $(SOURCES)
+
+$(STORMRAIL_PROFILE_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
+		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
+		$(STORMRAIL_OBSTACLE_ASSET)
+	@mkdir -p "$(TMPDIR)" "$(dir $@)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE \
+		$(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_HUD_SEAM_FRONT_BLACK \
+		-DSPARKPAW_SPRITE_STAGE_CACHE -DSPARKPAW_STORMRAIL_PROOF \
+		-DSPARKPAW_STORMRAIL_USER_TEST -DSPARKPAW_RENDER_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_STORMRAIL_USER_CADENCE_TEST \
+		-DSPARKPAW_STORMRAIL_TARGETED_PROFILE \
 		-o $@ $(SOURCES)
 
 replay-proof: $(REPLAY_PROOF_TARGET)
@@ -534,9 +919,8 @@ build/adf-assets/level-complete.spr1: assets/runtime/sparkpaw-level-complete.spb
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 
-release: all $(ADF_TARGET) $(ADF_ASSETS) $(WHDLOAD_TARGET)
+release: all $(WHDLOAD_TARGET)
 	$(PYTHON) tools/make_release.py
-	$(PYTHON) tools/make_whdload.py
 
 whdload: all $(WHDLOAD_TARGET)
 	$(PYTHON) tools/make_whdload.py

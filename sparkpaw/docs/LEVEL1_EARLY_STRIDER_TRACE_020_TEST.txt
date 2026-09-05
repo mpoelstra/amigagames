@@ -1,0 +1,21 @@
+Sparkpaw early two-Strider scene trace
+======================================
+
+This is byte-identical to the accepted 49.30-FPS collision-cache executable.
+It changes no gameplay, renderer, audio, assets or instrumentation. This run is
+shortened only to retain the early busy scene inside the existing 1,024-frame
+trace ring.
+
+Test procedure
+--------------
+
+1. Start Level 1 normally.
+2. Play through the busy early encounter containing two Striders and the other
+   nearby enemies.
+3. Immediately after passing or clearing that encounter, press the left mouse
+   button once. Do not finish the level first.
+4. The image freezes while renderdiag.log is written. Wait several seconds
+   until writing has stopped, then stop/reset FS-UAE.
+
+The goal is diagnosis, not another subjective whole-level comparison. The log
+must retain the exact scene's update, Bob, camera and object-count history.

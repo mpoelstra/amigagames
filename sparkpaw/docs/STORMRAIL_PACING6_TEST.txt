@@ -1,0 +1,23 @@
+SPARKPAW STORMRAIL PACING 6 - NO LARGE OVERLAP
+================================================
+
+Run only Sparkpaw-Pacing6 with the usual A1200/68030 FS-UAE setup.
+
+This retains Pacing5's accepted-direction rule: every object enters from the
+right and moves left. Large ruin blocks are now separated by at least six
+authored events and the runtime permits only one large block at a time. Two
+large 48x40 masses therefore cannot overlap or travel through each other.
+
+The complete 48-event field contains six large blocks, thirteen pillar pieces
+and twenty-nine shards. Every rolling six-event window is checked for multiple
+formats, at least three vertical zones and at least four unique combinations
+of vertical zone, speed and drift. Invalid frame/type combinations and delayed
+event backlogs remain rejected by contract.
+
+The two destructible large loot carriers remain present. The free four-diamond
+line occurs before debris. At distance 11200 the camera stops and every
+Flight-owned object is cleared.
+
+Please check whether the full field retains the desired Zynaps-like pressure,
+whether large blocks remain well separated, and whether the final third avoids
+aligned or repeating small-piece patterns.

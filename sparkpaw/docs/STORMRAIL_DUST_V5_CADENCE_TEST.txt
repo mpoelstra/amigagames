@@ -1,0 +1,16 @@
+SPARKPAW STORMRAIL SUNLIT DUST V5 - FS-UAE 68020 CADENCE
+
+This is the 68020 cadence gate for the 68030-accepted Gate 4D dust field.
+Gameplay, debris, enemy patterns and the eight independent dust/grit slots are
+identical to the accepted visual build. Only low-overhead presentation cadence,
+ownership and player-shot counters are enabled.
+
+Use the stock A1200/68020 FS-UAE configuration and play the complete focused
+Stormrail route normally. Fire regularly, especially during the debris field
+and five-enemy formations.
+
+At the final empty area, press the LEFT MOUSE BUTTON once. The image will
+freeze; this is expected while renderdiag.log is saved. Wait a few seconds,
+then stop or reset FS-UAE. Workbench will not return.
+
+Please report whether motion felt smooth. Keep renderdiag.log in this drawer.

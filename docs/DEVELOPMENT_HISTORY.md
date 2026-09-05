@@ -1,5 +1,14 @@
 # Sparkpaw and Amiga prototypes: development history
 
+## 2026-09-04 - Campaign loop candidate
+
+- Accepted the isolated complete-Stormrail results baseline.
+- Added a host-tested one-shot campaign decision/snapshot contract.
+- Added Level-1 `REPLAY LEVEL` / `CONTINUE` and Stormrail `REPLAY LEVEL` /
+  `BACK TO TITLE` menus to the shared results presenter.
+- Kept replay resident and bounded cross-section changes by black/loading and
+  renderer/audio teardown/reload; SemVer and alpha.68 remain unchanged.
+
 > Historical archive, preserved from the former long-form `CODEX_HANDOFF.md`.
 > Statements such as “current”, “next”, “awaiting review” and the embedded
 > recommended prompt describe their point in time and are not authoritative
@@ -6292,3 +6301,357 @@ Phase 6C is closed through Phase 6C.10. The next engine boundary is documented
 as Phase 6D: separate `REPLAY CURRENT` from a future `CONTINUE NEXT` decision
 and define the cross-level persistence/reset matrix. Level-2 concept, art and
 route planning remain deliberately owned by the separate Level-2 session.
+
+### 3 September 2026 - Stormrail combat, Debris5.2 and Heart1 checkpoint
+
+The isolated Stormrail direct-start work now has accepted Gate 1 boarding,
+Gate 2/2.5 open flight and Gate 3 combat. Gate 3 uses four deterministic
+formations, two enemy families, bounded 5/5/4 enemy/player-shot/hostile-shot
+pools, Level-1-like hit/death/collect/hurt audio, compact 20/40/5 scoring,
+half-visible entry fairness and persistent score/pickup IDs across life-loss
+restart. Supplied stock-FS-UAE/68020 evidence previously measured 50.00 FPS
+over 2,108 intervals with zero ownership violations.
+
+Several debris extensions were rejected because their saturated rescanner
+reopened old events and collapsed into a repetitive infinite-looking tail.
+Debris5 replaces that mechanism with one monotone 48-event cursor and leaves a
+measured moving empty reserve. The user accepts Debris5.2 for now: all native
+Storm Ruins families remain in one asymmetric field, horizontal medium/small
+traffic no longer dominates the middle, and one six-hit carrier moves more
+slowly for a readable reward moment. Debris5 is preserved as fallback.
+
+Heart1 changes the slower carrier reward from diamond ID 33 to a native 16x21
+classic red health heart. It restores two of the six half-heart units and caps
+at full health. Another heart ID 34 appears between waves inside a spacious
+three-diamond ring (IDs 35..37), exactly filling the existing four-reward pool.
+All IDs remain consumed after life loss. The heart reuses the collect sparkle
+at stronger volume and adds no sample or Paula channel. The first angular gem-
+like heart art is rejected and archived; the HUD-related cleft/point silhouette
+with clean world-diamond-style contour is accepted for now.
+
+The final supplied low-overhead stock-FS-UAE/68020 log from
+`dist/Storm-Heart1-Cadence-020-HD` covers 2,886 intervals: 2,885 one-field,
+zero two-field, one three-field (maximum three), 49.96 FPS, zero ownership
+violations and 334/334 requested/started shots. This is effectively equal to
+Debris2's 49.95 FPS. A cadence-only build exposed and fixed one diagnostic
+compile-guard mistake in heart-cache creation. Alpha.68 and all release
+artifacts remain byte-identical; campaign/results, ADF and Level 2 are still
+untouched. The next bounded task is Gate 5A post-debris enemy patterns.
+
+### 3 September 2026 - Stormrail Gate 5A and sunlit dust acceptance
+
+Gate 5A compacts the accepted route around unchanged Debris5.2 and extends the
+formation table from four to eight entries. New original flows use only Dart
+and Pulse Orb art: a pre-debris spearhead, post-debris Dart curl, mixed
+crossing/rejoin and final Dart fan/rejoin. A four-diamond slalom uses persistent
+IDs 38..41; formation rewards use IDs 42..57. The slice ends with a short
+reserve at the future fixed-camera finale latch, distance 15500. Supplied 68030
+review accepts pacing and formation feel; the stock-68020 pattern run measured
+50.00 FPS over 4,165 one-field intervals, zero ownership violations and
+438/438 shots.
+
+Gate 4D adapts the temporal grammar of the local Project-X reference without
+copying art or routes. A four-wide-cell proof was rejected because its pixels
+visibly travelled as clusters. Eight independent 16x3 slots instead cross the
+viewport with separate deterministic phases, heights and speeds. Cached
+neutral-white, pale-blue and amber variants change slowly to suggest sunlight
+on dust and grit. Runtime adds no allocation, scaling, rotation, collision,
+audio or score work.
+
+An attempted full-height redistribution placed one slot at y=211 and visibly
+broke the HUD/playfield presentation; v4 is archived as rejected. The final
+version restores the seven safe positions and moves only the redundant eighth
+slot to y=18. Six whole-display captures show intact HUD, enemies, debris and
+vehicle, and MrDig reports no glitch in final 68030 play. The accepted
+stock-68020 log covers 6,036 intervals: 6,035 one-field, zero two-field, one
+three-field (maximum three), 49.98 FPS, zero ownership violations and 432/432
+shots. Its SHA-256 is
+`2c8d09c056d0ae352020d8475b0c664321249ba5f9fc1b21e6dfca34f975f792`.
+Alpha.68 and all campaign/release artifacts remain unchanged.
+
+### 4 September 2026 - Stormrail Gate 6 technical finale candidate
+
+Gate 6 first received a written, data-driven finale contract and a standalone
+host lifecycle simulation. At the pre-existing monotone distance-15500 latch,
+the route becomes stationary and local encounter ticks own combat, gate opening
+and exit. The encounter reuses the five-player-shot and four-hostile-shot pools,
+HUD damage, audio, scoring and persistent IDs. A central 24-HP Harrier and two
+6-HP gate turrets have separately phased telegraphs and aimed-versus-straight
+fire. The gate cannot open until every actor is dead; that transition clears
+all hostile shots and prohibits later launches. Opening lasts 48 ticks, after
+which the Skimmer is boundedly centred and flown through without routedistance.
+
+The first compile-guarded renderer was intentionally a technical greybox built
+from startup-cached native planar shapes. It adds no per-frame allocation,
+runtime scaling or rotation and does not enlarge gameplay pools. A bounded
+Codex-run FS-UAE proof outside `dist` reaches combat, opening, exit and complete
+at fixed distance 15500 with zero distance violations, zero post-combat hostile
+launches and zero unsafe Blits. Whole-display captures retain the line-252 HUD;
+their composition and feel are not user acceptance. One self-contained 68030
+manual drawer is staged as `dist/Storm-Gate6-030-HD`; no Codex process boots
+from `dist`. The 68020 cadence gate remains deliberately unbuilt until explicit
+68030 visual acceptance. Alpha.68 and all release/campaign artifacts remain
+unchanged.
+
+The next bounded art pass replaces only those cached pixels, retaining the
+exact 96x56/32x24/16x104 cache dimensions and allocations. The Harrier now has
+a swept armoured silhouette, cyan cockpit, steel facets, purple storm plating
+and a hot engine block. Upper and lower turrets receive separate barrel heights,
+coloured cores and gate mounts; the gate becomes a ribbed metal/energy rail.
+The automatic renderer proof remains at fixed distance 15500, zero unsafe Blits
+and zero post-combat fire. Inspected complete frames show an intact HUD and
+palette; subjective 68030 art and motion acceptance remains with MrDig.
+
+MrDig rejects that pass: despite its native dimensions and correct runtime
+behaviour, it remains cheap procedural programmer art and is visibly below the
+accepted Level-1, Stormrail and corrected-debris material standard. This is an
+explicit violation of `AGA_ART_QUALITY_CONTRACT.md`, not a small polish issue.
+The drawer is preserved intact as
+`dist/older-builds/Storm-Gate6-030-HD-rejected-programmer-art`, leaving no
+active Gate-6 drawer. Runtime logic is retained, but those visible pixels may
+not return.
+
+The replacement workflow starts concept-first. Gate 6 is identified as the
+Stormrail end fight at the threshold to **Level 2: Storm Ruins**. A review-only
+concept therefore separates Stormrail's Harrier/turret defenders from the
+monumental weathered ruin-stone destination gate. It is saved as
+`assets/concept/sparkpaw-stormrail-gate6-storm-ruins-threshold-concept-v1.png`.
+No generated pixel enters runtime: native reduction and hand cleanup wait for
+explicit visual-direction approval.
+
+MrDig approves the concept's material direction, then corrects its arena
+geometry: the real encounter must be a flat side view with a narrow wall over
+the full playfield height, integrated upper/lower turrets, open manoeuvre space
+and a Harrier only moderately larger than the Skimmer. Concept v2 captures that
+composition. Native v1 independently reduces the Harrier, both turrets and two
+unique wall halves into exact FRONT16 cells, then performs material-role palette
+mapping and bounded native cluster cleanup. It does not reuse the rejected
+polygon renderer.
+
+The wall cache grows from one repeated 16x104 source to two unique 32x104
+halves, costing 4,160 additional Chip bytes; no gameplay pool changes. The
+native proof leaves 1,272,296 Chip bytes free with a 619,976-byte largest block,
+completes all finale phases at distance 15500 and reports zero unsafe Blits,
+distance violations and post-combat hostile fire. Whole-display inspection
+shows readable steel/cyan/copper material against the dark route and an intact
+line-252 HUD. Native v1 remains a 68030 visual candidate rather than accepted
+art.
+
+### 4 September 2026 - Complete Stormrail interlude and Harrier finale accepted
+
+User-led 68030 iteration converged on a single 80x46 Harrier before a narrow
+full-height Storm Ruins wall. Turrets were removed. The final 120-HP encounter
+alternates a three-lane violet fan with a separately telegraphed low-health
+amber-white Hunter Burst beginning at 60 HP. Distinct heavy cues, a persistent
+320-point kill award, immediate hostile-fire retirement, 48-tick gate opening
+and bounded automatic passage reuse the existing pools and systems.
+
+The complete route and finale remain resident after one initial load. At
+distance 15500 a 32-tick local arrival brings wall and Harrier into view without
+adding route distance. Later evidence found that life loss replayed arrival and
+reset the boss, while word-rounded Bob restores could remove small groups at
+the wall edge. The correction preserves boss HP, resumes COMBAT with a safe
+fresh attack cycle and repairs the full word-aligned restore footprint. Final
+body contact prevents passage through the live Harrier: one overlap costs one
+half-heart, starts the existing 36-tick grace/hurt response, holds the Skimmer
+at the boss's left edge and does not damage the Harrier.
+
+MrDig accepts the integrated 68030 presentation, transition, performance and
+contact. Full4 is the archived visual/function reference; the matching accepted
+cadence drawer is the sole active manual drawer. Prior candidates and evidence
+remain archived. Alpha.68 and release artifacts did not change. Automatic FS-UAE self-tests are henceforth exceptional native
+diagnostics, not a private polish loop: host tests and compilation precede one
+focused drawer, while MrDig owns motion, cadence, audio impact and gameplay
+acceptance. Next is the post-Harrier interlude statistics screen.
+
+The subsequent complete stock-FS-UAE/68020 cadence pass measures 49.97 FPS over
+5,177 intervals: 5,175 one-field, one two-field, one three-field (maximum
+three), zero ownership violations and 595/595 requested/started player shots.
+It exercises the integrated route, transition, Harrier patterns, opening and
+exit and is effectively equal to Gate 4D's 49.98 FPS baseline. This closes the
+pre-results Stormrail performance gate; it does not imply ADF, WHDLoad or real-
+hardware acceptance.
+
+### 4 September 2026 - First Stormrail results candidate pending 68030 review
+
+The results gate begins with a pure data contract and host tests. One immutable
+snapshot captures Stormrail's enemy defeats, collected diamonds, monotone
+`elapsedFields` and live section score only when Gate 6 reaches `COMPLETE`.
+The complete-route par is 150 seconds / 7,500 PAL fields; the non-negative time
+bonus is bounded to 1,500 points and finalization is idempotent. The Harrier's
+320-point award ID 60 is already part of live score and is never added again.
+
+The existing Level-1 six-plane presenter, assets, four labels, positions,
+tally order, acceleration, Fire debounce, tick audio and `REPLAY LEVEL` prompt
+are reused without new art. The results build keeps departure sources resident
+instead of releasing them at the one-way flight handoff. After the existing
+complete black fade, `gameInit()` plus the resident renderer reset clears the
+section clock/score/results, enemies, formations, debris, pickups and awards,
+lives/health, diamonds, both projectile families, Fire history and the complete
+120-HP finale before publishing the fresh departure.
+
+The full host suite and normal, complete-interlude and results 68020 native
+compiles pass. No FS-UAE self-test was needed. `dist/Storm-Results1-030-HD` is
+the sole active drawer; the accepted cadence drawer and launcher were moved
+intact to `dist/older-builds/Storm-I-Cad-020-accepted*`. The candidate remains
+pending MrDig's visible tally, timing, audio, input, black-fade transition and
+replay-feel acceptance. No release, SemVer, ADF, Level 2 or campaign banking
+was added.
+
+
+### 5 September 2026 — Logger-free Level-1 production baseline audit
+
+MrDig played the complete Campaign-Play-HD on stock FS-UAE/68020. Level 1
+still feels slightly less smooth than original alpha.68; Stormrail is fine.
+Logging is therefore not the complete explanation. No FPS is inferred.
+
+The normal alpha.68 executable was reproduced byte-identically from the
+verified release-equivalent snapshot, then independently linked with a map.
+A broad production comparison finds a nested Bob argument adapter and 1,664
+extra instructions per inserted ring column. The Bob correction is compiled
+only in an isolated build tree; 36,864 four-plane register cases match the
+original and all other campaign objects remain identical. A separate column
+compiler probe also restores alpha.68's helper without changing the Stormrail
+object. Neither is staged or claimed to restore cadence.
+
+The audit separately records +86,696 bytes of ordinary executable Hunk
+requests, +9,812 requested Chip bytes of unused Level-1 Harrier samples and
++3,200 requested Fast bytes for an extra sprite slot. Actual runtime placement
+is not proven. Enemy/projectile/collectible/leveldata objects and gameplay
+asset files match alpha.68; generated hostile impact patterns are an explicit
+exception. Primary Exec, DOS and Motorola documentation informs the distinction
+between resident capacity, placement, active traffic and instruction locality.
+
+Detailed evidence, reproducible artifacts, rejected-experiment boundaries and
+next comparisons are in `sparkpaw/docs/LEVEL1_PRODUCTION_BASELINE_AUDIT.md`.
+Production source, the current executable, the sole Campaign-Play-HD drawer,
+alpha.68, SemVer and release/media artifacts remain unchanged. No FS-UAE was
+started and no prior failed alpha diagnostic was re-requested.
+
+## Bob-only 68030 user gate accepted — 2026-09-05
+
+MrDig reports that the 68030 version is fine. This accepts the requested
+FS-UAE/68030 functional gate for the staged Bob-only campaign candidate.
+The exact executable remains SHA256
+`b0eb6ca75269094f78cd5f9784783b90b8fc298e33c22af5e7ee549da3832ed6`.
+Next is the stock-FS-UAE/68020 subjective Level-1 comparison using the same
+logger-free `Campaign-Play-HD/Sparkpaw-Play`; no rebuild or second drawer is
+needed. Compare whole-level feel and the early busy encounter with the prior
+logger-free baseline and original alpha.68; verify Stormrail stays smooth.
+No 68020 result, FPS measurement or production-source promotion is implied.
+
+2026-09-05: Latest user alpha.68/current Bob-only comparison is near parity, both
+dip under extreme running/shooting, integrated still very slightly less smooth.
+Recorded without FPS or causal gain claim. Broader offline audit identifies an
+unconsumed pre-publication Level-1 history union (also in alpha.68): actual-code
+host comparison passes 10,000 states, 68020 assembly drops one helper call,
+publication assembly and Stormrail object unchanged. Compile-only probe; no
+production source edit, new drawer, native run or release. See production audit.
+
+2026-09-05: User authorized both small Level-1 optimizations. Isolated combined
+candidate e6e20db68f3f67b1e05b1db2b555842dec3f2473d8c0b7a543d9e5a76c04354e staged in sole Campaign-Play-HD.
+Host suites, 512-column ASan/UBSan test, 10,000 history states, native/link
+parity passed; all other 16 objects unchanged versus Bob-only. Prior full
+drawer and all release files preserved. 030 user gate pending; no FPS claim,
+production promotion, FS-UAE self-run or release.
+
+2026-09-05: MrDig accepts FS-UAE/68030 functional gate for combined small
+renderer candidate e6e20db6... . Same active executable proceeds to user 020
+feel comparison; no rebuild/staging, FPS claim or source promotion.
+
+2026-09-05: User reports no noteworthy 020 change and authorizes retention.
+Promoted tested Bob/column/history changes into renderer.c; ordinary campaign
+build matches active e6e20db6... byte-for-byte. Fixed missing renderer.c
+prerequisite for split campaign targets, verified rebuild dependency. No
+perceptible/FPS gain claimed; performance investigation parked. Drawer and
+release files unchanged; no new native test, release or commit.
+
+2026-09-05: User explicitly parks performance research (including speculative
+enemy-placement tuning). Reconciled documentation/roadmap and consolidated
+current state in sparkpaw/docs/CURRENT_STATUS.md. Old status excerpts preserved;
+Phase6D results/integration no longer shown as unimplemented. Next proposal:
+extend existing CampaignSection to cold asset selection, not a performance
+refactor. Documentation only; no new code, candidate, user test or release.
+
+2026-09-05: User authorizes HD-first campaign release and version 0.7.0-alpha.1.
+Phase7A.1 is campaign release/hardware validation, based on Phase6D. Public itch
+baseline verified alpha.68. Default make now builds exact accepted full campaign;
+HD release ZIP/LHA + drawer verified (48 assets), original alpha.68 preserved.
+Old Campaign-Play-HD archived intact; no public upload/commit/tag. Real A1200 HD
+acceptance pending. Campaign disk plan measures SPR1/FFS capacity and alpha.68
+layout; three-role proposal fits estimates, no loader/ADF implementation yet.
+Legacy WHDLoad packaging refuses 0.7 instead of mislabelling a one-level build.
+See RELEASE_0_7_0_ALPHA_1.md and MULTI_ADF_CAMPAIGN_PLAN.md.
+
+2026-09-05: Reviewed brother-supplied gotek-loading.mp4; renamed byte-identically
+to Phase6C.10 observed Gotek loading evidence with matching sidecar. Alpha.68
+label visible; track39/40 revisits align with local FFS metadata placement as
+a hypothesis, not block-trace proof. Added metadata/cache scope to layout plan.
+83.26s clip is not full cold-load timing. No executable/ADF/settings changed.
+
+
+## 2026-09-05 — campaign two-disk prototype staged, native gate pending
+
+User approved two ADFs without story plates (HD-only) and automatic DF1 media
+recognition. Built an unnumbered Campaign-2Disk-030 pair: boot/title/Level 1 on
+Disk 1; Stormrail/finale/results on Disk 2. Source-derived forward data placement
+and lossless SPR1/SPL1 packing leave 310/552 blocks free. Shared assets/carryover
+are duplicated to preserve the accepted section loader and renderer ownership.
+Only the existing loading image's status strip changes for INSERT DISK 1/2.
+
+Actual C decoder passes 45 ASan/UBSan cases and every packaged bitmap; media
+resolver passes host DOS-stub checks for automatic DF1, DF0 swaps, wrong marker,
+cancel and requester restoration. Full host suite passes with the project venv
+(the first system-Python attempt lacked Pillow). 68020 compilation succeeds;
+existing optimizer warnings remain. Every ADF file was read back byte-identical,
+compiled runtime references are covered, boot-disk checksum is valid, and data
+allocation never wraps backwards. Native timing/boot/swaps/visuals/peak memory
+are unverified. No FS-UAE was launched. See MULTI_ADF_030_TEST.txt and media plan.
+
+The ordinary campaign build still reproduces e6e20db68f...; HD 0.7 ZIP/LHA/drawer
+and protected alpha.68 artifacts pass preservation checks. Performance research
+remains parked, no release number changed and no public upload/commit/tag made.
+
+
+## Two-ADF user failure — packaging-only correction
+
+User played Level 1 from Disk 1; Stormrail loading failed both after a DF0 swap
+and with Disk 2 in DF1. CPU configuration/crash details not specified. The old
+pair demonstrably lacks storm-collision.bin on Disk 2, although collisionLoad
+reads it unconditionally before caching the Stormrail mode. Corrected package
+adds the unchanged map; per-volume compiled dependency coverage replaces the
+insufficient union-only check. No executable/gameplay/decoder changes. Original
+pair preserved under older-builds/Campaign-2Disk-030-missing-map; sole current
+candidate Campaign-2Disk-Fix-030 awaits native retest. Protected releases match.
+
+
+## Styled INSERT DISK candidate
+
+User requests styled cyan bevelled INSERT DISK 1/2 and removal of DF0/DF1 and
+LMB hints/cancellation. New strips retain the existing palette/status rectangle
+and exact shared floppy art. Removed left-mouse cancellation; media detection
+unchanged. Collision-map packaging fix retained. Previous pair archived intact;
+Campaign-2Disk-Art-030 is the sole candidate. Offline tests pass; native acceptance
+pending. User screenshots show presentation, not completed Stormrail loading.
+
+
+## 0.7.0-alpha.2 / Phase 7A.2 official all-format checkpoint
+
+User explicitly approved the ADFs and INSERT DISK 1/2, then requested a new
+version of every package, lessons learned, documentation, commit and push.
+Six artifacts now share alpha.2: HD ZIP/LHA, Disk1/Disk2 ADF, WHDLoad ZIP/LHA.
+The HD executable remains exactly e6e20db68f...; disk executable/payloads match
+the approved styled candidate. ADF image hashes change with filesystem dates.
+Original alpha.68 protected; alpha.1 and completed candidate archived intact.
+
+WHDLoad now builds campaign/split-renderer sources plus existing F10 hooks,
+with all 48 runtime files. The slave's stale alpha.49 string and ReadMe's wrong
+long extraction-directory name are corrected. Kickstart memory/startup code
+is unchanged. Compilation/assembly/archive/icon checks pass; new campaign
+WHDLoad startup/F10/play, physical A1200/Gotek and Pocket remain open gates.
+
+Live itch detector and freshly downloaded HTML both identify alpha.68; newest
+live devlog agrees. A stale web result showed alpha.62 and was not used as the
+release baseline. No upload performed. Existing optimizer warnings remain.
+Lessons are recorded in CHECKPOINT_ALPHA2_LESSONS.md and project test/release
+skills. Full artifact SHA256/byte inventory: RELEASE_0_7_0_ALPHA_2.md.

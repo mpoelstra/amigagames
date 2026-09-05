@@ -1,5 +1,7 @@
 # Sparkpaw stock-68020 performance plan
 
+> Current status (2026-09-05): Performance investigation is parked by explicit user decision. This plan preserves historical goals/evidence; do not resume experiments from its next-step instructions. See [status index](CURRENT_STATUS.md).
+
 Status: completed performance checkpoint on the alpha.45 Stage 5L/H7 baseline.
 The whole-codebase Stage 2 audit, isolated prototypes and post-checkpoint review
 are complete. A low-overhead FS-UAE/68020 diagnostic reaches 48.58 effective

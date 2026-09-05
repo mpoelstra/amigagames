@@ -1,0 +1,33 @@
+Stormrail compact patterns — FS-UAE/68030 HD visual/feel test
+===================================================
+
+Run `Sparkpaw-Storm-Gate5A` from this drawer. This compile-guarded candidate
+starts at the accepted Stormrail development slice; alpha.68 and campaign
+progression are unchanged.
+
+Please play the complete slice and judge its new, tighter rhythm:
+
+1. confirm the four accepted opening waves and free-diamond breaths now follow
+   each other more promptly without becoming unreadable;
+2. confirm the new pre-debris four-Dart/one-Orb rotating spearhead clears, then
+   the accepted debris field starts quickly;
+3. confirm the complete debris field itself is unchanged in choreography,
+   density, carriers, drops and clean exit;
+4. confirm only a short empty recovery follows the final debris;
+5. confirm five Darts enter from the right, visibly curl/back-bend and all
+   leave rather than looping forever;
+6. collect or follow the compact four-diamond slalom between the waves;
+7. confirm the second wave reads differently: three fast Darts draw crossing
+   lanes while two slower Pulse Orbs act as shooting anchors;
+8. confirm five final Darts open into a fan, visibly rejoin and leave;
+9. confirm there is only a very short clean breath before the frozen future
+   finale-latch point.
+
+Also check that no enemy enters blindly from the left, rapid fire remains
+controllable, hostile shots remain readable, rewards persist normally after a
+life restart, and no enemy/debris/diamond leaves trails or crosses the HUD.
+
+This is a production-visual 68030 feel build without cadence logging. Do not
+press the left mouse button expecting a log. Please report the visual/feel
+verdict; the corresponding low-overhead 68020 cadence gate will be built only
+after acceptance.

@@ -1,0 +1,18 @@
+Sparkpaw Level 1 early-scene A/B - A: exact alpha.68 source
+===========================================================
+
+This is the alpha.68 source at commit f011b60, compiled for 68020 with the
+same minimal cadence logger used by candidate B. The retained trace is bounded
+to 256 frames so the old alpha loader has enough Fast RAM. This changes no
+gameplay or renderer path. It is not a new release.
+
+Run on stock A1200/68020 with your normal FS-UAE configuration:
+
+1. Start Level 1 normally and play the usual route.
+2. Include the busy early encounter around the first Strider/enemy cluster.
+3. Click the left mouse button during, or immediately at the end of, that
+   encounter so it remains inside the 256-frame trace.
+4. Wait several seconds for renderdiag.log to finish, then stop FS-UAE.
+
+Please use the same movement/combat approach and stopping point for A and B.
+Do not finish the level; the short trace is the evidence we need.

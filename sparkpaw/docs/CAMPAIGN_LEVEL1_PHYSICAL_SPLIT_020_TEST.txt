@@ -1,0 +1,23 @@
+Sparkpaw physical split Level-1 cadence gate
+============================================
+
+This is the stock-68020 minimal-cadence gate for the functionally accepted
+split-renderer campaign candidate. Level 1 and Stormrail are separate compiled
+renderer units selected by one section dispatcher. This build starts directly
+in Level 1 and holds the completed frame for evidence capture.
+
+Play a normal representative Level-1 route, including a busy combat section.
+After the run, press the left mouse button once. The image freezes while the
+bounded renderdiag.log is written. Wait a few seconds, then stop/reset FS-UAE.
+
+Compare against
+---------------
+
+- protected alpha.68: 48.58 FPS, 33 two-field, zero three-field out of 1,137;
+- renderer-isolation proof: 48.23 FPS, 101 two-field, zero three-plus out of
+  the longer 2,755 run;
+- rejected integrated renderer: 44.56 FPS, 217 two-field and three three-plus
+  out of 1,845.
+
+Require zero ownership violations, no visual/gameplay regression and cadence
+materially matching the 48 FPS isolated/alpha.68 range.

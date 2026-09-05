@@ -1,0 +1,23 @@
+SPARKPAW STORMRAIL HEART 1 - 68030 VISUAL / FEEL TEST
+=====================================================
+
+This candidate keeps Debris5.2 intact and adds one native 16x21 AGA health
+pickup. It is a classic red heart with a clean mask, authored directly at its
+runtime pixel size and rendered through the existing bounded reward Bob pool.
+
+- One fixed heart enters between the early formations, surrounded by three
+  diamonds in a spacious triangular ring. The four pickups exactly fill the
+  existing bounded reward pool and can be tested without reaching the debris
+  field.
+- The deliberately slower six-hit large debris carrier now drops a heart
+  instead of a diamond. The earlier loot carrier still drops a diamond.
+- A heart restores two half-heart HUD units: 1 -> 2 hearts, 1.5 -> 2.5,
+  2.5 -> 3, and 3 remains 3.
+- Pickup uses a stronger variant of the existing diamond sparkle sound.
+- Heart and ring-diamond IDs are persistent across life restart, exactly like
+  all other diamonds, so this group cannot be farmed by dying.
+
+Please first take damage and collect the fixed heart, then if practical break
+the slower large debris carrier. Judge the native art, pickup readability,
+sound distinction and exact HUD restoration. Press LMB only when you want to
+freeze and save renderdiag.log; wait a few seconds, then stop/reset FS-UAE.

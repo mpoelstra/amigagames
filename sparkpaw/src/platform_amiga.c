@@ -56,6 +56,7 @@ static BOOL profileTimerActive;
 #define GAMEKEY_S 0x04
 #define GAMEKEY_D 0x08
 #define GAMEKEY_SPACE 0x10
+#define GAMEKEY_ESCAPE 0x20
 
 BOOL platformOpen(void)
 {
@@ -146,6 +147,11 @@ void platformResetGameInput(void)
     gameKeys=0;
 }
 
+BOOL platformGameEscapeRequested(void)
+{
+    return (gameKeys&GAMEKEY_ESCAPE)!=0;
+}
+
 void platformRestore(void)
 {
     if(interruptsDisabled) {
@@ -214,6 +220,11 @@ void platformSetBlitterPriority(BOOL enabled)
     hardware->dmacon=enabled?(DMAF_SETCLR|DMAF_BLITHOG):DMAF_BLITHOG;
 }
 
+BOOL platformLeftMouse(void)
+{
+    return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
+}
+
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 static UWORD readProfileCounter(void)
 {
@@ -258,11 +269,6 @@ static void stopProfileTimer(void)
 BOOL platformBlitterBusy(void)
 {
     return (hardware->dmaconr&DMAF_BLTDONE)!=0;
-}
-
-BOOL platformLeftMouse(void)
-{
-    return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
 }
 
 void platformPrepareDebugFlush(void)
@@ -322,6 +328,7 @@ void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
             case 0x21: flag=GAMEKEY_S; break;
             case 0x22: flag=GAMEKEY_D; break;
             case 0x40: flag=GAMEKEY_SPACE; break;
+            case 0x45: flag=GAMEKEY_ESCAPE; break;
         }
         if(flag) {
             if(code&0x80) gameKeys&=(UBYTE)~flag;

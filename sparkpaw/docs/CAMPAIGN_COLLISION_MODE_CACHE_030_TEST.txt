@@ -1,0 +1,17 @@
+Sparkpaw section-local collision-mode cache
+===========================================
+
+This unnumbered 68030 functional candidate caches the active section once when
+collision data is loaded. Level-1 collision queries no longer call into game.c
+merely to discover that Stormrail is inactive. Stormrail's raised departure
+cliff and empty boarding gap remain selected by the cached Stormrail mode.
+
+Run a short functional smoke:
+
+- in Level 1, check floor/platform collision, jumping and shooting;
+- finish Level 1 and select Continue;
+- in Stormrail departure, verify Sparkpaw stands on the left cliff, the gap is
+  empty and boarding still begins normally.
+
+This build has no cadence logger. Stop after boarding/flight begins and report
+any collision, transition, visual or control regression.

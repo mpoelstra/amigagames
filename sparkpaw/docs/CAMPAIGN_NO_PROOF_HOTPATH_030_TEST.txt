@@ -1,0 +1,16 @@
+Sparkpaw campaign without proof capture hot path
+===============================================
+
+This unnumbered 68030 functional candidate removes focused Stormrail screenshot
+capture checks from the shared campaign gameplay loop. Those checks remain in
+dedicated proof executables. Level 1 and Stormrail gameplay, rendering, assets,
+timers, controls and transitions are unchanged.
+
+Run a short functional smoke:
+
+- play Level 1 through movement and a combat encounter;
+- finish Level 1 and select Continue;
+- confirm Stormrail departure and flight still render and control normally.
+
+This build has no cadence logger. Stop after Stormrail is visibly running and
+report any corruption, crash, transition problem or gameplay difference.

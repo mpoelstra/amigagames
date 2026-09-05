@@ -1,0 +1,20 @@
+Stormrail Gate 2 cadence test
+============================
+
+This is the compile-guarded direct-start Gate 2 build with only low-overhead
+presentation cadence and renderer-ownership counters enabled. It is not an
+alpha or release build. Both test drawers contain the exact same executable
+and assets; only the selected FS-UAE CPU configuration differs.
+
+Run
+---
+
+1. Use the FS-UAE CPU configuration named by the drawer: 68030 or 68020.
+2. Start StormG2-Cadence and board the Skimmer normally.
+3. After fade-in, fly until the diagnostic automatically stops after 1,000
+   gameframes. Move in every direction and hold Fire for part of the run.
+4. The image deliberately freezes while the log is written; no click is needed.
+5. Wait three seconds, then stop FS-UAE. It will not return to Workbench.
+6. Leave renderdiag.log in this drawer for Codex to inspect.
+
+Please report whether scrolling, movement and shots looked smooth or slow.

@@ -66,6 +66,13 @@ preview generated from the same formula as runtime code.
    not shrink the complete character merely to retain a redundant effect.
 2. Preserve pen-0 transparency and remap to the established target palette.
    A shared palette bank alone does not prove character/material consistency.
+   For Sparkpaw, compare palette-role distribution as well as available RGB
+   entries: fur base, fur shadow, muzzle/inner-ear cream, eye colour, scarf,
+   gauntlet and outline must remain consistent with the accepted gameplay and
+   HUD identity. A new pose may not swap highlight and shadow roles merely
+   because both colours exist in the destination bank. Preserve shape and mask
+   while correcting palette roles; never paste a differently scaled HUD icon
+   into gameplay art as a shortcut.
 3. Append frame IDs unless the user explicitly replaces rejected, unaccepted
    work. Update source count, headers, generator manifest and every cache loop
    together.

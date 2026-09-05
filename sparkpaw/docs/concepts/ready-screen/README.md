@@ -65,6 +65,15 @@ Fast RAM; the second displayable bitmap adds 61,440 bytes of Chip RAM. Up/down
 selects the main menu, left/right changes the option and Fire/Space returns
 from Options.
 
+The integrated campaign candidate adds a second visible Options row: `START
+AT`, defaulting to the existing `STORM RUINS` Level 1 and alternatively
+selecting the playable `STORMRAIL` interlude. Up/Down selects `SECOND BUTTON`
+or `START AT`, Left/Right changes that row, and Fire returns to the ordinary
+ready screen. Only a later `START GAME` confirmation applies the choice. Level
+1 remains preloaded; selecting Stormrail performs its bounded unload/load after
+confirmation. The campaign combinations are Fast-RAM patches mapped into the
+unchanged accepted ready palette and add no Chip allocation or per-frame work.
+
 The HD edition retains the complete five-plate cinematic intro. The space-bound
 ADF edition omits those five plates and begins at the existing title, while
 retaining `LOADING`, `CHARGING` and this same full-quality 64-colour ready

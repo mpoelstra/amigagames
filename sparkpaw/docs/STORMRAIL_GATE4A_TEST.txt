@@ -1,0 +1,39 @@
+SPARKPAW STORMRAIL GATE 4A - 68030 HD TEST
+===========================================
+
+This drawer is the first subjective Gate-4 debris-run test. It preserves the
+accepted four Gate-3 formations and adds a short deterministic 17-object
+ruin passage after formation four. Do not use it for the final 68020 verdict.
+
+Run the drawer's Sparkpaw executable with the usual A1200/68030 FS-UAE setup.
+Board the Skimmer and play through all four formations. After the fourth wave:
+
+1. Arches, slabs, pillars and small ruin pieces should cross horizontally,
+   vertically and diagonally at visibly different speeds. The climax reaches
+   four obstacle Bobs; earlier passages should remain less dense.
+2. Every shot impact should be audible. Destructible pieces blink briefly;
+   massed solid pieces absorb the shot without blinking and must be dodged.
+3. Small destructible masonry takes two hits. A large destructible piece takes
+   six and shows the damaged state for its final three hit points.
+4. Ordinary debris disappears on destruction and does not split into more
+   hazards. One authored large loot block releases a canonical diamond.
+5. Large destruction gives 20 points and small destruction gives 5 points.
+6. Touching any large or small piece costs one half-heart, plays the accepted
+   hurt sound and consumes that obstacle instead of repeatedly draining life.
+7. The fourth free diamond line follows the obstacle encounter and retains the
+   existing Level-1 pickup sound and five-point value.
+
+Please judge these subjective points on 68030:
+
+- Does the intact object read as carved castle-ruin masonry against every
+  route palette rather than as a generic asteroid or sci-fi object?
+- Is six hits enough to create pressure without feeling like a bullet sponge?
+- Is the cracked frame obvious at native scale?
+- Does the mixture create a fun choice between shooting and route planning?
+- Is it immediately clear after one shot which pieces can be destroyed?
+- Do audio, collisions, score, diamonds and all four older formations remain
+  correct across a death/restart?
+- Do you see any masks, trails, stale fragments, loading hang or slowdown?
+
+Stop after this test and report what you saw. A second concurrent large rock,
+falling debris, clouds, 1UP, finale and full route are deliberately absent.

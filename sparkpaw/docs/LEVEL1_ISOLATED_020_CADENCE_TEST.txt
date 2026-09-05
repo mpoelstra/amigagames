@@ -1,0 +1,27 @@
+SPARKPAW LEVEL 1 ISOLATION DIAGNOSIS - STOCK 68020 CADENCE
+
+This B-run isolates the measured current-campaign Level-1 regression. It uses
+the same current Level-1 gameplay sources, production renderer flags, assets
+and minimal cadence instrumentation, but compiles Stormrail and campaign code
+out completely. It is diagnostic only and is not a proposed player build.
+
+Use the same stock A1200/68020 FS-UAE configuration and start Sparkpaw-L1-Iso.
+
+1. Follow the normal title/ready flow and select START GAME yourself.
+2. Play Level 1 as you did in the rejected 45.42-FPS campaign run, including
+   ordinary movement, firing and busy combat, then collect the Stormstone Core.
+3. The last gameplay image intentionally remains visible. Press the LEFT MOUSE
+   BUTTON once, wait three seconds, then stop/reset FS-UAE.
+4. Leave renderdiag.log in this drawer and report whether the busy scenes felt
+   closer to alpha.68 or remained visibly worse.
+
+Interpretation:
+
+- A material recovery toward the protected 48.58-FPS baseline proves that
+  compiled campaign/Stormrail integration contaminates Level-1 performance.
+- A result near 45.42 FPS excludes that as the main cause and moves the search
+  to changes in shared Level-1 gameplay/renderer code.
+
+The sample runs from first gameplay update through Core completion and excludes
+presentation screens and post-completion dwell. This build does not load or
+exercise Stormrail and cannot be accepted as a complete campaign candidate.

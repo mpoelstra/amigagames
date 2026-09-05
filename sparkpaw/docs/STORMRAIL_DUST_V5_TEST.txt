@@ -1,0 +1,19 @@
+SPARKPAW STORMRAIL SUNLIT DUST V5 - FS-UAE 68030 HD
+
+This focused build starts at the accepted Stormrail interlude and keeps its
+complete debris and enemy-pattern baseline. Gate 4D adds eight independent
+blue dust/grit slots. Each travels continuously from right to left with its
+own height, phase and speed. Seven accepted vertical positions are unchanged;
+only the redundant eighth position moves into the previously empty top strip.
+Slow cached white/light-blue/amber changes suggest changing sunlight;
+gameplay, pools and collision are unchanged.
+
+Please play the complete route once on the 68030 configuration and judge:
+
+- do the marks read as independent dust/grit rather than clusters;
+- is the field sufficiently present while remaining behind gameplay;
+- do the slow colour changes feel like light rather than blinking;
+- is motion smooth during the busiest debris and five-enemy moments.
+
+Do not save a cadence log for this visual gate. Report what you saw and felt.
+The accepted alpha.68 release and previous Stormrail drawers remain archived.

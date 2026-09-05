@@ -1,0 +1,33 @@
+SPARKPAW CURRENT CAMPAIGN LEVEL 1 - STOCK 68020 CADENCE
+
+This is the low-overhead Level-1 performance gate for the same current
+campaign candidate as the accepted Stormrail 49.88-FPS run. Gameplay,
+renderer, Level-1 assets and campaign integration are unchanged. Only aggregate
+cadence and renderer-ownership counters are enabled; CIA family profiling and
+campaign transition tracing are disabled.
+
+Use the stock A1200/68020 FS-UAE configuration and start Sparkpaw-L1-Cad.
+
+1. Let the normal title and ready flow appear. Keep START AT set to the default
+   STORM RUINS and select START GAME yourself.
+2. Play the complete Level 1 normally. Move, jump and fire as usual; do not
+   deliberately wait in safe areas. Continue all the way to the Stormstone
+   Core and collect it.
+3. Confirm visually that the accepted alpha.68 Level-1 background, HUD,
+   enemies, diamonds, water, Core clearing and controls remain correct.
+4. On Core completion the last gameplay image intentionally remains visible
+   instead of entering results. Press the LEFT MOUSE BUTTON once.
+5. The image freezes while renderdiag.log is written. Wait three seconds, then
+   stop/reset FS-UAE. Do not expect a return to Workbench.
+6. Leave renderdiag.log in this drawer and report where Level 1 appeared less
+   smooth, especially camera movement, water, crowded combat or the end area.
+
+The cadence sample starts with the first Level-1 gameplay update and stops at
+Core completion. Intro, title, ready, loading, results and post-completion dwell
+are excluded. Compare presentation distribution, maximum fields and ownership
+with the protected 48.58-FPS minimal-cadence Level-1 baseline (1,104 one-field
+and 33 two-field intervals over 1,137, no three-field intervals and zero
+ownership violations). Routes and run lengths are not frame-identical, so the
+comparison is a regression gate rather than a cycle-exact benchmark.
+
+This is not a release, SemVer, ADF/multidisk or optimization candidate.

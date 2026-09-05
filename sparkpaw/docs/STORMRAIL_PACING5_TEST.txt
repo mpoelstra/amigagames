@@ -1,0 +1,30 @@
+SPARKPAW STORMRAIL PACING 5 - ZYNAPS FLOW RESTORED
+==================================================
+
+Run only Sparkpaw-Pacing5 with the usual A1200/68030 FS-UAE setup.
+
+All 48 debris objects again enter from the right and travel left, matching the
+accepted Debris-2/Zynaps-like flow. Pacing 4's left, top and bottom entrances
+are removed. Organised chaos comes only from the accepted vocabulary: mixed
+large blocks, pillar fragments and shards, broad vertical distribution,
+different 2-4 pixel horizontal speeds, diagonal drift and tumble frames.
+
+Every rolling six-event window is mechanically checked for at least two
+formats, three vertical zones and four unique zone/speed/drift combinations.
+No ordinary event can wait and form a repeated tail. Pillar frames are clamped
+to their valid 0-1 family, preventing the previously observed malformed rock.
+
+The fourth loose diamond line occurs before debris. Within debris, only two
+destructible large loot carriers can release a diamond. At distance 11200 the
+camera stops and all Flight-owned objects are cleared; nothing continues or
+respawns afterward.
+
+Please inspect the complete debris field, particularly its final third:
+
+1. Does the accepted right-to-left Zynaps feel remain intact?
+2. Is size, height, speed, drift and tumble variation sustained throughout?
+3. Is there no repeated pair/triple pattern or malformed rock near the end?
+4. Does the camera stop with an empty playfield at the hard endpoint?
+
+This remains a 68030 visual/feel gate. No dust, later enemy pattern, finale,
+results, Level 2 or campaign integration is included.

@@ -67,6 +67,10 @@ def main() -> None:
         STAGE = STAGE_ROOT / STAGE_NAME
     else:
         executable = ROOT / "build" / "sparkpaw-whdload"
+    if not diagnostic:
+        from runtime_asset_refs import executable_runtime_files
+        assert set(executable_runtime_files(executable)) == set(RUNTIME_FILES)
+        assert f"Version {RELEASE_VERSION}" in SLAVE_SOURCE.read_text()
     assemble()
     if STAGE_ROOT.exists():
         shutil.rmtree(STAGE_ROOT)
@@ -95,7 +99,7 @@ alpha.55 WHDLoad release. F10 remains the exit key.
     else:
         readme = (ROOT / "whdload" / "ReadMe.txt").read_text(encoding="ascii").format(
             RELEASE_NAME=RELEASE_NAME, RELEASE_VERSION=RELEASE_VERSION,
-            ROADMAP_CHECKPOINT=ROADMAP_CHECKPOINT,
+            ROADMAP_CHECKPOINT=ROADMAP_CHECKPOINT, STAGE_NAME=STAGE_NAME,
         )
     (STAGE / "ReadMe.txt").write_text(readme, encoding="ascii")
     make_icons()

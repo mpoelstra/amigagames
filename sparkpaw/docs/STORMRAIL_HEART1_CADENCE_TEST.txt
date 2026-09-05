@@ -1,0 +1,18 @@
+SPARKPAW STORMRAIL HEART 1 - COMPLETE 68020 CADENCE TEST
+========================================================
+
+Use the stock A1200/68020 FS-UAE profile. This is the current accepted-for-now
+Stormrail slice with only the low-overhead cadence logger enabled: four enemy
+formations, free and formation diamonds, the heart-with-three-diamond ring,
+the full 48-event Debris5.2 field, and the slower six-hit heart carrier.
+
+Board normally and play actively through all four formations and the complete
+debris field. Move, fire, take pickups and dodge as in a normal run. After the
+last debris has passed and moving empty space is visible, press LMB once. The
+image freezes intentionally while renderdiag.log is saved. Wait several
+seconds, then stop/reset FS-UAE; it will not return to Workbench.
+
+Report any visible stutter as well. Compare the log with the accepted empty
+Gate-2.5 baseline (49.26 FPS / 1,000 intervals / 992 one-field / zero ownership
+violations) and Debris2 (49.95 FPS / 2,299 intervals / 2,298 one-field / one
+three-field / zero ownership violations).

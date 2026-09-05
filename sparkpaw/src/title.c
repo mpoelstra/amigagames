@@ -36,12 +36,14 @@
 #define INTRO_SKIP_HOLD_FRAMES 30
 #define READY_MENU_PATCH_Y 118
 #define READY_MENU_PATCH_H 104
-#define READY_MENU_PATCH_X 80
-#define READY_MENU_PATCH_W 160
+#define READY_MENU_PATCH_X 64
+#define READY_MENU_PATCH_W 192
 #define READY_MENU_STATE_START 0
 #define READY_MENU_STATE_OPTIONS 1
 #define READY_MENU_STATE_JUMP 2
 #define READY_MENU_STATE_FIRE 3
+#define READY_MENU_STATE_CAMPAIGN_BASE 4
+#define READY_MENU_STATE_COUNT 12
 #define INTRO_TEXT_FADE_FRAMES 12
 #define INTRO_TEXT_PAGE_ROWS 176
 
@@ -72,10 +74,17 @@ static UBYTE scoreBufferIndex;
 #define SCORE_ROW_COUNT 4
 #define SCORE_VALUE_Y_OFFSET 3
 #define SCORE_CHAR_COUNT 11
+#define SCORE_MENU_REPLAY_ROW 11
+#define SCORE_MENU_CONTINUE_ROW 12
+#define SCORE_MENU_BACK_ROW 13
+#define SCORE_MENU_ARROW_ROW 14
+#define SCORE_GLYPH_ROWS 15
 #define SCORE_GLYPH_ATLAS_W 144
 #define SCORE_PROMPT_X 88
-#define SCORE_PROMPT_Y 232
+#define SCORE_PROMPT_Y 216
 #define SCORE_PROMPT_W 144
+#define SCORE_PROMPT_H 40
+#define SCORE_MENU_ARROW_X 104
 #define SCORE_PAR_SECONDS 120
 #define SCORE_TIME_MULTIPLIER 10
 static const UWORD scoreRowY[SCORE_ROW_COUNT]={116,137,158,179};
@@ -362,7 +371,7 @@ static void fadeTo(const struct PlanarAsset *asset,BOOL fadeIn)
     }
 }
 
-BOOL titleShow(void)
+static BOOL titleShowInternal(BOOL playStory)
 {
 #ifdef SPARKPAW_STORY_INTRO
     static const UBYTE passageCounts[5]={2,2,3,2,2};
@@ -376,11 +385,13 @@ BOOL titleShow(void)
     introDiagnosticEvent("before_load",0);
 #endif
 #ifdef SPARKPAW_STORY_INTRO
-    if(!assetsLoadStoryIntro(0)) {
+    if(playStory&&!assetsLoadStoryIntro(0)) {
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
         introDiagnosticEvent("load_failed",0); introDiagnosticClose();
 #endif
         failureReason="six-plane intro proof asset load failed"; return FALSE;
+    } else if(!playStory&&!assetsLoadTitle()) {
+        failureReason="six-plane title asset load failed"; return FALSE;
     }
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
     introDiagnosticEvent("load_ok",0);
@@ -403,9 +414,11 @@ BOOL titleShow(void)
     LoadView(NULL);
     WaitTOF(); WaitTOF();
 #ifdef SPARKPAW_STORY_INTRO
-    buildingIntroCopper=TRUE;
-    buildCopper(assetsStoryIntro(),0,0);
-    buildingIntroCopper=FALSE;
+    if(playStory) {
+        buildingIntroCopper=TRUE;
+        buildCopper(assetsStoryIntro(),0,0);
+        buildingIntroCopper=FALSE;
+    } else buildCopper(assetsTitle(),0,0);
 #else
     buildCopper(assetsTitle(),0,0);
 #endif
@@ -417,6 +430,7 @@ BOOL titleShow(void)
         for(frame=0;frame<DISPLAY_LOCK_FRAMES;frame++) WaitTOF();
     }
 #ifdef SPARKPAW_STORY_INTRO
+    if(playStory) {
     for(plate=0;plate<5&&!skipIntro;plate++) {
         if(plate) {
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
@@ -461,8 +475,39 @@ BOOL titleShow(void)
 #endif
     buildCopper(assetsTitle(),currentCopper^1,0);
     installCopper(currentCopper^1);
+    }
 #endif
     fadeTo(assetsTitle(),TRUE);
+    titleStartFrame=GfxBase->VBCounter;
+    return TRUE;
+}
+
+BOOL titleShow(void) { return titleShowInternal(TRUE); }
+BOOL titleShowMain(void) { return titleShowInternal(FALSE); }
+
+BOOL titleShowMainFromResults(void)
+{
+    UBYTE next=currentCopper^1,index;
+    if(!displayed||!assetsLevelComplete()->bitmap) {
+        failureReason="results display unavailable for title transition";
+        return FALSE;
+    }
+    if(!assetsLoadTitle()) {
+        failureReason="six-plane title asset load failed";
+        return FALSE;
+    }
+    /* The old score Copper remains valid until its inactive replacement is
+       complete. This ordering is mandatory while Raster/Copper DMA stays on:
+       freeing titleRelease() first leaves the custom chips reading released
+       score memory and can hang forever on a black frame. */
+    buildCopper(assetsTitle(),next,0);
+    installCopper(next);
+    fadeTo(assetsTitle(),TRUE);
+    for(index=0;index<2;index++) if(scoreBuffers[index]) {
+        FreeBitMap(scoreBuffers[index]); scoreBuffers[index]=NULL;
+    }
+    assetsUnloadScoreGlyphs();
+    assetsUnloadLevelComplete();
     titleStartFrame=GfxBase->VBCounter;
     return TRUE;
 }
@@ -490,6 +535,9 @@ BOOL titleShowLevelCharging(void)
     UBYTE plane; UWORD row;
     const struct PlanarAsset *loading=assetsLevelLoading();
     const struct PlanarAsset *patch=assetsLevelCharging();
+#ifdef SPARKPAW_MULTI_ADF
+    if(!patch->bitmap&&!assetsLoadLevelCharging()) return FALSE;
+#endif
     if(!displayed||!loading->bitmap||!patch->bitmap||
        patch->width!=CHARGING_PATCH_W||patch->height!=CHARGING_PATCH_H) {
         failureReason="charging image was not prepared"; return FALSE;
@@ -527,12 +575,15 @@ BOOL titleShowLevelLoading(void)
     installCopper(next);
     assetsUnloadTitle();
     fadeTo(assetsLevelLoading(),TRUE);
+#ifdef SPARKPAW_MULTI_ADF
+    assetsRetireOldLoading();
+#endif
     return TRUE;
 }
 
 BOOL titleShowReplayLoading(void)
 {
-    UBYTE next=currentCopper^1;
+    UBYTE next=currentCopper^1,index;
     if(!displayed) {
         failureReason="score display unavailable for replay loading";
         return FALSE;
@@ -548,8 +599,30 @@ BOOL titleShowReplayLoading(void)
     buildCopper(assetsLevelLoading(),next,0);
     installCopper(next);
     fadeTo(assetsLevelLoading(),TRUE);
+#ifdef SPARKPAW_MULTI_ADF
+    assetsRetireOldLoading();
+#endif
+    /* The loading Copper is now wholly independent. Retire the old results
+       buffers and assets before the renderer rebuild, so titleFadeOut() later
+       selects the visible loading palette rather than restaging score colours
+       over the disk image. */
+    for(index=0;index<2;index++) if(scoreBuffers[index]) {
+        FreeBitMap(scoreBuffers[index]); scoreBuffers[index]=NULL;
+    }
+    assetsUnloadScoreGlyphs();
+    assetsUnloadLevelComplete();
     return TRUE;
 }
+
+#ifdef SPARKPAW_MULTI_ADF
+BOOL titleShowInsertDisk(UBYTE disk)
+{
+    /* Every section-load caller has already published the loading image.
+       Reuse it: only the 224x40 status strip needs a cold read before swap. */
+    if(!assetsLoadDiskPatch(disk)) return FALSE;
+    return titleShowLevelCharging();
+}
+#endif
 
 BOOL titleShowLevelReady(void)
 {
@@ -575,7 +648,7 @@ BOOL titleShowLevelReady(void)
     if(!ready->bitmap||ready->width!=320||ready->height!=256||
        !assetsLevelReadyMenu()->bitmap||
        assetsLevelReadyMenu()->width!=READY_MENU_PATCH_W||
-       assetsLevelReadyMenu()->height!=READY_MENU_PATCH_H*4) {
+       assetsLevelReadyMenu()->height!=READY_MENU_PATCH_H*READY_MENU_STATE_COUNT) {
         failureReason="ready screen asset has invalid geometry";
         assetsUnloadLevelReadyMenu();
         assetsUnloadLevelReady();
@@ -631,7 +704,7 @@ BOOL titleShowLevelComplete(void)
     }
     if(assetsLevelComplete()->width!=320||assetsLevelComplete()->height!=256||
        assetsScoreGlyphs()->width!=SCORE_GLYPH_ATLAS_W||
-       assetsScoreGlyphs()->height!=SCORE_TILE_H*(SCORE_CHAR_COUNT+1)) {
+       assetsScoreGlyphs()->height!=SCORE_TILE_H*SCORE_GLYPH_ROWS) {
         failureReason="level-complete assets have invalid geometry";
         return FALSE;
     }
@@ -711,7 +784,7 @@ static void scoreExpression(char *text,UBYTE *length,ULONG count,UWORD value,
 }
 
 static void publishScoreState(UWORD enemies,UWORD diamonds,UWORD timeSeconds,
-                              ULONG total,BOOL showPrompt)
+                              ULONG total,UBYTE menu,UBYTE selection)
 {
     struct BitMap *hidden=scoreBuffers[scoreBufferIndex^1];
     struct PlanarAsset display=*assetsLevelComplete();
@@ -722,16 +795,27 @@ static void publishScoreState(UWORD enemies,UWORD diamonds,UWORD timeSeconds,
                       SCORE_FIELD_CELLS*SCORE_TILE_W,SCORE_CLEAR_H);
     scoreCopyRect(assetsLevelComplete()->bitmap,hidden,SCORE_PROMPT_X,
                   SCORE_PROMPT_Y,SCORE_PROMPT_X,SCORE_PROMPT_Y,
-                  SCORE_PROMPT_W,SCORE_TILE_H);
+                  SCORE_PROMPT_W,SCORE_PROMPT_H);
     scoreExpression(text,&length,enemies,20,3); scoreDrawText(hidden,0,text,length);
     scoreExpression(text,&length,diamonds,5,3); scoreDrawText(hidden,1,text,length);
     scoreExpression(text,&length,timeSeconds,10,3); scoreDrawText(hidden,2,text,length);
     length=appendDecimal(text,total,6); scoreDrawText(hidden,3,text,length);
-    if(showPrompt)
+    if(menu) {
+        UWORD replayY=menu==1?232:218;
+        UWORD secondRow=menu==2?SCORE_MENU_CONTINUE_ROW:SCORE_MENU_BACK_ROW;
         scoreCopyRect(assetsScoreGlyphs()->bitmap,hidden,0,
-                      SCORE_CHAR_COUNT*SCORE_TILE_H,
-                      SCORE_PROMPT_X,SCORE_PROMPT_Y,
-                      SCORE_PROMPT_W,SCORE_TILE_H);
+                      SCORE_MENU_REPLAY_ROW*SCORE_TILE_H,
+                      SCORE_PROMPT_X,replayY,SCORE_PROMPT_W,SCORE_TILE_H);
+        if(menu!=1)
+            scoreCopyRect(assetsScoreGlyphs()->bitmap,hidden,0,
+                          secondRow*SCORE_TILE_H,
+                          SCORE_PROMPT_X,234,SCORE_PROMPT_W,SCORE_TILE_H);
+        if(menu!=1)
+            scoreCopyRect(assetsScoreGlyphs()->bitmap,hidden,0,
+                          SCORE_MENU_ARROW_ROW*SCORE_TILE_H,
+                          SCORE_MENU_ARROW_X,selection?234:218,
+                          SCORE_TILE_W,SCORE_TILE_H);
+    }
     display.bitmap=hidden; buildCopper(&display,next,256);
     waitOwnedCopperArmWindow(); hardware->cop1lc=(ULONG)copper[next];
     currentCopper=next; scoreBufferIndex^=1;
@@ -750,16 +834,53 @@ void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
     UWORD elapsed=(UWORD)(elapsedFields/50UL);
     UWORD timeSeconds=elapsed<SCORE_PAR_SECONDS?
                       (UWORD)(SCORE_PAR_SECONDS-elapsed):0;
+    titleRunLevelCompleteWithBonus(enemies,diamonds,timeSeconds,liveScore);
+}
+
+static enum ResultDecision runLevelCompleteMenu(UWORD enemies,UWORD diamonds,
+    UWORD timeSeconds,ULONG liveScore,UBYTE menuMode);
+
+enum ResultDecision titleRunLevelCompleteMenu(UWORD enemies,UWORD diamonds,
+    ULONG elapsedFields,ULONG liveScore,BOOL stormrail)
+{
+    UWORD elapsed=(UWORD)(elapsedFields/50UL);
+    UWORD timeSeconds=elapsed<SCORE_PAR_SECONDS?
+                      (UWORD)(SCORE_PAR_SECONDS-elapsed):0;
+    return runLevelCompleteMenu(enemies,diamonds,timeSeconds,liveScore,
+                                stormrail?3:2);
+}
+
+enum ResultDecision titleRunLevelCompleteWithBonusMenu(UWORD enemies,
+    UWORD diamonds,UWORD timeSeconds,ULONG liveScore,BOOL stormrail)
+{
+    return runLevelCompleteMenu(enemies,diamonds,timeSeconds,liveScore,
+                                stormrail?3:2);
+}
+
+void titleRunLevelCompleteWithBonus(UWORD enemies,UWORD diamonds,
+                                    UWORD timeSeconds,ULONG liveScore)
+{
+    (void)runLevelCompleteMenu(enemies,diamonds,timeSeconds,liveScore,1);
+}
+
+static enum ResultDecision runLevelCompleteMenu(UWORD enemies,UWORD diamonds,
+    UWORD timeSeconds,ULONG liveScore,UBYTE menuMode)
+{
     UWORD shownEnemies=enemies,shownDiamonds=diamonds,shownTime=timeSeconds;
     ULONG total=0,expected=liveScore+(ULONG)timeSeconds*SCORE_TIME_MULTIPLIER;
-    UBYTE phase=0,tick=0;
+    UBYTE phase=0,tick=0,selection=(menuMode!=1)?1:0;
+    /* Every two-choice results menu defaults to its forward/exit action:
+       CONTINUE after Level 1 and BACK TO TITLE after Stormrail. Require one
+       neutral menu sample before accepting navigation: a completion jump maps
+       to Up in this UI and must never move that explicit default. */
+    BOOL directionHeld=TRUE;
 #ifdef SPARKPAW_REPLAY_PROOF
-    publishScoreState(0,0,0,liveScore,TRUE);
+    publishScoreState(0,0,0,liveScore,1,0);
     waitOwnedDisplayFrame();
     waitOwnedDisplayFrame();
-    return;
+    return RESULT_DECISION_REPLAY_CURRENT;
 #endif
-    publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
+    publishScoreState(shownEnemies,shownDiamonds,shownTime,total,0,0);
     while(phase<3) {
         BOOL fire=resultFire();
         waitOwnedDisplayFrame(); audioUpdate();
@@ -767,7 +888,7 @@ void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
             if(phase==0) { total+=(ULONG)shownEnemies*20UL; shownEnemies=0; }
             else if(phase==1) { total+=(ULONG)shownDiamonds*5UL; shownDiamonds=0; }
             else { total+=(ULONG)shownTime*10UL; shownTime=0; }
-            publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
+            publishScoreState(shownEnemies,shownDiamonds,shownTime,total,0,0);
             phase++;
             while(resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
             continue;
@@ -784,12 +905,29 @@ void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
             shownTime-=step; total+=(ULONG)step*10UL;
         } else { phase++; continue; }
         audioPlayTallyTick();
-        publishScoreState(shownEnemies,shownDiamonds,shownTime,total,FALSE);
+        publishScoreState(shownEnemies,shownDiamonds,shownTime,total,0,0);
     }
     if(total!=expected) total=expected;
-    publishScoreState(0,0,0,total,TRUE);
+    publishScoreState(0,0,0,total,menuMode,selection);
     while(resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
-    while(!resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
+    for(;;) {
+        BOOL left,right,down,up,fire;
+        UWORD value=*(volatile UWORD *)0xdff00c;
+        platformReadGameKeys(&left,&right,&down,&up,&fire);
+        down=down||(((value^(value>>1))&0x0001)!=0);
+        up=up||(((value^(value>>1))&0x0100)!=0);
+        fire=fire||(((*(volatile UBYTE *)0xbfe001)&0x80)==0);
+        if(!up&&!down) directionHeld=FALSE;
+        else if(menuMode!=1&&!directionHeld) {
+            selection^=1; directionHeld=TRUE;
+            publishScoreState(0,0,0,total,menuMode,selection);
+        }
+        if(fire) break;
+        waitOwnedDisplayFrame(); audioUpdate();
+    }
+    while(resultFire()) { waitOwnedDisplayFrame(); audioUpdate(); }
+    if(!selection) return RESULT_DECISION_REPLAY_CURRENT;
+    return menuMode==3?RESULT_DECISION_BACK_TO_TITLE:RESULT_DECISION_CONTINUE;
 }
 
 static void readReadyMenuInput(BOOL *up,BOOL *down,BOOL *left,BOOL *right,
@@ -836,9 +974,23 @@ static void showReadyMenuState(UBYTE state)
     readyMenuBufferIndex^=1;
 }
 
-void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction)
+#ifdef SPARKPAW_CAMPAIGN
+static UBYTE readyCampaignOptionsState(
+    enum SecondaryButtonAction secondaryAction,
+    enum CampaignStartSection startSection,UBYTE optionRow)
+{
+    return (UBYTE)(READY_MENU_STATE_CAMPAIGN_BASE+
+        campaignOptionsVariant(secondaryAction,startSection,optionRow));
+}
+#endif
+
+void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
+    enum CampaignStartSection *startSection)
 {
     UBYTE state=READY_MENU_STATE_START;
+#ifdef SPARKPAW_CAMPAIGN
+    UBYTE optionRow=0;
+#endif
     BOOL up,down,left,right,fire;
     BOOL oldUp=FALSE,oldDown=FALSE,oldLeft=FALSE,oldRight=FALSE,oldFire;
     readReadyMenuInput(&up,&down,&left,&right,&fire);
@@ -865,20 +1017,49 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction)
             }
             if(fire&&!oldFire) {
                 if(state==READY_MENU_STATE_START) return;
+#ifdef SPARKPAW_CAMPAIGN
+                state=readyCampaignOptionsState(*secondaryAction,
+                                                 *startSection,optionRow);
+#else
                 state=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
                       READY_MENU_STATE_JUMP:READY_MENU_STATE_FIRE;
+#endif
                 showReadyMenuState(state);
             }
         } else {
+#ifdef SPARKPAW_CAMPAIGN
+            if((up&&!oldUp)||(down&&!oldDown)) {
+                optionRow^=1;
+                state=readyCampaignOptionsState(*secondaryAction,
+                                                 *startSection,optionRow);
+                showReadyMenuState(state);
+            }
+#endif
             if((left&&!oldLeft)||(right&&!oldRight)) {
-                *secondaryAction=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
-                                 SECONDARY_BUTTON_FIRE:SECONDARY_BUTTON_JUMP;
+#ifdef SPARKPAW_CAMPAIGN
+                if(optionRow) {
+                    *startSection=(*startSection==CAMPAIGN_START_STORM_RUINS)?
+                        CAMPAIGN_START_STORMRAIL:CAMPAIGN_START_STORM_RUINS;
+                } else
+#endif
+                {
+                    *secondaryAction=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
+                                     SECONDARY_BUTTON_FIRE:SECONDARY_BUTTON_JUMP;
+                }
+#ifdef SPARKPAW_CAMPAIGN
+                state=readyCampaignOptionsState(*secondaryAction,
+                                                 *startSection,optionRow);
+#else
                 state=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
                       READY_MENU_STATE_JUMP:READY_MENU_STATE_FIRE;
+#endif
                 showReadyMenuState(state);
             }
             if(fire&&!oldFire) {
                 state=READY_MENU_STATE_START;
+#ifdef SPARKPAW_CAMPAIGN
+                optionRow=0;
+#endif
                 showReadyMenuState(state);
             }
         }

@@ -1,0 +1,64 @@
+SPARKPAW CAMPAIGN LOOP - 68030 HD USER TEST
+===========================================
+
+Status: candidate; hosttests and 68020 compile pass, native feel pending.
+
+This candidate writes only one bounded `back-title-trace.log` when BACK TO
+TITLE is selected. It performs no per-frame logging. If the transition stalls,
+leave FS-UAE stopped on that frame so Codex can inspect the completed phases.
+
+Mount this drawer in FS-UAE and run Sparkpaw-Campaign. Codex has not booted the
+staged executable; the visible/native checks below are yours.
+
+Check the complete path:
+
+At any safe gameplay moment in both Storm Ruins and Stormrail, press Esc once.
+The active run must fade/blank cleanly, show no Workbench or stale gameplay,
+skip the story intro, rebuild the normal presentation and stop at the ready
+screen. `START AT` must be reset to `STORM RUINS`; nothing from the abandoned
+score, vitals, diamonds, enemies, projectiles or awards may carry forward.
+
+1. Let the complete five-plate story intro run (or test its existing skip),
+   then confirm the large title and ready/menu screen wait for your own
+   `START GAME` Fire/Space input. In OPTIONS, confirm the visible `SECOND
+   BUTTON` and `START AT` rows. Up/Down selects a row, Left/Right changes it,
+   and Fire returns to the ready screen without starting. `START AT` defaults
+   to `STORM RUINS`. Selecting `STORMRAIL`, returning, then confirming `START
+   GAME` must load departure/boarding with 3 lives, full health, 0 diamonds and
+   score 0000. Confirm the original
+   Level-1 world, detailed rear background (no replacement green band), floor,
+   collision, player start, enemies, diamonds, shots and HUD are unchanged.
+   At the final ruin, confirm the large Stormstone Core is visible before it
+   is collected and that its collection still advances normally.
+2. Finish Level 1. Let the complete tally run once. Confirm two choices:
+   REPLAY LEVEL and CONTINUE. Both labels must remain horizontally centred in
+   the alpha.68 cyan/blue style while the fixed yellow score-colour arrow
+   changes rows. CONTINUE must always be selected when the menu first becomes
+   interactive, including when the Stormstone was collected while Jump/W was
+   held. Release all directions once; every subsequent distinct Up or Down
+   press must toggle exactly once, while holding it must not repeat. Test Fire.
+3. First test REPLAY LEVEL. It must fade to black and restart Level 1 without
+   a loading screen. No score, diamonds, enemies, timer or input may carry.
+4. Finish again and choose CONTINUE. It must fade fully black, show the normal
+   loading presentation without a palette/DMA glitch, and begin Stormrail at
+   departure/boarding. The exact remaining lives, half-heart health and current
+   diamond meter from Level 1 must carry into Stormrail, while the Stormrail
+   score starts at 0000. No Workbench or stray disk icon may appear.
+5. Complete the full Stormrail route and Harrier finale. Confirm its accepted
+   results tally and two choices: REPLAY LEVEL and BACK TO TITLE. BACK TO TITLE
+   must always be selected when the menu first becomes interactive. As above,
+   stale completion input must not move it and each fresh Up/Down press must
+   toggle exactly once.
+6. Test REPLAY LEVEL. It must restart resident at Stormrail departure with no
+   loading screen and no local score/time/pickup/award/finale carry-over. It
+   must restore the same Level-1 lives, health and diamond meter snapshot, and
+   its section score must again start at 0000. The approach rear mountains and
+   sky must match the first entry exactly: no retained green/teal horizontal
+   route-palette bands or distorted colour regions.
+7. Complete Stormrail again and choose BACK TO TITLE. Confirm it does not stay
+   black: the large title appears, followed by the existing ready/start screen,
+   then a fresh Level 1.
+8. Listen for tally audio, look for black/loading transition glitches, and
+   report menu timing, selection clarity and overall campaign-loop feel.
+
+This is not a release. SemVer, alpha.68 packages, ADF and WHDLoad are untouched.

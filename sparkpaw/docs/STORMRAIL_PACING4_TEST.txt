@@ -1,0 +1,35 @@
+SPARKPAW STORMRAIL PACING 4 - BOUNDED CHOREOGRAPHY
+==================================================
+
+Pacing 3 is rejected. Run only Sparkpaw-Pacing4 with the usual A1200/68030
+FS-UAE setup.
+
+This build fixes two independently confirmed causes:
+
+- Three pillar events incorrectly selected base frame 2 although the pillar
+  family has only frames 0-1. Frame selection is corrected and now normalized
+  by type, preventing the malformed rock seen near the upper edge.
+- Ordinary debris no longer waits for a later pool vacancy. Each cue is either
+  admitted at its authored distance or consumed immediately while the six-slot
+  field is already full. Therefore no delayed rhythmic tail can accumulate.
+
+The 48-event field is one choreography with a sustained mix of large blocks,
+pillar fragments and shards, varied heights, diagonal drift, speed and entry
+side. The expected visible admissions are approximately 13 large, 21 shard and
+7 pillar objects; average occupancy is close to the accepted Debris-1 baseline.
+
+The fourth free four-diamond line occurs before debris. Within debris, pickups
+can come only from the two destructible large loot carriers. At monotone
+distance 11200 the camera stops and all Flight-owned objects are cleared. No
+debris, reward or projectile may appear after that hard endpoint.
+
+Please check the whole passage and especially its final third:
+
+1. Does it remain one varied organised-chaos field without a repeated tail?
+2. Are large, pillar and shard silhouettes mixed throughout?
+3. Is the malformed/clipped upper-edge rock gone?
+4. Do loose four-diamond lines stay outside debris?
+5. Does everything disappear and the camera stop at the unmistakable end?
+
+This remains a 68030 visual/feel gate. No dust, later enemy pattern, finale,
+results, Level 2 or campaign integration is included.

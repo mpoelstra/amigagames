@@ -1,0 +1,35 @@
+SPARKPAW - STORMRAIL INTERLUDE V2
+
+This is an isolated, unnumbered Phase 6D gameplay slice. It skips the intro
+and Level 1, does not alter campaign progression and does not change the ADF.
+
+RUN
+  Use FS-UAE with an A1200 / 68030 configuration.
+  Mount dist and open: Stormrail-V2-FSUAE-030-HD
+  Start: Stormrail-Test
+
+CONTROLS
+  Approach: left/right moves Sparkpaw. Walk to the parked Skimmer and jump
+  so Sparkpaw descends into the open cockpit. There is deliberately no
+  proximity/Fire teleport and no automatic boarding timer in this build.
+  Flight: joystick moves in four directions. Hold FIRE for rapid shots.
+  Press the left mouse button when finished to save stormrail-proof.log and
+  exit this test executable.
+
+PLEASE JUDGE THIS FOCUSED CORRECTION
+  1. Can Sparkpaw walk all the way to the Skimmer on visible solid ground,
+     without an invisible wall or walking in the air?
+  2. Does jumping and descending into the cockpit trigger boarding clearly?
+  3. Is the richer v3 parallax background a substantial visual improvement
+     over V1/V2, without three obvious empty horizontal strips?
+  Stop judging after the boarding transition if useful. The corridor remains
+  rejected and is deliberately outside this focused correction check.
+
+CURRENT SCOPE
+  This is an early coherent V2 slice, intentionally offered before polishing
+  the full 2.5-minute encounter. It includes the corrected approach, physical
+  jump-to-board trigger and richer v3 background. Existing flight mechanics
+  remain present only so boarding has a reachable next state. Route art is
+  rejected and not representative: authored corridor design,
+  encounter scripting, a complete failure/restart flow, final audio, results
+  and campaign integration remain after the direction and feel are accepted.

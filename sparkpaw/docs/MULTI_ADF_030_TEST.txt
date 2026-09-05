@@ -1,0 +1,48 @@
+Sparkpaw - Campaign two-disk prototype - first 68030 gate
+Unaccepted disk-only candidate based on local 0.7.0-alpha.1.
+Packaging correction: Disk 2 now includes the mandatory collision map.
+Styled INSERT text; helper lines and left-mouse cancel removed.
+Select BOTH ADF files from this new folder in FS-UAE;
+do not reuse the previous candidate paths or saved machine state.
+
+Test set: sparkpaw/dist/Campaign-2Disk-Art-030
+Boot Sparkpaw-Disk1.adf from DF0. Sparkpaw-Disk2.adf is a data disk.
+PAL / A1200 AGA / 68030 / 2 MB Chip + at least 8 MB Fast.
+Use normal floppy speed for loading observations. Ensure DF0 actually boots;
+do not launch the separate HD release instead. No new story intro on ADF.
+Title, loading, charging, ready/options, Level 1 and Stormrail remain included.
+
+1. Two drives (quick first check)
+   Put Disk 1 in DF0 and Disk 2 in DF1 before booting.
+   At the ready menu, OPTIONS -> start section STORMRAIL, then START GAME.
+   Disk 2 must be found automatically: no INSERT DISK 2 prompt or extra click.
+   Check departure, flight, audio and input. Esc should rebuild the Level-1
+   ready screen using Disk 1 in DF0, also without an INSERT prompt.
+
+2. Single drive
+   Reboot with Disk 1 in DF0 and DF1 empty. Select Stormrail as above, or finish
+   Level 1 and choose CONTINUE. INSERT DISK 2 must appear on the same floppy
+   picture. Leave Disk 1 in briefly: the prompt must remain stable.
+   Only AFTER the prompt appears, replace it with Disk 2. Loading should resume
+   automatically (poll interval about half a second, plus normal drive delay).
+   Esc from Stormrail must request Disk 1 and return to the ready menu after swap.
+   Repeat a swap cycle to check that the prompt does not corrupt or hang.
+
+3. Full campaign / resident behaviour
+   Start fresh Level 1. Check gameplay and results, REPLAY LEVEL, then CONTINUE
+   to Stormrail with carried lives/health/diamonds. Finish Stormrail/finale;
+   check results, REPLAY LEVEL and BACK TO TITLE. Replay must remain resident;
+   no gameplay asset reload or new INSERT prompt for the same level.
+   Check title/loading/charging/ready, audio and held-Fire debounce throughout.
+   INSERT waits for the correct disk; left mouse no longer cancels.
+
+Keep the current section disk inserted during play/results; early ejection
+before INSERT or removal during a file read is outside this first swap contract.
+Wrong/absent disks AT the prompt must wait safely; failed asset reads cancel the
+load through cleanup. Do not mix this pair with alpha.68 or later disk pairs.
+
+Report the first failing step, CPU/RAM, DF0/DF1 contents and last visible screen.
+A short recording or screenshot is useful if a transition glitches. This build
+has no diagnostic log. Save evidence before replacing a future candidate.
+First 030 functionality; only after acceptance proceed to 020, then physical
+A1200/Gotek or Pocket. No speed improvement or native acceptance is claimed yet.

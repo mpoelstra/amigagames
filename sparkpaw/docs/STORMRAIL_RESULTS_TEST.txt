@@ -1,0 +1,26 @@
+Stormrail results user test
+===========================
+
+Machine: FS-UAE A1200/68030 HD. Launch `Sparkpaw-Results` from this drawer.
+This is an unnumbered focused candidate, not alpha.68 and not a release.
+
+Play the complete resident interlude from the short departure cliff. Board by
+jumping into the visible Skimmer cockpit, finish the full route, destroy the
+120-HP Harrier and let the Skimmer pass automatically through the opened gate.
+
+Check that results appear only after that complete passage. The screen must be
+the familiar Level-1 screen with exactly `ENEMIES x20`, `DIAMONDS x5`,
+`TIME x10`, `SCORE` and `REPLAY LEVEL`. Verify the normal row order, tally tick,
+four-field rhythm, faster diamond/time steps, Fire row-skip, release debounce
+and final prompt. The time bonus uses a 150-second complete-interlude par.
+
+After the prompt appears, release Fire and press it once. The display must fade
+fully to black and return directly to a fresh departure/boarding run. There
+must be no Level 1, LOADING/CHARGING screen, disk icon or Workbench transition.
+Confirm x3 lives, full health, zero score/time/diamonds, fresh enemies/debris/
+pickups and a fresh 120-HP Harrier on the replayed run. In particular, no old
+shot, reward, boss damage, score or pickup may survive or award itself again.
+
+Please report the visible tally, timing, tally audio, Fire skip/debounce,
+complete black fade, replay transition and overall feel. Reset or stop FS-UAE
+when finished; this production-style candidate writes no diagnostic log.

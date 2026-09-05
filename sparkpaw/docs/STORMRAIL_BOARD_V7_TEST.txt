@@ -1,0 +1,30 @@
+STORMRAIL BOARDING V7 - FS-UAE 68030 HD
+
+Accepted development baseline: 2026-09-01. Keep this focused drawer available
+as the starting point for the next open-flight gate; it is not a release build
+or proof of campaign integration.
+
+Launch Stormrail-Test. This focused build starts directly at the short cliff
+approach; no story intro or Level 1 playthrough is required.
+
+Test only this sequence:
+
+1. Walk right and jump from the platform into the hovering Skimmer.
+2. Watch Sparkpaw's contact, settle, sink and final cockpit position.
+3. Check especially whether contact or settle feels too far right.
+4. Check that neither Sparkpaw nor the 104x46 craft changes scale or shape.
+5. Check that the steel flank panel and copper stripe remain readable against
+   the Stormrail background.
+6. Compare pose 4 and the final cockpit head with pose 3 and both HUD portraits:
+   Sparkpaw's main fur should retain the same orange identity, with the redder
+   tone used only as shadow rather than becoming the whole head.
+
+The test deliberately holds after boarding. Shooter gameplay is not part of
+this gate yet.
+
+The left mouse button is intentionally ignored. Stop or reset FS-UAE when you
+are finished; the test does not return to Workbench.
+
+Report whether the motion feels natural and, if not, which phase should move
+left or right. A short MOV in sparkpaw/testresults is useful for frame-level
+timing review.

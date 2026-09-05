@@ -1,0 +1,68 @@
+SUPERSEDED PACKAGE — 0.7.0-alpha.1 HD release
+Campaign-Play-HD is archived intact. Same game bytes are now in
+Sparkpaw-0.7.0-alpha.1/Sparkpaw. Current test: real A1200 HD.
+See RELEASE_0_7_0_ALPHA_1.md. Instructions below are historical.
+
+CYCLE CLOSED / RETAINED — 2026-09-05
+030 accepted earlier; user reports no noteworthy 020 change and authorizes
+keeping the optimizations. Production source/build now match the played
+e6e20db6... executable. No FPS gain claimed. No further test requested.
+Active drawer unchanged; older pending-test instructions below are historical.
+
+030 RESULT: ACCEPTED — 2026-09-05
+MrDig reports the active combined candidate is OK on 030. Next: same executable
+on stock FS-UAE/68020; assess whole-Level-1 feel and preserve Stormrail smoothness.
+No rebuild or log-save action. No measured FPS gain or 020 acceptance yet.
+
+CURRENT CANDIDATE — 2026-09-05
+Both small renderer optimizations are now staged on top of Bob-only.
+Run Campaign-Play-HD/Sparkpaw-Play; SHA256 e6e20db68f3f67b1e05b1db2b555842dec3f2473d8c0b7a543d9e5a76c04354e
+First 030 functional check, then 020 after acceptance. No logging.
+See CAMPAIGN_SMALL_OPTS_030_TEST.txt. Older active-build statements below
+are historical. Previous complete Bob drawer archived intact.
+
+LATEST RESULT — 2026-09-05
+User replayed original alpha.68 and the active Bob-only candidate: practically
+no difference, both dip under extreme running/shooting; candidate still feels
+very slightly less smooth overall. Subjective, no measured FPS gain. 030 gate
+was accepted earlier. Same b0eb6ca... executable remains active; no new test
+is requested by the broader offline audit. Older instructions below are history.
+
+SPARKPAW - COMPLETE CAMPAIGN PLAYTEST (NO LOGGER)
+================================================
+
+Unnumbered HD candidate based on the retained split-renderer/collision-cache
+implementation. No performance logger, transition logger, automatic input,
+automatic boarding or held completion frame. No FPS numbers are collected.
+
+Run Sparkpaw-Play. The full story intro, large title and ready screen lead to
+your own START GAME confirmation. OPTIONS retains SECOND BUTTON and START AT;
+the default is STORM RUINS (Level 1). STORMRAIL is the interlude.
+
+Play normally and judge whole-level smoothness, particularly against alpha.68.
+The same 68020-compatible executable can be used for your 68030 functional
+check and subsequent stock-68020 feel comparison.
+
+Check the complete loop when convenient:
+- Level 1 -> results -> CONTINUE -> Stormrail departure/boarding and flight.
+- Lives, remaining half-heart health and current diamonds carry on Continue;
+  the new section score starts at zero.
+- Both results screens retain REPLAY LEVEL, including correct replay artwork.
+- Stormrail results -> BACK TO TITLE -> large title -> ready -> START GAME.
+- Esc in either level returns to ready; OPTIONS start selection still works.
+
+No left-mouse log-save action is needed. Results remain interactive, and you
+can stop FS-UAE normally after playing. Report visible issues and how the whole
+level feels. This build cannot establish a measured FPS value.
+
+Not a numbered release. Alpha.68, ADF and WHDLoad packages are unchanged.
+
+USER RESULT — 2026-09-05
+The complete logger-free drawer was played on stock FS-UAE/68020. Level 1
+still feels slightly but noticeably less smooth than original alpha.68;
+Stormrail is fine. Logging is not the complete explanation. No FPS was logged.
+Played executable SHA256:
+cf861a89702d5642c4292502c1b40bc834992c54c7d407925f685ff00dee5656
+The drawer remains intact and is still the sole active complete test drawer.
+Offline findings and separate un-staged probes:
+LEVEL1_PRODUCTION_BASELINE_AUDIT.md.

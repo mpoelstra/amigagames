@@ -1,0 +1,22 @@
+Sparkpaw audio-hotpath-split Level-1 cadence gate
+================================================
+
+This stock-68020 minimal-cadence build uses the 68030-accepted audio split.
+Level 1 runs the original common audio update; Stormrail additionally advances
+its four Harrier charge/fire cooldowns in audioUpdateStormrail().
+
+Play a representative Level-1 route including busy combat, shots, jumps and
+collectibles. After the run, press the left mouse button once. The image
+freezes while renderdiag.log is written. Wait until disk writing has stopped,
+then stop/reset FS-UAE.
+
+Compare against
+---------------
+
+- collision-cache baseline: 49.30 FPS, 1.41% two-field, zero three-plus;
+- alpha.68: 48.58 FPS, 2.9% two-field, zero three-plus;
+- direct-call predecessor: 48.42 FPS, 3.26% two-field.
+
+This is a marginal candidate. Retain it as a performance improvement only if
+the normalized distribution is reproducibly no worse; audio ownership remains
+a valid architectural separation independently of cadence noise.

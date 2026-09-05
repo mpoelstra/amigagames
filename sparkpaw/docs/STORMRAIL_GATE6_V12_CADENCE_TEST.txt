@@ -1,0 +1,47 @@
+SPARKPAW STORMRAIL GATE 6 V17 - DIRTY-ROW GATE REPAIR 68020 CADENCE
+
+This is the post-visual-acceptance performance gate for the complete stationary
+Harrier encounter. It starts immediately before distance 15500 and measures
+combat only. Setup, gate opening, automatic exit and idle time after the fight
+are excluded. Gameplay, art, dust, 120 HP, half-health Hunter phase, sounds and
+the existing 5/4 projectile pools are identical to accepted v12.
+The wall uses its proven dynamic restore/redraw overlay route. Gate caching in
+display or clean targets is prohibited after the rejected v14/v15 corruption.
+The only candidate change is pixel-equivalent Harrier Bob work: a host test
+proves that its authored non-transparent bounds are exactly 63x45 at local
+offset (8,1), so the planar cache and restore/draw rectangle omit transparent
+border pixels. The logical 80x46 actor, collision, movement, attacks, art and
+all wall ownership/order remain unchanged. Compare against the second v13 run:
+45.67 FPS over 1,406 intervals, 127 two-field and 3 three-field intervals.
+
+V17 additionally retains the gate as a dynamic overlay but stops redrawing
+all 208 rows when nothing damaged them. Each rolling target gets one complete
+initial gate draw; subsequent frames repair only rows intersected by restores
+or by dust/Skimmer Bobs below the gate layer. Projectiles remain above the gate.
+No gate pixels are cached into clean/display targets. Compare primarily with
+v16: 48.02 FPS over 1,192 intervals, 42 two-field and 3 three-plus intervals.
+
+This focused executable prepares the complete Stormrail runtime before taking
+over the display, so Workbench can remain visible for a while at startup. That
+is not a mid-level load: the eventual integrated interlude must preload the
+finale during its one initial loading sequence and flow into the boss without
+a disk icon, Workbench or another loading screen.
+
+Use the stock A1200/68020 FS-UAE configuration:
+
+1. Start Sparkpaw-G6-Cad from this drawer and allow its initial preparation to
+   finish; do not interpret the startup Workbench wait as a boss transition.
+2. For about 15 seconds, move continuously in broad horizontal and vertical
+   sweeps WITHOUT firing.
+3. For about 15 seconds, keep moving similarly while HOLDING Fire.
+4. Do not deliberately finish the Harrier before both segments are complete.
+5. Press the LEFT MOUSE BUTTON once. The image freezes while renderdiag.log is
+   written. Wait three seconds, then stop/reset FS-UAE; it will not return to
+   Workbench.
+6. Leave renderdiag.log in this drawer and report whether either segment looked
+   less smooth, especially the previously reported move-without-fire contrast.
+
+This drawer records aggregate PAL cadence, one/two/three-field intervals,
+ownership violations, Bob workload and audio/player-shot counters. Because it
+is one aggregate run, the subjective two-segment observation remains important.
+It is not a release, ADF, campaign, results or Level-2 build.

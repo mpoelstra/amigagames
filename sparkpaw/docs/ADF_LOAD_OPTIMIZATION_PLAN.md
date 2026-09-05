@@ -1,7 +1,33 @@
 # Sparkpaw ADF load optimization plan
 
-Status: deferred planning. Do not implement this while the real-hardware Bob
-glitch investigation or stock-68020 performance work is active.
+Current alpha.2: corrected two-ADF functionality and styled INSERT prompts
+are user-approved. Measured Gotek speed benefit remains unproven. See
+RELEASE_0_7_0_ALPHA_2.md and CHECKPOINT_ALPHA2_LESSONS.md.
+
+## New video evidence — 2026-09-05
+
+The user's brother supplied `testresults/Phase 6C.10-observed-gotek-loading.mp4`
+(original name `gotek-loading.mp4`), with matching TXT sidecar. The 83.26-second
+clip visibly carries an alpha.68 image label and shows repeated wide OLED
+track changes, including returns to 39/40; the ready menu is visible at the
+end. It is not a complete cold-boot timing measurement or proof of exact ADF
+hash/firmware/CPU. See GOTek_VIDEO_EVIDENCE.md for the evidence boundary.
+
+The protected local alpha.68 image places root metadata at block880/cylinder40
+and S/assets/runtime directory blocks at866-868/cylinder39. This makes metadata
+lookup/cache behaviour an additional plausible contributor. The first layout
+proof must model directory/header access as well as payload order. Video alone
+does not identify block reads or prove cache misses, fragmentation or time saved.
+No game/ADF/configuration was changed during analysis.
+
+
+Status: reactivated for offline implementation by the user on 2026-09-05 after
+parking frame-performance work. HD 0.7.0-alpha.1 goes first; disk implementation
+and native loading acceptance remain separate. See MULTI_ADF_CAMPAIGN_PLAN.md
+for actual two-disk prototype capacity, loader/packing details and protected
+alpha.68 physical layout. The user-approved no-intro pair combines lossless
+compression and source-ordered layout; it is not the isolated Stage B experiment
+below. Native timing and Gotek benefit remain unmeasured.
 
 ## Observation and scope
 
@@ -41,7 +67,8 @@ do not infer it from filenames or the Gotek display alone.
 - Time cold boot to title, title to LOADING, LOADING to CHARGING and CHARGING to
   gameplay on the same Gotek configuration. If possible, repeat on a physical
   floppy; emulator wall-clock time is supporting evidence only.
-- Preserve the original alpha.41 ADF as the byte-level and timing baseline.
+- Use the original alpha.68 ADF as the current protected byte/layout baseline;
+  preserve alpha.41 evidence as historical context, not a fabricated current test.
 
 ## Stage B: layout-only proof
 

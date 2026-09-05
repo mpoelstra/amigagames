@@ -1,9 +1,19 @@
 # Sparkpaw: The Stormstone Quest
 
+Current checkpoint: **0.7.0-alpha.2 / Phase 7A.2**, full campaign HD,
+two-ADF and WHDLoad packages. HD game bytes are unchanged; the user approved
+the corrected ADF flow and styled INSERT DISK 1/2. New campaign WHDLoad native
+testing and physical A1200/Gotek/Pocket gates remain open. Public itch remains
+alpha.68; original artifacts are protected. See [current status](docs/CURRENT_STATUS.md) and [release record](docs/RELEASE_0_7_0_ALPHA_2.md).
+
+Performance research is explicitly parked. Completed local alpha.1 and disk
+candidates are archived intact. Older dated entries below are historical,
+not instructions to reactivate tests or claims about current native acceptance.
+
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.
 
-Current release: `0.6.0-alpha.68`. Roadmap checkpoint: Phase 6C.10 with accepted
+Historical public alpha.68 checkpoint: `0.6.0-alpha.68`. Roadmap checkpoint: Phase 6C.10 with accepted
 Phase 6C.3 intro usability polish on the protected rolling renderer Stage 5L
 baseline. After all loading and renderer preparation, a unique 64-colour AGA
 composition presents the isolated crest-free Sparkpaw wordmark, Level-1 stone/machine borders,
@@ -17,6 +27,11 @@ the space-bound ADF deliberately omits only those cinematic plates and begins
 at the existing title while retaining loading, charging and the ready screen.
 Its bootable DOS1/FFS package statistics are recorded below; package/decode
 evidence is not ADF gameplay acceptance.
+
+Current development is the retained integrated campaign described in
+[the status index](docs/CURRENT_STATUS.md). Both small renderer optimizations
+and the Bob correction are in production; 030 passed and the user retained
+them after no noteworthy 020 change. No FPS gain is claimed.
 
 Alpha.68 makes the one-level results replay instant. The final prompt now reads
 `REPLAY LEVEL`; Fire fades the score screen fully to black and starts a fresh
@@ -40,12 +55,48 @@ free; this is package/decode evidence, not ADF runtime acceptance. Final
 artifacts are 658,307-byte HD LHA, 657,742-byte HD ZIP, 901,120-byte ADF,
 650,860-byte WHDLoad LHA and 651,576-byte WHDLoad ZIP.
 
-Phase 6C is complete through this checkpoint. The next engine boundary is
-[Phase 6D multi-level progression](docs/PHASE6D_PROGRESSION_PLAN.md): keep the
-accepted instant Level-1 replay as one explicit branch and add a distinct
-continue-to-next-level branch only when a real second level exists. Level-2
-concept, art and route planning are intentionally handled in a separate
-session.
+Phase 6C is complete in the published alpha.68 release. The unnumbered
+Phase 6D campaign now includes the full Stormrail interlude and results,
+resident replay and cross-section continuation. See [current next work](docs/CURRENT_STATUS.md)
+and [the progression plan](docs/PHASE6D_PROGRESSION_PLAN.md).
+
+Historical Stormrail acceptance evidence follows. Gate 3's
+four enemy formations, combat audio, collision, compact scoring, persistent
+rewards and life restart are accepted. The current accepted-for-now Gate-4
+slice adds a monotone 48-event Storm Ruins debris field with a six-object cap,
+all approved ruin families, a slower six-hit health carrier, and a native red
+heart that restores one full HUD heart. A second heart sits inside a spacious
+three-diamond ring between waves. The complete supplied stock-68020 cadence run
+records 49.96 FPS over 2,886 intervals: 2,885 one-field, no two-field, one
+three-field, zero ownership violations and 334/334 shots. Gate 5A subsequently
+adds one pre-debris rotating spearhead and three post-debris Project-X-inspired
+but original formation flows, compact free-diamond pauses and a short empty
+lead-in to the fixed-camera finale latch at distance 15500. Gate 4D adds eight
+independent deterministic 16x3 dust/grit accents across the flight height, at
+different speeds with cached neutral-white, pale-blue and rare amber sunlight
+variants. Supplied FS-UAE/68030 review accepts the final appearance. Its
+complete stock-FS-UAE/68020 run records 49.98 FPS over 6,036 intervals: 6,035
+one-field, zero two-field, one three-field (maximum three), zero ownership
+violations and 432/432 shots. Gate 6 adds the accepted native-size AGA-art
+80x46 Harrier, one telegraphed three-shot fan plus a low-health aimed Hunter
+Burst within the existing hostile pool, a single kill condition, immediate
+hostile-fire stop, 48-tick gate opening and controlled automatic passage while
+distance stays exactly 15500. The complete route-to-finale flow, smooth
+one-shot arrival, 120-HP two-phase fight, life-loss continuation with preserved
+boss HP, word-aligned wall repair and half-heart body contact are accepted in
+supplied 68030 play. The post-Harrier results and campaign continuation have since been implemented. The integrated stock-68020 run records 49.97 FPS over 5,177 intervals:
+5,175 one-field, one two-field, one three-field (maximum three), zero ownership
+violations and 595/595 player shots. The current campaign integration supplies the Level-1
+results `REPLAY LEVEL` / `CONTINUE JOURNEY` split,
+cross-section unload/loading, section results, banked Level-1 score state and
+post-Level-1 snapshot semantics described in
+[the Stormrail plan](docs/STORMRAIL_INTERLUDE_PLAN.md).
+
+All new production visuals follow the project-wide
+[AGA art-quality contract](docs/AGA_ART_QUALITY_CONTRACT.md): accepted concept
+volume and material must survive exact-size, palette-owned native cleanup;
+programmer blobs, uniform black keylines and mechanically rotated or scaled
+native sprites are not acceptable final art.
 
 Alpha.67 adds one secret extra life in the chamber beyond the Level-1 Core.
 Reaching the far-right threshold reveals a native masked `1UP` Bob at world

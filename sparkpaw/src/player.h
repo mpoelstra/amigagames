@@ -6,7 +6,8 @@
 
 #define PLAYER_W 32
 #define PLAYER_H 40
-#define PLAYER_ANIM_FRAMES 62
+#define PLAYER_ANIM_FRAMES 63
+#define PLAYER_STORMRAIL_PILOT_FRAME 62
 #define PLAYER_MAX_HEALTH 6
 
 struct PlayerState {
@@ -24,6 +25,10 @@ typedef void (*PlayerPlayShot)(void);
 void playerInit(void);
 void playerSetSecondaryButtonAction(enum SecondaryButtonAction action);
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+void playerReadFlightInput(BOOL *left,BOOL *right,BOOL *up,BOOL *down,
+                           BOOL *fire);
+#endif
 void playerStartShot(BOOL pressed,PlayerPlayShot playShot);
 BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);
 void playerUpdateShot(void);

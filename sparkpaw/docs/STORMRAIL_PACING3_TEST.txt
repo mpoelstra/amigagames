@@ -1,0 +1,31 @@
+SPARKPAW STORMRAIL PACING 3 - FINITE DEBRIS FIELD
+=================================================
+
+This replaces the rejected Pacing-2 tail. Run Sparkpaw-Pacing3 with the usual
+A1200/68030 FS-UAE setup.
+
+The complete 48-event debris field is authored as one passage. Large ruin
+blocks, pillar fragments and shards are interleaved across the whole duration;
+their heights, diagonal drift, speed and left/right entry are distributed over
+the complete table rather than appended as a second repeated section.
+
+The field now has a hard endpoint. At monotone distance 11200 the presentation
+camera stops and all Flight-owned enemies, shots, rewards and debris are
+cleared. Nothing may spawn or scroll after that point. This is the temporary
+development-slice ending, not a results screen or campaign transition.
+
+The fourth free diamond line was moved before debris. Inside the debris field,
+diamonds may come only from the two destructible large loot carriers. Formation
+rewards remain four compact diamonds when a complete formation is destroyed.
+
+Please judge:
+
+1. Does debris feel like one continuous organised-chaos passage?
+2. Is the type, height, speed and trajectory mix sustained until the end?
+3. Is there no visible split into an accepted opening and repeated tail?
+4. Does the camera visibly stop, with every object gone, at the real endpoint?
+5. Report any unexpected loose diamond group inside debris, repeated late
+   pattern, mask trail, collision oddity or slowdown.
+
+This is a 68030 visual/feel gate. Dust particles, later enemy patterns, finale,
+results, Level 2 and campaign integration remain absent.

@@ -1,0 +1,48 @@
+Stormrail Gate 3.6 - FS-UAE/68030 HD review
+===========================================
+
+This focused unnumbered candidate starts at the accepted short cliff approach.
+It does not change alpha.68, campaign progression, Level 2 or ADF packaging.
+
+Controls
+--------
+
+Joystick/arrow keys move Sparkpaw and the Skimmer. Jump into the open cockpit.
+Fire/Space fires rapid plasma. The interlude then enters open flight.
+
+Review
+------
+
+Play through all four enemy formations and free diamond lines (roughly 55 seconds
+of flight). Check that:
+
+- five small fast Darts enter as one readable wave and exit cleanly;
+- four visually different Pulse Orbs follow a slower crossing curve;
+- the third high/low Dart split keeps both lower enemies continuously visible
+  above the HUD instead of disappearing and reappearing at the lower boundary;
+- Orb fire is sparse, left-moving and avoidable;
+- Orb fire uses the same clearly red/orange animated pulse as Level-1 Striders,
+  never Sparkpaw's cyan player-shot palette;
+- a fresh Fire press shoots immediately; held autofire repeats about 5.6 times
+  per second and deliberate tapping is capped around 8.3 times per second;
+- shots hit, remove and destroy enemies without residue;
+- held autofire cannot destroy enemies wholly outside the right edge; hits
+  begin naturally once roughly half of an entering silhouette is visible;
+- each Dart defeat adds 20 points, each tougher Pulse Orb adds 40 and every
+  diamond adds the existing 5; there is no oversized direct formation bonus;
+- ordinary hits, enemy destruction and diamond pickup have distinct existing
+  Level-1 sounds;
+- enemy contact or an Orb pulse removes half a heart, plays hurt audio and
+  grants a short flashing invulnerability window;
+- four deterministic free-flight diamond lines appear between combat beats,
+  never more than four diamonds at once, and each pickup sounds/updates once;
+- after six accepted hits one life is consumed, full health returns and open
+  flight restarts without replaying the cliff; collected diamonds stay gone
+  and previously defeated formation members cannot award score a second time;
+- destroying every member before escape creates four existing Sparkpaw diamonds;
+- the pause between patterns leaves room to move, aim and dodge;
+- boarding, fade, pilot, controls, rapid fire, bounds, parallax, route palettes
+  and fixed HUD still match the accepted Gate-2/2.5 baseline.
+
+Please report the visual/function verdict for this exact 68030 drawer. Do not
+run the 68020 cadence gate yet; it will be prepared only after this gate passes.

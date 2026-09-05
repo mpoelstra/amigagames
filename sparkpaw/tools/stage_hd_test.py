@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 from make_release import DIST, ROOT, RUNTIME_FILES
+from runtime_asset_refs import executable_runtime_files
 
 STAGE_ROOT = ROOT / "build" / "hd-test-stage"
 
@@ -48,6 +49,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--executable", required=True, type=Path)
     parser.add_argument("--executable-name", required=True)
     parser.add_argument("--readme", required=True, type=Path)
+    parser.add_argument("--extra-runtime", action="append", default=[])
     parser.add_argument("--replace", action="store_true")
     return parser.parse_args()
 
@@ -56,15 +58,24 @@ def main() -> None:
     args = parse_args()
     validate_component(args.drawer)
     validate_component(args.executable_name)
-    for name in RUNTIME_FILES:
-        validate_component(name)
-
     executable = args.executable.resolve()
     readme = args.readme.resolve()
     if not executable.is_file():
         raise SystemExit(f"missing executable: {executable}")
     if not readme.is_file():
         raise SystemExit(f"missing ReadMe: {readme}")
+
+    runtime_files = list(RUNTIME_FILES)
+    discovered_runtime = executable_runtime_files(executable)
+    for name in discovered_runtime:
+        if name not in runtime_files:
+            runtime_files.append(name)
+    for name in args.extra_runtime:
+        validate_component(name)
+        if name not in runtime_files:
+            runtime_files.append(name)
+    for name in runtime_files:
+        validate_component(name)
 
     before = release_inventory()
     destination = DIST / args.drawer
@@ -76,14 +87,14 @@ def main() -> None:
     shutil.copy2(executable, staged / args.executable_name)
     shutil.copy2(readme, staged / "ReadMe.txt")
 
-    for name in RUNTIME_FILES:
+    for name in runtime_files:
         source = ROOT / "assets" / "runtime" / name
         if not source.is_file():
             raise SystemExit(f"runtime manifest source missing: {source}")
         shutil.copy2(source, runtime_destination / name)
 
     expected = {"ReadMe.txt", args.executable_name}
-    expected.update(f"assets/runtime/{name}" for name in RUNTIME_FILES)
+    expected.update(f"assets/runtime/{name}" for name in runtime_files)
     actual = {
         str(path.relative_to(staged))
         for path in staged.rglob("*")
@@ -94,7 +105,7 @@ def main() -> None:
             f"staged file set differs from runtime manifest: "
             f"missing={sorted(expected-actual)} extra={sorted(actual-expected)}"
         )
-    for name in RUNTIME_FILES:
+    for name in runtime_files:
         source = ROOT / "assets" / "runtime" / name
         copied = runtime_destination / name
         if file_hash(source) != file_hash(copied):
@@ -117,7 +128,8 @@ def main() -> None:
     if after != before:
         raise SystemExit("release artifact inventory changed while staging HD test")
     print(f"Staged {destination}")
-    print(f"Verified {len(RUNTIME_FILES)} authoritative runtime assets")
+    print(f"Verified {len(runtime_files)} declared runtime assets")
+    print(f"Discovered {len(discovered_runtime)} executable runtime references")
     print(f"Preserved {len(before)} release files byte-for-byte")
 
 

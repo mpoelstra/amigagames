@@ -1,4 +1,5 @@
 #include "player.h"
+#include "game.h"
 
 #include "collision.h"
 #include "platform_amiga.h"
@@ -57,7 +58,12 @@ void playerInit(void)
     jumpInputHeld=FALSE;
     joystickFireHeld=FALSE;
     crouchInputHeld=FALSE;
-    player.x=36L<<8; player.y=156L<<8;
+    player.x=36L<<8;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    player.y=(gameStormrailActive()?129L:156L)<<8;
+#else
+    player.y=156L<<8;
+#endif
     player.health=PLAYER_MAX_HEALTH;
 }
 
@@ -82,6 +88,23 @@ void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
          secondaryButtonAddsFire(secondaryButtonAction,secondary);
     *fire=held&&!joystickFireHeld; joystickFireHeld=held;
 }
+
+#ifdef SPARKPAW_STORMRAIL_PROOF
+void playerReadFlightInput(BOOL *left,BOOL *right,BOOL *up,BOOL *down,
+                           BOOL *fire)
+{
+    UWORD value=*(volatile UWORD *)0xdff00c;
+    BOOL keyLeft,keyRight,keyDown,keyUp,keyFire,secondary;
+    platformReadGameKeys(&keyLeft,&keyRight,&keyDown,&keyUp,&keyFire);
+    *left=((value&0x0200)!=0)||keyLeft;
+    *right=((value&0x0002)!=0)||keyRight;
+    *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
+    *up=(((value^(value>>1))&0x0100)!=0)||keyUp;
+    secondary=platformSecondaryButtonHeld();
+    *fire=((*(volatile UBYTE *)0xbfe001&0x80)==0)||keyFire||
+          secondaryButtonAddsFire(secondaryButtonAction,secondary);
+}
+#endif
 
 void playerStartShot(BOOL pressed,PlayerPlayShot playShot)
 {

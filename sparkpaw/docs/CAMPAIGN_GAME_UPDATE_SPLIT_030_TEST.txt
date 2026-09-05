@@ -1,0 +1,14 @@
+Sparkpaw campaign game-update boundary - short 68030 gate
+=========================================================
+
+Purpose: verify that moving the existing Stormrail update body out of Level
+1's hot gameUpdate function changes no gameplay. This is not a feel or cadence
+test and does not need a complete playthrough.
+
+1. On the ready screen, leave START AT on Level 1. Start and briefly move,
+   jump and shoot around enemies. Press Esc and confirm the ready screen.
+2. In Options select START AT: STORM RUINS, return to ready, start, board the
+   Skimmer and fly/shoot briefly. Press Esc and confirm the ready screen.
+3. Report only whether both sections behave normally and both Esc returns work.
+
+Do not judge 68020 performance from this 68030 gate.

@@ -1,0 +1,24 @@
+SPARKPAW STORMRAIL DEBRIS 2.0 - 68030 ART TEST
+================================================
+
+This is an art-only successor to the accepted Debris 1.0 gameplay baseline.
+All 28 distance events, six object slots, paths, speeds, HP, hit flashes,
+collisions, score, diamond drops and animation cadence remain unchanged.
+
+Run the drawer's Sparkpaw-Debris2 executable with the usual A1200/68030
+FS-UAE setup and play through the debris field after formation four.
+
+Please judge the new native Storm Ruins masonry family:
+
+1. Do the large, medium and small pieces now retain convincing volume,
+   perspective and stone material at native gameplay scale?
+2. Do the controlled tumble pairs read as the same mass changing orientation,
+   without scale wobble, clipping or a rotating-cardboard appearance?
+3. Is the destructible large block learnable through impact sound/flash, and
+   is its damaged pose visible enough under pressure before it drops a diamond?
+4. Does the busy field remain challenging and fun rather than visually muddy?
+5. Report any mask trail, loading hang, stale object or slowdown.
+
+This is the first subjective 68030 art/feel gate. No 68020 performance claim,
+1UP, clouds, route extension, finale, Level 2 or campaign integration is
+present. Debris 1.0 remains the exact rollback baseline in older-builds.

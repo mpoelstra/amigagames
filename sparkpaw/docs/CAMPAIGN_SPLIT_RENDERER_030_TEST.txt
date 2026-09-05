@@ -1,0 +1,21 @@
+Sparkpaw campaign split-renderer functional gate
+================================================
+
+This unnumbered 68030 functional candidate introduces the first physical
+renderer boundary: Level 1 and Stormrail are compiled as separate renderer
+objects and a small dispatcher owns exactly the currently loaded section.
+Gameplay, art, input, scores, transitions and asset files are unchanged.
+
+Test the ordinary complete flow from the large title and ready menu. Check:
+
+- Level 1 visuals, enemies, diamonds, Core and results;
+- Continue loading into Stormrail;
+- departure/boarding, flight, finale and results;
+- Stormrail replay starts with an intact departure background;
+- Back to Title returns through the large title to the ready screen;
+- Escape from gameplay returns to ready;
+- Level-1 replay remains intact.
+
+This build has no performance logger. Report presentation, corruption,
+transitions, replay/reset behaviour and feel. Stock-68020 cadence follows only
+after this functional gate is accepted.

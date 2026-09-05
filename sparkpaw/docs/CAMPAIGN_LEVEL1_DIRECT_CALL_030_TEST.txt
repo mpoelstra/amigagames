@@ -1,0 +1,17 @@
+Sparkpaw direct renderer-call functional gate
+=============================================
+
+This unnumbered 68030 candidate retains the separate Level-1 and Stormrail
+renderer objects. The three per-frame renderer operations now branch on the
+active section at their call site and use a direct function call; indirect
+function pointers have been removed. Gameplay, visuals, assets and state are
+unchanged.
+
+Run a short complete functional smoke from the ready menu:
+
+- play Level 1 long enough to check movement, combat, HUD and rendering;
+- finish Level 1 and use Continue;
+- confirm Stormrail departure and flight render and control normally.
+
+No cadence log is produced in this 68030 gate. Stop after Stormrail is visibly
+running and report any corruption, crash, transition problem or changed feel.

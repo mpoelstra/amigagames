@@ -1,0 +1,34 @@
+SPARKPAW STORMRAIL DEBRIS 3 - LONG ZYNAPS FLOW
+================================================
+
+Run Sparkpaw-Debris3 with the usual A1200/68030 FS-UAE setup.
+
+This candidate was rebuilt after re-studying the complete local Zynaps debris
+reference and the accepted Sparkpaw Debris-2 baseline. The full field is one
+continuous right-to-left passage. Objects never enter from another side, never
+reverse vertically and never bounce. Variation comes from native ruin type,
+height, spacing, 2-4 pixel horizontal speed, restrained -1/0/+1 drift and
+prebuilt tumble frames.
+
+The authored 48-event set contains all runtime families: six large 48x40 ruin
+blocks, thirteen 32x40 pillar/masonry pieces and twenty-nine 16x16 shards using
+all three shard tumble pairs. Runtime simulation admits all six large blocks,
+all thirteen pillars and at least twenty-six shards. Average occupancy is 4.51,
+close to accepted Debris 2's approximately 4.56, with a hard maximum of six.
+Only one large block can be active, so large masses cannot overlap.
+
+Ordinary cues never wait for a later pool vacancy and cannot form a repeated
+tail. Both destructible loot carriers are guaranteed; no other debris emits a
+diamond. The four-diamond free line occurs before debris.
+
+The final debris event is at distance 10500. The route then keeps scrolling
+empty through 4500 reserved distance units for later enemy patterns and finale.
+The temporary test camera stops only at distance 15000.
+
+Please judge the full field, especially its final third:
+
+1. Does it sustain the accepted Zynaps-like pressure and irregular openings?
+2. Are large blocks, pillars and the different small shards visible throughout?
+3. Are all trajectories straight, without reversal, bounce or repeated lanes?
+4. Is there no overlapping large-block pair or malformed frame?
+5. Does debris end cleanly before the long empty post-debris route reserve?

@@ -1,0 +1,33 @@
+SPARKPAW CURRENT CAMPAIGN - STOCK 68020 CADENCE
+
+This is the low-overhead 68020 performance gate for the current campaign
+candidate. Gameplay, renderer, assets and the complete Stormrail route are the
+same as in the accepted Campaign-Loop1 build. Only aggregate cadence and
+ownership counters are enabled. Campaign transition tracing is disabled so it
+cannot contaminate the measurement.
+
+Use the stock A1200/68020 FS-UAE configuration and start Sparkpaw-Camp-Cad.
+
+1. Let the normal title and ready flow appear. Open OPTIONS, set START AT to
+   STORMRAIL, press Fire to return, then select START GAME yourself.
+2. Play the complete interlude normally. Move and fire throughout the busy
+   route and the Harrier fight; do not wait deliberately in safe areas.
+3. Confirm that boarding, backgrounds, debris, dust, HUD, 120-HP Harrier,
+   attacks, contact damage, wall opening and automatic gate passage still look
+   and behave like the accepted campaign candidate.
+4. After the Skimmer has passed through the open gate, the final gameplay image
+   intentionally remains visible instead of entering results. Press the LEFT
+   MOUSE BUTTON once.
+5. The image freezes while renderdiag.log is written. Wait three seconds, then
+   stop/reset FS-UAE. Do not expect a return to Workbench.
+6. Leave renderdiag.log in this drawer and tell Codex whether any route,
+   transition, boss or gate section looked uneven.
+
+The cadence sample begins at the established flight tick 400 and ends at
+Gate-6 COMPLETE. Menus, loading, boarding preparation, results and post-finish
+dwell are excluded. Acceptance requires zero ownership violations and no
+meaningful regression from the accepted complete-interlude result of 49.97 FPS
+(5175 one-field, one two-field and one three-field interval over 5177 samples).
+The older general lower bound remains 48.58 FPS.
+
+This is not a release, SemVer, ADF/multidisk or campaign-banking build.

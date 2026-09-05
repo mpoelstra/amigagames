@@ -8,6 +8,13 @@
 #include <string.h>
 
 #include "packed_crc32.h"
+#ifdef SPARKPAW_MULTI_ADF
+#include "disk_media.h"
+#undef Open
+#define Open diskMediaOpen
+static struct PlanarAsset retiredLoading;
+static UBYTE diskDecodeWindow[4096];
+#endif
 
 static struct PlanarAsset title,introProof,levelLoading,levelCharging,levelReady;
 static struct PlanarAsset levelReadyMenu,frontClean,rearWorld;
@@ -15,8 +22,19 @@ static struct PlanarAsset levelComplete,scoreGlyphs;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds,hudScore;
 static struct PlanarAsset collectibleDiamond;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static struct PlanarAsset stormrailHeart;
+#endif
 static struct PlanarAsset stormstoneCore;
 static struct PlanarAsset extraLife;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static struct PlanarAsset stormrailFamily,stormrailFlightRear;
+static struct PlanarAsset stormrailObstacles;
+#endif
+#ifdef SPARKPAW_CAMPAIGN
+static BOOL loadStormrailGameplay;
+void assetsSetStormrailGameplay(BOOL active) { loadStormrailGameplay=active; }
+#endif
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
 static const char *loadFailureReason="none";
 const char *assetsLoadFailureReason(void) { return loadFailureReason; }
@@ -55,6 +73,11 @@ struct PackedReader {
     UWORD inputAt,inputCount,tokenRemaining;
     ULONG packedRemaining,expectedSize,produced,expectedCRC,crc;
     BOOL run;
+#ifdef SPARKPAW_MULTI_ADF
+    BOOL lz;
+    UBYTE flags,flagMask;
+    UWORD distance;
+#endif
 };
 
 static ULONG readBigEndian32(const UBYTE *value)
@@ -85,9 +108,16 @@ static BOOL packedOpen(const char *name,struct PackedReader *reader)
     reader->file=Open((STRPTR)name,MODE_OLDFILE);
     if(!reader->file) return FALSE;
     if(Read(reader->file,header,sizeof(header))!=sizeof(header)||
-       memcmp(header,"SPR1",4)!=0) {
+       (memcmp(header,"SPR1",4)!=0
+#ifdef SPARKPAW_MULTI_ADF
+        &&memcmp(header,"SPL1",4)!=0
+#endif
+        )) {
         Close(reader->file); reader->file=0; return FALSE;
     }
+#ifdef SPARKPAW_MULTI_ADF
+    reader->lz=memcmp(header,"SPL1",4)==0;
+#endif
     reader->expectedSize=readBigEndian32(header+4);
     reader->expectedCRC=readBigEndian32(header+8);
     reader->packedRemaining=readBigEndian32(header+12);
@@ -99,6 +129,32 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
 {
     UBYTE token,value;
     while(size--) {
+#ifdef SPARKPAW_MULTI_ADF
+        if(reader->lz) {
+            if(!reader->tokenRemaining) {
+                if(!reader->flagMask) {
+                    if(!packedByte(reader,&reader->flags)) return FALSE;
+                    reader->flagMask=128;
+                }
+                reader->run=(reader->flags&reader->flagMask)!=0;
+                reader->flagMask>>=1;
+                reader->tokenRemaining=1;
+                if(reader->run) {
+                    UBYTE low;
+                    if(!packedByte(reader,&token)||!packedByte(reader,&low))
+                        return FALSE;
+                    reader->distance=(UWORD)((((UWORD)token&15)<<8)|low)+1;
+                    reader->tokenRemaining=(UWORD)(token>>4)+3;
+                    if(reader->distance>reader->produced) return FALSE;
+                }
+            }
+            if(reader->run) value=diskDecodeWindow[
+                (reader->produced-reader->distance)&4095];
+            else if(!packedByte(reader,&value)) return FALSE;
+            if(reader->produced>=reader->expectedSize) return FALSE;
+            diskDecodeWindow[reader->produced&4095]=value;
+        } else {
+#endif
         if(!reader->tokenRemaining) {
             if(!packedByte(reader,&token)) return FALSE;
             reader->tokenRemaining=(UWORD)((token&0x7f)+1);
@@ -108,6 +164,9 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
         if(reader->run) value=reader->value;
         else if(!packedByte(reader,&value)) return FALSE;
         if(reader->produced>=reader->expectedSize) return FALSE;
+#ifdef SPARKPAW_MULTI_ADF
+        }
+#endif
         *target++=value;
         reader->crc=packedCRC32Byte(reader->crc,value);
         reader->produced++; reader->tokenRemaining--;
@@ -182,9 +241,16 @@ static BOOL readRows(BPTR file,PLANEPTR plane,UWORD fileRow,UWORD memoryRow,
     return TRUE;
 }
 
+#ifdef SPARKPAW_MULTI_ADF
+static BOOL loadPackedAsset(const char *name,struct PlanarAsset *asset,
+                            UBYTE wantedDepth,BOOL dmaSource);
+#endif
 static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
                       UBYTE wantedDepth,BOOL dmaSource)
 {
+#ifdef SPARKPAW_MULTI_ADF
+    return loadPackedAsset(name,asset,wantedDepth,dmaSource);
+#else
     BPTR file; UBYTE header[12],plane; LONG size;
     SET_LOAD_FAILURE("none");
     memset(asset,0,sizeof(*asset));
@@ -222,6 +288,7 @@ static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
         }
     }
     Close(file); return TRUE;
+#endif
 }
 
 #ifdef ADF_PACKED_ASSETS
@@ -270,6 +337,49 @@ done:
 
 BOOL assetsLoadGameplay(void)
 {
+#ifdef SPARKPAW_CAMPAIGN
+    if(!loadAsset(loadStormrailGameplay?
+                  "PROGDIR:assets/runtime/stormrail-front.spbm":
+                  "PROGDIR:assets/runtime/storm-front.spbm",
+                  &frontClean,4,TRUE)||
+       !loadAsset(loadStormrailGameplay?
+                  "PROGDIR:assets/runtime/stormrail-rear.spbm":
+                  "PROGDIR:assets/runtime/storm-rear.spbm",
+                  &rearWorld,3,TRUE)||
+       !loadAsset(loadStormrailGameplay?
+                  "PROGDIR:assets/runtime/sparkpaw-sprites4-storm.spbm":
+                  "PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
+                  &playerSprites,4,FALSE)||
+       !loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
+                  &enemySprites,4,FALSE)||
+       !loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
+                  &striderSprites,4,FALSE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
+                  &hudBase,3,TRUE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-health.spbm",
+                  &hudHealth,3,TRUE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-lives.spbm",
+                  &hudLives,3,TRUE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-diamonds.spbm",
+                  &hudDiamonds,3,TRUE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-score.spbm",
+                  &hudScore,3,TRUE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
+                  &collectibleDiamond,4,FALSE)||
+       !loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
+                  &stormstoneCore,4,FALSE)||
+       !loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
+                  &extraLife,4,FALSE)) return FALSE;
+    if(!loadStormrailGameplay) return TRUE;
+    return loadAsset("PROGDIR:assets/runtime/stormrail-flight-rear.spbm",
+                     &stormrailFlightRear,3,TRUE)&&
+           loadAsset("PROGDIR:assets/runtime/stormrail-heart.spbm",
+                     &stormrailHeart,4,FALSE)&&
+           loadAsset("PROGDIR:assets/runtime/stormrail-family.spbm",
+                     &stormrailFamily,4,FALSE)&&
+           loadAsset("PROGDIR:assets/runtime/stormrail-obstacles.spbm",
+                     &stormrailObstacles,4,FALSE);
+#else
 #ifdef ADF_PACKED_ASSETS
     return loadPackedAsset("PROGDIR:assets/runtime/storm-front.spr1",
                            &frontClean,4,TRUE)&&
@@ -283,8 +393,29 @@ BOOL assetsLoadGameplay(void)
                "PROGDIR:assets/runtime/clockwork-storm-strider.spr1",
                &striderSprites,4,FALSE)&&
 #else
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    return loadAsset(
+#ifdef SPARKPAW_CAMPAIGN
+           loadStormrailGameplay?"PROGDIR:assets/runtime/stormrail-front.spbm":
+                                 "PROGDIR:assets/runtime/storm-front.spbm",
+#else
+           "PROGDIR:assets/runtime/stormrail-front.spbm",
+#endif
+           &frontClean,4,TRUE)&&
+           loadAsset(
+#ifdef SPARKPAW_CAMPAIGN
+           loadStormrailGameplay?"PROGDIR:assets/runtime/stormrail-rear.spbm":
+                                 "PROGDIR:assets/runtime/storm-rear.spbm",
+#else
+           "PROGDIR:assets/runtime/stormrail-rear.spbm",
+#endif
+           &rearWorld,3,TRUE)&&
+           loadAsset("PROGDIR:assets/runtime/stormrail-flight-rear.spbm",
+                     &stormrailFlightRear,3,TRUE)&&
+#else
     return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,4,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3,TRUE)&&
+#endif
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
                      &playerSprites,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
@@ -304,10 +435,22 @@ BOOL assetsLoadGameplay(void)
                      &hudScore,3,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
                      &collectibleDiamond,4,FALSE)&&
+#ifdef SPARKPAW_STORMRAIL_PROOF
+           loadAsset("PROGDIR:assets/runtime/stormrail-heart.spbm",
+                     &stormrailHeart,4,FALSE)&&
+#endif
            loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
                      &stormstoneCore,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
-                     &extraLife,4,FALSE);
+                     &extraLife,4,FALSE)
+#ifdef SPARKPAW_STORMRAIL_PROOF
+           &&loadAsset("PROGDIR:assets/runtime/stormrail-family.spbm",
+                       &stormrailFamily,4,FALSE)
+           &&loadAsset("PROGDIR:assets/runtime/stormrail-obstacles.spbm",
+                       &stormrailObstacles,4,FALSE)
+#endif
+           ;
+#endif
 }
 
 BOOL assetsLoadTitle(void)
@@ -317,6 +460,9 @@ BOOL assetsLoadTitle(void)
 
 BOOL assetsLoadStoryIntro(UWORD plate)
 {
+#ifdef SPARKPAW_MULTI_ADF
+    (void)plate; return FALSE; /* Story plates are HD-only in this disk set. */
+#else
 #ifdef ADF_PACKED_ASSETS
     static const char *names[5]={
         "PROGDIR:assets/runtime/intro1.spr1",
@@ -340,6 +486,7 @@ BOOL assetsLoadStoryIntro(UWORD plate)
 #else
     return loadAsset(names[plate],&introProof,6,TRUE);
 #endif
+#endif
 }
 
 void assetsUnloadStoryIntro(void)
@@ -353,13 +500,28 @@ void assetsUnloadGameplayConversionSources(void)
        them into the final hardware-sprite and Blitter cache layouts.  Keeping
        both representations in Chip RAM after conversion wastes 325,220 bytes. */
     freeAsset(&collectibleDiamond);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    freeAsset(&stormrailHeart);
+#endif
     freeAsset(&stormstoneCore);
     freeAsset(&extraLife);
     freeAsset(&striderSprites);
     freeAsset(&enemySprites);
     freeAsset(&playerSprites);
     freeAsset(&stormstoneCore);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    freeAsset(&stormrailFamily);
+    freeAsset(&stormrailObstacles);
+#endif
 }
+
+#ifdef SPARKPAW_STORMRAIL_PROOF
+void assetsReleaseStormrailApproach(void)
+{
+    freeAsset(&frontClean);
+    freeAsset(&rearWorld);
+}
+#endif
 
 void assetsUnloadTitle(void)
 {
@@ -368,6 +530,19 @@ void assetsUnloadTitle(void)
 
 BOOL assetsLoadLevelLoading(void)
 {
+#ifdef SPARKPAW_MULTI_ADF
+    BOOL ok;
+    if(retiredLoading.bitmap) return FALSE;
+    retiredLoading=levelLoading;
+    memset(&levelLoading,0,sizeof(levelLoading));
+    ok=loadPackedAsset("PROGDIR:assets/runtime/sparkpaw-level-loading.spr1",
+                       &levelLoading,6,TRUE);
+    if(!ok) {
+        freeAsset(&levelLoading); levelLoading=retiredLoading;
+        memset(&retiredLoading,0,sizeof(retiredLoading));
+    }
+    return ok;
+#else
 #ifdef ADF_PACKED_ASSETS
     return loadPackedAsset(
         "PROGDIR:assets/runtime/sparkpaw-level-loading.spr1",
@@ -376,11 +551,25 @@ BOOL assetsLoadLevelLoading(void)
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-loading.spbm",
                      &levelLoading,6,TRUE);
 #endif
+#endif
 }
+#ifdef SPARKPAW_MULTI_ADF
+void assetsRetireOldLoading(void) { freeAsset(&retiredLoading); }
+BOOL assetsLoadDiskPatch(UBYTE disk)
+{
+    freeAsset(&levelCharging);
+    return loadPackedAsset(disk==1?"PROGDIR:assets/runtime/disk1-patch.spr1":
+                                  "PROGDIR:assets/runtime/disk2-patch.spr1",
+                           &levelCharging,6,FALSE);
+}
+#endif
 
 void assetsUnloadLevelLoading(void)
 {
     freeAsset(&levelLoading);
+#ifdef SPARKPAW_MULTI_ADF
+    freeAsset(&retiredLoading);
+#endif
 }
 
 BOOL assetsLoadLevelCharging(void)
@@ -462,6 +651,9 @@ void assetsUnloadGameplay(void)
     freeAsset(&striderSprites); freeAsset(&enemySprites);
     freeAsset(&playerSprites);
     freeAsset(&rearWorld); freeAsset(&frontClean);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    freeAsset(&stormrailFlightRear);
+#endif
 }
 
 const struct PlanarAsset *assetsTitle(void) { return &title; }
@@ -474,6 +666,12 @@ const struct PlanarAsset *assetsLevelComplete(void) { return &levelComplete; }
 const struct PlanarAsset *assetsScoreGlyphs(void) { return &scoreGlyphs; }
 const struct PlanarAsset *assetsFrontClean(void) { return &frontClean; }
 const struct PlanarAsset *assetsRearWorld(void) { return &rearWorld; }
+#ifdef SPARKPAW_STORMRAIL_PROOF
+const struct PlanarAsset *assetsStormrailFlightRear(void)
+{
+    return &stormrailFlightRear;
+}
+#endif
 const struct PlanarAsset *assetsPlayerSprites(void) { return &playerSprites; }
 const struct PlanarAsset *assetsEnemySprites(void) { return &enemySprites; }
 const struct PlanarAsset *assetsStriderSprites(void) { return &striderSprites; }
@@ -486,5 +684,18 @@ const struct PlanarAsset *assetsCollectibleDiamond(void)
 {
     return &collectibleDiamond;
 }
+#ifdef SPARKPAW_STORMRAIL_PROOF
+const struct PlanarAsset *assetsStormrailHeart(void) { return &stormrailHeart; }
+#endif
 const struct PlanarAsset *assetsStormstoneCore(void) { return &stormstoneCore; }
 const struct PlanarAsset *assetsExtraLife(void) { return &extraLife; }
+#ifdef SPARKPAW_STORMRAIL_PROOF
+const struct PlanarAsset *assetsStormrailFamily(void)
+{
+    return &stormrailFamily;
+}
+const struct PlanarAsset *assetsStormrailObstacles(void)
+{
+    return &stormrailObstacles;
+}
+#endif

@@ -1,6 +1,14 @@
 # Codex handoff: Amiga game workspace
 
-Last updated: 30 August 2026
+Current checkpoint: **0.7.0-alpha.2 / Phase 7A.2**, full campaign HD,
+two-ADF and WHDLoad packages. HD game bytes are unchanged; the user approved
+the corrected ADF flow and styled INSERT DISK 1/2. New campaign WHDLoad native
+testing and physical A1200/Gotek/Pocket gates remain open. Public itch remains
+alpha.68; original artifacts are protected. See [current status](sparkpaw/docs/CURRENT_STATUS.md) and [release record](sparkpaw/docs/RELEASE_0_7_0_ALPHA_2.md).
+
+Performance research is explicitly parked. Completed local alpha.1 and disk
+candidates are archived intact. Older dated entries below are historical,
+not instructions to reactivate tests or claims about current native acceptance.
 
 ## Start here
 
@@ -450,6 +458,13 @@ complete required `assets/runtime/` subtree. Do not deliver such drawers only
 under `build/` or `build/test/`; those are internal build intermediates and are
 not visible in the mounted HD.
 
+`sparkpaw/dist/` is exclusively MrDig's manual test surface. Codex may stage a
+self-contained drawer there and perform read-only byte, hash and manifest
+checks, but must never launch or boot an executable from `dist` itself. Every
+Codex-run FS-UAE proof must instead use a separate drawer below
+`sparkpaw/build/fsuae-selftest/`. Do not request permission to boot from
+`dist`; hand the staged drawer to MrDig for the actual 68030/68020 test.
+
 For every future A/B test, create one fully self-contained subdrawer per
 variant. Each subdrawer must contain its own executable, complete runtime
 assets and ReadMe, so `PROGDIR:renderdiag.log` is naturally unique. Never ask
@@ -602,7 +617,7 @@ Player:
   primary-Fire/Space shoot edge for the session.
 - Preserve scale, feet, mirrored facing, run/jump/landing/crouch/turn/shoot/hurt
   selection, three hearts as six health units and accepted life/reset behavior.
-- Sprint/jump performance is open; do not change physics before measuring it.
+- Sprint/jump performance investigation is parked; preserve existing physics.
 
 Enemies/projectiles:
 
@@ -634,19 +649,103 @@ Water/route:
 
 ## Current work order
 
-### 0. Current handoff after Phase 6C.10
+See [CURRENT_STATUS.md](sparkpaw/docs/CURRENT_STATUS.md). Performance work is
+parked by explicit user decision. The current step is the 0.7.0-alpha.2 checkpoint and separate native WHDLoad/hardware gates; historical plan:
+authorized multidisk/loading plan. Asset selection changes belong to that
+media boundary. Level-2 design remains separate.
 
-Phase 6C is complete through alpha.68. Do not reopen the accepted Level-1
-score/results, secret-extra-life, one-shot-audio or instant-replay work without
-new evidence. The next engine boundary is Phase 6D: introduce an explicit
-multi-level progression state that can choose replay or continue without
-embedding Level-2 design in the Level-1 reset. Level-2 creative/layout work is
-owned by a separate session. See `sparkpaw/docs/PHASE6D_PROGRESSION_PLAN.md`.
+### Historical work order and acceptance chronology
 
-The supplied real-A1200/68030 alpha.68 gate now covers physical ADF, WHDLoad
-and ordinary HD launch. Analogue Pocket alpha.68 and a physical stock-68020
-remain optional separate compatibility checks, not blockers for beginning the
-Phase 6D design.
+The dated entries below preserve intermediate evidence. Their “next”, “pending”
+and drawer references are not active instructions; consult the status index.
+
+#### Stormrail direct-start development baseline (2026-09-01)
+
+Do not create a new alpha yet. The user-accepted v7 boarding build is the
+historical Gate-1 baseline and is preserved under
+`sparkpaw/dist/older-builds/Stormrail-Board-v7-030-HD`. The sole active focused
+drawer is now `sparkpaw/dist/StormG2-Table-Cadence-020-HD`, executable
+`StormG2-Cadence`. It
+bypasses intro, title and Level 1 and begins at the short cliff approach. That
+shortcut is compile-guarded by the Stormrail proof/user-test defines and must
+not enter production or release targets.
+
+Accepted Gate 1 consists only of familiar Level-1-like cliff material, a
+visible point of no return, the hovering 104x46 Skimmer with subtle hover and
+its existing cyan engine pulse, physical cockpit entry, canonical
+contact/settle poses, the restored clean pre-experiment sink pose and the
+approved occupied head-only flight pose. The rejected hand-authored sink
+neck/scarf pixels must not return. Evidence and rationale live in
+`sparkpaw/testresults/Phase 6D-step1-rejected-v7-invalid-sink-neck.*` and
+`sparkpaw/docs/STORMRAIL_INTERLUDE_PLAN.md`.
+
+Sparkpaw consistency is not limited to anatomy. Every later pose must preserve
+the accepted character's fur base/shadow balance, muzzle and inner-ear cream,
+eyes, scarf, gauntlet, outline, expression and proportions. Do not copy or
+rescale the HUD portrait into gameplay art; derive and validate the same palette
+roles in the pose's own native pixels.
+
+Gate 2 and Gate 2.5 are now the preserved isolated control, art, architecture
+and performance baseline. Add no campaign integration, results, ADF or
+multidisk work implicitly; the final roughly 2.5-minute authored route remains
+later Gate 6D.6 scope. Self-test small technical changes first and stage only
+meaningful checkpoints for MrDig.
+
+Flight owns `stormrail-flight-rear.spbm`, a bounded 768px REAR8 route span plus
+352px fetch overlap, while accepted boarding still owns the unchanged v3 rear.
+Both use the existing rolling 4+3 compositor and Copper publication; there is
+no second renderer. The first candidate's per-X quantization produced visible
+vertical colour seams and its direct rear switch was too abrupt. The revised
+bitmap uses one stable semantic pen encoding across the complete loop. Four
+route palettes still morph by `stormrailDistance` and scanline. After boarding,
+the craft accelerates right out of the approach, the playfield fades to black
+over eight palette steps while the HUD stays fixed, both Copper lists switch
+under black, and the shooter world fades in as the craft re-enters from the
+left. Once both flight targets are armed, the approach front and rear
+allocations are released. Bounded FS-UAE/68030 evidence in
+`sparkpaw/build/fsuae-selftest/stormrail-handoff-seam-v2-20260901-145629`
+shows intact approach, fade, re-entry and route phases. The wrap proof in
+`sparkpaw/build/fsuae-selftest/stormrail-fade-wrap-v2-20260901-145845`
+crosses distance 32,768 and eleven rear loops with zero unsafe Blits and
+1,305,232 Chip bytes free.
+
+The user accepts the transition, route presentation, compact craft and final
+corrected palette-table version in FS-UAE/68030, then reports no visual fault
+in the FS-UAE/68020 cadence drawer
+`sparkpaw/dist/StormG2-Table-Cadence-020-HD`. The first table build was rejected:
+it emitted 12 rather than all 13 rear bands and exposed an out-of-bounds colour
+strip immediately above the HUD. Its evidence is preserved under
+`dist/older-builds`; the generator now asserts 13*8 words per palette.
+
+Performance diagnosis found repeated C route interpolation—not parallax DMA,
+ship Bobs or shots—as the stock-68020 blocker. The original targeted profile
+measured `scroll_patch` at 29,413 median ticks and 24.40 FPS. A division-free
+rewrite reduced that to 7,499 ticks. Final generation maps all 768 phases to 23
+bit-exact 12-bit palettes in roughly 5.6 KiB readonly/Fast data; inspected
+68020 assembly has no per-colour interpolation loop. Corrected 68030 profiling
+measures 45 median `scroll_patch` ticks, 49.90 FPS and zero ownership
+violations. Final low-overhead FS-UAE/68020 evidence records 49.26 FPS over
+1,000 intervals: 992 one-field, 3 two-field, 5 three-plus, maximum four fields,
+zero ownership violations and 214/214 requested/started shots. Remaining long
+intervals occur around one-time handoff/target initialization; steady Flight
+is 50 Hz. Stop here after Gate 2/2.5 until the user explicitly begins the next
+content gate.
+
+The prepared continuation prompt is
+`sparkpaw/docs/NEXT_SESSION_STORMRAIL_GATE3_PROMPT.md`. Gate 3 is deliberately
+bounded to two small enemy types, two deterministic formations, formation
+completion plus one 3--5-diamond reward chain. It must preserve the accepted
+empty-flight cadence and stop for explicit acceptance before hazards, the full
+route, results or campaign integration.
+
+Later integration remains mandatory and separate: Level-1 results must offer
+resident `REPLAY LEVEL` versus load-bound `CONTINUE JOURNEY`; continuing must
+unload Level-1-specific state under black/loading presentation before loading
+Stormrail; each section owns a run score; later results also show cumulative
+campaign score; and `REPLAY INTERLUDE` restores the immutable post-Level-1
+snapshot and starts the interlude score at zero. No score may be banked twice.
+Keep the current one-level ADF frozen until a measured multidisk proof is
+justified; HD/WHDLoad development may continue independently.
 
 ### 1. Preserve the completed Stage 5L/H7 renderer baseline
 
@@ -909,6 +1008,254 @@ Keep this file concise and current. Append implementation narrative and rejected
 experiments to `docs/DEVELOPMENT_HISTORY.md`. Update README, handoff, history,
 packaged notes and SemVer together for every release candidate.
 
+Focused HD packaging guard: `sparkpaw/tools/stage_hd_test.py` now scans the
+selected executable for literal `PROGDIR:assets/runtime/...` dependencies and
+automatically adds compile-guarded assets outside alpha.68's release manifest.
+This fixes the repeated Stormrail LOADING hang caused by omitting
+`stormrail-front.spbm`, `stormrail-rear.spbm`, `stormrail-flight-rear.spbm` and
+`stormrail-family.spbm`. Every future focused drawer must additionally boot the
+executable and runtime directory from the final `dist` drawer and visibly pass
+LOADING; a source-tree proof alone is insufficient.
+
+Stormrail Gate 3 is accepted in supplied FS-UAE/68030 presentation and
+stock-FS-UAE/68020 cadence testing. The accepted 68020 log covers 2,108
+Flight-only intervals, all one-field (50.00 FPS), with zero ownership
+violations and 176/176 player shots started. Four formations, two enemy types,
+enemy fire, hit/death/pickup/hurt audio, contact damage, life restart,
+anti-farming awards, deterministic free and formation diamonds, compact
+20/40/5 scoring, safe lower lanes and half-visible entry hits are accepted.
+Do not begin Gate 4 obstacles or expand the route without explicit user intent.
+
+### 2026-09-03 — Stormrail Debris 4 pending visual acceptance
+
+The user rejected `2026-09-03 18-24-56.mov`: Debris3 starts variably but its
+tail collapses into monotonous repeated groups and the endpoint is unclear.
+The recording is catalogued as
+`sparkpaw/testresults/Phase 6D-rejected-debris3-collapsed-repeating-tail.mov`
+with a matching sidecar. Audit found a uniform 100-distance admission cadence,
+a saturated six-slot pool and an over-weighted 6/29/13 big/shard/pillar mix;
+the former test measured source windows rather than simultaneous visible mix.
+
+Debris4 replaces it with one explicit 48-event timeline over distance
+5800..11130: eight large, twenty-four shard and sixteen pillar cues, irregular
+80..150 spacing, no bounce/reversal and at most one large block active. Two
+large loot carriers reserve a slot by retiring only the oldest ordinary
+non-large cue if the pool is full, preventing a lost reward or delayed tail.
+The visible-snapshot test admits all required families and ends empty.
+
+The compile-guarded production-renderer proof reaches mask `-1/65535`, peak
+six / big peak one, zero active obstacles at distance 15200, zero unsafe Blits
+and 1,290,992 free Chip bytes. Full host tests pass. The sole active drawer is
+`sparkpaw/dist/Storm-Debris4-030-HD`, self-contained with 42 declared assets
+and 40 executable-discovered references. It contains no startup-sequence.
+Pacing6 and Debris3 are archived intact under `dist/older-builds`; alpha.68 is
+untouched. Stop for the user's 68030 visual/feel verdict before any 68020 gate
+or further route content.
+
+Debris4 was then rejected with the catalogued recording
+`Phase 6D-rejected-debris4-repetitive-field-abrupt-end.mov`. Real runtime
+timing exposed the missing invariant: the bitmask rescanner admitted an old
+event at distance 15199, immediately before the endpoint. Debris5 replaces it
+with one monotone next-event cursor and asymmetric authored phrases. Its native
+proof records final event 47 at 11331, last active debris at 11815 and endpoint
+15500. Seven actual emulator captures include a clean moving empty-route frame;
+all host tests pass. `dist/Storm-Debris5-030-HD` is the sole active drawer and
+Debris4 is archived intact. Await the user's 68030 visual/feel verdict.
+
+The user accepts Debris5 as “acceptabel genoeg” and it is preserved intact at
+`dist/older-builds/Storm-Debris5-030-HD-accepted-enough`. Life-loss pickup
+behavior is already consistent with Level 1: collected diamonds remain consumed
+while their HUD remainder and score persist, preventing farming. Audit found
+that missing rock drops were a real ID collision: loot IDs 12/13 overlapped
+free line 3. Debris5.1 moves them to unique IDs 32/33 using a second persistent
+pickup mask. It also applies bounded apparent-randomness polish only: five
+offscreen start-X values and event-ID tumble phase instead of pool-slot phase.
+The cursor, routes, density, art and endpoint are unchanged. Full tests and the
+native 15500-distance proof pass; `dist/Storm-Debris5.1-030-HD` is the sole
+active drawer pending the user's 68030 pickup/feel check.
+
+Debris5.2 is accepted for now. It slows the second large loot carrier from -4
+to -3 for a readable six-hit reward reveal and removes the
+repetitive horizontal middle-lane traffic: only three medium/small horizontal
+accents remain, all in upper/lower lanes; the rest are shallow diagonals. The
+48-event monotone timeline, density, endpoint and accepted Debris5 fallback are
+unchanged. Formation rewards already obey the Level-1-style persistence rule:
+formations respawn after life loss, collected reward IDs do not, and only
+uncollected members can return.
+
+After accepting Debris5.2 as sufficient for now, the user requested a health
+pickup proof. Heart1 adds a native 16x21 classic red heart within the existing
+reward pool. Fixed ID 34 appears between early waves at the centre of three
+widely spaced ring diamonds (IDs 35..37); the slower large debris
+carrier's ID 33 now drops a heart instead of a diamond. Collection restores
+two half-heart health units (one full HUD heart), capped at six, and uses the
+existing collect sparkle at stronger volume. Both heart IDs persist across a
+life restart. User review accepts the final heart silhouette and spacious ring
+for now. The complete low-overhead stock-FS-UAE/68020 run records 49.96 FPS
+over 2,886 intervals: 2,885 one-field, zero two-field, one three-field (maximum
+three), zero ownership violations and 334/334 shots. Preserve archived Debris5
+and Debris5.2 as fallbacks. At that checkpoint the sole active drawer was
+`dist/Storm-Heart1-Cadence-020-HD`; no release or campaign files changed.
+
+### 2026-09-03 — Stormrail Gate 5A patterns and Gate 4D dust accepted
+
+Gate 5A preserves Debris5.2 and compacts the surrounding route. The accepted
+focused slice has eight formations: one added pre-debris Dart/Orb spearhead,
+a post-debris Dart curl, a free-diamond slalom with persistent IDs 38..41, a
+mixed Dart/Orb crossing-rejoin and a final Dart fan/rejoin. Formation rewards
+use persistent IDs 42..57 and no formation exceeds the five-enemy cap. The
+route remains monotone on `stormrailDistance`, reaches a short empty reserve
+and latches future finale space at 15500. Its cadence run measured 50.00 FPS
+over 4,165 intervals, all one-field, zero ownership violations and 438/438
+shots.
+
+Gate 4D adds eight independent 16x3 non-colliding dust/grit slots before all
+gameplay Bobs. Each has an authored y, phase and speed and crosses right-to-left
+from monotone `stormrailDistance`. Slow cached colour selection uses
+neutral-white, pale-blue and rare amber pens 9/6/3 as changing sunlight. No
+runtime scaling, rotation, randomness, per-pixel work or per-frame allocation
+exists. One slot occupies y=18; seven retain the accepted y=41..205 layout. A
+y=211 experiment caused HUD/playfield corruption and v4 is archived rejected;
+never restore that bound.
+
+MrDig accepts final v5 on FS-UAE/68030 without the v4 HUD glitch. The supplied
+stock-FS-UAE/68020 log at
+`sparkpaw/dist/Storm-Dust-v5-Cad-020-HD/renderdiag.log` has SHA-256
+`2c8d09c056d0ae352020d8475b0c664321249ba5f9fc1b21e6dfca34f975f792`.
+It records 49.98 FPS over 6,036 intervals: 6,035 one-field, zero two-field, one
+three-field (maximum three), zero ownership violations and 432/432 shots. Gate
+4D is accepted. Alpha.68, releases, ADF/multidisk, Level 2 and campaign
+integration remain untouched. The next bounded content step is Gate 6: the
+specified fixed-camera Harrier, upper/lower gate turrets, gate opening and
+automatic passage.
+
+### 2026-09-04 — Stormrail Gate 6 finale pending 68030 acceptance
+
+Gate 6 is implemented only behind the focused Stormrail compile guards. One
+data-driven contract and a dedicated host simulation fix the encounter at the
+existing monotone `stormrailDistance == 15500` latch: camera and autoscroll
+stop, a 96x56 Harrier and independent upper/lower turrets fight with separated
+telegraphed patterns, and all three must be destroyed. The final kill clears
+the existing hostile-shot pool immediately, a local 48-tick timer opens the
+gate, and the Skimmer centres at at most two pixels per tick before its
+automatic passage. Route distance never advances during these phases.
+
+The bounded automatic FS-UAE proof lives outside `dist`, under
+`sparkpaw/build/fsuae-selftest/stormrail-gate6-greybox-final-20260903-222233`.
+It reaches all four lifecycle phases at distance 15500 with zero distance
+violations, zero hostile launches after combat, zero unsafe Blits, all three
+actors dead, gate timer 48 and final Skimmer y=88. The sole active manual
+drawer is `sparkpaw/dist/Storm-Gate6-030-HD`. Its native AGA art pass adds a
+storm-purple armoured Harrier with steel facets, cyan cockpit and hot engine,
+asymmetric upper/lower turrets and a ribbed energy gate without changing cache
+sizes. The inspected renderer proof is under
+`sparkpaw/build/fsuae-selftest/stormrail-gate6-aga-art-20260904-092835`.
+MrDig rejects this pass as the same cheap, drawn programmer-art failure already
+corrected in the debris workflow. It violates `AGA_ART_QUALITY_CONTRACT.md` and
+must not be polished incrementally or restored. The intact rejected drawer is
+archived as `dist/older-builds/Storm-Gate6-030-HD-rejected-programmer-art`; no
+Gate-6 drawer is active. Gate 6 is specifically the Stormrail end fight at the
+threshold to **Level 2: Storm Ruins**. Concept v1 for that destination-aware
+Harrier/turret/gate composition is saved under `assets/concept/` and remains
+review-only. Await explicit concept-direction approval before native reduction
+or runtime integration; no Gate-6 68020 build is authorized. Never boot a
+drawer from `dist` on Codex's behalf.
+
+MrDig then accepts v1's material direction and v2's corrected flat side-view
+composition: a narrow full-height right wall, embedded upper/lower turrets,
+central gate, open left/middle dodge space and a Harrier proportionate to the
+Skimmer. Native v1 reduces those callouts independently into FRONT16 and cleans
+clusters/material edges at final size. Runtime uses the 96x56 Harrier, two
+32x24 turrets and two unique 32x104 wall halves; the former procedural art is
+gone. The cache increase is 4,160 Chip bytes versus the greybox proof, leaving
+1,272,296 free and a 619,976-byte largest block. The automatic proof completes
+at distance 15500 with zero unsafe Blits, distance violations or post-combat
+fire. Its inspected complete frames retain the line-252 HUD and dark-route
+contrast. `dist/Storm-Gate6-Native-v1-030-HD` is the sole active manual drawer,
+pending explicit 68030 visual/feel acceptance. No 68020 drawer exists.
+
+Gate-6 native v2 exposed a renderer invariant that must remain protected. The
+shared finale actor cache stores every colour plane at the fixed 56-row maximum,
+but the generic masked-Bob path advanced planes by each actor's visible height.
+That happened to work for the original 56px Harrier and corrupted the reduced
+46px Harrier plus both 24px turrets. The corrected finale call supplies the
+fixed cache plane stride separately from visible Blit height. The discarded
+colour-tweaking attempts were symptoms, not solutions. Complete FS-UAE frames
+must now be inspected at early and late encounter times before any drawer is
+staged; sheet-only review is insufficient. The selftest's automatic targeting
+moves Sparkpaw sharply between targets, so that movement must not be described
+as manual-build jitter. Dust movement was not causal.
+
+User-supplied FS-UAE/68030 HD evidence for native v3 is catalogued as
+`sparkpaw/testresults/Gate 6-pending-harrier-turret-detail-and-cadence.png`
+with a matching TXT sidecar. It confirms coherent actor/HUD shapes after the
+plane-stride fix, but Gate-6 visual acceptance remains pending: the Harrier has
+too many large near-black interior areas and too little readable surface detail,
+while both turrets are too pale and insufficiently colour-distinct. The user
+also reports occasionally uneven Sparkpaw movement. A still image cannot
+establish FPS, so preserve this as an open later cadence/temporal-evidence check;
+do not infer a regression in the accepted Gate-4D 68020 baseline and do not run
+the Gate-6 68020 cadence gate before explicit visual acceptance.
+
+Native v4 addresses only that visual feedback. The rebuilt 80x46 Harrier now
+uses stable FRONT8 blue-steel panels, ivory structural edges, a violet core and
+small amber machinery accents, removing the large unreadable black regions.
+The upper 32x24 turret is an ivory/cyan coil-cannon; the lower is a visibly
+different ivory/violet fork-cannon. Complete early/mid/late FS-UAE selftest
+frames under `sparkpaw/build/fsuae-selftest/stormrail-gate6-detail-v4-*` show
+stable actor silhouettes, intact Skimmer/HUD and the intended colour split.
+The encounter code, movement, dust, projectile pools and lifecycle were not
+changed in this v4 polish. Visual/feel acceptance remains with the user and the
+reported smoothness question remains deferred; no Gate-6 68020 cadence gate has
+been run.
+
+MrDig rejects native v4's turrets altogether and the blue-heavy Harrier colour
+balance; evidence is preserved as
+`sparkpaw/testresults/Gate 6-rejected-v4-turrets-and-blue-harrier.png` plus its
+sidecar. Gate 6 is consequently superseded by the Harrier-only v5 contract:
+one 80x46, 30-HP, 320-point actor (persistent award ID 60), no turrets, and one
+20-tick-telegraphed three-shot violet fan every 112 local ticks. The fan uses
+the unchanged four-hostile-shot pool atomically and emits fixed dy -2/0/+2 with
+dx -4 only when three slots are free. The Harrier patrol expands smoothly to
+x -20..+19 and y -28..+27 around base (188,81), while distance remains 15500.
+Its art returns to the FRONT16 charcoal/steel ramp with violet and restrained
+amber accents. The wall/gate remains unchanged.
+
+The user additionally reports an intermittent subjective smoothness difference:
+moving Sparkpaw without firing appeared to drop FPS, while moving and firing
+appeared smoother. Record that exact contrast for later temporal/cadence
+diagnosis. A still screenshot cannot establish it, and it must not broaden the
+current visual gate or trigger the prohibited pre-acceptance Gate-6 68020 run.
+
+Gate-6 Harrier-only v6 follows the approved difficulty direction. Research
+favours learned, clearly telegraphed pattern variation and an end-loaded
+intensity ramp over a larger HP sponge or unannounced homing fire. The 30-HP
+Harrier therefore keeps the fixed fan at phase 32 of a 160-tick cycle. At 15 HP
+or below it unlocks a separately warned Hunter Burst at phases 96/108/120;
+each dx=-5 shot samples Sparkpaw when launched, clamps dy to -2..+2 and never
+homes afterward. Fan and Hunter have 64/72-tick separation and use only the
+existing four hostile slots. The gate source shape is unchanged, but its
+violet pixels are remapped to muted steel so the formerly turret-covered purple
+details no longer distract. The bounded FS-UAE proof completes with seven
+hostile launches, distance 15500, zero unsafe Blits, zero distance violations
+and zero post-combat fire. Visual/feel acceptance remains pending; no Gate-6
+68020 cadence gate has run.
+
+User capture `sparkpaw/testresults/Gate 6-v6-missing-hunter-burst.mov` exposed
+a real v6 presentation mismatch: the renderer showed the Hunter warning above
+15 HP while gameplay correctly suppressed the locked attack. V7 makes renderer
+and game share one `HP <= 15` enable predicate, so a false charge is forbidden.
+Fan and Hunter now each own distinct short, preloaded charge/fire cues on the
+existing prioritized Paula gameplay voice. Fan fire remains a round violet
+pulse; Hunter fire is a narrow amber-white needle; Sparkpaw's cyan shot and the
+existing 5/4 projectile pools remain unchanged. The bounded proof under
+`sparkpaw/build/fsuae-selftest/stormrail-gate6-hunter-v7-20260904-152810`
+reports distance 15500, zero unsafe Blits/distance violations/post-combat fire,
+two fan charges/six fan shots and one Hunter charge/shot before the automatic
+player kills the Harrier. This verifies the Hunter launch path, not all three
+shots surviving a lethal automated volley. Visual/audio/feel acceptance remains
+with the user; no Gate-6 68020 cadence run is authorized yet.
+
 Accepted Stage2 collectible H4 result: target-local diamond composition is the
 production default. Supplied FS-UAE/68030 and FS-UAE/68020 HD testing reports
 normal diamonds including enemy overlap, with zero ownership violations. On
@@ -926,3 +1273,116 @@ raises cadence 44.47 to 45.55 FPS and lowers `ring_roll` average 1,691 to 483
 and p95 9,878 to 2,782 ticks. All supplied FS-UAE/68030 and FS-UAE/68020 HD
 gates report normal presentation. Preserve the former routes behind explicit
 reference flags. No ADF, Pocket or real-A1200 claim is inferred.
+### 2026-09-04 — Gate 6 stock-68020 overlay-restore candidate pending user cadence
+
+The user's first Gate-6 v12 cadence run looked visibly uneven even though its
+minimal log measured 784/784 one-field combat intervals (50.00 FPS) and zero
+ownership violations. A targeted split isolated the dynamic Stormrail Bob pass.
+The first attempt to cache the whole closed gate was immediately rejected from
+whole-frame evidence because dust restores punched horizontal holes in the
+resident wall; it was never staged. The corrected compile-guarded candidate
+omits only the repeated full-height gate background restore and still redraws
+the wall overlay every frame. Its inspected automatic frames have an intact
+wall, and the representative targeted Bob pass fell from roughly 220 to 188
+raster lines (~15%). The observer-heavy profile is not cadence acceptance.
+
+Exactly one active manual drawer now exists:
+`sparkpaw/dist/Storm-G6-v13-Cad-020-HD`, executable `Sparkpaw-G6-Cad`.
+The prior v12 drawer and its user log were archived intact below
+`sparkpaw/dist/older-builds/Storm-Gate6-v12-Cad-020-HD-user-tested`.
+Codex must not boot the dist drawer. The user must repeat the same 15-second
+move-without-fire and 15-second move-with-held-fire stock-68020 run and save
+`renderdiag.log` with one left-mouse press.
+
+The user additionally made the final integration contract explicit: the full
+Stormrail interlude has one initial load only. Distance 15500 must flow directly
+into the Harrier encounter with no disk icon, Workbench, or loading screen.
+All finale assets and sounds must already be resident. The direct finale test's
+long Workbench startup is not the intended level-to-boss transition. Targeted
+diagnostics retained 618,024 bytes Chip at the preparation low point and
+1,270,312 bytes after run cleanup, so current evidence does not support Chip
+exhaustion as the cause of that startup delay.
+
+### 2026-09-04 — Stormrail complete interlude and Gate 6 accepted on 68030
+
+The complete resident interlude flows from accepted boarding and the full
+15500-distance route into Gate 6 without a second load. A 32-tick local arrival
+slides the narrow full-height Storm Ruins wall and Harrier into the latched
+composition. Arrival runs once: life loss resumes COMBAT, preserves remaining
+Harrier HP, clears projectiles and restarts the attack cycle safely.
+
+The final encounter is Harrier-only. Its accepted native 80x46 charcoal/steel
+art, restrained violet/amber detailing and two distinct attacks replace every
+turret iteration. It has 120 HP; Hunter still begins at 60 HP, so the harder
+phase lasts longer rather than starting later. The fan launches three violet
+lanes and Hunter launches three separately aimed amber-white needles with
+distinct heavy cues. The kill awards 320 points once through persistent ID 60,
+stops hostile fire, opens the gate and sends the Skimmer through at fixed
+distance 15500.
+
+Full2 user evidence exposed replayed arrival and small gate-edge notches.
+Full3 preserves boss HP and marks the complete word-aligned Blitter restore
+footprint. Full4 adds combat-only body collision: contact costs one half-heart
+through the existing 36-tick invulnerability/hurt contract, holds the Skimmer
+at the Harrier's left edge even during grace and never damages the boss. MrDig
+accepts the complete 68030 flow, visuals, performance and contact. The sole
+active drawer is `sparkpaw/dist/Storm-Interlude-Full4-030-HD`; superseded
+drawers remain intact in `dist/older-builds`. Never boot it from Codex.
+
+Workflow lesson: MrDig is the authoritative runtime/feel tester. Use host
+contracts and native compilation, then stage one focused candidate. Automatic
+FS-UAE runs outside `dist` are exceptional and limited to one named native-only
+diagnostic that cannot be answered credibly otherwise. Never use them for a
+private visual/audio/cadence polish loop after MrDig asks to test personally.
+The next task is the post-Harrier interlude results screen, not Level 2,
+campaign integration or a release.
+
+Before results work, MrDig requested the matching complete-interlude
+stock-68020 performance gate. `Storm-Interlude-Cad-020-HD` is now the sole
+active drawer and Full4 is archived intact. Its executable differs only by the
+minimal cadence/ownership diagnostic. Sampling starts at established flight
+tick 400, includes route, distance-15500 transition, Harrier combat, opening
+and automatic exit, then stops at `COMPLETE` so post-finish dwell cannot affect
+the result. MrDig must perform this run and save `renderdiag.log` with one
+left-mouse press; Codex must not boot it. Results work waits for that evidence.
+
+MrDig completed that exact stock-68020 run. Its 5,177 measured intervals contain
+5,175 one-field, one two-field and one three-field interval (maximum three), for
+49.97 FPS with zero ownership violations. The run requested and started all
+595 player shots and exercised 10 fan charges/fires plus five Hunter charges
+and fifteen Hunter fire requests. The 214,228-byte `renderdiag.log` has SHA-256
+`fe529b4a9143e992177c85b626f75f7f0a1096cbb19a82ef5c159e36924db460`.
+This is effectively equal to Gate 4D's accepted 49.98 FPS and accepts the full
+integrated Stormrail interlude on stock FS-UAE/68020 cadence. No ADF, WHDLoad
+or real-hardware conclusion follows. The results-screen session may proceed.
+
+MrDig fixes the first post-interlude results presentation to exact Level-1
+reuse: the same four visible items (`ENEMIES x20`, `DIAMONDS x5`, `TIME x10`,
+total `SCORE`), layout, art, tally order, skip/input behaviour and audio. Do not
+create Stormrail-specific results art or add campaign totals yet. Only the
+Gate-6 COMPLETE trigger, Stormrail source counters, separately contracted
+interlude par-time and temporary test-end behaviour may differ.
+
+The reused screen must retain the real `REPLAY LEVEL` option. After Fire and a
+complete black fade it starts a fresh resident Stormrail run at the beginning
+of departure/boarding, never Level 1, with no new asset load, disk icon or
+Workbench. Reset section score/time, enemies, debris, pickups/award bits,
+diamonds, lives/health, shots/input history and the complete Harrier/finale
+lifecycle. Do not add `CONTINUE` or rename the prompt to `REPLAY INTERLUDE` in
+this isolated step; host-test the reset and no-carry/no-farming invariants.
+
+The first results candidate is now staged as the sole active manual drawer,
+`sparkpaw/dist/Storm-Results1-030-HD`, executable `Sparkpaw-Results`. Its
+contract fixes a 150-second / 7,500-field complete-interlude par and an
+idempotent 0..1,500-point time bonus. Gate-6 `COMPLETE` snapshots Stormrail's
+own enemies, diamonds, elapsed fields and live section score; the already-live
+320-point award ID 60 is never added by results. The exact Level-1 presenter,
+assets, prompt, order, input and tally audio are reused. Results builds retain
+the departure sources after the flight handoff so Fire can fade fully black and
+perform a resident `gameInit()`/renderer reset back to boarding without a load.
+The accepted cadence drawer and its supplied log are archived intact as
+`dist/older-builds/Storm-I-Cad-020-accepted`; its launcher is beside it. Host
+tests and the normal, integrated and results native builds pass. Visual tally,
+audio, input, black-fade replay and feel remain pending MrDig's explicit 68030
+acceptance. Do not create a 68020 results gate, release or campaign integration
+before that verdict.

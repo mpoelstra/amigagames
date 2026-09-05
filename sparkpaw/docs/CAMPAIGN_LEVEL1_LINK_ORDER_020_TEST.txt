@@ -1,0 +1,22 @@
+Sparkpaw Level-1 renderer link-order - full 68020 cadence gate
+================================================================
+
+This is the 68030-accepted candidate that changes only final object order:
+Level 1's renderer is linked immediately after main, matching alpha.68's hot
+neighbourhood, while the Stormrail renderer remains cold at the end.
+
+Play one normal representative complete Level-1 route on stock A1200/68020.
+Use your usual movement, combat, jumping and shooting across the whole level;
+do not focus only on the first encounter. After collecting the Core and
+reaching the held completed frame, click the left mouse button once. Wait
+several seconds for renderdiag.log to finish, then stop FS-UAE.
+
+Compare against
+---------------
+
+- collision-cache candidate: 49.30 FPS, 25/1,772 two-field (1.41%);
+- protected alpha.68 reference: 48.58 FPS, 33/1,137 two-field (2.9%);
+- rejected game-update split: 46.66 FPS, 129/1,805 two-field (7.15%).
+
+Require zero ownership violations. Judge the complete-level distribution and
+supplied feel together; link-order cleanliness alone is not acceptance.

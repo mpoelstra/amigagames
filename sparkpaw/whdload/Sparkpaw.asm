@@ -36,7 +36,7 @@ slv_name	dc.b	"Sparkpaw: The Stormstone Quest",0
 slv_copy	dc.b	"2026 MrDig Productions",0
 slv_info	dc.b	"Installed and adapted for WHDLoad",10
 		dc.b	"by MrDig Productions / 100% AI",10
-		dc.b	"Version 0.6.0-alpha.49 (27-Aug-2026)",0
+		dc.b	"Version 0.7.0-alpha.2 (05-Sep-2026)",0
 slv_config	= slv_base
 	EVEN
 

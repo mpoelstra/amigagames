@@ -15,13 +15,14 @@ BACKGROUND = CONCEPT / "assets/sparkpaw-ready-background-source-v3.png"
 LOGO = CONCEPT / "assets/sparkpaw-logo-wordmark-source-v2.png"
 PREVIEW = CONCEPT / "sparkpaw-ready-screen-aga64-preview.png"
 OPTIONS_PREVIEW = CONCEPT / "sparkpaw-options-screen-aga64-preview.png"
+CAMPAIGN_OPTIONS_PREVIEW = CONCEPT / "sparkpaw-campaign-options-aga64-preview.png"
 RUNTIME = ROOT / "assets/runtime/sparkpaw-ready-screen.spbm"
 MENU_PATCHES = ROOT / "assets/runtime/readymenu.spbm"
 
 PATCH_Y = 118
 PATCH_H = 104
-PATCH_X = 80
-PATCH_W = 160
+PATCH_X = 64
+PATCH_W = 192
 
 
 GLYPHS.update({
@@ -45,6 +46,14 @@ def small_text(draw, value, y, colour, centre_x=160):
         x += 6
 
 
+def small_text_left(draw, value, x, y, colour):
+    small_text(draw, value, y, colour, x + (len(value) * 6 - 1) // 2)
+
+
+def small_text_right(draw, value, right_x, y, colour):
+    small_text_left(draw, value, right_x - (len(value) * 6 - 1), y, colour)
+
+
 def menu_screen(image, state):
     image = image.copy()
     draw = ImageDraw.Draw(image)
@@ -61,7 +70,7 @@ def menu_screen(image, state):
                 draw.line((214, y + 6, 237, y + 6), fill=(31, 201, 224))
         small_text(draw, "2026 MRDIG PRODUCTIONS", 201, (180, 190, 183))
         small_text(draw, "100% MADE WITH AI", 213, (71, 175, 198))
-    else:
+    elif state < 4:
         value = "JUMP" if state == 2 else "FIRE"
         medium_text(draw, "OPTIONS", (320 - len("OPTIONS") * 9) // 2,
                     128, (31, 201, 224))
@@ -72,6 +81,28 @@ def menu_screen(image, state):
         draw.polygon(((224, 154), (231, 160), (224, 166)),
                      fill=(31, 201, 224))
         small_text(draw, "FIRE: RETURN", 177, (180, 190, 183))
+    else:
+        option = state - 4
+        selected = option // 4
+        secondary = "FIRE" if option % 4 >= 2 else "JUMP"
+        start_at = "STORMRAIL" if option % 2 else "STORM RUINS"
+        medium_text(draw, "OPTIONS", (320 - len("OPTIONS") * 9) // 2,
+                    124, (31, 201, 224))
+        rows = (("SECOND BUTTON", secondary), ("START AT", start_at))
+        for row, (label, value) in enumerate(rows):
+            y = 149 + row * 20
+            colour = (31, 201, 224) if row == selected else (180, 190, 183)
+            small_text_right(draw, label, 150, y, (241, 221, 170))
+            small_text_left(draw, value, 174, y, colour)
+            if row == selected:
+                value_right = 174 + len(value) * 6 - 2
+                draw.polygon(((160, y + 3), (167, y - 3), (167, y + 9)),
+                             fill=colour)
+                draw.polygon(((value_right + 8, y - 3),
+                              (value_right + 15, y + 3),
+                              (value_right + 8, y + 9)),
+                             fill=colour)
+        small_text(draw, "FIRE: RETURN", 190, (180, 190, 183))
     return image
 
 
@@ -120,7 +151,7 @@ def build_ready_screen():
     logo.thumbnail((300, 106), Image.Resampling.LANCZOS)
     image.paste(logo, ((320-logo.width)//2, 7), logo)
 
-    screens = [menu_screen(image, state) for state in range(4)]
+    screens = [menu_screen(image, state) for state in range(12)]
     for state, screen in enumerate(screens):
         for box in ((0, PATCH_Y, PATCH_X, PATCH_Y + PATCH_H),
                     (PATCH_X + PATCH_W, PATCH_Y, 320,
@@ -131,8 +162,11 @@ def build_ready_screen():
         if screens[state].crop((PATCH_X, 195, PATCH_X + PATCH_W, 215)).tobytes() \
                 != image.crop((PATCH_X, 195, PATCH_X + PATCH_W, 215)).tobytes():
             raise ValueError("Options credits field must remain empty")
-    combined = Image.new("RGB", (320, 256 * len(screens)))
-    for state, screen in enumerate(screens):
+    # Quantize the four accepted alpha.68 states exactly as before. New
+    # campaign-only patches are then mapped into that fixed palette so adding
+    # the shortcut cannot recolour the established ready/options screens.
+    combined = Image.new("RGB", (320, 256 * 4))
+    for state, screen in enumerate(screens[:4]):
         combined.paste(screen, (0, state * 256))
     indexed = combined.quantize(colors=64, method=Image.Quantize.MEDIANCUT,
                                 dither=Image.Dither.NONE)
@@ -147,8 +181,11 @@ def build_ready_screen():
     indexed_screens = [indexed.crop((0, state * 256, 320,
                                      (state + 1) * 256))
                        for state in range(4)]
+    indexed_screens.extend(screen.quantize(
+        palette=indexed, dither=Image.Dither.NONE) for screen in screens[4:])
     indexed_screens[0].save(PREVIEW)
     indexed_screens[2].save(OPTIONS_PREVIEW)
+    indexed_screens[4].save(CAMPAIGN_OPTIONS_PREVIEW)
     RUNTIME.write_bytes(spbm_payload(indexed_screens[0], 320, 256))
 
     patches = Image.new("P", (PATCH_W, PATCH_H * len(indexed_screens)))

@@ -10,18 +10,19 @@ void platformFinishTakeover(UWORD *copper);
 void platformSwitchCopper(UWORD *copper);
 void platformReleaseForLoading(BOOL keepDisplay);
 void platformResetGameInput(void);
+BOOL platformGameEscapeRequested(void);
 void platformRestore(void);
 UWORD platformRasterLine(void);
 ULONG platformFieldCounter(void);
 void platformWaitBlit(void);
 void platformSetBlitterPriority(BOOL enabled);
 BOOL platformSecondaryButtonHeld(void);
+BOOL platformLeftMouse(void);
 #ifdef SPARKPAW_WHDLOAD
 BOOL platformWHDLoadQuitRequested(void);
 #endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 BOOL platformBlitterBusy(void);
-BOOL platformLeftMouse(void);
 void platformPrepareDebugFlush(void);
 void platformProfileTimerStart(void);
 ULONG platformProfileTimerTicks(void);

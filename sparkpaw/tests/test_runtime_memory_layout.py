@@ -32,7 +32,7 @@ assert rear[:4] == (1120, 208, 3, 0)
 assert loading[:4] == (320, 256, 6, 0)
 assert charging[:4] == (224, 40, 6, 0)
 assert ready[:4] == (320, 256, 6, 0)
-assert ready_menu[:4] == (160, 416, 6, 0)
+assert ready_menu[:4] == (192, 1248, 6, 0)
 
 ready_data = (RUNTIME / "sparkpaw-ready-screen.spbm").read_bytes()
 ready_menu_data = (RUNTIME / "readymenu.spbm").read_bytes()
@@ -43,11 +43,11 @@ assert ready_data[12 : 12 + 64 * 3] == ready_menu_data[12 : 12 + 64 * 3]
 # planar-layout drift.
 header_bytes = 12 + 64 * 3
 ready_row_bytes = 40
-menu_row_bytes = 20
+menu_row_bytes = 24
 ready_plane_bytes = ready_row_bytes * 256
-menu_plane_bytes = menu_row_bytes * 416
+menu_plane_bytes = menu_row_bytes * 1248
 patch_y = 118
-patch_x_bytes = 10
+patch_x_bytes = 8
 patch_bytes = menu_row_bytes * 104
 for plane in range(6):
     ready_at = (header_bytes + plane * ready_plane_bytes +

@@ -26,6 +26,7 @@ FIELD_CELLS = 7
 CLEAR_H = 16
 CHARS = "0123456789X"
 PROMPT = "REPLAY LEVEL"
+MENU_PATCHES = ("REPLAY LEVEL", "CONTINUE", "BACK TO TITLE")
 PROMPT_W = 144
 INK = (248, 222, 154)
 LABEL_INK = (12, 218, 231)
@@ -80,16 +81,6 @@ def draw_label(draw: ImageDraw.ImageDraw, text: str, row: int) -> None:
         x += 6
 
 
-def draw_prompt(draw: ImageDraw.ImageDraw) -> None:
-    x = (320-(len(PROMPT)*6-1))//2
-    for char in PROMPT:
-        for gy, bits in enumerate(GLYPHS[char]):
-            for gx, bit in enumerate(bits):
-                if bit == "1":
-                    draw.point((x+gx, 234+gy), fill=LABEL_INK)
-        x += 6
-
-
 def build() -> None:
     source = Image.open(SOURCE).convert("RGB")
     source = ImageOps.fit(source, (320, 240), Image.Resampling.LANCZOS)
@@ -107,20 +98,26 @@ def build() -> None:
                         y+CLEAR_H-1), fill=PANEL)
         draw_label(draw, LABELS[row], row)
 
-    glyphs = Image.new("RGB", (PROMPT_W, TILE_H*(len(CHARS)+1)), PANEL)
+    glyphs = Image.new("RGB", (PROMPT_W,
+                               TILE_H*(len(CHARS)+len(MENU_PATCHES)+1)), PANEL)
     glyph_draw = ImageDraw.Draw(glyphs)
     for index, char in enumerate(CHARS):
         draw_glyph(glyph_draw, char, 0, index*TILE_H)
-    prompt_x = (PROMPT_W-(len(PROMPT)*6-1))//2
-    for char in PROMPT:
-        for gy, bits in enumerate(GLYPHS[char]):
-            for gx, bit in enumerate(bits):
-                if bit == "1":
-                    glyph_draw.point((prompt_x+gx,
-                                      len(CHARS)*TILE_H+gy+2),
-                                     fill=LABEL_INK)
-        prompt_x += 6
-
+    for patch_index, prompt in enumerate(MENU_PATCHES):
+        prompt_x = (PROMPT_W-(len(prompt)*6-1))//2
+        prompt_y = (len(CHARS)+patch_index)*TILE_H+2
+        for char in prompt:
+            for gy, bits in enumerate(GLYPHS[char]):
+                for gx, bit in enumerate(bits):
+                    if bit == "1":
+                        glyph_draw.point((prompt_x+gx,prompt_y+gy),
+                                         fill=LABEL_INK)
+            prompt_x += 6
+    arrow_y = (len(CHARS)+len(MENU_PATCHES))*TILE_H+2
+    for gy, bits in enumerate(("10000","01000","00100","01000",
+                               "10000","00000","00000")):
+        for gx, bit in enumerate(bits):
+            if bit == "1": glyph_draw.point((gx+1,arrow_y+gy),fill=INK)
     combined = Image.new("RGB", (320, 256 + glyphs.height), PANEL)
     combined.paste(base, (0, 0))
     combined.paste(glyphs, (0, 256))
@@ -141,12 +138,11 @@ def build() -> None:
     draw_value(preview, "042X005", 1)
     draw_value(preview, "036X010", 2)
     draw_value(preview, "012450", 3)
-    draw_prompt(ImageDraw.Draw(preview))
     preview = preview.quantize(palette=indexed_base, dither=Image.Dither.NONE)
     preview.save(PREVIEW)
     RUNTIME.write_bytes(spbm(indexed_base, 320, 256))
     GLYPH_RUNTIME.write_bytes(spbm(indexed_glyphs, PROMPT_W,
-                                   TILE_H*(len(CHARS)+1)))
+                                   TILE_H*(len(CHARS)+len(MENU_PATCHES)+1)))
 
 
 if __name__ == "__main__":

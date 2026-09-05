@@ -29,7 +29,7 @@ static const char *const names[PERF_SLOT_COUNT]={
     "bob_compact_target","bob_splash_draw","bob_collectible_draw",
     "bob_enemy_draw","bob_projectile_draw","bob_final_wait",
     "enemy_parked","enemy_active","enemy_respawn","enemy_activate",
-    "blitter_wait"
+    "blitter_wait","stormrail_restore","stormrail_draw"
 };
 
 ULONG performanceProfileBegin(void)

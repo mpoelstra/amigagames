@@ -1,0 +1,23 @@
+Sparkpaw bound renderer-ops Level-1 cadence gate
+===============================================
+
+This stock-68020 minimal-cadence build uses the 68030-accepted physical
+renderer split. Its three hot operations—update, Bob composition and
+publication—are bound once when the active section loads, removing the former
+per-frame wrapper and section branch. Lifecycle selection remains explicit.
+
+Play a normal representative Level-1 route including a busy combat section.
+After the run, press the left mouse button once. The image freezes while the
+bounded renderdiag.log is written. Wait a few seconds, then stop/reset FS-UAE.
+
+Compare against
+---------------
+
+- alpha.68: 48.58 FPS and 2.9% two-field, zero three-plus;
+- isolated renderer proof: 48.23 FPS and 3.7% two-field, zero three-plus;
+- first physical split: 46.85 FPS and 6.7% two-field, zero three-plus;
+- integrated renderer: 44.56 FPS and 11.9% missed frames including three
+  three-plus intervals.
+
+Require zero ownership violations, no visual/gameplay regression and a
+material return toward the isolated/alpha.68 distribution.

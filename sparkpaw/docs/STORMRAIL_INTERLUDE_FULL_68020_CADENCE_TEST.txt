@@ -1,0 +1,27 @@
+SPARKPAW COMPLETE STORMRAIL INTERLUDE - STOCK 68020 CADENCE
+
+This is the low-overhead performance gate for the accepted Full4 state. It
+contains the complete resident interlude and identical gameplay/art: boarding,
+route, formations, Debris5.2, dust, the smooth distance-15500 transition, the
+120-HP Harrier fight, gate opening and automatic passage. It adds only aggregate
+cadence/ownership counters and one deferred log write.
+
+Use the stock A1200/68020 FS-UAE configuration and start Sparkpaw-Storm-Cad.
+
+1. Play the complete interlude normally. Move and fire throughout busy route
+   sections and the Harrier fight; do not wait deliberately in safe areas.
+2. Confirm visually that Full4 still looks and behaves identically: intact HUD
+   and wall, moving dust, smooth boss arrival, both attacks, contact damage and
+   automatic passage.
+3. Immediately after the Skimmer has passed through the open gate and the final
+   image holds, press the LEFT MOUSE BUTTON once.
+4. The image freezes while `renderdiag.log` is written. Wait three seconds,
+   then stop/reset FS-UAE; the diagnostic does not return to Workbench.
+5. Leave `renderdiag.log` inside this drawer and report whether any route,
+   transition or boss section looked uneven.
+
+The cadence sample begins at the established flight tick 400 and ends at
+Gate-6 COMPLETE, excluding boarding delay, initial preparation and arbitrary
+post-finish dwell. The log must report interval distribution, effective FPS,
+shot counters and zero ownership violations. This is not a stats screen,
+release, SemVer, ADF/multidisk, campaign or Level-2 build.

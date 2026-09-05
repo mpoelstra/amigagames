@@ -1,0 +1,16 @@
+Sparkpaw integrated Level-1 renderer-isolation diagnosis
+========================================================
+
+This is one unnumbered stock-68020 diagnostic. It keeps the current integrated
+campaign, game, main loop and assets, but compiles renderer.c as the proven
+Level-1-only translation unit. Its Stormrail renderer hooks are cold link stubs.
+Do not select or enter Stormrail in this build.
+
+Play a normal representative Level-1 route, including a busy combat section.
+After the run, press the left mouse button once. The image freezes while the
+bounded renderdiag.log is written. Wait a few seconds, then stop/reset FS-UAE.
+
+This is causal attribution, not a production candidate. If cadence returns
+toward the isolated 47.86 / alpha.68 48.58 FPS distribution, physical renderer
+separation is the next implementation boundary. If it does not, renderer
+translation-unit size is excluded and diagnosis moves to game/main.

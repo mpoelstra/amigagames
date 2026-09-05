@@ -1,0 +1,48 @@
+SPARKPAW STORMRAIL GATE 6 HARRIER-ONLY V12 - FS-UAE 68030 HD
+
+Run Sparkpaw-Storm-Gate6 from this drawer. This compile-guarded native AGA-art candidate
+starts immediately before the fixed-distance finale; it is not campaign or
+release integration.
+
+Check that the camera stops at the closed gate and distance no longer scrolls.
+The compact moving Harrier must be visible alone before the full-height gate.
+The Harrier must remain one stable, coherent birdlike craft without horizontal
+smearing, colour-plane corruption or trembling. There must be no turrets.
+After a visible warning, the Harrier fires one purple three-shot fan: two
+diagonal bolts and one horizontal bolt. There must be no blind launch,
+unavoidable wall, partial fan or HUD/playfield corruption.
+At 60 HP or below it must alternate that fan with a differently warned Hunter
+Burst: three separately aimed shots with a short gap. Each may aim at the
+Skimmer's then-current position but must not steer after launch. Confirm that
+the two attacks never form one unavoidable combined wall.
+The Hunter warning must not appear above 60 HP. Its shots are narrow
+amber-white needles, clearly different in shape and colour from the round
+violet fan pulses. Listen for four distinct identities: fan charge, fan fire,
+Hunter charge and Hunter fire. Sparkpaw's cyan shot must sound and look exactly
+as before.
+V8 changes only those four Harrier cues: they should sound markedly lower,
+heavier and more forceful than v7, without becoming a long drone or masking
+Sparkpaw's hurt cue.
+V9 changes only encounter durability: the Harrier has 45 HP instead of 30, so
+both attack families have time to develop without changing damage or speed.
+V10 doubles that durability again to 90 HP because continuous rapid fire still
+ended v9 too quickly. Hunter remains the half-health phase, now at 45 HP.
+V11 was a 120-HP duration comparison that mistakenly retained the absolute
+45-HP threshold. V12 restores the intended relative transition: Hunter starts
+at half health (60 HP), making both encounter phases longer than v10.
+
+Destroy the Harrier. Confirm that hostile fire stops immediately, the gate
+opens, the Skimmer centres
+smoothly and then flies through automatically. Existing movement, fire, HUD,
+damage, sound and score must remain coherent during combat.
+
+The accepted eight-slot dust layer must keep drifting while route distance is
+latched. The player's cyan-white projectile remains unchanged; the Harrier's
+violet/magenta pulses must differ from it.
+
+Please judge this as a rebuilt polished-art candidate, not as a greybox. Report
+the Harrier armour/cockpit/engine design, full-height gate-wall readability,
+composition, native-size readability, patrol feel, warning clarity, attack
+fairness, challenge, gate-opening readability and automatic-exit feel. Reset
+FS-UAE when finished. This visual build does not write renderdiag.log and does
+not establish a 68020 cadence result.

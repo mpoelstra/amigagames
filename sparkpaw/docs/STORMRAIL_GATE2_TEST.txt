@@ -1,0 +1,34 @@
+STORMRAIL GATE 2 - OPEN FLIGHT - FS-UAE 68030 HD
+
+Launch Stormrail-Test. This compile-guarded build starts at the accepted short
+cliff approach; intro and Level 1 are intentionally bypassed.
+
+1. Board exactly as in Gate 1 by jumping into the visible cockpit.
+2. Watch the occupied Skimmer accelerate to the right and leave the departure
+   screen. The playfield should fade rapidly to black while the HUD remains
+   stable, then reveal the shooter route as the Skimmer flies back in from the
+   left. Steering and Fire become active only after that re-entry beat.
+3. Test joystick/keyboard left, right, up and down across the complete open
+   screen. The craft must respond immediately and stop at honest visible bounds.
+4. Hold or tap Fire. Cyan plasma should repeat rapidly without enemies, hits,
+   score changes or hidden targets.
+5. Judge the brisk forced horizontal scroll, the strong rear parallax, the
+   retained subtle hover and cyan motor pulse.
+6. Watch a complete background cycle. The accepted purple departure mountains
+   now lead through rain-grey/green valleys into cyan waterfall ruins. Colour,
+   cloud and terrain changes must remain smooth: no pasted vertical seam,
+   palette flash, vertical colour seam or sudden return of the departure
+   platform is acceptable.
+
+This Gate 2.5 candidate deliberately keeps flying instead of stopping at the
+old 3392-pixel Level-1 boundary. Let it run for at least 45--60 seconds and
+watch for a panorama jump, pause or corruption. This bounded 768px span is the
+first real reusable route-art proof, not the final interlude length or final
+art rhythm. The eventual route remains roughly 2.5 minutes including boarding.
+
+There are deliberately no enemies, hazards, obstacles, corridor walls, results
+or campaign flow. Gate 1's craft, rider frames and boarding timing are unchanged.
+
+Stop or reset FS-UAE when finished. Please report control feel, launch handoff,
+scroll energy, bound fairness and visual readability. Gate 3 will not begin
+without explicit Gate 2 acceptance.

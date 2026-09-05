@@ -1,0 +1,18 @@
+SPARKPAW STORMRAIL DEBRIS 2.0 - 68020 CADENCE TEST
+==================================================
+
+This is the accepted 68030 Debris-2 art/gameplay candidate with only the
+low-overhead cadence logger enabled. Use the stock A1200/68020 FS-UAE profile.
+
+Run Sparkpaw-Debris2-Cad, board normally and play through all four enemy waves
+and the complete debris field. Move and fire as in a normal run; do not leave
+the game sitting idle for most of the sample.
+
+After the final debris has passed, press the left mouse button once. The image
+will freeze intentionally while renderdiag.log is saved. Wait several seconds,
+then stop or reset FS-UAE; it will not return to Workbench.
+
+Please report visible smoothness or stutter as well. The log will be compared
+with the empty Gate-2.5 reference: 49.26 FPS over 1,000 intervals, 992
+one-field intervals and zero ownership violations. This drawer adds no new
+gameplay, hazards, 1UP, finale, Level 2 or campaign integration.

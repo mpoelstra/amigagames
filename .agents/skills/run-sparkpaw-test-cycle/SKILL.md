@@ -27,6 +27,66 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
    absent unless the user explicitly authorizes candidate work while recovery
    remains pending. Require the inventory to be byte-identical afterwards.
 
+## Audit architecture as part of performance
+
+When a new level, mode or campaign section makes an accepted older section
+slower, do not accept total program growth as the explanation. Establish
+whether the older hot path is genuinely isolated at compile time as well as at
+runtime.
+
+- A runtime `if(sectionActive)` proves behavioural selection, not performance
+  isolation. Inspect generated `-O2 -cpu=68020` assembly, function size,
+  translation-unit reachability, hot-structure layout/stride and allocation
+  placement whenever another section is compiled into the same module.
+- Audit the complete per-frame chain, not only the visually worst scene or the
+  largest measured renderer phase. Compare input, game/update, collision,
+  enemies, projectiles, audio, renderer and publish control flow with the
+  accepted source and compiler output. A broadly repeated small cost may be
+  most visible in one busy encounter without originating there.
+- Inspect final object/function order and link placement as well as each hot
+  function in isolation. On the MC68020's small direct-mapped instruction
+  cache, an extraction that produces cleaner or baseline-matching local
+  assembly can still regress by shifting neighbouring hot code or cache-set
+  relationships. Treat source order, object order and executable-size changes
+  as testable performance inputs; change one placement hypothesis at a time.
+- Compare a complete integrated build with a compile-isolated diagnostic that
+  keeps the rest of campaign/game/main identical. Use the same minimal cadence
+  instrumentation and normalize different run lengths by interval shares.
+- If compile isolation materially restores cadence, select a real module/API
+  ownership boundary. Never ship diagnostic stubs or simply duplicate a large
+  hot path inside the same translation unit.
+- A temporary dual-compiled legacy body may establish a reversible module seam
+  without simultaneously rewriting proven low-level code. Treat it as a
+  migration candidate only: measure executable/BSS/runtime memory, prove both
+  sections, then extract shared primitives once before release or media-volume
+  work. Do not mistake source inclusion or code duplication for the target
+  architecture.
+- Separate campaign state, section-local state and runtime renderer/asset
+  ownership. Share only measured low-level primitives whose contracts are
+  genuinely common; future media-volume selection belongs above gameplay and
+  renderers.
+- Treat shorter files and cleaner abstractions as hypotheses, not wins. Retain
+  an architecture change only after host/native checks and matched cadence for
+  every affected section. A gain in one level may not be paid for by another.
+- Compare the test harness itself with the baseline at source and assembly
+  level. Cache frame-stable predicates once, count hot calls, and verify that
+  cadence-only completion holds, input checks and logging branches do not make
+  one candidate execute extra work. Identical log fields do not by themselves
+  prove identical observer cost.
+- Trace historical numbers back to their original version and evidence. Do
+  not rename an inherited performance floor after the current release. Treat
+  manually played runs as workload-dependent; candidate rejection does not
+  prove a particular CPU-cache mechanism. Use `tools/audit_link_layout.py` for
+  address investigations and require byte parity before attributing a map to
+  the played executable.
+- When a historical instrumented build hangs or fails before gameplay, mark it
+  invalid and stop asking the user to retry bounded variants unless a specific
+  native-only diagnosis requires it. Fall back to protected evidence plus
+  offline source/compiler comparison; never infer cadence from a failed loader.
+- Revisit the active architecture/performance plan after every meaningful
+  profile or cadence result. Record rejected structural experiments so they
+  are not rediscovered as unmeasured “cleanup.”
+
 ## Package self-contained test drawers
 
 - Stage ordinary HD candidates only with `tools/stage_hd_test.py`. It consumes
@@ -34,6 +94,11 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
   Amiga-safe names, preserves a replaced drawer under `dist/older-builds` and
   rejects any release-inventory change. Do not hand-copy assets or use a
   Makefile asset list as an independent package manifest.
+- `stage_hd_test.py` also discovers literal `PROGDIR:assets/runtime/...`
+  references embedded in the selected executable. Treat its discovery count
+  as mandatory packaging evidence for compile-guarded builds; never assume the
+  current release manifest alone covers an unreleased mode. Use
+  `--extra-runtime` only for genuinely dynamic paths that cannot be embedded.
 - Put every user-testable build inside `sparkpaw/dist`; the user mounts this
   directory directly in FS-UAE.
 - Make each active drawer self-contained: include its uniquely named
@@ -52,9 +117,14 @@ candidate. Keep packaging, testing and acceptance explicit and reproducible.
   short asset names across HD, WHDLoad and ADF tests; do not rely on a ZIP/LHA
   extractor to preserve longer names.
 - Before handoff, compare the staged drawer with the complete authoritative
-  manifest and exercise the full reachable startup boundary. A focused intro
-  build must traverse intro, title, LOADING, CHARGING and the ready menu;
-  checking only the changed first screen is insufficient package validation.
+  manifest. A focused intro build still requires MrDig to traverse intro,
+  title, LOADING, CHARGING and the ready menu; checking only the changed first
+  screen is insufficient user acceptance.
+- `sparkpaw/dist` is exclusively MrDig's manual test surface. Codex may stage
+  and read/hash/manifest-check a drawer there, but must never launch or boot an
+  executable from `dist` and must not ask for permission to do so. Every
+  Codex-run FS-UAE proof belongs below `build/fsuae-selftest`; after staging,
+  MrDig performs the actual boot from the `dist` drawer.
 
 ### Keep quick real-A1200 HD ZIPs minimal
 
@@ -137,6 +207,11 @@ state, not as a crash or an instruction to wait for Workbench.
   not return from this diagnostic executable.
 - Read the log from the exact drawer and confirm that it exists, is non-empty
   and belongs to the current run before analyzing it.
+- Check the `post_run` footer for full render logs and recheck size/hash before
+  preserving them. A stable file without its expected footer may be an
+  interrupted flush; label complete header measurements separately from
+  incomplete trace evidence. Saving can take substantially longer than a few
+  seconds on 68020.
 - Do not ask for repeated mouse presses, a clean application exit or Workbench
   restoration unless a future executable explicitly implements that behavior.
 - Startup-only diagnostics may write their own bounded log during loading and
@@ -157,6 +232,51 @@ state, not as a crash or an instruction to wait for Workbench.
 
 Do not infer FS-UAE acceptance from compilation or from log contents alone.
 The user's observed result is required.
+
+## Match the checkpoint cadence to the size of the change
+
+### Focus a new level or mode during iteration
+
+While a new level, interlude or game mode is still being built gate by gate,
+prefer a compile-guarded user-test executable that starts directly at the
+current section. It must bypass story intro, title and earlier completed levels,
+use the real production renderer/assets/input for that section, and be clearly
+named and documented as a focused candidate. Keep this shortcut out of normal
+production and release targets.
+
+Do not force repeated full-campaign playthroughs to review an isolated art,
+control, encounter or transition gate. Restore and test the complete campaign
+path only after the new section is coherent enough to validate loading,
+results, replay/continue, persistence and unloading as one integrated flow.
+Record both obligations in the active plan so a later session cannot mistake a
+direct-start drawer for finished campaign integration.
+
+Treat human playtesting as an early design input for large experiential changes,
+not merely as a final verification step. A new level, game mode, control model,
+major art direction, pacing structure, audio experience or campaign flow should
+reach the user as soon as one coherent representative slice is playable. Before
+staging it, perform the bounded technical smoke checks needed to exclude crashes,
+corruption, broken packaging and obviously unreachable gameplay, but do not spend
+many internal polish cycles deciding subjective feel on the user's behalf.
+
+The early large-change drawer must still be meaningful: include the defining
+controls, representative art, collision or route grammar, pacing and transition
+needed to judge the idea. Do not ask the user to evaluate disconnected
+placeholders that cannot answer the stated design question. State which parts are
+representative and which remain intentionally unfinished.
+
+For small fixes and tuning passes—such as a collision nudge, cooldown adjustment,
+palette correction, asset placement fix or isolated visual glitch—self-test first
+and bundle related changes. Avoid asking the user to replay a build for every
+micro-change. Request another user pass at a meaningful accumulated checkpoint,
+or sooner only when the result is inherently subjective, emulator automation
+cannot exercise it, or exact hardware behaviour is the question.
+
+Keep the evidence boundaries explicit: automated or self-run FS-UAE checks can
+establish technical health and provide screenshots or logs, while the user's pass
+establishes control feel, readability, challenge, visual quality and acceptance.
+When the user rejects a large slice, record it as rejected and return with a
+coherent revised slice rather than a stream of narrowly patched drawers.
 
 ## Measure FS-UAE/68020 second
 
@@ -212,3 +332,14 @@ drawer names. Do not create a release, commit, tag or push unless the user asks.
 If the current release set was already missing before the cycle, report that
 separately; never recreate a published SemVer from new bytes merely to refill
 `dist`.
+
+
+## Campaign multidisk coverage
+
+Verify cold-load dependencies PER ADF against compiled references, excluding
+only the opposite section's exclusive graphics. Union coverage is insufficient:
+collisionLoad reads the Level-1 map even during Stormrail startup. Preserve
+shared/carryover files until the loader is explicitly changed and tested.
+Read back every file, check bitmaps with the actual C decoder, and test DF0
+swap and already-present DF1 independently. Keep graphical approval separate
+from full campaign/hardware acceptance. Archive failed pairs byte-identically.

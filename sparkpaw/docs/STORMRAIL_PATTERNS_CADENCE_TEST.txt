@@ -1,0 +1,17 @@
+SPARKPAW STORMRAIL PATTERNS - COMPLETE 68020 CADENCE TEST
+=========================================================
+
+Use the stock A1200/68020 FS-UAE profile. This is the accepted compact-pattern
+68030 gameplay candidate with only the low-overhead cadence logger enabled:
+five pre-debris enemy formations, the unchanged 48-event Debris5.2 field, and
+three post-debris pattern formations with their persistent-ID diamonds.
+
+Board normally and play actively through the complete route. Move, use rapid
+fire, take pickups and dodge as in a normal run. After the final five-Dart
+fan/rejoin has left and the short empty approach is visible, press LMB once.
+The image freezes intentionally while `renderdiag.log` is saved. Wait several
+seconds, then stop or reset FS-UAE; it will not return to Workbench.
+
+Please report any visible stutter. The primary regression guard is the accepted
+Heart1 complete-content result: 49.96 FPS over 2,886 intervals, 2,885 one-field,
+zero two-field, one three-field, zero ownership violations and 334/334 shots.

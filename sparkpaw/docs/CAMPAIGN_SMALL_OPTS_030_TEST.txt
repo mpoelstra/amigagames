@@ -1,0 +1,48 @@
+SUPERSEDED PACKAGE — 0.7.0-alpha.1 HD release
+Campaign-Play-HD is archived intact. Same game bytes are now in
+Sparkpaw-0.7.0-alpha.1/Sparkpaw. Current test: real A1200 HD.
+See RELEASE_0_7_0_ALPHA_1.md. Instructions below are historical.
+
+CYCLE CLOSED / RETAINED — 2026-09-05
+030 accepted earlier; user reports no noteworthy 020 change and authorizes
+keeping the optimizations. Production source/build now match the played
+e6e20db6... executable. No FPS gain claimed. No further test requested.
+Active drawer unchanged; older pending-test instructions below are historical.
+
+030 RESULT: ACCEPTED — 2026-09-05
+MrDig reports the active combined candidate is OK on 030. Next: same executable
+on stock FS-UAE/68020; assess whole-Level-1 feel and preserve Stormrail smoothness.
+No rebuild or log-save action. No measured FPS gain or 020 acceptance yet.
+
+SPARKPAW - LEVEL-1 SMALL RENDERER OPTIMIZATIONS
+==============================================
+
+Unnumbered full, logger-free campaign candidate.
+Drawer: Campaign-Play-HD
+Run: Sparkpaw-Play
+SHA256: e6e20db68f3f67b1e05b1db2b555842dec3f2473d8c0b7a543d9e5a76c04354e
+
+Parent: the played Bob-only candidate b0eb6ca75269094f78cd5f9784783b90b8fc298e33c22af5e7ee549da3832ed6.
+Retains its direct Bob helper. Adds the specialized Level-1 column copy and
+omits the unconsumed actor-history exposure before publication. Final history
+exposure remains. These related small renderer changes are bundled at the
+user's request; a subjective improvement cannot identify their individual gain.
+No measured FPS claim. Previous full drawer is archived under older-builds.
+
+FIRST GATE: FS-UAE / 68030
+Use normal loading/charging, ready and START GAME. Play Level 1 with scrolling,
+jumping, enemies and shots; look for trails, missing objects or flicker.
+Check REPLAY LEVEL and Esc-to-ready, then CONTINUE into Stormrail and its results.
+OPTIONS / START AT can start Stormrail directly for a focused section check.
+Controls are unchanged: use the normal selected joystick/keyboard controls,
+Fire to shoot/confirm, configured jump control, directions to move, Esc to ready.
+Report whether graphics, gameplay and transitions remain correct.
+
+AFTER 030 ACCEPTANCE: stock FS-UAE / 68020 with this same executable.
+Judge whole-level feel, normal movement and busy shooting/running. Alpha.68
+also dips under extreme workload; do not focus solely on the first water jump.
+Stormrail must retain its smoothness. Routes and enemy seeds are not controlled,
+so a small subjective difference is not a quantified or causal FPS result.
+
+No log is collected and no left-mouse save action is needed. Stop FS-UAE
+normally when done. No release, SemVer, ADF or multidisk changes.

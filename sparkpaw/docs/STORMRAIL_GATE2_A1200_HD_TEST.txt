@@ -1,0 +1,38 @@
+Stormrail Gate 2 compact-flight real-A1200 HD test
+=================================================
+
+This is an unnumbered direct-start visual/control candidate, not alpha.69.
+It does not contain an ADF, WHDLoad package, enemies, hazards or campaign flow.
+
+Target
+------
+
+PAL A1200/AGA with 2 MB Chip and 8 MB Fast RAM. The supplied accelerated
+68030 machine is the first hardware gate.
+
+Run
+---
+
+Copy the complete Stormrail-G2-A1200-HD drawer to the Amiga hard drive and run
+Stormrail-Test from inside it. Keep the assets drawer beside the executable.
+
+Controls
+--------
+
+- Arrow keys or joystick: board and fly in four directions
+- Fire / Ctrl: rapid fire in the shooter section
+- Esc: quit when supported by the launch environment
+
+Inspect
+-------
+
+1. The accepted boarding and full-size departure remain intact.
+2. Fade-out/fade-in changes to the compact 80x32 shooter vehicle cleanly.
+3. No black pixels appear behind/right of Paw.
+4. No coloured fragments, duplicate vehicle pieces or disappearing underside.
+5. Palette transitions, rear parallax, HUD, cyan motor and shots remain stable.
+6. Movement reaches all four fair screen limits and still feels responsive.
+
+Please also warm-reset once if practical, start Stormrail-Test again and check
+the compact vehicle a second time. The candidate explicitly clears its native
+Chip-RAM caches during every initialization.

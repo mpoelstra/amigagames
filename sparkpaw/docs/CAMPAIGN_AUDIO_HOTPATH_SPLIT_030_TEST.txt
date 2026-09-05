@@ -1,0 +1,17 @@
+Sparkpaw Level-1 and Stormrail audio-update split
+================================================
+
+This unnumbered 68030 functional candidate restores the alpha.68 audio-update
+path for Level 1. Stormrail calls a small extension that additionally advances
+the four Harrier charge/fire cooldowns. Sample ownership, Paula channels,
+priorities, cooldown values and audio assets are unchanged.
+
+Run a short functional smoke:
+
+- in Level 1, check shooting, enemy hit/death, jump and collect sounds;
+- finish Level 1 and select Continue;
+- in Stormrail, check ordinary shot audio and reach enough of the finale to
+  hear at least one Harrier charge/fire cue if practical.
+
+This build has no cadence logger. Report missing, stuck, repeated or otherwise
+changed audio, plus any gameplay or transition regression.

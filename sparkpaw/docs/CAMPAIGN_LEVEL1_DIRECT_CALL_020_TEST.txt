@@ -1,0 +1,24 @@
+Sparkpaw direct renderer-call Level-1 cadence gate
+=================================================
+
+This stock-68020 minimal-cadence build uses the 68030-accepted physical
+renderer split. The three per-frame operations branch on the active section at
+their call site and then call the selected renderer directly; the prior bound
+indirect function pointers are absent.
+
+Play a normal representative Level-1 route, including a busy combat section.
+After the run, press the left mouse button once. The image freezes while the
+bounded renderdiag.log is written. Wait a few seconds, then stop/reset FS-UAE.
+
+Compare against
+---------------
+
+- alpha.68: 48.58 FPS, 2.9% two-field, zero three-plus;
+- isolated renderer proof: 48.23 FPS, 3.7% two-field, zero three-plus;
+- bound indirect operations: 47.25 FPS, 5.8% two-field, zero three-plus;
+- first physical split: 46.85 FPS, 6.7% two-field, zero three-plus;
+- integrated renderer: 44.56 FPS, 11.9% missed frames.
+
+Require zero ownership violations, no visual/gameplay regression and a clear
+improvement over the bound-indirect result. Do not judge by average FPS alone;
+compare the normalized two-field share and the user's observed busy-scene feel.

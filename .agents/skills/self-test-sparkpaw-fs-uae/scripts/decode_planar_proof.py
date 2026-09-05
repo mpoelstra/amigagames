@@ -8,6 +8,7 @@ from pathlib import Path
 import struct
 
 from PIL import Image
+import numpy as np
 
 FRONT_COLORS = [
     0x001, 0x111, 0xD41, 0xF92, 0xFEA, 0x26C, 0x3CE, 0x94C,
@@ -34,14 +35,15 @@ def main() -> int:
     if len(data)<required:
         parser.error(f"truncated proof: {len(data)} bytes, need {required}")
 
-    image = Image.new("P", (width,height))
-    pixels = image.load()
-    planes = [data[16+p*plane_bytes:16+(p+1)*plane_bytes] for p in range(4)]
-    for y in range(height):
-        for x in range(width):
-            bit = 0x80>>(x&7)
-            at = y*row_bytes+(x>>3)
-            pixels[x,y] = sum(bool(planes[p][at]&bit)<<p for p in range(4))
+    # Vectorized decoding keeps wide rolling-renderer proofs interactive. The
+    # old nested Python loops took minutes for three 1536x256 captures.
+    pixels = np.zeros((height, width), dtype=np.uint8)
+    for plane in range(4):
+        raw = np.frombuffer(
+            data, dtype=np.uint8, count=plane_bytes,
+            offset=16 + plane * plane_bytes).reshape(height, row_bytes)
+        pixels |= np.unpackbits(raw, axis=1)[:, :width] << plane
+    image = Image.fromarray(pixels, mode="P")
     palette = []
     for color in FRONT_COLORS:
         palette.extend((((color>>8)&15)*17,

@@ -39,11 +39,12 @@ make release
 ```
 
 `make` regenerates required runtime conversions and builds the root executable.
-`make release` rebuilds the executable and creates the project's ZIP, LHA, ADF,
-source, and WHDLoad outputs where supported. Sparkpaw's `make release` now
-creates its versioned WHDLoad LHA and ZIP beside the HD and ADF artifacts;
-`make whdload` rebuilds only that pair. Generated files appear below
-`build/` and `dist/` and are intentionally not committed.
+For Sparkpaw 0.7, the root executable is the exact logger-free campaign build.
+`make release` creates campaign HD ZIP/LHA, Disk1/Disk2 ADF, WHDLoad ZIP/LHA
+and the extracted HD drawer. The WHDLoad target now uses the campaign flags
+and sources. Run `tools/verify_checkpoint_release.py` for independent checks.
+Physical hardware and new campaign WHDLoad native acceptance remain separate. Alpha.68 files are protected;
+no source ZIP is produced unless explicitly requested.
 
 Sparkpaw release manifests use one set of Amiga-safe runtime names for HD,
 WHDLoad and the ADF source streams. No extracted filename or drawer component
@@ -79,3 +80,12 @@ deterministically.
 
 MrDig performs authoritative FS-UAE and real-Amiga testing. A successful host
 cross-build does not prove display, audio, input, or PAL timing behaviour.
+
+
+### Campaign multidisk and WHDLoad checkpoint
+
+The lower-level disk scripts still write build/multidisk-probe; make release
+runs them and publishes the versioned ADF pair. Completed test drawers are
+archived; the current manual set is Sparkpaw-0.7.0-alpha.2. See
+sparkpaw/docs/RELEASE_0_7_0_ALPHA_2.md for all six hashes, native evidence and
+pending WHDLoad/hardware tests. No automatic emulator launch is part of release.

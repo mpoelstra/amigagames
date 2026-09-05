@@ -1,0 +1,42 @@
+SPARKPAW - STORMRAIL STEP 1: CLIFF BOARDING
+
+This unnumbered Phase 6D build tests only the short Level-1-like cliff approach
+and physical jump into the hovering Skimmer. It skips the intro and Level 1,
+does not change campaign progression and does not change the current ADF.
+
+RUN
+  Use FS-UAE with an A1200 / 68030 configuration.
+  Mount dist and open: Stormrail-Step1-Cliff-030-HD
+  Start: Stormrail-Test
+
+CONTROLS
+  Left/right: move Sparkpaw.
+  Up or configured jump button: jump.
+  Jump from the broken cliff and descend into the open cockpit.
+  Walking off or missing the Skimmer drops Sparkpaw and resets the approach.
+  Fire, proximity and waiting do not board the Skimmer.
+
+WHAT TO CHECK
+  1. The raised Level-1-style ruin reads immediately as a solid cliff.
+  2. Its broken right edge makes it obvious that walking is no continuation.
+  3. The Skimmer feels close enough for a comfortable deliberate jump.
+  4. The waiting Skimmer visibly hovers very slightly and already shows the
+     same small cyan glow attached to its rear hull as the occupied craft.
+  5. Descending into the cockpit catches Sparkpaw reliably without feeling
+     like a teleport or requiring pixel-perfect positioning.
+  6. The Skimmer hull keeps exactly the same size throughout boarding while
+     Sparkpaw keeps one fixed scale through contact, settle, active sit and a
+     a light lean and a final clearly laid-back pose behind the cockpit rim.
+  7. Sparkpaw first settles into the cockpit at the exact parked position;
+     the craft pauses briefly and only then glides smoothly toward its later
+     flight start position while rising.
+  8. Missing the jump resets before Sparkpaw disappears behind the HUD.
+  9. The forward controls-check pose remains briefly, then Sparkpaw eases back
+     through two poses into a clearly laid-back posture before movement.
+
+TEST END
+  This gate intentionally stops on the successful boarded pose. Open-flight
+  controls, enemies, formations, diamonds, hazards and the finale belong to
+  later separately reviewed steps. Press the left mouse button when finished;
+  the image freezes while stormrail-proof.log is saved. Wait a few seconds,
+  then stop or reset FS-UAE. It does not return to Workbench.

@@ -48,9 +48,10 @@ make release PYTHON=../.venv/bin/python3
 
 Do not ship if either command fails. Review warnings and package validation,
 including executable, ADF and WHDLoad archive checks performed by the release
-tooling. Confirm that `sparkpaw/dist` contains exactly the five current
-consistently versioned artifacts (HD LHA, HD ZIP, ADF, WHDLoad LHA and WHDLoad
-ZIP) plus the extracted same-version HD review drawer. A source ZIP is opt-in
+tooling. Confirm that `sparkpaw/dist` contains the current consistently versioned artifacts: HD LHA/ZIP, Disk1/Disk2 ADF and
+WHDLoad LHA/ZIP (six files for the campaign), plus the same-version HD review
+drawer. Preserve explicitly protected alpha.68 baselines; archive superseded
+local releases byte-identically. Never relabel a single-level WHDLoad build. A source ZIP is opt-in
 and must only be produced when MrDig explicitly requests it. Do not delete
 ignored local evidence or backups while cleaning release outputs. Never infer
 WHDLoad startup or gameplay acceptance from successful package assembly.
@@ -135,3 +136,14 @@ say “smoother combat on 68020 systems”, not “coalesced projectile sweep”
 not advertise fixes or platform support beyond supplied acceptance evidence.
 Keep engineering verification and artifact details in the preceding developer
 handoff, outside the copy-ready release notes.
+
+
+## Campaign checkpoint verification
+
+Run tools/verify_checkpoint_release.py after packaging: require per-volume
+ADF dependencies, all-file readback, independent ZIP/LHA extraction and icons.
+WHDLoad must compile campaign plus quit hooks; verify slave version and actual
+shortened extraction drawer in ReadMe. Native acceptance is medium-specific.
+Document classic LHa's 496-byte tally-tick.raw lh0 incompressible fallback if
+used; reject other silent storage. Prefer fresh itch download HTML/detector
+and current devlog over stale web-search caches when they disagree.

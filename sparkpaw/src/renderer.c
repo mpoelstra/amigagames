@@ -1,4 +1,5 @@
 /* Sparkpaw: The Stormstone Quest -- AGA dual-playfield milestone. */
+#define SPARKPAW_RENDERER_IMPLEMENTATION_UNIT
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <dos/dos.h>
@@ -34,6 +35,23 @@
 #endif
 #include "renderer.h"
 #include "world_config.h"
+#include "stormrail_contract.h"
+#ifdef SPARKPAW_LEVEL1_RENDERER_TU_ISOLATION
+/* Diagnostic only: retain the integrated campaign/game binary while asking
+   vbcc to emit the proven Level-1 renderer translation unit. Public
+   Stormrail proof hooks receive cold stubs below so this build can link, but
+   it must never be used to enter Stormrail. */
+#undef SPARKPAW_STORMRAIL_PROOF
+#undef SPARKPAW_STORMRAIL_DUST
+#undef SPARKPAW_STORMRAIL_FINALE_PROOF
+#undef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
+#endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
+#include "stormrail_palette_table.h"
+#ifdef SPARKPAW_STORMRAIL_PROOF
+#include "stormrail_gate6_art.h"
+#endif
+#endif
 
 /* Production restores inactive-target Bobs directly from the canonical clean
    world and therefore needs only the two display rings. Keep the former full
@@ -162,13 +180,119 @@ static void writeStartupStage(const char *stage)
 static volatile struct Custom *hw=(volatile struct Custom *)0xdff000;
 static const struct PlanarAsset *frontClean,*rearWorld,*sprites;
 static const struct PlanarAsset *hudBase;
-static const struct PlanarAsset *diamondSprite,*coreSprite,*extraLifeSprite;
+static const struct PlanarAsset *diamondSprite,*heartSprite,*coreSprite,*extraLifeSprite;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static const struct PlanarAsset *stormrailSprite,*stormrailObstacleSprite;
+static const struct PlanarAsset *stormrailFlightRear;
+#define STORM_VEHICLE_W 112
+#define STORM_VEHICLE_H 88
+#define STORM_VEHICLE_FRAMES 5
+#define STORM_DRONE_W 48
+#define STORM_DRONE_H 32
+#define STORM_VEHICLE_WORDS 8
+/* Five visible words plus the blank source guard consumed by shifted Bobs. */
+#define STORM_COMPACT_WORDS 6
+#define STORM_DRONE_WORDS 4
+#define STORM_ROCK_BIG_WORDS 4
+#define STORM_ROCK_SHARD_WORDS 2
+#define STORM_ROCK_PILLAR_WORDS 3
+#define STORM_ROCK_BIG_FRAMES 5
+#define STORM_ROCK_SHARD_FRAMES 6
+#define STORM_ROCK_PILLAR_FRAMES 2
+#define STORM_FINALE_ACTOR_W STORMRAIL_FINALE_RENDER_W
+#define STORM_FINALE_ACTOR_H STORMRAIL_FINALE_RENDER_H
+/* Four visible words plus the blank shifted-Bob source guard. */
+#define STORM_FINALE_ACTOR_WORDS 5
+#define STORM_FINALE_GATE_W 32
+#define STORM_FINALE_GATE_H 104
+#define STORM_FINALE_GATE_WORDS 3
+#define STORM_FINALE_GATE_HALVES 2
+#ifdef SPARKPAW_STORMRAIL_DUST
+#define STORM_DUST_SLOTS 8
+#define STORM_DUST_SHAPES 3
+#define STORM_DUST_COLORS 3
+#define STORM_DUST_STYLES (STORM_DUST_SHAPES*STORM_DUST_COLORS)
+#define STORM_DUST_W 16
+#define STORM_DUST_H 3
+#define STORM_DUST_WORDS 1
+static UWORD *stormDustMask,*stormDustBits;
+#endif
+static UWORD *stormVehicleMask,*stormVehicleBits;
+static UWORD *stormFlightMask,*stormFlightBits;
+static UWORD *stormCompactMask,*stormCompactBits;
+static UWORD *stormDroneMask,*stormDroneBits;
+static UWORD *stormRockBigMask,*stormRockBigBits;
+static UWORD *stormRockShardMask,*stormRockShardBits;
+static UWORD *stormRockPillarMask,*stormRockPillarBits;
+static UWORD *stormFinaleActorMask,*stormFinaleActorBits;
+static UWORD *stormFinaleGateMask,*stormFinaleGateBits;
+#define STORM_FINALE_GATE_DIRTY_WORDS ((STORMRAIL_PLAYFIELD_H+15)/16)
+static UWORD stormFinaleGateDirty[STORM_FINALE_GATE_DIRTY_WORDS];
+static struct BitMap *stormFlightBlank;
+static BOOL stormFlightTargetClean[2];
+static BOOL stormApproachReleased;
+#define STORM_PROOF_FRAMES 8
+static ULONG stormrailUnsafeBlits;
+#ifndef SPARKPAW_CAMPAIGN_PLAY
+static UBYTE *stormProofPlanes[STORM_PROOF_FRAMES];
+static UWORD stormProofRowBytes[STORM_PROOF_FRAMES];
+static UWORD stormProofTargetX[STORM_PROOF_FRAMES];
+static UWORD stormProofTargetY[STORM_PROOF_FRAMES];
+#endif
+struct StormrailBobHistory {
+    BOOL vehicleDrawn,enemyDrawn[STORMRAIL_MAX_ENEMIES];
+    BOOL shotDrawn[STORMRAIL_MAX_SHOTS];
+    BOOL hostileDrawn[STORMRAIL_MAX_HOSTILE_SHOTS];
+    BOOL rewardDrawn[STORMRAIL_MAX_REWARDS];
+    BOOL obstacleDrawn[STORMRAIL_MAX_OBSTACLES];
+    BOOL finaleActorDrawn[STORMRAIL_FINALE_ACTOR_COUNT];
+    BOOL finaleGateDrawn[2];
+#ifdef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
+    BOOL finaleGateResident;
+#endif
+    BOOL finaleWarningDrawn[STORMRAIL_FINALE_ATTACK_COUNT];
+#ifdef SPARKPAW_STORMRAIL_DUST
+    BOOL dustDrawn[STORM_DUST_SLOTS];
+    WORD dustX[STORM_DUST_SLOTS],dustWorldX[STORM_DUST_SLOTS];
+    WORD dustY[STORM_DUST_SLOTS];
+#endif
+    WORD vehicleX,vehicleWorldX,vehicleY;
+    WORD enemyX[STORMRAIL_MAX_ENEMIES],enemyWorldX[STORMRAIL_MAX_ENEMIES],enemyY[STORMRAIL_MAX_ENEMIES];
+    WORD hostileX[STORMRAIL_MAX_HOSTILE_SHOTS],hostileWorldX[STORMRAIL_MAX_HOSTILE_SHOTS],hostileY[STORMRAIL_MAX_HOSTILE_SHOTS];
+    WORD rewardX[STORMRAIL_MAX_REWARDS],rewardWorldX[STORMRAIL_MAX_REWARDS],rewardY[STORMRAIL_MAX_REWARDS];
+    WORD obstacleX[STORMRAIL_MAX_OBSTACLES];
+    WORD obstacleWorldX[STORMRAIL_MAX_OBSTACLES];
+    WORD obstacleY[STORMRAIL_MAX_OBSTACLES];
+    WORD shotX[STORMRAIL_MAX_SHOTS];
+    WORD shotWorldX[STORMRAIL_MAX_SHOTS];
+    WORD shotY[STORMRAIL_MAX_SHOTS];
+    WORD finaleActorX[STORMRAIL_FINALE_ACTOR_COUNT];
+    WORD finaleActorWorldX[STORMRAIL_FINALE_ACTOR_COUNT];
+    WORD finaleActorY[STORMRAIL_FINALE_ACTOR_COUNT];
+    WORD finaleGateX[2],finaleGateWorldX[2],finaleGateY[2];
+    WORD finaleWarningX[STORMRAIL_FINALE_ATTACK_COUNT];
+    WORD finaleWarningWorldX[STORMRAIL_FINALE_ATTACK_COUNT];
+    WORD finaleWarningY[STORMRAIL_FINALE_ATTACK_COUNT];
+    UBYTE vehicleFrame,vehicleWidth,vehicleHeight,enemyFrame[STORMRAIL_MAX_ENEMIES];
+    UBYTE obstacleType[STORMRAIL_MAX_OBSTACLES];
+    UBYTE obstacleFrame[STORMRAIL_MAX_OBSTACLES];
+};
+static struct StormrailBobHistory stormrailHistory;
+#endif
 static struct BitMap *frontDisplay;
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
 static struct BitMap *rearDisplay;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static struct BitMap *stormFlightRearDisplay;
+#endif
 #endif
 static UWORD *cop,copPos,ptrValue[WORLD_PLANES],scrollValue;
 static UWORD frontColorValue[2][16];
+#ifdef SPARKPAW_STORMRAIL_PROOF
+#define STORM_REAR_PALETTE_STAGES 13
+static UWORD stormRearColorValue[2][STORM_REAR_PALETTE_STAGES][8];
+static UBYTE stormRearPaletteBuildList,stormRearPaletteBuildStage;
+#endif
 static const UWORD frontColors[16]={
     0x001,0x111,0xd41,0xf92,0xfea,0x26c,0x3ce,0x94c,
     0x444,0x666,0xa9a,0xedc,0x426,0x72a,0xa5d,0xe26
@@ -199,6 +323,9 @@ struct PrototypeTarget {
     UBYTE coreFrame;
     BOOL extraLifeDrawn;
     WORD extraLifeX,extraLifeY;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    struct StormrailBobHistory stormrail;
+#endif
 };
 static UWORD *prototypeCopper[2];
 static UBYTE prototypeActiveCopper,prototypePreparedCopper;
@@ -225,6 +352,9 @@ static UWORD *nullSprite,spritePtrValue[TOTAL_SPRITE_CHANNELS];
 static const struct GameState *game;
 static UWORD *plasmaMask,*plasmaBits;
 static UWORD *diamondMask,*diamondBits;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static UWORD *heartMask,*heartBits;
+#endif
 static UWORD *coreMask,*coreBits;
 static UWORD *extraLifeMask,*extraLifeBits;
 #ifndef SPARKPAW_ROLLING_PROTOTYPE
@@ -342,6 +472,92 @@ static const UBYTE rearBandColors[3][8][3]={
      {1,4,4},{2,5,5},{4,6,6},{6,8,9}}
 };
 
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static UWORD stormScaleColor(UWORD color,UBYTE fade)
+{
+    UBYTE strength=(UBYTE)(STORMRAIL_FADE_STEPS-
+        (fade>STORMRAIL_FADE_STEPS?STORMRAIL_FADE_STEPS:fade));
+    UWORD r=(UWORD)(((color>>8)&15)*strength/STORMRAIL_FADE_STEPS);
+    UWORD g=(UWORD)(((color>>4)&15)*strength/STORMRAIL_FADE_STEPS);
+    UWORD b=(UWORD)((color&15)*strength/STORMRAIL_FADE_STEPS);
+    return (UWORD)((r<<8)|(g<<4)|b);
+}
+
+static UWORD stormApproachPaletteValue(UBYTE stage,UBYTE pen)
+{
+    UBYTE source,target,step,steps,component;
+    UWORD value=0;
+    if(!stage) { source=target=0; step=0; steps=1; }
+    else if(stage<=4) { source=0; target=1; step=stage; steps=4; }
+    else { source=1; target=2; step=(UBYTE)(stage-4); steps=8; }
+    for(component=0;component<3;component++) {
+        UBYTE result=(UBYTE)((rearBandColors[source][pen][component]*
+            (steps-step)+rearBandColors[target][pen][component]*step)/steps);
+        value|=(UWORD)(result<<(8-component*4));
+    }
+    return value;
+}
+
+static void setStormrailRearPalette(ULONG distance)
+{
+    UBYTE stage,pen;
+    const UWORD *palette;
+    UWORD phase=(UWORD)((stormrailRearScroll(distance)+160)%
+                        STORMRAIL_REAR_LOOP_W);
+    palette=stormRoutePaletteValues[stormRoutePalettePhase[phase]];
+    /* Generated rows contain every Copper stage, including the thirteenth
+       bottom band immediately above the fixed HUD. */
+    for(stage=0;stage<STORM_REAR_PALETTE_STAGES;stage++)
+        for(pen=0;pen<8;pen++)
+            cop[stormRearColorValue[prototypePreparedCopper][stage][pen]]=
+                game->stormrailFade?
+                    stormScaleColor(palette[stage*8+pen],game->stormrailFade):
+                    palette[stage*8+pen];
+}
+
+static void setStormrailTransitionPalette(void)
+{
+    UBYTE stage,pen;
+    for(pen=0;pen<16;pen++)
+        cop[frontColorValue[prototypePreparedCopper][pen]]=
+            stormScaleColor(frontColors[pen],game->stormrailFade);
+    if(game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_FLIGHT) {
+        setStormrailRearPalette(game->stormrailDistance);
+        return;
+    }
+    for(stage=0;stage<STORM_REAR_PALETTE_STAGES;stage++)
+        for(pen=0;pen<8;pen++)
+            cop[stormRearColorValue[prototypePreparedCopper][stage][pen]]=
+                stormScaleColor(stormApproachPaletteValue(stage,pen),
+                                game->stormrailFade);
+}
+
+static void resetStormrailApproachCopperPalettes(void)
+{
+    UBYTE stage,pen;
+    /* Flight rewrites these words in both resident Copper lists. Replay starts
+       in APPROACH, before the per-frame transition palette path is active, so
+       restore both lists explicitly rather than exposing the final route's
+       horizontal colour bands over the clean approach bitmap. */
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    {
+        UBYTE list;
+        for(list=0;list<2;list++)
+            for(stage=0;stage<STORM_REAR_PALETTE_STAGES;stage++)
+                for(pen=0;pen<8;pen++)
+                    prototypeCopper[list]
+                        [stormRearColorValue[list][stage][pen]]=
+                        stormApproachPaletteValue(stage,pen);
+    }
+#else
+    for(stage=0;stage<STORM_REAR_PALETTE_STAGES;stage++)
+        for(pen=0;pen<8;pen++)
+            cop[stormRearColorValue[0][stage][pen]]=
+                stormApproachPaletteValue(stage,pen);
+#endif
+}
+#endif
+
 static void copperRearPalette(UBYTE source,UBYTE target,UBYTE step,UBYTE steps)
 {
     WORD i;
@@ -355,7 +571,15 @@ static void copperRearPalette(UBYTE source,UBYTE target,UBYTE step,UBYTE steps)
                  rearBandColors[target][i][2]*step)/steps;
         cmove((UWORD)(0x1a0+i*2),
               (UWORD)((r<<8)|(g<<4)|b));
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        if(stormRearPaletteBuildStage<STORM_REAR_PALETTE_STAGES)
+            stormRearColorValue[stormRearPaletteBuildList]
+                               [stormRearPaletteBuildStage][i]=copPos-1;
+#endif
     }
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    stormRearPaletteBuildStage++;
+#endif
 }
 
 static void cptr(UWORD reg,APTR value,UWORD plane)
@@ -388,6 +612,10 @@ static void buildCopper(void)
     WORD i; copPos=0;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     if(cop==prototypeCopper[1]) listIndex=1;
+#endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    stormRearPaletteBuildList=listIndex;
+    stormRearPaletteBuildStage=0;
 #endif
     cmove(0x08e,0x2c81); cmove(0x090,0x2cc1);
 #ifdef SPARKPAW_FMODE0_EARLY_WORD_GUARD
@@ -468,12 +696,22 @@ static void buildCopper(void)
        Twelve small steps hide band boundaries while yielding 24 authored
        rear colours from the existing three planes and no extra fetch DMA. */
     for(i=1;i<=4;i++) {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        cop[copPos++]=(UWORD)(((game->stormrailActive?
+            44+60+i*12-1:44+64+i*4-1)<<8)|0xd9);
+#else
         cop[copPos++]=(UWORD)(((44+64+i*4-1)<<8)|0xd9);
+#endif
         cop[copPos++]=0xfffe;
         copperRearPalette(0,1,(UBYTE)i,4);
     }
     for(i=1;i<=8;i++) {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        cop[copPos++]=(UWORD)(((game->stormrailActive?
+            44+108+i*11-1:44+136+i*3-1)<<8)|0xd9);
+#else
         cop[copPos++]=(UWORD)(((44+136+i*3-1)<<8)|0xd9);
+#endif
         cop[copPos++]=0xfffe;
         copperRearPalette(1,2,(UBYTE)i,8);
     }
@@ -633,6 +871,20 @@ static BOOL earlyWordCopperLayoutValid(void)
 
 static void setScroll(LONG front,LONG rear)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    const struct BitMap *rearBitmap=game->stormrailActive&&
+        game->stormrailMode==STORMRAIL_MODE_FLIGHT?
+#if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+        stormFlightRearDisplay:
+#else
+        stormrailFlightRear->bitmap:
+#endif
+#if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+        rearDisplay;
+#else
+        rearWorld->bitmap;
+#endif
+#endif
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
     LONG fo,ro;
 #ifdef SPARKPAW_AGA64_FETCH_CANDIDATE
@@ -677,13 +929,49 @@ static void setScroll(LONG front,LONG rear)
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
     fo-=PLAYFIELD_GUARD_BYTES;
     setPtr(0,frontDisplay->Planes[0],fo); setPtr(2,frontDisplay->Planes[1],fo);
-    setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,rearDisplay->Planes[0],ro);
-    setPtr(3,rearDisplay->Planes[1],ro); setPtr(5,rearDisplay->Planes[2],ro);
+    setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        rearBitmap
+#else
+        rearDisplay
+#endif
+        ->Planes[0],ro);
+    setPtr(3,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        rearBitmap
+#else
+        rearDisplay
+#endif
+        ->Planes[1],ro); setPtr(5,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        rearBitmap
+#else
+        rearDisplay
+#endif
+        ->Planes[2],ro);
     setPtr(6,frontDisplay->Planes[3],fo);
 #else
     setPtr(0,frontDisplay->Planes[0],fo); setPtr(2,frontDisplay->Planes[1],fo);
-    setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,rearWorld->bitmap->Planes[0],ro);
-    setPtr(3,rearWorld->bitmap->Planes[1],ro); setPtr(5,rearWorld->bitmap->Planes[2],ro);
+    setPtr(4,frontDisplay->Planes[2],fo); setPtr(1,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        rearBitmap
+#else
+        rearWorld->bitmap
+#endif
+        ->Planes[0],ro);
+    setPtr(3,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        rearBitmap
+#else
+        rearWorld->bitmap
+#endif
+        ->Planes[1],ro); setPtr(5,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        rearBitmap
+#else
+        rearWorld->bitmap
+#endif
+        ->Planes[2],ro);
     setPtr(6,frontDisplay->Planes[3],fo);
 #endif
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
@@ -726,6 +1014,13 @@ static void setScroll(LONG front,LONG rear)
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 static WORD prototypeOriginForCamera(WORD cameraX)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_FLIGHT&&
+       game->stormrailDistance>=STORMRAIL_APPROACH_RETIRE_X) {
+        WORD origin=(WORD)((cameraX&~15)-96);
+        return origin>0?origin:0;
+    }
+#endif
     return (WORD)rollingRingWindowOrigin(cameraX,WORLD_W,PROTOTYPE_RING_W);
 }
 
@@ -848,6 +1143,7 @@ static void prototypeCopyCanonicalRect(struct PrototypeTarget *target,
    one-iteration word loop and repeated row-address multiplication: each row
    reads one canonical word and publishes it to the same three physical ring
    copies as prototypeCopyCanonicalSpan(). */
+#ifndef SPARKPAW_STORMRAIL_PROOF
 static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
                                          WORD worldX)
 {
@@ -870,6 +1166,36 @@ static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
         }
     }
 }
+#else
+static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
+                                         WORD worldX)
+{
+    WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+    WORD sourceStep=(WORD)(frontClean->bitmap->BytesPerRow>>1);
+    WORD displayStep=(WORD)(target->display->BytesPerRow>>1);
+    UBYTE plane;
+    for(plane=0;plane<FRONT_PLANES;plane++) {
+        BOOL flightBlank=FALSE;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        flightBlank=(BOOL)(game->stormrailActive&&
+                           game->stormrailMode==STORMRAIL_MODE_FLIGHT&&
+                           worldX>=176);
+#endif
+        const UWORD *source=flightBlank?NULL:(const UWORD *)(
+            frontClean->bitmap->Planes[plane]+(worldX>>3));
+        UWORD *display=(UWORD *)(target->display->Planes[plane]+(slot>>3));
+        WORD row;
+        for(row=0;row<WORLD_H;row++) {
+            UWORD value=flightBlank?0:*source;
+            display[0]=value;
+            display[PROTOTYPE_RING_W/16]=value;
+            display[(PROTOTYPE_RING_W/16)*2]=value;
+            if(!flightBlank) source+=sourceStep;
+            display+=displayStep;
+        }
+    }
+}
+#endif
 #endif
 
 #ifndef SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE
@@ -1076,6 +1402,47 @@ static void prototypeSynchronizeDynamic(struct PrototypeTarget *target)
 static void prototypePrepareCompactTarget(struct PrototypeTarget *target)
 {
     platformWaitBlit();
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_FLIGHT) {
+        UBYTE index=(UBYTE)(target-prototypeTarget);
+        if(!stormFlightTargetClean[index]) {
+            UBYTE plane,copy;
+            /* Clear one 512px physical copy per Blit. BLTSIZE encodes at most
+               64 words, so a library-sized 1536px clear is neither bounded
+               nor safe during custom takeover. */
+            for(plane=0;plane<FRONT_PLANES;plane++)
+                for(copy=0;copy<PROTOTYPE_RING_COPIES;copy++) {
+                    platformWaitBlit();
+                    hw->bltcon0=0x0100; hw->bltcon1=0;
+                    hw->bltafwm=0xffff; hw->bltalwm=0xffff;
+                    hw->bltdmod=(UWORD)(target->display->BytesPerRow-
+                                       PROTOTYPE_RING_W/8);
+                    hw->bltdpt=target->display->Planes[plane]+
+                               copy*(PROTOTYPE_RING_W/8);
+                    hw->bltsize=(UWORD)((WORLD_H<<6)|(PROTOTYPE_RING_W/16));
+                }
+            platformWaitBlit();
+            stormFlightTargetClean[index]=TRUE;
+            if(stormFlightTargetClean[0]&&stormFlightTargetClean[1]&&
+               !stormApproachReleased) {
+#ifndef SPARKPAW_STORMRAIL_RESULTS_TEST
+                assetsReleaseStormrailApproach();
+#if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+                if(rearDisplay) { FreeBitMap(rearDisplay); rearDisplay=NULL; }
+#endif
+                stormApproachReleased=TRUE;
+#endif
+            }
+        }
+        /* The flight ring is intentionally canonical blank until sparse
+           non-colliding near-parallax spans are approved. Logical origin may
+           wrap; all three physical copies remain equivalent and approach art
+           can never become reachable again. */
+        target->origin=prototypeDesiredOrigin;
+        prototypeBuildOrigin=target->origin;
+        return;
+    }
+#endif
     prototypeRollTarget(target,prototypeDesiredOrigin);
     prototypeBuildOrigin=target->origin;
     prototypeSynchronizeDynamic(target);
@@ -1105,6 +1472,11 @@ static void prototypeLoadHistory(UBYTE index)
     }
     splashDrawn=target->splashDrawn;
     splashDrawnX=target->splashX; splashDrawnY=target->splashY;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) {
+        stormrailHistory=target->stormrail;
+    }
+#endif
 #ifdef SPARKPAW_CANONICAL_BOB_RESTORE
     prototypeSplashWorldX=target->splashWorldX;
 #endif
@@ -1134,6 +1506,11 @@ static void prototypeSaveHistory(UBYTE index)
     }
     target->splashDrawn=splashDrawn;
     target->splashX=splashDrawnX; target->splashY=splashDrawnY;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) {
+        target->stormrail=stormrailHistory;
+    }
+#endif
 #ifdef SPARKPAW_CANONICAL_BOB_RESTORE
     target->splashWorldX=prototypeSplashWorldX;
 #endif
@@ -1165,6 +1542,36 @@ static void prototypeExposeHistoryUnion(void)
             projectile->drawnY=prototypeTarget[chosen].projectile[i].y;
         }
     }
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) {
+        UBYTE chosen=prototypeTarget[prototypeActiveCopper].stormrail.vehicleDrawn?
+                     prototypeActiveCopper:(UBYTE)(prototypeActiveCopper^1);
+        stormrailHistory=prototypeTarget[chosen].stormrail;
+        stormrailHistory.vehicleDrawn=
+            prototypeTarget[0].stormrail.vehicleDrawn||
+            prototypeTarget[1].stormrail.vehicleDrawn;
+        for(i=0;i<STORMRAIL_MAX_ENEMIES;i++)
+            stormrailHistory.enemyDrawn[i]=
+                prototypeTarget[0].stormrail.enemyDrawn[i]||
+                prototypeTarget[1].stormrail.enemyDrawn[i];
+        for(i=0;i<STORMRAIL_MAX_SHOTS;i++)
+            stormrailHistory.shotDrawn[i]=
+                prototypeTarget[0].stormrail.shotDrawn[i]||
+                prototypeTarget[1].stormrail.shotDrawn[i];
+        for(i=0;i<STORMRAIL_MAX_HOSTILE_SHOTS;i++)
+            stormrailHistory.hostileDrawn[i]=
+                prototypeTarget[0].stormrail.hostileDrawn[i]||
+                prototypeTarget[1].stormrail.hostileDrawn[i];
+        for(i=0;i<STORMRAIL_MAX_REWARDS;i++)
+            stormrailHistory.rewardDrawn[i]=
+                prototypeTarget[0].stormrail.rewardDrawn[i]||
+                prototypeTarget[1].stormrail.rewardDrawn[i];
+        for(i=0;i<STORMRAIL_MAX_OBSTACLES;i++)
+            stormrailHistory.obstacleDrawn[i]=
+                prototypeTarget[0].stormrail.obstacleDrawn[i]||
+                prototypeTarget[1].stormrail.obstacleDrawn[i];
+    }
+#endif
 }
 #endif
 
@@ -1405,6 +1812,11 @@ static void setHudPointers(void)
     const struct PlayerState *player=playerState();
     UBYTE health=player->health<=PLAYER_MAX_HEALTH?player->health:
                                                   PLAYER_MAX_HEALTH;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&
+       game->stormrailMode>=STORMRAIL_MODE_LAUNCH_OUT)
+        health=game->stormrailHealth;
+#endif
     const struct BitMap *display;
     WORD plane;
     hudSetState(health,game->lives,game->diamonds,game->score);
@@ -1433,13 +1845,41 @@ static void setHardwareSprite(void)
     WORD channel,screenX=(WORD)(player->x>>8)-(WORD)game->cameraX+128-
                          (SPRITE_W-PLAYER_W)/2;
     WORD screenY=(WORD)(player->y>>8)+44-(SPRITE_H-PLAYER_H);
-    WORD stopY=screenY+SPRITE_H;
+    WORD stopY;
     UWORD facing=player->facingLeft?1:0;
+    UBYTE spriteFrame=player->animFrame;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    BOOL stormPilot=game->stormrailActive&&
+                    game->stormrailMode==STORMRAIL_MODE_FLIGHT;
+    if(stormPilot) {
+        screenX=(WORD)(128+game->stormrailX+STORMRAIL_PILOT_SPRITE_X);
+        screenY=(WORD)(44+game->stormrailY+STORMRAIL_PILOT_SPRITE_Y);
+        facing=0;
+        spriteFrame=PLAYER_STORMRAIL_PILOT_FRAME;
+    }
+#endif
+    stopY=screenY+SPRITE_H;
     /* Blink the complete attached-sprite actor during accepted invulnerability.
        Pointer substitution preserves every cached 48-row stream and its real
        terminator; never shorten VSTOP to clip an attached pair. */
-    if(game->waterSplashTimer||
-       (player->invulnTimer&&!(player->invulnTimer&4))) {
+    if(
+#ifdef SPARKPAW_STORMRAIL_PROOF
+       (!stormPilot&&game->waterSplashTimer)||
+#else
+       game->waterSplashTimer||
+#endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
+       (game->stormrailActive&&
+        game->stormrailMode>=STORMRAIL_MODE_LAUNCH_OUT&&!stormPilot)||
+       (stormPilot&&game->stormrailInvuln&&(game->stormrailInvuln&4))||
+       (game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_BOARDING&&
+        game->stormrailBoardTimer>=4)||
+#endif
+       (
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        !stormPilot&&
+#endif
+        player->invulnTimer&&!(player->invulnTimer&4))) {
         ULONG p=(ULONG)nullSprite;
         for(channel=0;channel<SPRITE_CHANNELS;channel++) {
             UWORD hi=spritePtrValue[channel];
@@ -1457,7 +1897,7 @@ static void setHardwareSprite(void)
     !defined(SPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE)
         copyImage=(BOOL)SPRITE_STAGE_CACHE_NEEDS_COPY(
             &hwSpriteStageCache[hwSpriteStageIndex],(UBYTE)facing,
-            (UBYTE)player->animFrame);
+            spriteFrame);
 #endif
     for(channel=0;channel<SPRITE_CHANNELS;channel++) {
         UWORD *data=hwSpriteStage[hwSpriteStageIndex][channel];
@@ -1468,7 +1908,7 @@ static void setHardwareSprite(void)
 #endif
         ULONG p=(ULONG)data; UWORD hi=spritePtrValue[channel];
         if(copyImage)
-            CopyMem(hwSprites[facing][player->animFrame][channel],data,
+            CopyMem(hwSprites[facing][spriteFrame][channel],data,
                     SPRITE_WORDS*2);
         data[0]=(UWORD)((screenY<<8)|((x>>1)&0xff));
 #ifdef SPARKPAW_AGA64_PLAYER_SPRITE
@@ -1485,7 +1925,7 @@ static void setHardwareSprite(void)
         if(copyImage)
             SPRITE_STAGE_CACHE_COMMIT(
                 &hwSpriteStageCache[hwSpriteStageIndex],(UBYTE)facing,
-                (UBYTE)player->animFrame);
+                spriteFrame);
 #endif
     }
 }
@@ -1520,9 +1960,28 @@ static UBYTE playerPlasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
 static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
 {
     BOOL hostile=pattern>=PLAYER_PLASMA_PATTERNS;
-    UBYTE pen=playerPlasmaPatternPen(
-        hostile?(UBYTE)(pattern-PLAYER_PLASMA_PATTERNS):pattern,left,x,y);
+    UBYTE hostileBase=hostile?(UBYTE)(pattern-PLAYER_PLASMA_PATTERNS):0;
+    UBYTE pen;
+    if(hostile&&hostileBase==4) {
+        /* Left-flying Hunter needle: long light spine, amber shoulders and a
+           one-pixel nose. It does not reuse either round fan silhouette. */
+        if(y==4&&x>=1&&x<=13) return 4;
+        if((y==3||y==5)&&x>=4&&x<=11) return 3;
+        if((y==2||y==6)&&x>=9&&x<=12) return 3;
+        return 0;
+    }
+    pen=playerPlasmaPatternPen(hostile?hostileBase:pattern,left,x,y);
     if(!hostile) return pen;
+    /* The Harrier fan owns compact violet storm pulses (hostile bases 2/3);
+       turret and route fire retain the accepted amber bolt (bases 0/1).
+       Player plasma remains untouched in its cyan family. */
+    if(hostileBase==2||hostileBase==3) {
+        if(pen==6) return 15;
+        if(pen==5) return 14;
+        return pen;
+    }
+    /* Hunter base 4 is a narrow hot amber-white needle, deliberately unlike
+       both the round violet fan and Sparkpaw's cyan plasma. */
     /* Retain the accepted compact mask but give hostile fire an unmistakable
        hot orange/red identity with the same bright neutral core. This also
        avoids aliasing the authored violet parallax storm lights. */
@@ -1564,6 +2023,731 @@ static BOOL buildPlasmaPatterns(void)
     return TRUE;
 }
 
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height);
+static void blitMaskedBob(UWORD *mask,UWORD *bits,WORD sourceWords,
+                          WORD width,WORD height,WORD x,WORD y);
+static void blitMaskedBobTargetStride(struct BitMap *target,UWORD *mask,
+                          UWORD *bits,WORD sourceWords,WORD planeRows,
+                          WORD width,WORD height,WORD x,WORD y);
+static void stormFinaleGateClearDirty(void)
+{
+    UBYTE word;
+    for(word=0;word<STORM_FINALE_GATE_DIRTY_WORDS;word++)
+        stormFinaleGateDirty[word]=0;
+}
+
+static void stormFinaleGateMarkDamage(WORD worldX,WORD y,
+                                      WORD width,WORD height)
+{
+    WORD gateWorldX,top,bottom,row;
+    if(!game->stormrailFinaleActive||
+       !stormrailHistory.finaleGateResident||
+       !stormrailFinaleGateResident(game->stormrailFinalePhase,
+                                    game->stormrailFinaleGateOpen)) return;
+    gateWorldX=(WORD)(game->cameraX+STORMRAIL_FINALE_GATE_X);
+    if(worldX+width<=gateWorldX||worldX>=gateWorldX+STORM_FINALE_GATE_W)
+        return;
+    top=y<0?0:y;
+    bottom=(WORD)(y+height);
+    if(bottom>STORMRAIL_PLAYFIELD_H) bottom=STORMRAIL_PLAYFIELD_H;
+    for(row=top;row<bottom;row++)
+        stormFinaleGateDirty[row>>4]|=(UWORD)(1U<<(row&15));
+}
+
+static void stormFinaleGateRepairDirty(void)
+{
+    WORD row=0;
+    WORD worldX=(WORD)(game->cameraX+STORMRAIL_FINALE_GATE_X);
+    WORD physicalX=prototypePhysicalX(worldX);
+    while(row<STORMRAIL_PLAYFIELD_H) {
+        WORD first,half,local,run;
+        while(row<STORMRAIL_PLAYFIELD_H&&
+              !(stormFinaleGateDirty[row>>4]&(1U<<(row&15)))) row++;
+        if(row>=STORMRAIL_PLAYFIELD_H) break;
+        first=row;
+        half=(WORD)(first/STORM_FINALE_GATE_H);
+        while(row<STORMRAIL_PLAYFIELD_H&&
+              row<(half+1)*STORM_FINALE_GATE_H&&
+              (stormFinaleGateDirty[row>>4]&(1U<<(row&15)))) row++;
+        local=(WORD)(first-half*STORM_FINALE_GATE_H);
+        run=(WORD)(row-first);
+        blitMaskedBobTargetStride(frontDisplay,
+            stormFinaleGateMask+
+                (LONG)(half*STORM_FINALE_GATE_H+local)*
+                    STORM_FINALE_GATE_WORDS,
+            stormFinaleGateBits+
+                (LONG)half*FRONT_PLANES*STORM_FINALE_GATE_H*
+                    STORM_FINALE_GATE_WORDS+
+                (LONG)local*STORM_FINALE_GATE_WORDS,
+            STORM_FINALE_GATE_WORDS,STORM_FINALE_GATE_H,
+            STORM_FINALE_GATE_W,run,physicalX,first);
+    }
+}
+static UBYTE stormrailSourcePen(WORD x,WORD y)
+{
+    UBYTE bit=(UBYTE)(0x80>>(x&7));
+    LONG at=(LONG)y*stormrailSprite->rowBytes+(x>>3);
+    if(!stormrailSprite->mask||!(stormrailSprite->mask[at]&bit)) return 0;
+    return pixel(stormrailSprite->bitmap,x,y,FRONT_PLANES);
+}
+
+static UBYTE stormrailObstacleSourcePen(WORD x,WORD y)
+{
+    UBYTE bit=(UBYTE)(0x80>>(x&7));
+    LONG at=(LONG)y*stormrailObstacleSprite->rowBytes+(x>>3);
+    if(!stormrailObstacleSprite->mask||
+       !(stormrailObstacleSprite->mask[at]&bit)) return 0;
+    return pixel(stormrailObstacleSprite->bitmap,x,y,FRONT_PLANES);
+}
+
+static UBYTE stormGate6PackedPen(LONG offset,WORD width,WORD x,WORD y)
+{
+    LONG pixel=offset+(LONG)y*width+x;
+    UBYTE packed=stormGate6ArtPacked[pixel>>1];
+    return (UBYTE)((pixel&1)?packed&15:packed>>4);
+}
+
+static UBYTE stormFinaleGatePen(UBYTE half,WORD x,WORD y)
+{
+    LONG offset=80L*46+(LONG)half*32*104;
+    return stormGate6PackedPen(offset,32,x,y);
+}
+
+static BOOL buildStormrailPatterns(void)
+{
+    LONG vehicleWords=STORM_VEHICLE_FRAMES*STORM_VEHICLE_H*
+                      STORM_VEHICLE_WORDS;
+    LONG droneWords=3L*STORM_DRONE_H*STORM_DRONE_WORDS;
+    LONG bigWords=(LONG)STORM_ROCK_BIG_FRAMES*
+                  STORMRAIL_OBSTACLE_BIG_H*STORM_ROCK_BIG_WORDS;
+    LONG shardWords=(LONG)STORM_ROCK_SHARD_FRAMES*
+                    STORMRAIL_OBSTACLE_SHARD_H*STORM_ROCK_SHARD_WORDS;
+    LONG pillarWords=(LONG)STORM_ROCK_PILLAR_FRAMES*
+                     STORMRAIL_OBSTACLE_PILLAR_H*STORM_ROCK_PILLAR_WORDS;
+    UBYTE frame,plane; WORD x,y;
+    if(!stormrailSprite||stormrailSprite->width!=640||
+       stormrailSprite->height!=120||!stormrailObstacleSprite||
+       stormrailObstacleSprite->width!=400||
+       stormrailObstacleSprite->height!=40) return FALSE;
+    stormVehicleMask=(UWORD *)AllocMem(vehicleWords*2,MEMF_CHIP|MEMF_CLEAR);
+    stormVehicleBits=(UWORD *)AllocMem(vehicleWords*FRONT_PLANES*2,
+                                      MEMF_CHIP|MEMF_CLEAR);
+    stormDroneMask=(UWORD *)AllocMem(droneWords*2,MEMF_CHIP|MEMF_CLEAR);
+    stormDroneBits=(UWORD *)AllocMem(droneWords*FRONT_PLANES*2,
+                                    MEMF_CHIP|MEMF_CLEAR);
+    stormRockBigMask=(UWORD *)AllocMem(bigWords*2,MEMF_CHIP|MEMF_CLEAR);
+    stormRockBigBits=(UWORD *)AllocMem(bigWords*FRONT_PLANES*2,
+                                      MEMF_CHIP|MEMF_CLEAR);
+    stormRockShardMask=(UWORD *)AllocMem(shardWords*2,MEMF_CHIP|MEMF_CLEAR);
+    stormRockShardBits=(UWORD *)AllocMem(shardWords*FRONT_PLANES*2,
+                                        MEMF_CHIP|MEMF_CLEAR);
+    stormRockPillarMask=(UWORD *)AllocMem(pillarWords*2,MEMF_CHIP|MEMF_CLEAR);
+    stormRockPillarBits=(UWORD *)AllocMem(pillarWords*FRONT_PLANES*2,
+                                         MEMF_CHIP|MEMF_CLEAR);
+    stormFinaleActorMask=(UWORD *)AllocMem((LONG)STORMRAIL_FINALE_ACTOR_COUNT*
+        STORM_FINALE_ACTOR_H*
+        STORM_FINALE_ACTOR_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    stormFinaleActorBits=(UWORD *)AllocMem((LONG)STORMRAIL_FINALE_ACTOR_COUNT*
+        FRONT_PLANES*
+        STORM_FINALE_ACTOR_H*STORM_FINALE_ACTOR_WORDS*2,
+        MEMF_CHIP|MEMF_CLEAR);
+    stormFinaleGateMask=(UWORD *)AllocMem(STORM_FINALE_GATE_HALVES*
+        STORM_FINALE_GATE_H*
+        STORM_FINALE_GATE_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    stormFinaleGateBits=(UWORD *)AllocMem(STORM_FINALE_GATE_HALVES*
+        FRONT_PLANES*STORM_FINALE_GATE_H*
+        STORM_FINALE_GATE_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    stormFlightMask=(UWORD *)AllocMem(STORMRAIL_LAUNCH_BOB_H*
+                                     STORM_VEHICLE_WORDS*2,MEMF_CHIP);
+    stormFlightBits=(UWORD *)AllocMem(STORMRAIL_LAUNCH_BOB_H*
+        STORM_VEHICLE_WORDS*FRONT_PLANES*2,MEMF_CHIP);
+    stormCompactMask=(UWORD *)AllocMem(STORMRAIL_FLIGHT_BOB_H*
+        STORM_COMPACT_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    stormCompactBits=(UWORD *)AllocMem(STORMRAIL_FLIGHT_BOB_H*
+        STORM_COMPACT_WORDS*FRONT_PLANES*2,MEMF_CHIP|MEMF_CLEAR);
+#ifdef SPARKPAW_STORMRAIL_DUST
+    stormDustMask=(UWORD *)AllocMem(STORM_DUST_STYLES*STORM_DUST_H*
+        STORM_DUST_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    stormDustBits=(UWORD *)AllocMem(STORM_DUST_STYLES*FRONT_PLANES*
+        STORM_DUST_H*STORM_DUST_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+#endif
+    if(!stormVehicleMask||!stormVehicleBits||!stormFlightMask||
+       !stormFlightBits||!stormCompactMask||!stormCompactBits||!stormDroneMask||
+       !stormDroneBits||!stormRockBigMask||!stormRockBigBits||
+       !stormRockShardMask||!stormRockShardBits||
+       !stormRockPillarMask||!stormRockPillarBits||
+       !stormFinaleActorMask||!stormFinaleActorBits||
+       !stormFinaleGateMask||!stormFinaleGateBits
+#ifdef SPARKPAW_STORMRAIL_DUST
+       ||!stormDustMask||!stormDustBits
+#endif
+       )
+        return FALSE;
+#ifdef SPARKPAW_STORMRAIL_DUST
+    {
+        static const UWORD shape[STORM_DUST_SHAPES][STORM_DUST_H]={
+            {0x8000,0x0000,0x0000},
+            {0xc000,0x0000,0x0000},
+            {0xf000,0x4000,0x0000}};
+        /* Neutral light, pale blue and rare warm sunlight on the same grit. */
+        static const UBYTE colorPen[STORM_DUST_COLORS]={9,6,3};
+        UBYTE shapeIndex,color,row;
+        for(shapeIndex=0;shapeIndex<STORM_DUST_SHAPES;shapeIndex++)
+            for(color=0;color<STORM_DUST_COLORS;color++) {
+                UBYTE style=(UBYTE)(shapeIndex*STORM_DUST_COLORS+color);
+                for(row=0;row<STORM_DUST_H;row++) {
+                    UWORD bits=shape[shapeIndex][row];
+                    stormDustMask[(LONG)style*STORM_DUST_H+row]=bits;
+                    for(plane=0;plane<FRONT_PLANES;plane++)
+                        if(colorPen[color]&(1<<plane))
+                            stormDustBits[((LONG)style*FRONT_PLANES+plane)*
+                                          STORM_DUST_H+row]=bits;
+                }
+            }
+    }
+#endif
+    for(frame=0;frame<STORM_VEHICLE_FRAMES;frame++)
+        for(y=0;y<STORM_VEHICLE_H;y++)
+        for(x=0;x<STORM_VEHICLE_W;x++) {
+            UBYTE pen=stormrailSourcePen((WORD)(frame*STORM_VEHICLE_W+x),y);
+            LONG word=((LONG)frame*STORM_VEHICLE_H+y)*STORM_VEHICLE_WORDS+
+                      (x>>4);
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            if(!pen) continue;
+            stormVehicleMask[word]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                stormVehicleBits[((LONG)frame*FRONT_PLANES+plane)*
+                    STORM_VEHICLE_H*STORM_VEHICLE_WORDS+
+                    (LONG)y*STORM_VEHICLE_WORDS+(x>>4)]|=bit;
+        }
+    for(frame=0;frame<3;frame++) for(y=0;y<STORM_DRONE_H;y++)
+        for(x=0;x<STORM_DRONE_W;x++) {
+            UBYTE pen=stormrailSourcePen((WORD)(frame*STORM_DRONE_W+x),
+                                         (WORD)(STORM_VEHICLE_H+y));
+            LONG word=((LONG)frame*STORM_DRONE_H+y)*STORM_DRONE_WORDS+
+                      (x>>4);
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            if(!pen) continue;
+            stormDroneMask[word]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                stormDroneBits[((LONG)frame*FRONT_PLANES+plane)*
+                    STORM_DRONE_H*STORM_DRONE_WORDS+
+                    (LONG)y*STORM_DRONE_WORDS+(x>>4)]|=bit;
+        }
+    for(frame=0;frame<STORM_ROCK_BIG_FRAMES;frame++)
+        for(y=0;y<STORMRAIL_OBSTACLE_BIG_H;y++)
+        for(x=0;x<STORMRAIL_OBSTACLE_BIG_W;x++) {
+            UBYTE pen=stormrailObstacleSourcePen(
+                (WORD)(frame*STORMRAIL_OBSTACLE_BIG_W+x),y);
+            LONG word=((LONG)frame*STORMRAIL_OBSTACLE_BIG_H+y)*
+                      STORM_ROCK_BIG_WORDS+(x>>4);
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            if(!pen) continue;
+            stormRockBigMask[word]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                stormRockBigBits[((LONG)frame*FRONT_PLANES+plane)*
+                    STORMRAIL_OBSTACLE_BIG_H*STORM_ROCK_BIG_WORDS+
+                    (LONG)y*STORM_ROCK_BIG_WORDS+(x>>4)]|=bit;
+        }
+    for(frame=0;frame<STORM_ROCK_SHARD_FRAMES;frame++)
+        for(y=0;y<STORMRAIL_OBSTACLE_SHARD_H;y++)
+        for(x=0;x<STORMRAIL_OBSTACLE_SHARD_W;x++) {
+            UBYTE pen=stormrailObstacleSourcePen(
+                (WORD)(240+frame*STORMRAIL_OBSTACLE_SHARD_W+x),
+                (WORD)(20+y));
+            LONG word=((LONG)frame*STORMRAIL_OBSTACLE_SHARD_H+y)*
+                      STORM_ROCK_SHARD_WORDS+(x>>4);
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            if(!pen) continue;
+            stormRockShardMask[word]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                stormRockShardBits[((LONG)frame*FRONT_PLANES+plane)*
+                    STORMRAIL_OBSTACLE_SHARD_H*STORM_ROCK_SHARD_WORDS+
+                    (LONG)y*STORM_ROCK_SHARD_WORDS+(x>>4)]|=bit;
+        }
+    for(frame=0;frame<STORM_ROCK_PILLAR_FRAMES;frame++)
+    for(y=0;y<STORMRAIL_OBSTACLE_PILLAR_H;y++)
+        for(x=0;x<STORMRAIL_OBSTACLE_PILLAR_W;x++) {
+            UBYTE pen=stormrailObstacleSourcePen(
+                (WORD)(336+frame*STORMRAIL_OBSTACLE_PILLAR_W+x),y);
+            LONG word=((LONG)frame*STORMRAIL_OBSTACLE_PILLAR_H+y)*
+                      STORM_ROCK_PILLAR_WORDS+(x>>4);
+            UWORD bit=(UWORD)(0x8000U>>(x&15));
+            if(!pen) continue;
+            stormRockPillarMask[word]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                stormRockPillarBits[((LONG)frame*FRONT_PLANES+plane)*
+                    STORMRAIL_OBSTACLE_PILLAR_H*STORM_ROCK_PILLAR_WORDS+
+                    (LONG)y*STORM_ROCK_PILLAR_WORDS+(x>>4)]|=bit;
+        }
+    for(y=0;y<STORMRAIL_LAUNCH_BOB_H;y++) {
+        LONG source=(LONG)(42+y)*STORM_VEHICLE_WORDS;
+        LONG target=(LONG)y*STORM_VEHICLE_WORDS;
+        CopyMem(stormVehicleMask+(LONG)4*STORM_VEHICLE_H*
+                    STORM_VEHICLE_WORDS+source,
+                stormFlightMask+target,STORM_VEHICLE_WORDS*2);
+        for(plane=0;plane<FRONT_PLANES;plane++)
+            CopyMem(stormVehicleBits+((LONG)4*FRONT_PLANES+plane)*
+                        STORM_VEHICLE_H*STORM_VEHICLE_WORDS+source,
+                    stormFlightBits+((LONG)plane*STORMRAIL_LAUNCH_BOB_H+y)*
+                        STORM_VEHICLE_WORDS,STORM_VEHICLE_WORDS*2);
+    }
+    for(y=0;y<STORMRAIL_FLIGHT_BOB_H;y++) for(x=0;x<STORMRAIL_FLIGHT_BOB_W;x++) {
+        UBYTE pen=stormrailSourcePen((WORD)(5*STORM_VEHICLE_W+x),y);
+        LONG word=(LONG)y*STORM_COMPACT_WORDS+(x>>4);
+        UWORD bit=(UWORD)(0x8000U>>(x&15));
+        if(!pen) continue;
+        stormCompactMask[word]|=bit;
+        for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+            stormCompactBits[((LONG)plane*STORMRAIL_FLIGHT_BOB_H+y)*
+                            STORM_COMPACT_WORDS+(x>>4)]|=bit;
+    }
+    /* Gate-6 native art: one startup-built planar family at final size. */
+    for(frame=0;frame<STORMRAIL_FINALE_ACTOR_COUNT;frame++)
+        for(y=0;y<STORM_FINALE_ACTOR_H;y++)
+        for(x=0;x<STORM_FINALE_ACTOR_W;x++) {
+            BOOL inside;
+            UBYTE pen;
+            LONG word;
+            UWORD bit;
+            pen=stormGate6PackedPen(0,80,
+                (WORD)(x+STORMRAIL_FINALE_RENDER_X_OFFSET),
+                (WORD)(y+STORMRAIL_FINALE_RENDER_Y_OFFSET));
+            inside=(BOOL)(pen!=0);
+            if(!inside) continue;
+            word=((LONG)frame*STORM_FINALE_ACTOR_H+y)*
+                 STORM_FINALE_ACTOR_WORDS+(x>>4);
+            bit=(UWORD)(0x8000U>>(x&15));
+            stormFinaleActorMask[word]|=bit;
+            for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+                stormFinaleActorBits[((LONG)frame*FRONT_PLANES+plane)*
+                    STORM_FINALE_ACTOR_H*STORM_FINALE_ACTOR_WORDS+
+                    (LONG)y*STORM_FINALE_ACTOR_WORDS+(x>>4)]|=bit;
+        }
+    for(frame=0;frame<STORM_FINALE_GATE_HALVES;frame++)
+    for(y=0;y<STORM_FINALE_GATE_H;y++) for(x=0;x<STORM_FINALE_GATE_W;x++) {
+        UBYTE pen=stormFinaleGatePen(frame,x,y);
+        LONG word=((LONG)frame*STORM_FINALE_GATE_H+y)*
+                  STORM_FINALE_GATE_WORDS+(x>>4);
+        UWORD bit=(UWORD)(0x8000U>>(x&15));
+        if(!pen) continue;
+        stormFinaleGateMask[word]|=bit;
+        for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+            stormFinaleGateBits[(((LONG)frame*FRONT_PLANES+plane)*
+                                 STORM_FINALE_GATE_H+y)*
+                                STORM_FINALE_GATE_WORDS+(x>>4)]|=bit;
+    }
+    return TRUE;
+}
+
+static void restoreStormrailBobs(void)
+{
+    if(!game->stormrailActive) return;
+    UBYTE shot;
+    stormFinaleGateClearDirty();
+#ifdef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
+    if(stormrailHistory.finaleGateResident&&
+       !stormrailFinaleGateResident(game->stormrailFinalePhase,
+                                    game->stormrailFinaleGateOpen)) {
+        WORD gateWorldX=(WORD)(game->cameraX+STORMRAIL_FINALE_GATE_X);
+        WORD gatePhysicalX=prototypePhysicalX(gateWorldX);
+        stormrailHistory.finaleGateResident=FALSE;
+        for(shot=0;shot<2;shot++)
+            blitRestoreRect(gateWorldX,gatePhysicalX,
+                (WORD)(shot?STORM_FINALE_GATE_H:0),
+                STORM_FINALE_GATE_W,STORM_FINALE_GATE_H);
+    }
+#endif
+#ifdef SPARKPAW_STORMRAIL_DUST
+    for(shot=0;shot<STORM_DUST_SLOTS;shot++)
+        if(stormrailHistory.dustDrawn[shot]) {
+            blitRestoreRect(stormrailHistory.dustWorldX[shot],
+                stormrailHistory.dustX[shot],stormrailHistory.dustY[shot],
+                STORM_DUST_W,STORM_DUST_H);
+            stormrailHistory.dustDrawn[shot]=FALSE;
+        }
+#endif
+    for(shot=0;shot<STORMRAIL_MAX_SHOTS;shot++)
+        if(stormrailHistory.shotDrawn[shot]) {
+            if(!stormrailVerticalRectSafe(stormrailHistory.shotY[shot],
+                                          PROJECTILE_H)) {
+                stormrailUnsafeBlits++;
+                stormrailHistory.shotDrawn[shot]=FALSE;
+                continue;
+            }
+            blitRestoreRect(stormrailHistory.shotWorldX[shot],
+                            stormrailHistory.shotX[shot],
+                            stormrailHistory.shotY[shot],
+                            PROJECTILE_W,PROJECTILE_H);
+            stormrailHistory.shotDrawn[shot]=FALSE;
+        }
+    for(shot=0;shot<STORMRAIL_MAX_ENEMIES;shot++) if(stormrailHistory.enemyDrawn[shot]) {
+        blitRestoreRect(stormrailHistory.enemyWorldX[shot],stormrailHistory.enemyX[shot],
+                        stormrailHistory.enemyY[shot],STORM_DRONE_W,STORM_DRONE_H);
+        stormrailHistory.enemyDrawn[shot]=FALSE;
+    }
+    for(shot=0;shot<STORMRAIL_MAX_HOSTILE_SHOTS;shot++) if(stormrailHistory.hostileDrawn[shot]) {
+        blitRestoreRect(stormrailHistory.hostileWorldX[shot],stormrailHistory.hostileX[shot],
+                        stormrailHistory.hostileY[shot],PROJECTILE_W,PROJECTILE_H);
+        stormrailHistory.hostileDrawn[shot]=FALSE;
+    }
+    for(shot=0;shot<STORMRAIL_MAX_REWARDS;shot++) if(stormrailHistory.rewardDrawn[shot]) {
+        blitRestoreRect(stormrailHistory.rewardWorldX[shot],stormrailHistory.rewardX[shot],
+                        stormrailHistory.rewardY[shot],COLLECTIBLE_W,COLLECTIBLE_H);
+        stormrailHistory.rewardDrawn[shot]=FALSE;
+    }
+    for(shot=0;shot<STORMRAIL_MAX_OBSTACLES;shot++)
+        if(stormrailHistory.obstacleDrawn[shot]) {
+            UBYTE type=stormrailHistory.obstacleType[shot];
+            WORD width=(WORD)stormrailObstacleWidth(type);
+            WORD height=(WORD)stormrailObstacleHeight(type);
+            blitRestoreRect(stormrailHistory.obstacleWorldX[shot],
+                            stormrailHistory.obstacleX[shot],
+                            stormrailHistory.obstacleY[shot],width,height);
+            stormrailHistory.obstacleDrawn[shot]=FALSE;
+        }
+    for(shot=0;shot<STORMRAIL_FINALE_ACTOR_COUNT;shot++)
+        if(stormrailHistory.finaleActorDrawn[shot]) {
+            blitRestoreRect(stormrailHistory.finaleActorWorldX[shot],
+                stormrailHistory.finaleActorX[shot],
+                stormrailHistory.finaleActorY[shot],
+                STORMRAIL_FINALE_RENDER_W,
+                STORMRAIL_FINALE_RENDER_H);
+            stormrailHistory.finaleActorDrawn[shot]=FALSE;
+        }
+    for(shot=0;shot<2;shot++) if(stormrailHistory.finaleGateDrawn[shot]) {
+        blitRestoreRect(stormrailHistory.finaleGateWorldX[shot],
+            stormrailHistory.finaleGateX[shot],stormrailHistory.finaleGateY[shot],
+            STORM_FINALE_GATE_W,STORM_FINALE_GATE_H);
+        stormrailHistory.finaleGateDrawn[shot]=FALSE;
+    }
+    for(shot=0;shot<STORMRAIL_FINALE_ATTACK_COUNT;shot++)
+        if(stormrailHistory.finaleWarningDrawn[shot]) {
+            blitRestoreRect(stormrailHistory.finaleWarningWorldX[shot],
+                stormrailHistory.finaleWarningX[shot],
+                stormrailHistory.finaleWarningY[shot],
+                PROJECTILE_W,PROJECTILE_H);
+            stormrailHistory.finaleWarningDrawn[shot]=FALSE;
+        }
+    if(stormrailHistory.vehicleDrawn) {
+        if(!stormrailVerticalRectSafe(stormrailHistory.vehicleY,
+                                      stormrailHistory.vehicleHeight)) {
+            stormrailUnsafeBlits++;
+            stormrailHistory.vehicleDrawn=FALSE;
+            return;
+        }
+        blitRestoreRect(stormrailHistory.vehicleWorldX,
+                        stormrailHistory.vehicleX,stormrailHistory.vehicleY,
+                        stormrailHistory.vehicleWidth,
+                        stormrailHistory.vehicleHeight);
+        stormrailHistory.vehicleDrawn=FALSE;
+    }
+}
+
+static void drawStormrailBobs(void)
+{
+    WORD worldX,physicalX,vehicleY,vehicleWidth,vehicleHeight,sourceWords;
+    UBYTE shot;
+    UBYTE flightPose;
+    if(!game->stormrailActive) return;
+    flightPose=game->stormrailMode>=STORMRAIL_MODE_LAUNCH_OUT;
+    UBYTE compactPose=game->stormrailMode==STORMRAIL_MODE_FLIGHT;
+    UBYTE frame=flightPose?4:
+        game->stormrailMode==STORMRAIL_MODE_BOARDING&&
+            game->stormrailBoardTimer>=36?4:
+        game->stormrailMode==STORMRAIL_MODE_BOARDING&&
+            game->stormrailBoardTimer>=20?3:
+        game->stormrailMode==STORMRAIL_MODE_BOARDING&&
+            game->stormrailBoardTimer>=12?2:
+        game->stormrailMode==STORMRAIL_MODE_BOARDING&&
+            game->stormrailBoardTimer>=4?1:0;
+#ifdef SPARKPAW_STORMRAIL_DUST
+    if(game->stormrailMode==STORMRAIL_MODE_FLIGHT) {
+        static const UWORD phase[STORM_DUST_SLOTS]={
+            7,47,91,139,181,223,263,307};
+        static const UBYTE speedEighths[STORM_DUST_SLOTS]={
+            2,3,4,5,6,8,3,7};
+        static const UBYTE particleY[STORM_DUST_SLOTS]={
+            41,67,94,121,149,178,205,18};
+        static const UBYTE shape[STORM_DUST_SLOTS]={0,1,0,2,1,0,1,2};
+        static const UBYTE lightCycle[4]={0,1,0,2};
+        for(shot=0;shot<STORM_DUST_SLOTS;shot++) {
+            ULONG dustDistance=game->stormrailDistance+
+                (game->stormrailFinaleActive?
+                    (ULONG)game->stormrailFinaleVisualTick*4:0);
+            UBYTE color=lightCycle[((dustDistance>>8)+shot)&3];
+            UBYTE style=(UBYTE)(shape[shot]*STORM_DUST_COLORS+color);
+            ULONG travel=((dustDistance*speedEighths[shot])>>3)+
+                         phase[shot];
+            WORD screenX=(WORD)(304-(travel%320));
+            if(screenX>=0) {
+                worldX=(WORD)(game->cameraX+screenX);
+                physicalX=prototypePhysicalX(worldX);
+                blitMaskedBob(stormDustMask+(LONG)style*STORM_DUST_H*
+                                  STORM_DUST_WORDS,
+                    stormDustBits+(LONG)style*FRONT_PLANES*STORM_DUST_H*
+                                  STORM_DUST_WORDS,
+                    STORM_DUST_WORDS,STORM_DUST_W,STORM_DUST_H,
+                    physicalX,particleY[shot]);
+                stormFinaleGateMarkDamage(worldX,particleY[shot],
+                                           STORM_DUST_W,STORM_DUST_H);
+                stormrailHistory.dustDrawn[shot]=TRUE;
+                stormrailHistory.dustX[shot]=physicalX;
+                stormrailHistory.dustWorldX[shot]=worldX;
+                stormrailHistory.dustY[shot]=particleY[shot];
+            }
+        }
+    }
+#endif
+    /* Slow two-pixel triangle wave: powered, but still waiting for Paw. */
+    vehicleWidth=compactPose?STORMRAIL_FLIGHT_BOB_W:STORM_VEHICLE_W;
+    vehicleHeight=compactPose?STORMRAIL_FLIGHT_BOB_H:
+                  flightPose?STORMRAIL_LAUNCH_BOB_H:STORM_VEHICLE_H;
+    sourceWords=compactPose?STORM_COMPACT_WORDS:STORM_VEHICLE_WORDS;
+    vehicleY=flightPose?
+        (WORD)(game->stormrailY+STORMRAIL_FLIGHT_BOB_Y_OFFSET):
+        (WORD)(game->stormrailY-42);
+    if(game->stormrailMode==STORMRAIL_MODE_APPROACH||
+       (flightPose&&!compactPose)) {
+        UBYTE hover=(UBYTE)((game->frameCounter>>3)&3);
+        WORD hoverOffset=(WORD)(hover<2?hover:4-hover);
+        /* At the honest top bound the transparent cache cell already starts
+           on row zero. Suspend only the cosmetic lift there; never let hover
+           turn a valid control position into an out-of-bounds Blit. */
+        if(vehicleY>=hoverOffset) vehicleY-=hoverOffset;
+    }
+    worldX=STORMRAIL_BOARDING_SCREEN_X;
+    if(game->stormrailMode==STORMRAIL_MODE_BOARDING&&
+       game->stormrailBoardTimer>40) {
+        WORD progress=(WORD)(game->stormrailBoardTimer-40);
+        if(progress>24) progress=24;
+        worldX+=(WORD)((game->cameraX*progress)/24);
+    } else if(flightPose)
+        worldX=(WORD)stormrailFlightWorldX(game->cameraX,game->stormrailX);
+    if(stormrailVerticalRectSafe(vehicleY,vehicleHeight)&&
+       prototypeRectFits(worldX,vehicleWidth)&&
+       !(game->stormrailMode==STORMRAIL_MODE_FLIGHT&&
+         game->stormrailInvuln&&
+         (game->stormrailInvuln&4))) {
+        physicalX=prototypePhysicalX(worldX);
+        blitMaskedBob(compactPose?stormCompactMask:flightPose?stormFlightMask:
+                          stormVehicleMask+(LONG)frame*STORM_VEHICLE_H*
+                              STORM_VEHICLE_WORDS,
+                      compactPose?stormCompactBits:flightPose?stormFlightBits:
+                          stormVehicleBits+(LONG)frame*FRONT_PLANES*
+                              STORM_VEHICLE_H*STORM_VEHICLE_WORDS,
+                      sourceWords,vehicleWidth,vehicleHeight,
+                      physicalX,vehicleY);
+        stormFinaleGateMarkDamage(worldX,vehicleY,
+                                   vehicleWidth,vehicleHeight);
+        stormrailHistory.vehicleDrawn=TRUE;
+        stormrailHistory.vehicleX=physicalX;
+        stormrailHistory.vehicleWorldX=worldX;
+        stormrailHistory.vehicleY=vehicleY;
+        stormrailHistory.vehicleFrame=frame;
+        stormrailHistory.vehicleWidth=(UBYTE)vehicleWidth;
+        stormrailHistory.vehicleHeight=(UBYTE)vehicleHeight;
+    } else if(!stormrailVerticalRectSafe(vehicleY,vehicleHeight))
+        stormrailUnsafeBlits++;
+    if(game->stormrailMode!=STORMRAIL_MODE_FLIGHT) return;
+    if(game->stormrailFinaleActive) {
+        WORD gateX=(WORD)(STORMRAIL_FINALE_GATE_X+
+            stormrailFinaleGateOpenOffset(game->stormrailFinaleGateOpen)+
+            stormrailFinaleGateArrivalOffset(game->stormrailFinalePhase,
+                                              game->stormrailFinaleTick));
+        if(game->stormrailFinaleGateOpen<STORMRAIL_FINALE_OPEN_TICKS&&
+           stormrailFinaleGateResident(game->stormrailFinalePhase,
+                                       game->stormrailFinaleGateOpen)&&
+           stormrailHistory.finaleGateResident) {
+            stormFinaleGateRepairDirty();
+        } else if(game->stormrailFinaleGateOpen<STORMRAIL_FINALE_OPEN_TICKS)
+            for(shot=0;shot<2;shot++) {
+                WORD gateY=(WORD)(shot?STORM_FINALE_GATE_H:0);
+                worldX=(WORD)(game->cameraX+gateX);
+                physicalX=prototypePhysicalX(worldX);
+                blitMaskedBob(stormFinaleGateMask+(LONG)shot*
+                        STORM_FINALE_GATE_H*STORM_FINALE_GATE_WORDS,
+                    stormFinaleGateBits+(LONG)shot*FRONT_PLANES*
+                        STORM_FINALE_GATE_H*STORM_FINALE_GATE_WORDS,
+                    STORM_FINALE_GATE_WORDS,STORM_FINALE_GATE_W,
+                    STORM_FINALE_GATE_H,physicalX,gateY);
+#ifdef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
+                if(stormrailFinaleGateResident(
+                       game->stormrailFinalePhase,
+                       game->stormrailFinaleGateOpen)) {
+                    stormrailHistory.finaleGateResident=TRUE;
+                    continue;
+                }
+#endif
+                stormrailHistory.finaleGateDrawn[shot]=TRUE;
+                stormrailHistory.finaleGateX[shot]=physicalX;
+                stormrailHistory.finaleGateWorldX[shot]=worldX;
+                stormrailHistory.finaleGateY[shot]=gateY;
+            }
+        for(shot=0;shot<STORMRAIL_FINALE_ACTOR_COUNT;shot++)
+            if(game->stormrailFinaleHp[shot]&&
+               (!game->stormrailFinaleFlash[shot]||
+                !(game->stormrailFinaleFlash[shot]&1))) {
+                WORD actorX=stormrailFinaleActorX(
+                    game->stormrailFinaleVisualTick,shot);
+                WORD actorY=stormrailFinaleActorY(
+                    game->stormrailFinaleVisualTick,shot);
+                actorX=(WORD)(actorX+stormrailFinaleHarrierArrivalOffset(
+                    game->stormrailFinalePhase,game->stormrailFinaleTick));
+                actorX=(WORD)(actorX+STORMRAIL_FINALE_RENDER_X_OFFSET);
+                actorY=(WORD)(actorY+STORMRAIL_FINALE_RENDER_Y_OFFSET);
+                worldX=(WORD)(game->cameraX+actorX);
+                physicalX=prototypePhysicalX(worldX);
+                blitMaskedBobTargetStride(frontDisplay,
+                    stormFinaleActorMask+(LONG)shot*
+                        STORM_FINALE_ACTOR_H*STORM_FINALE_ACTOR_WORDS,
+                    stormFinaleActorBits+(LONG)shot*FRONT_PLANES*
+                        STORM_FINALE_ACTOR_H*STORM_FINALE_ACTOR_WORDS,
+                    STORM_FINALE_ACTOR_WORDS,STORM_FINALE_ACTOR_H,
+                    STORMRAIL_FINALE_RENDER_W,STORMRAIL_FINALE_RENDER_H,
+                    physicalX,actorY);
+                stormrailHistory.finaleActorDrawn[shot]=TRUE;
+                stormrailHistory.finaleActorX[shot]=physicalX;
+                stormrailHistory.finaleActorWorldX[shot]=worldX;
+                stormrailHistory.finaleActorY[shot]=actorY;
+            }
+        if(game->stormrailFinalePhase==STORMRAIL_FINALE_PHASE_COMBAT)
+            for(shot=0;shot<STORMRAIL_FINALE_ATTACK_COUNT;shot++)
+                if(game->stormrailFinaleHp[stormrailFinaleAttacks[shot].actor]&&
+                   stormrailFinaleAttackEnabled(
+                       game->stormrailFinaleHp[STORMRAIL_FINALE_HARRIER],shot)&&
+                   stormrailFinaleAttackTelegraphing(
+                       game->stormrailFinaleTick,shot)&&
+                   (game->frameCounter&2)) {
+                    const struct StormrailFinaleActorContract *actor=
+                        &stormrailFinaleActors[stormrailFinaleAttacks[shot].actor];
+                    UBYTE actorId=stormrailFinaleAttacks[shot].actor;
+                    UBYTE warningPattern=(UBYTE)(PLAYER_PLASMA_PATTERNS+
+                        (stormrailFinaleAttacks[shot].kind==
+                         STORMRAIL_FINALE_ATTACK_HUNTER?4:2));
+                    WORD warningX=(WORD)(stormrailFinaleActorX(
+                        game->stormrailFinaleVisualTick,actorId)-8);
+                    WORD warningY=(WORD)(stormrailFinaleActorY(
+                        game->stormrailFinaleVisualTick,actorId)+
+                        actor->height/2-4);
+                    worldX=(WORD)(game->cameraX+warningX);
+                    physicalX=prototypePhysicalX(worldX);
+                    blitMaskedBob(plasmaMaskRow(warningPattern,TRUE,0),
+                        plasmaBitsRow(warningPattern,TRUE,0,0),
+                        PLASMA_SOURCE_WORDS,PROJECTILE_W,PROJECTILE_H,
+                        physicalX,warningY);
+                    stormrailHistory.finaleWarningDrawn[shot]=TRUE;
+                    stormrailHistory.finaleWarningX[shot]=physicalX;
+                    stormrailHistory.finaleWarningWorldX[shot]=worldX;
+                    stormrailHistory.finaleWarningY[shot]=warningY;
+                }
+    }
+    for(shot=0;shot<STORMRAIL_MAX_SHOTS;shot++) {
+      if(game->stormrailShotActive[shot]) {
+        worldX=(WORD)(game->cameraX+game->stormrailShotX[shot]);
+        if(stormrailVerticalRectSafe(game->stormrailShotY[shot],PROJECTILE_H)&&
+           prototypeRectFits(worldX,PROJECTILE_W)) {
+            physicalX=prototypePhysicalX(worldX);
+            blitMaskedBob(plasmaMaskRow(0,FALSE,0),
+                          plasmaBitsRow(0,FALSE,0,0),
+                          PLASMA_SOURCE_WORDS,PROJECTILE_W,PROJECTILE_H,
+                          physicalX,game->stormrailShotY[shot]);
+            stormrailHistory.shotDrawn[shot]=TRUE;
+            stormrailHistory.shotX[shot]=physicalX;
+            stormrailHistory.shotWorldX[shot]=worldX;
+            stormrailHistory.shotY[shot]=game->stormrailShotY[shot];
+        } else if(!stormrailVerticalRectSafe(game->stormrailShotY[shot],
+                                              PROJECTILE_H))
+            stormrailUnsafeBlits++;
+      }
+    }
+    for(shot=0;shot<STORMRAIL_MAX_ENEMIES;shot++) if(game->stormrailEnemyActive[shot]) {
+        UBYTE enemyFrame=game->stormrailEnemyKind[shot];
+        worldX=(WORD)(game->cameraX+game->stormrailEnemyX[shot]);
+        if(stormrailVerticalRectSafe(game->stormrailEnemyY[shot],STORM_DRONE_H)&&prototypeRectFits(worldX,STORM_DRONE_W)) {
+            physicalX=prototypePhysicalX(worldX);
+            blitMaskedBob(stormDroneMask+(LONG)enemyFrame*STORM_DRONE_H*STORM_DRONE_WORDS,
+                stormDroneBits+(LONG)enemyFrame*FRONT_PLANES*STORM_DRONE_H*STORM_DRONE_WORDS,
+                STORM_DRONE_WORDS,STORM_DRONE_W,STORM_DRONE_H,physicalX,game->stormrailEnemyY[shot]);
+            stormrailHistory.enemyDrawn[shot]=TRUE; stormrailHistory.enemyX[shot]=physicalX;
+            stormrailHistory.enemyWorldX[shot]=worldX; stormrailHistory.enemyY[shot]=game->stormrailEnemyY[shot];
+            stormrailHistory.enemyFrame[shot]=enemyFrame;
+        } else if(!stormrailVerticalRectSafe(game->stormrailEnemyY[shot],
+                                              STORM_DRONE_H))
+            stormrailUnsafeBlits++;
+    }
+    for(shot=0;shot<STORMRAIL_MAX_OBSTACLES;shot++)
+        if(game->stormrailObstacleActive[shot]) {
+            UBYTE type=game->stormrailObstacleType[shot];
+            UBYTE obstacleFrame=game->stormrailObstacleFrame[shot];
+            WORD width=(WORD)stormrailObstacleWidth(type);
+            WORD height=(WORD)stormrailObstacleHeight(type);
+            WORD words=(WORD)(type==STORMRAIL_OBSTACLE_BIG?
+                STORM_ROCK_BIG_WORDS:type==STORMRAIL_OBSTACLE_PILLAR?
+                STORM_ROCK_PILLAR_WORDS:STORM_ROCK_SHARD_WORDS);
+            UWORD *mask=type==STORMRAIL_OBSTACLE_BIG?
+                stormRockBigMask+(LONG)obstacleFrame*height*words:
+                type==STORMRAIL_OBSTACLE_PILLAR?
+                stormRockPillarMask+(LONG)obstacleFrame*height*words:
+                stormRockShardMask+(LONG)obstacleFrame*height*words;
+            UWORD *bits=type==STORMRAIL_OBSTACLE_BIG?
+                stormRockBigBits+(LONG)obstacleFrame*FRONT_PLANES*height*words:
+                type==STORMRAIL_OBSTACLE_PILLAR?
+                stormRockPillarBits+(LONG)obstacleFrame*FRONT_PLANES*height*words:
+                stormRockShardBits+(LONG)obstacleFrame*FRONT_PLANES*height*words;
+            worldX=(WORD)(game->cameraX+game->stormrailObstacleX[shot]);
+            if((!game->stormrailObstacleFlash[shot]||
+                !(game->stormrailObstacleFlash[shot]&1))&&
+               stormrailVerticalRectSafe(game->stormrailObstacleY[shot],height)&&
+               prototypeRectFits(worldX,width)) {
+                physicalX=prototypePhysicalX(worldX);
+                blitMaskedBob(mask,bits,words,width,height,physicalX,
+                              game->stormrailObstacleY[shot]);
+                stormrailHistory.obstacleDrawn[shot]=TRUE;
+                stormrailHistory.obstacleX[shot]=physicalX;
+                stormrailHistory.obstacleWorldX[shot]=worldX;
+                stormrailHistory.obstacleY[shot]=game->stormrailObstacleY[shot];
+                stormrailHistory.obstacleType[shot]=type;
+                stormrailHistory.obstacleFrame[shot]=obstacleFrame;
+            } else if(!stormrailVerticalRectSafe(
+                          game->stormrailObstacleY[shot],height))
+                stormrailUnsafeBlits++;
+        }
+    for(shot=0;shot<STORMRAIL_MAX_HOSTILE_SHOTS;shot++) if(game->stormrailHostileActive[shot]) {
+        UBYTE hostilePattern=(UBYTE)(PLAYER_PLASMA_PATTERNS+
+            (game->stormrailHostileKind[shot]==2?4:
+             game->stormrailHostileKind[shot]?2+((game->frameCounter>>1)&1):
+             ((game->frameCounter>>1)&1)));
+        worldX=(WORD)(game->cameraX+game->stormrailHostileX[shot]);
+        if(stormrailVerticalRectSafe(game->stormrailHostileY[shot],PROJECTILE_H)&&prototypeRectFits(worldX,PROJECTILE_W)) {
+            physicalX=prototypePhysicalX(worldX);
+            blitMaskedBob(plasmaMaskRow(hostilePattern,TRUE,0),
+                plasmaBitsRow(hostilePattern,TRUE,0,0),PLASMA_SOURCE_WORDS,
+                PROJECTILE_W,PROJECTILE_H,physicalX,
+                game->stormrailHostileY[shot]);
+            stormrailHistory.hostileDrawn[shot]=TRUE; stormrailHistory.hostileX[shot]=physicalX;
+            stormrailHistory.hostileWorldX[shot]=worldX; stormrailHistory.hostileY[shot]=game->stormrailHostileY[shot];
+        }
+    }
+    for(shot=0;shot<STORMRAIL_MAX_REWARDS;shot++) if(game->stormrailRewardActive[shot]) {
+        worldX=(WORD)(game->cameraX+game->stormrailRewardX[shot]);
+        if(stormrailVerticalRectSafe(game->stormrailRewardY[shot],COLLECTIBLE_H)&&prototypeRectFits(worldX,COLLECTIBLE_W)) {
+            physicalX=prototypePhysicalX(worldX);
+            UWORD *rewardMask=game->stormrailRewardKind[shot]==STORMRAIL_REWARD_HEART?
+                heartMask:diamondMask;
+            UWORD *rewardBits=game->stormrailRewardKind[shot]==STORMRAIL_REWARD_HEART?
+                heartBits:diamondBits;
+            blitMaskedBob(rewardMask,rewardBits,DIAMOND_SOURCE_WORDS,
+                COLLECTIBLE_W,COLLECTIBLE_H,physicalX,
+                game->stormrailRewardY[shot]);
+            stormrailHistory.rewardDrawn[shot]=TRUE; stormrailHistory.rewardX[shot]=physicalX;
+            stormrailHistory.rewardWorldX[shot]=worldX; stormrailHistory.rewardY[shot]=game->stormrailRewardY[shot];
+        }
+    }
+}
+#endif
+
 static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
 {
     UBYTE plane; WORD localX=x;
@@ -1576,11 +2760,27 @@ static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
 #else
     clean=frontClean->bitmap;
 #endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_FLIGHT&&
+       stormFlightTargetClean[prototypePreparedCopper])
+        clean=stormFlightBlank;
+#endif
 #endif
     {
-    UWORD words=(UWORD)(((localX&15)+width+15)>>4);
+    UWORD words=(UWORD)stormrailRestoreWordCount(localX,width);
+#ifdef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
+    stormFinaleGateMarkDamage(
+        stormrailRestoreFootprintWorldX(sourceX,localX),y,
+        stormrailRestoreFootprintWidth(localX,width),height);
+#endif
     LONG at=(LONG)y*frontDisplay->BytesPerRow+(localX>>4)*2;
-    LONG sourceAt=(LONG)y*clean->BytesPerRow+(sourceX>>4)*2;
+    LONG sourceAt=(LONG)y*clean->BytesPerRow+
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        (game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_FLIGHT&&
+         stormFlightTargetClean[prototypePreparedCopper]?0:(sourceX>>4)*2);
+#else
+        (sourceX>>4)*2;
+#endif
     for(plane=0;plane<FRONT_PLANES;plane++) {
         platformWaitBlit();
 #ifndef SPARKPAW_BOB_PER_PLANE_SETUP_REFERENCE
@@ -1600,10 +2800,28 @@ static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
     }
 }
 
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static void blitMaskedBobTargetStride(struct BitMap *target,UWORD *mask,
+                                UWORD *bits,WORD sourceWords,WORD planeRows,
+                                WORD width,WORD height,WORD x,WORD y);
+
 static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
                                 WORD sourceWords,WORD width,WORD height,
                                 WORD x,WORD y)
 {
+    blitMaskedBobTargetStride(target,mask,bits,sourceWords,height,width,height,x,y);
+}
+
+static void blitMaskedBobTargetStride(struct BitMap *target,UWORD *mask,
+                                UWORD *bits,WORD sourceWords,WORD planeRows,
+                                WORD width,WORD height,WORD x,WORD y)
+{
+#else
+static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
+                                WORD sourceWords,WORD width,WORD height,
+                                WORD x,WORD y)
+{
+#endif
     UBYTE plane; UWORD shift=(UWORD)(x&15);
     UWORD words=(UWORD)((shift+width+15)>>4);
     LONG at=(LONG)y*target->BytesPerRow+(x>>4)*2;
@@ -1623,7 +2841,11 @@ static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
         }
 #endif
         hw->bltapt=mask;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        hw->bltbpt=bits+(LONG)plane*planeRows*sourceWords;
+#else
         hw->bltbpt=bits+(LONG)plane*height*sourceWords;
+#endif
         hw->bltcpt=target->Planes[plane]+at;
         hw->bltdpt=target->Planes[plane]+at;
         hw->bltsize=(UWORD)((height<<6)|words);
@@ -1660,6 +2882,31 @@ static BOOL buildDiamondPattern(void)
     }
     return TRUE;
 }
+
+#ifdef SPARKPAW_STORMRAIL_PROOF
+static BOOL buildHeartPattern(void)
+{
+    UBYTE plane; WORD x,y;
+    heartMask=(UWORD *)AllocMem(COLLECTIBLE_H*DIAMOND_SOURCE_WORDS*2,
+                                MEMF_CHIP|MEMF_CLEAR);
+    heartBits=(UWORD *)AllocMem(COLLECTIBLE_H*DIAMOND_SOURCE_WORDS*
+                                FRONT_PLANES*2,MEMF_CHIP|MEMF_CLEAR);
+    if(!heartMask||!heartBits) return FALSE;
+    for(y=0;y<COLLECTIBLE_H;y++) for(x=0;x<COLLECTIBLE_W;x++) {
+        UBYTE sourceMask=(UBYTE)(0x80>>(x&7));
+        LONG sourceAt=(LONG)y*heartSprite->rowBytes+(x>>3);
+        UWORD bit=(UWORD)(0x8000U>>x);
+        UBYTE pen;
+        if(!(heartSprite->mask[sourceAt]&sourceMask)) continue;
+        pen=pixel(heartSprite->bitmap,x,y,FRONT_PLANES);
+        heartMask[(LONG)y*DIAMOND_SOURCE_WORDS]|=bit;
+        for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
+            heartBits[((LONG)plane*COLLECTIBLE_H+y)*
+                      DIAMOND_SOURCE_WORDS]|=bit;
+    }
+    return TRUE;
+}
+#endif
 
 static UWORD *coreMaskFrame(UBYTE frame)
 {
@@ -1919,10 +3166,16 @@ static void restoreSplashBob(void)
 #endif
                     splashDrawnX,splashDrawnY,SPLASH_W,SPLASH_H);
     splashDrawn=FALSE;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    memset(&stormrailHistory,0,sizeof(stormrailHistory));
+#endif
 }
 
 static void drawSplashBob(void)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     UBYTE frame;
     if(!game->waterSplashTimer) return;
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -2044,6 +3297,9 @@ static void restoreCollectibleBobs(void)
 
 static void drawCollectibleBobs(void)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     static const BYTE hover[8]={0,-1,-2,-1,0,1,2,1};
     WORD index;
 #ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
@@ -2168,6 +3424,9 @@ static void restoreCoreBob(void)
 
 static void drawCoreBob(void)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     WORD worldX=LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2;
     WORD y=desiredCoreY();
     UBYTE frame=desiredCoreFrame();
@@ -2217,6 +3476,9 @@ static void restoreExtraLifeBob(void)
 
 static void drawExtraLifeBob(void)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     if(!extraLifeRenderVisible()) return;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     {
@@ -2263,6 +3525,9 @@ static void eraseProjectileBobs(void)
 
 static void drawProjectileBobs(void)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     WORD i;
     for(i=0;i<MAX_PROJECTILES;i++) {
         struct Projectile *p=projectileAt(i); UBYTE pattern,left;
@@ -2357,6 +3622,9 @@ static void restoreEnemyBob(void)
 
 static void drawEnemyBob(void)
 {
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     WORD i,y[MAX_ENEMIES]; UBYTE order[MAX_ENEMIES];
     for(i=0;i<MAX_ENEMIES;i++) {
         struct Enemy *enemy=enemyAt(i);
@@ -2427,9 +3695,17 @@ BOOL rendererLoadGameplay(void)
     frontClean=assetsFrontClean(); rearWorld=assetsRearWorld();
     sprites=assetsPlayerSprites(); coreSprite=assetsStormstoneCore();
     extraLifeSprite=assetsExtraLife();
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    stormrailSprite=assetsStormrailFamily();
+    stormrailObstacleSprite=assetsStormrailObstacles();
+    stormrailFlightRear=assetsStormrailFlightRear();
+#endif
     configureEnemyCaches();
     hudBase=assetsHudBase();
     diamondSprite=assetsCollectibleDiamond();
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    heartSprite=assetsStormrailHeart();
+#endif
     return TRUE;
 }
 
@@ -2442,7 +3718,12 @@ static BOOL aga32DisplayLayoutValid(void)
        ((ULONG)hudBlankPlane()&3)||
        (frontDisplay->BytesPerRow&3)) return FALSE;
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
-    if(!rearDisplay||(rearDisplay->BytesPerRow&3)) return FALSE;
+    if(!rearDisplay||(rearDisplay->BytesPerRow&3)
+#ifdef SPARKPAW_STORMRAIL_PROOF
+       ||(game->stormrailActive&&
+          (!stormFlightRearDisplay||(stormFlightRearDisplay->BytesPerRow&3)))
+#endif
+       ) return FALSE;
 #else
     if(rearWorld->bitmap->BytesPerRow&3) return FALSE;
 #endif
@@ -2491,6 +3772,24 @@ static BOOL prepareRearGuardedDisplay(void)
             CopyMem(source->Planes[plane]+(LONG)row*source->BytesPerRow,
                     rearDisplay->Planes[plane]+(LONG)row*rearDisplay->BytesPerRow+
                     PLAYFIELD_GUARD_BYTES,source->BytesPerRow);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) {
+    source=stormrailFlightRear->bitmap;
+    stormFlightRearDisplay=AllocBitMap(
+        (UWORD)((source->BytesPerRow+PLAYFIELD_GUARD_BYTES)*8),
+        stormrailFlightRear->height,REAR_PLANES,
+        BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    if(!stormFlightRearDisplay||stormFlightRearDisplay->BytesPerRow<
+       source->BytesPerRow+PLAYFIELD_GUARD_BYTES)
+        return FALSE;
+    for(plane=0;plane<REAR_PLANES;plane++)
+        for(row=0;row<stormrailFlightRear->height;row++)
+            CopyMem(source->Planes[plane]+(LONG)row*source->BytesPerRow,
+                    stormFlightRearDisplay->Planes[plane]+
+                    (LONG)row*stormFlightRearDisplay->BytesPerRow+
+                    PLAYFIELD_GUARD_BYTES,source->BytesPerRow);
+    }
+#endif
     return TRUE;
 }
 #endif
@@ -2507,6 +3806,15 @@ BOOL rendererPrepareGameplay(void)
 } while(0)
 #endif
     game=gameState();
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    memset(stormFlightTargetClean,0,sizeof(stormFlightTargetClean));
+    stormApproachReleased=FALSE;
+    if(game->stormrailActive) {
+        stormFlightBlank=AllocBitMap(128,WORLD_H,FRONT_PLANES,
+                                      BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+        if(!stormFlightBlank) return FALSE;
+    }
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     /* A resident Level-1 replay allocates fresh bitmaps but reuses this
        module's static storage. Never let Bob restore history from the
@@ -2644,7 +3952,13 @@ BOOL rendererPrepareGameplay(void)
         buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE));
     DIAG_LOAD(DIAG_LOAD_STRIDER_STAGE,prepareStriderStages());
     DIAG_LOAD(DIAG_LOAD_PLASMA,buildPlasmaPatterns());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&!buildStormrailPatterns()) return FALSE;
+#endif
     DIAG_LOAD(DIAG_LOAD_DIAMOND,buildDiamondPattern());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&!buildHeartPattern()) return FALSE;
+#endif
     DIAG_LOAD(DIAG_LOAD_DIAMOND,buildCorePattern());
     DIAG_LOAD(DIAG_LOAD_DIAMOND,buildExtraLifePattern());
     DIAG_LOAD(DIAG_LOAD_STATIC_COLLECTIBLES,prepareStaticCollectibles());
@@ -2659,6 +3973,10 @@ BOOL rendererPrepareGameplay(void)
     STARTUP_REQUIRE("strider_stages",prepareStriderStages());
     STARTUP_REQUIRE("plasma_patterns",buildPlasmaPatterns());
     STARTUP_REQUIRE("diamond_pattern",buildDiamondPattern());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive)
+        STARTUP_REQUIRE("heart_pattern",buildHeartPattern());
+#endif
     STARTUP_REQUIRE("core_pattern",buildCorePattern());
     STARTUP_REQUIRE("extra_life_pattern",buildExtraLifePattern());
     STARTUP_REQUIRE("static_collectibles",prepareStaticCollectibles());
@@ -2668,7 +3986,15 @@ BOOL rendererPrepareGameplay(void)
     if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)||
        !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)||
        !prepareStriderStages()||
-       !buildPlasmaPatterns()||!buildDiamondPattern()||!buildCorePattern()||
+       !buildPlasmaPatterns()||
+#ifdef SPARKPAW_STORMRAIL_PROOF
+       (game->stormrailActive&&!buildStormrailPatterns())||
+#endif
+       !buildDiamondPattern()||
+#ifdef SPARKPAW_STORMRAIL_PROOF
+       (game->stormrailActive&&!buildHeartPattern())||
+#endif
+       !buildCorePattern()||
        !buildExtraLifePattern()||
        !prepareStaticCollectibles()||!buildWaterPatterns()||
        !buildSplashPatterns())
@@ -2723,7 +4049,12 @@ BOOL rendererPrepareGameplay(void)
         GfxBase->VBCounter-diagnosticLoadStart;
 #endif
     assetsUnloadGameplayConversionSources();
-    sprites=NULL; diamondSprite=NULL; coreSprite=NULL; extraLifeSprite=NULL;
+    sprites=NULL; diamondSprite=NULL; heartSprite=NULL;
+    coreSprite=NULL; extraLifeSprite=NULL;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    stormrailSprite=NULL;
+    stormrailObstacleSprite=NULL;
+#endif
     enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE].source=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER].source=NULL;
     setScroll(0,0);
@@ -2743,6 +4074,10 @@ void rendererResetGameplay(void)
     game=gameState();
     platformWaitBlit();
     splashDrawn=FALSE;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    memset(stormFlightTargetClean,0,sizeof(stormFlightTargetClean));
+    if(game->stormrailActive) resetStormrailApproachCopperPalettes();
+#endif
 #ifndef SPARKPAW_ROLLING_PROTOTYPE
     coreDrawn=FALSE;
     extraLifeDrawn=FALSE;
@@ -2790,6 +4125,22 @@ void rendererResetGameplay(void)
 void rendererCleanup(void)
 {
     WORD facing,frame,channel,type;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(stormFlightBlank) {
+        FreeBitMap(stormFlightBlank); stormFlightBlank=NULL;
+    }
+#ifndef SPARKPAW_CAMPAIGN_PLAY
+    for(frame=0;frame<STORM_PROOF_FRAMES;frame++) {
+        if(stormProofPlanes[frame]) FreeMem(stormProofPlanes[frame],
+            (LONG)stormProofRowBytes[frame]*WORLD_H*FRONT_PLANES);
+        /* Campaign cleanup runs between Level 1 and Stormrail and again on
+           BACK TO TITLE. Retire optional proof captures completely so that
+           the second cleanup cannot free a stale Level-1 address. */
+        stormProofPlanes[frame]=NULL;
+        stormProofRowBytes[frame]=0;
+    }
+#endif
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     if(prototypeCopper[0]) FreeMem(prototypeCopper[0],COP_WORDS*2);
     if(prototypeCopper[1]) FreeMem(prototypeCopper[1],COP_WORDS*2);
@@ -2838,6 +4189,12 @@ void rendererCleanup(void)
                             FRONT_PLANES*2);
     if(diamondMask) FreeMem(diamondMask,COLLECTIBLE_H*
                             DIAMOND_SOURCE_WORDS*2);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(heartBits) FreeMem(heartBits,COLLECTIBLE_H*DIAMOND_SOURCE_WORDS*
+                          FRONT_PLANES*2);
+    if(heartMask) FreeMem(heartMask,COLLECTIBLE_H*
+                          DIAMOND_SOURCE_WORDS*2);
+#endif
     if(coreBits) FreeMem(coreBits,(LONG)CORE_SPRITE_FRAMES*FRONT_PLANES*
                         CORE_SPRITE_H*CORE_SOURCE_WORDS*2);
     if(coreMask) FreeMem(coreMask,(LONG)CORE_SPRITE_FRAMES*CORE_SPRITE_H*
@@ -2846,6 +4203,63 @@ void rendererCleanup(void)
         EXTRA_LIFE_SOURCE_WORDS*FRONT_PLANES*2);
     if(extraLifeMask) FreeMem(extraLifeMask,EXTRA_LIFE_H*
         EXTRA_LIFE_SOURCE_WORDS*2);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(stormVehicleMask) FreeMem(stormVehicleMask,
+        (LONG)STORM_VEHICLE_FRAMES*STORM_VEHICLE_H*
+        STORM_VEHICLE_WORDS*2);
+    if(stormVehicleBits) FreeMem(stormVehicleBits,
+        (LONG)STORM_VEHICLE_FRAMES*FRONT_PLANES*STORM_VEHICLE_H*
+        STORM_VEHICLE_WORDS*2);
+    if(stormFlightMask) FreeMem(stormFlightMask,
+        STORMRAIL_LAUNCH_BOB_H*STORM_VEHICLE_WORDS*2);
+    if(stormFlightBits) FreeMem(stormFlightBits,
+        (LONG)FRONT_PLANES*STORMRAIL_LAUNCH_BOB_H*STORM_VEHICLE_WORDS*2);
+    if(stormCompactMask) FreeMem(stormCompactMask,
+        STORMRAIL_FLIGHT_BOB_H*STORM_COMPACT_WORDS*2);
+    if(stormCompactBits) FreeMem(stormCompactBits,
+        (LONG)FRONT_PLANES*STORMRAIL_FLIGHT_BOB_H*STORM_COMPACT_WORDS*2);
+    if(stormDroneMask) FreeMem(stormDroneMask,
+        3L*STORM_DRONE_H*STORM_DRONE_WORDS*2);
+    if(stormDroneBits) FreeMem(stormDroneBits,
+        3L*FRONT_PLANES*STORM_DRONE_H*STORM_DRONE_WORDS*2);
+    if(stormRockBigMask) FreeMem(stormRockBigMask,
+        (LONG)STORM_ROCK_BIG_FRAMES*STORMRAIL_OBSTACLE_BIG_H*
+        STORM_ROCK_BIG_WORDS*2);
+    if(stormRockBigBits) FreeMem(stormRockBigBits,
+        (LONG)STORM_ROCK_BIG_FRAMES*FRONT_PLANES*STORMRAIL_OBSTACLE_BIG_H*
+        STORM_ROCK_BIG_WORDS*2);
+    if(stormRockShardMask) FreeMem(stormRockShardMask,
+        (LONG)STORM_ROCK_SHARD_FRAMES*STORMRAIL_OBSTACLE_SHARD_H*
+        STORM_ROCK_SHARD_WORDS*2);
+    if(stormRockShardBits) FreeMem(stormRockShardBits,
+        (LONG)STORM_ROCK_SHARD_FRAMES*FRONT_PLANES*
+        STORMRAIL_OBSTACLE_SHARD_H*
+        STORM_ROCK_SHARD_WORDS*2);
+    if(stormRockPillarMask) FreeMem(stormRockPillarMask,
+        (LONG)STORM_ROCK_PILLAR_FRAMES*STORMRAIL_OBSTACLE_PILLAR_H*
+        STORM_ROCK_PILLAR_WORDS*2);
+    if(stormRockPillarBits) FreeMem(stormRockPillarBits,
+        (LONG)STORM_ROCK_PILLAR_FRAMES*FRONT_PLANES*
+        STORMRAIL_OBSTACLE_PILLAR_H*STORM_ROCK_PILLAR_WORDS*2);
+    if(stormFinaleActorMask) FreeMem(stormFinaleActorMask,
+        (LONG)STORMRAIL_FINALE_ACTOR_COUNT*STORM_FINALE_ACTOR_H*
+        STORM_FINALE_ACTOR_WORDS*2);
+    if(stormFinaleActorBits) FreeMem(stormFinaleActorBits,
+        (LONG)STORMRAIL_FINALE_ACTOR_COUNT*FRONT_PLANES*STORM_FINALE_ACTOR_H*
+        STORM_FINALE_ACTOR_WORDS*2);
+    if(stormFinaleGateMask) FreeMem(stormFinaleGateMask,
+        STORM_FINALE_GATE_HALVES*STORM_FINALE_GATE_H*
+        STORM_FINALE_GATE_WORDS*2);
+    if(stormFinaleGateBits) FreeMem(stormFinaleGateBits,
+        (LONG)STORM_FINALE_GATE_HALVES*FRONT_PLANES*STORM_FINALE_GATE_H*
+        STORM_FINALE_GATE_WORDS*2);
+#ifdef SPARKPAW_STORMRAIL_DUST
+    if(stormDustMask) FreeMem(stormDustMask,
+        STORM_DUST_STYLES*STORM_DUST_H*STORM_DUST_WORDS*2);
+    if(stormDustBits) FreeMem(stormDustBits,
+        STORM_DUST_STYLES*FRONT_PLANES*STORM_DUST_H*STORM_DUST_WORDS*2);
+#endif
+#endif
     if(diamondBackground) FreeMem(diamondBackground,
         MAX_COLLECTIBLES*FRONT_PLANES*DIAMOND_PATCH_H*2);
     if(diamondWideBackground) FreeMem(diamondWideBackground,
@@ -2865,13 +4279,59 @@ void rendererCleanup(void)
     if(prototypeTarget[1].clean) FreeBitMap(prototypeTarget[1].clean);
 #endif
     if(prototypeTarget[1].display) FreeBitMap(prototypeTarget[1].display);
+    memset(prototypeTarget,0,sizeof(prototypeTarget));
+    memset(prototypeCopper,0,sizeof(prototypeCopper));
+    prototypeActiveCopper=prototypePreparedCopper=0;
+    prototypeCopperReady=FALSE;
 #else
     if(frontDisplay) FreeBitMap(frontDisplay);
 #endif
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
     if(rearDisplay) FreeBitMap(rearDisplay);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(stormFlightRearDisplay) FreeBitMap(stormFlightRearDisplay);
+#endif
 #endif
     assetsUnloadGameplay();
+    frontClean=rearWorld=sprites=hudBase=NULL;
+    diamondSprite=heartSprite=coreSprite=extraLifeSprite=NULL;
+    frontDisplay=NULL; cop=NULL;
+    plasmaMask=plasmaBits=diamondMask=diamondBits=NULL;
+    coreMask=coreBits=extraLifeMask=extraLifeBits=NULL;
+    diamondBackground=diamondWideBackground=NULL;
+    waterBits=splashMask=splashBits=NULL;
+    striderStageMask=striderStageBits=NULL;
+    memset(hwSprites,0,sizeof(hwSprites));
+    memset(hwSpriteStage,0,sizeof(hwSpriteStage));
+#ifdef SPARKPAW_AGA64_PLAYER_SPRITE
+    memset(hwSpriteStageAllocation,0,sizeof(hwSpriteStageAllocation));
+    nullSpriteAllocation=NULL;
+#endif
+    nullSprite=NULL;
+#if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+    rearDisplay=NULL;
+#endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    stormrailSprite=stormrailObstacleSprite=stormrailFlightRear=NULL;
+    heartMask=heartBits=NULL;
+    stormVehicleMask=stormVehicleBits=NULL;
+    stormFlightMask=stormFlightBits=NULL;
+    stormCompactMask=stormCompactBits=NULL;
+    stormDroneMask=stormDroneBits=NULL;
+    stormRockBigMask=stormRockBigBits=NULL;
+    stormRockShardMask=stormRockShardBits=NULL;
+    stormRockPillarMask=stormRockPillarBits=NULL;
+    stormFinaleActorMask=stormFinaleActorBits=NULL;
+    stormFinaleGateMask=stormFinaleGateBits=NULL;
+#ifdef SPARKPAW_STORMRAIL_DUST
+    stormDustMask=stormDustBits=NULL;
+#endif
+#if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+    stormFlightRearDisplay=NULL;
+#endif
+    memset(&stormrailHistory,0,sizeof(stormrailHistory));
+#endif
+    memset(enemyCaches,0,sizeof(enemyCaches));
 }
 
 UWORD *rendererCopperList(void)
@@ -2882,6 +4342,79 @@ UWORD *rendererCopperList(void)
     return cop;
 #endif
 }
+
+#ifdef SPARKPAW_STORMRAIL_PROOF
+#ifndef SPARKPAW_CAMPAIGN_PLAY
+BOOL rendererCaptureStormrailProof(UBYTE index)
+{
+    struct BitMap *bitmap;
+    LONG planeBytes; UBYTE plane;
+    if(index>=STORM_PROOF_FRAMES||stormProofPlanes[index]) return FALSE;
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    bitmap=prototypeTarget[prototypeActiveCopper].display;
+#else
+    bitmap=frontDisplay;
+#endif
+    if(!bitmap) return FALSE;
+    platformWaitBlit();
+    planeBytes=(LONG)bitmap->BytesPerRow*WORLD_H;
+    stormProofPlanes[index]=(UBYTE *)AllocMem(
+        planeBytes*FRONT_PLANES,MEMF_FAST);
+    if(!stormProofPlanes[index]) return FALSE;
+    for(plane=0;plane<FRONT_PLANES;plane++)
+        CopyMem(bitmap->Planes[plane],stormProofPlanes[index]+plane*planeBytes,
+                planeBytes);
+    stormProofRowBytes[index]=bitmap->BytesPerRow;
+    stormProofTargetX[index]=(UWORD)prototypePhysicalX(
+        game->stormrailMode?(WORD)(game->cameraX+game->stormrailX):180);
+    stormProofTargetY[index]=(UWORD)game->stormrailY;
+    return TRUE;
+}
+
+BOOL rendererWriteStormrailProofFrames(void)
+{
+    static const UBYTE magic[4]={'E','L','P','2'};
+    static const char *names[STORM_PROOF_FRAMES]={
+        "PROGDIR:stormrail-approach.raw",
+        "PROGDIR:stormrail-boarding.raw",
+        "PROGDIR:stormrail-flight-a.raw",
+        "PROGDIR:stormrail-flight-b.raw",
+        "PROGDIR:stormrail-loop-a.raw",
+        "PROGDIR:stormrail-rock-intact.raw",
+        "PROGDIR:stormrail-rock-cracked.raw",
+        "PROGDIR:stormrail-rock-shards.raw"
+    };
+    UBYTE index; BOOL valid=TRUE;
+    for(index=0;index<STORM_PROOF_FRAMES;index++) {
+        BPTR file; UWORD header[6]; LONG bytes;
+        if(!stormProofPlanes[index]) { valid=FALSE; continue; }
+        file=Open((STRPTR)names[index],MODE_NEWFILE);
+        if(!file) { valid=FALSE; continue; }
+        header[0]=(UWORD)(stormProofRowBytes[index]*8);
+        header[1]=WORLD_H;
+        header[2]=stormProofRowBytes[index];
+        header[3]=(UWORD)game->cameraX;
+        header[4]=stormProofTargetX[index];
+        header[5]=stormProofTargetY[index];
+        bytes=(LONG)stormProofRowBytes[index]*WORLD_H*FRONT_PLANES;
+        if(Write(file,(APTR)magic,4)!=4||
+           Write(file,(APTR)header,sizeof(header))!=sizeof(header)||
+           Write(file,stormProofPlanes[index],bytes)!=bytes) valid=FALSE;
+        Close(file);
+    }
+    return valid;
+}
+
+#else
+BOOL rendererCaptureStormrailProof(UBYTE index) { return FALSE; }
+BOOL rendererWriteStormrailProofFrames(void) { return FALSE; }
+#endif
+
+ULONG rendererStormrailUnsafeBlits(void)
+{
+    return stormrailUnsafeBlits;
+}
+#endif
 
 #ifdef SPARKPAW_REPLAY_PROOF
 BOOL rendererReplayPresentationValid(void)
@@ -2972,11 +4505,33 @@ void rendererUpdateGameplay(void)
     setHudPointers();
     performanceProfileEnd(PERF_HUD_UPDATE,profileStart);
     profileStart=performanceProfileBegin();
-    setScroll(game->cameraX,game->cameraX>>2);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&
+       game->stormrailMode>=STORMRAIL_MODE_LAUNCH_OUT)
+        setStormrailTransitionPalette();
+#endif
+    setScroll(game->cameraX,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+              game->stormrailActive&&
+              game->stormrailMode==STORMRAIL_MODE_FLIGHT?
+                  stormrailRearScroll(game->stormrailDistance):
+#endif
+              game->cameraX>>2);
     performanceProfileEnd(PERF_SCROLL_PATCH,profileStart);
 #else
     setCoreWorldFlash(); setHardwareSprite(); setHudPointers();
-    setScroll(game->cameraX,game->cameraX>>2);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive&&
+       game->stormrailMode>=STORMRAIL_MODE_LAUNCH_OUT)
+        setStormrailTransitionPalette();
+#endif
+    setScroll(game->cameraX,
+#ifdef SPARKPAW_STORMRAIL_PROOF
+              game->stormrailActive&&
+              game->stormrailMode==STORMRAIL_MODE_FLIGHT?
+                  stormrailRearScroll(game->stormrailDistance):
+#endif
+              game->cameraX>>2);
 #endif
 }
 
@@ -3031,12 +4586,27 @@ void rendererDrawGameplayBobs(void)
            display, sprite and audio DMA keep their higher hardware priority. */
         platformSetBlitterPriority(TRUE);
 #endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        if(game->stormrailActive&&
+           game->stormrailMode==STORMRAIL_MODE_FLIGHT) {
+            /* Flight is a derived compositor over the same rolling AGA
+               targets. It owns only vehicle/shot history; no platform Bob
+               family may restore or draw into a flight target. */
+            DIAG_CALL(0,PERF_STORMRAIL_RESTORE,restoreStormrailBobs());
+            DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,
+                      prototypePrepareCompactTarget(target));
+            DIAG_CALL(1,PERF_STORMRAIL_DRAW,drawStormrailBobs());
+        } else {
+#endif
         DIAG_CALL(0,PERF_BOB_PROJECTILE_RESTORE,eraseProjectileBobs());
         DIAG_CALL(1,PERF_BOB_ENEMY_RESTORE,restoreEnemyBob());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCollectibleBobs());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCoreBob());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreExtraLifeBob());
         DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        if(game->stormrailActive) restoreStormrailBobs();
+#endif
         DIAG_CALL(3,PERF_BOB_WATER,animateWater());
 #ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
         DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,prototypePrepareCompactTarget(target));
@@ -3051,7 +4621,13 @@ void rendererDrawGameplayBobs(void)
 #endif
         DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
         DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        if(game->stormrailActive) drawStormrailBobs();
+#endif
         DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+        }
+#endif
 #if defined(SPARKPAW_RENDER_DIAGNOSTIC) && \
     !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
         profileStart=performanceProfileBegin();
@@ -3065,7 +4641,12 @@ void rendererDrawGameplayBobs(void)
         platformSetBlitterPriority(FALSE);
 #endif
         prototypeSaveHistory(prototypePreparedCopper);
+        /* Normal Level 1 has no actor-history consumer before publication.
+           Publish exposes the union using the newly active target. Keep the
+           pre-publication view for diagnostics and the Stormrail renderer. */
+#if defined(SPARKPAW_STORMRAIL_PROOF) || defined(SPARKPAW_RENDER_DIAGNOSTIC)
         prototypeExposeHistoryUnion();
+#endif
         prototypeCopperReady=TRUE;
     }
 #else
@@ -3075,12 +4656,18 @@ void rendererDrawGameplayBobs(void)
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCoreBob());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreExtraLifeBob());
     DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) restoreStormrailBobs();
+#endif
     DIAG_CALL(3,PERF_BOB_WATER,animateWater());
     DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCoreBob());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawExtraLifeBob());
     DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) drawStormrailBobs();
+#endif
     DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
 #endif
 #undef DIAG_CALL
@@ -3109,14 +4696,56 @@ static ULONG diagnosticPointer(UWORD highWord)
 
 void rendererDiagnosticUpdateEntry(UWORD line)
 {
-    ULONG updateField;
+    ULONG updateTick;
     memset(&diagnosticCurrent,0,sizeof(diagnosticCurrent));
     memset(&diagnosticFrame,0,sizeof(diagnosticFrame));
     diagnosticCurrent.gameFrame=game->frameCounter;
     diagnosticCurrent.updateStamp=diagnosticSample(line);
-    updateField=diagnosticCurrent.updateStamp/SPARKPAW_PAL_LINES;
+    /* Raster lines and graphics.library's VBCounter can both miss complete
+       fields while the custom display owns the machine. CIAB timer B is the
+       independent E-clock; adjacent updates remain below its 92 ms wrap. */
+    updateTick=platformProfileTimerTicks();
+#ifdef SPARKPAW_LEVEL1_CADENCE_TEST
+    /* Stop the bounded Level-1 sample at Core completion. The final image may
+       remain resident while the user reaches for LMB without diluting FPS. */
+    if(gameLevelComplete()) {
+        diagnosticHasPreviousUpdate=FALSE;
+        diagnosticPreviousUpdateField=updateTick;
+    } else
+#endif
+#ifdef SPARKPAW_STORMRAIL_USER_CADENCE_TEST
+#ifdef SPARKPAW_STORMRAIL_INTERLUDE_CADENCE_TEST
+    /* Measure the integrated flight, transition and finale, but never include
+       arbitrary user dwell after the automatic passage has completed. */
+    if(game->stormrailMode!=STORMRAIL_MODE_FLIGHT||
+       game->stormrailLaunchTimer<STORMRAIL_CADENCE_START||
+       (game->stormrailFinaleActive&&
+        game->stormrailFinalePhase==STORMRAIL_FINALE_PHASE_COMPLETE)) {
+        diagnosticHasPreviousUpdate=FALSE;
+        diagnosticPreviousUpdateField=updateTick;
+    } else
+#elif defined(SPARKPAW_STORMRAIL_FINALE_PROOF)
+    /* A Gate-6 cadence drawer starts directly before the latch. Include only
+       stationary combat intervals; exclude setup, opening and automatic exit. */
+    if(!game->stormrailFinaleActive||
+       game->stormrailFinalePhase!=STORMRAIL_FINALE_PHASE_COMBAT) {
+        diagnosticHasPreviousUpdate=FALSE;
+        diagnosticPreviousUpdateField=updateTick;
+    } else
+#else
+    /* The player may take an arbitrary time to board. Measure exactly 1,000
+       adjacent Flight intervals, never an attractive but irrelevant sample
+       dominated by the idle cliff approach. */
+    if(game->stormrailMode!=STORMRAIL_MODE_FLIGHT||
+       game->stormrailLaunchTimer<STORMRAIL_CADENCE_START) {
+        diagnosticHasPreviousUpdate=FALSE;
+        diagnosticPreviousUpdateField=updateTick;
+    } else
+#endif
+#endif
     if(diagnosticHasPreviousUpdate) {
-        ULONG fields=updateField-diagnosticPreviousUpdateField;
+        ULONG elapsed=updateTick-diagnosticPreviousUpdateField;
+        ULONG fields=(elapsed+7094UL)/14188UL;
         if(fields<1) fields=1;
         diagnosticCadenceIntervals++;
         diagnosticCadenceFields+=fields;
@@ -3125,7 +4754,7 @@ void rendererDiagnosticUpdateEntry(UWORD line)
         else diagnosticCadenceThreePlus++;
         if(fields>diagnosticCadenceMax) diagnosticCadenceMax=fields;
     }
-    diagnosticPreviousUpdateField=updateField;
+    diagnosticPreviousUpdateField=updateTick;
     diagnosticHasPreviousUpdate=TRUE;
     diagnosticCurrent.cameraX=game->cameraX;
     diagnosticCurrent.playerX=playerState()->x>>8;
@@ -3391,4 +5020,10 @@ ULONG rendererPhase6PeakChipFree(void) { return phase6PeakChipFree; }
 ULONG rendererPhase6PeakChipLargest(void) { return phase6PeakChipLargest; }
 ULONG rendererPhase6PeakFastFree(void) { return phase6PeakFastFree; }
 ULONG rendererPhase6PeakFastLargest(void) { return phase6PeakFastLargest; }
+#endif
+
+#ifdef SPARKPAW_LEVEL1_RENDERER_TU_ISOLATION
+BOOL rendererCaptureStormrailProof(UBYTE index) { (void)index; return FALSE; }
+BOOL rendererWriteStormrailProofFrames(void) { return FALSE; }
+ULONG rendererStormrailUnsafeBlits(void) { return 0; }
 #endif

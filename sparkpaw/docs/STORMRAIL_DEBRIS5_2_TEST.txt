@@ -1,0 +1,21 @@
+SPARKPAW STORMRAIL DEBRIS 5.2 - SLOW LOOT ROCK
+================================================
+
+Debris 5 remains the accepted-enough fallback baseline. Debris 5.2 retains the
+5.1 unique rock-drop IDs and micro-variation. The second large loot rock travels
+left at three pixels per tick instead of four; all other large rocks remain
+fast. Medium and small debris no longer settles into horizontal passes through
+the middle: only three horizontal accents remain in upper/lower lanes, while
+the other pieces follow shallow straight diagonals.
+
+This gives one clearly longer aiming window for the six hits needed to crack
+and destroy it. Its authored 600-distance gap to the following large rock is
+greater than its complete 512-distance crossing lifetime, so two large rocks
+still cannot overlap. Destroying it must reveal its unique diamond (ID 33).
+
+Please check whether this one slower loot target is easy to recognize, remains
+challenging to finish, and visibly produces a diamond. Press LMB only when you
+want to freeze/save the diagnostic state.
+
+On life loss the formations respawn, but diamonds already collected from their
+rewards remain consumed. Only uncollected reward diamonds can appear again.

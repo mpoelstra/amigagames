@@ -6,11 +6,17 @@
 #include "collision_hazard_cache.h"
 #endif
 #include "level_data.h"
+#include "game.h"
 #include "projectile_sweep.h"
 #include "world_config.h"
 
 #include <dos/dos.h>
 #include <proto/dos.h>
+#ifdef SPARKPAW_MULTI_ADF
+#include "disk_media.h"
+#undef Open
+#define Open diskMediaOpen
+#endif
 
 #define GAME_H 224
 #define TILE_SIZE 16
@@ -18,6 +24,11 @@
 #define MAP_ROWS 14
 
 static UBYTE collision[MAP_COLS*MAP_ROWS];
+#ifdef SPARKPAW_STORMRAIL_PROOF
+/* Section ownership changes only while gameplay is unloaded. Cache it beside
+ * the collision data so Level-1's hottest query does not cross into game.c. */
+static BOOL stormrailCollision;
+#endif
 #ifdef SPARKPAW_COLLISION_HAZARD_CACHE
 static UBYTE hazardColumns[WORLD_W];
 
@@ -35,6 +46,9 @@ BOOL collisionLoad(void)
         Close(file); return FALSE;
     }
     Close(file);
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    stormrailCollision=gameStormrailActive();
+#endif
 #ifdef SPARKPAW_COLLISION_HAZARD_CACHE
     collisionBuildHazardCache(hazardColumns,WORLD_W,collisionHazardPredicate);
 #endif
@@ -44,6 +58,14 @@ BOOL collisionLoad(void)
 BOOL collisionSolidAt(WORD x,WORD y)
 {
     WORD tileX,tileY;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    /* One raised visible cliff is the entire on-foot route. Beyond its broken
+       edge is real empty space, so the Skimmer is the only continuation. */
+    if(stormrailCollision) {
+        if(x>=0&&x<176) return y>=168;
+        if(x>=176&&x<430) return FALSE;
+    }
+#endif
     if(x<0||x>=WORLD_W||y<0) return TRUE;
     /* Phase 6B.3A moves the continuous floor top to the visible cap while the
        accepted water columns remain open through the bottom death region. */

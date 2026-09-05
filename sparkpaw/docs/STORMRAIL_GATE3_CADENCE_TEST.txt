@@ -1,0 +1,25 @@
+Stormrail Gate 3 cadence test - FS-UAE/68020
+============================================
+
+This compile-guarded direct-start candidate contains the user-accepted Gate-3
+enemy, formation, projectile, collision, sound, score and diamond workload.
+Only the low-overhead cadence and renderer-ownership counters are enabled. It
+does not change alpha.68, campaign progression, Level 2 or ADF packaging.
+
+Run
+---
+
+1. Use the stock FS-UAE/68020 configuration.
+2. Start StormG3-Cadence and board the Skimmer normally.
+3. Fly and fight normally through all four formations. Move in every direction,
+   collect diamonds, dodge Orb fire and use held autofire for part of the run.
+4. The diagnostic ignores the arbitrary boarding time, measures exactly 1,000
+   Flight intervals from flight tick 400 through 1,400, then automatically
+   freezes while writing renderdiag.log; no mouse click is needed.
+5. Wait three seconds, then stop FS-UAE. It will not return to Workbench.
+6. Leave renderdiag.log in this drawer for Codex to inspect.
+
+Please report whether scrolling, movement, enemies, shots, pickups and audio
+looked and felt smooth. The comparison baseline is the accepted empty-flight
+Gate 2/2.5 run: 49.26 FPS over 1,000 intervals, 992 one-field intervals, zero
+ownership violations and 214/214 requested/started shots.

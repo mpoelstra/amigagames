@@ -1,0 +1,26 @@
+Stormrail Gate 2 targeted performance profile
+================================================
+
+This is a compile-guarded direct-start Gate 2 diagnostic, not an alpha or
+release build. The 68030 and 68020 drawers contain the exact same executable
+and assets. It times the coarse game, Copper, Bob and publication phases plus
+the Stormrail restore, compact-target and draw work. Per-WaitBlit timing is
+disabled to keep observer overhead bounded.
+
+Candidate: all 768 route phases map to 23 precomputed 12-bit palettes in
+readonly/Fast data. Expected pixels are bit-identical to the accepted dynamic
+calculation; this run verifies presentation and scoped cost.
+
+Run
+---
+
+1. Use the FS-UAE CPU configuration named by the drawer: 68030 or 68020.
+2. Start StormG2-Profile and board the Skimmer normally.
+3. After fade-in, fly for 20 to 30 seconds. Move in every direction and hold
+   Fire for roughly half the run so both ship and shot work are represented.
+4. Press the left mouse button once. The image deliberately freezes.
+5. Wait three seconds, then stop FS-UAE. It will not return to Workbench.
+6. Leave renderdiag.log in this drawer for Codex to inspect.
+
+Please report whether scrolling, movement and shots looked smooth or slow.
+Profiler cadence is observer-contaminated and is not the final 50 FPS verdict.

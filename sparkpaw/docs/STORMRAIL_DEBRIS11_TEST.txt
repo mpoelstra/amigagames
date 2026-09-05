@@ -1,0 +1,24 @@
+SPARKPAW STORMRAIL DEBRIS 1.1 - 68030 ART TEST
+================================================
+
+This is an art-only comparison against the accepted Debris 1.0 gameplay
+reference. All 28 events, six object slots, paths, speeds, HP, hit flashes,
+collisions, score, diamond drops and animation timing are unchanged.
+
+Run the drawer's Sparkpaw executable with the usual A1200/68030 FS-UAE setup
+and play through the debris field after formation four.
+
+Please judge only the revised native masonry family:
+
+1. Do the arch, slab, pillar and fragments now read as irregular weathered
+   castle-ruin debris rather than clean geometric blocks?
+2. Are the chipped silhouettes, uneven courses, broken faces and restrained
+   stone highlights richer without becoming noisy against any route palette?
+3. Does the stronger difference between the two tumble poses improve motion,
+   or does it look like distracting shape wobble?
+4. Is the large cracked loot block still immediately readable while firing and
+   steering through the dense field?
+5. Report any mask trail, clipped edge, loading hang or slowdown.
+
+Debris 1.0 remains archived as the exact rollback baseline. This test contains
+no gameplay changes, 1UP, clouds, route extension, finale or 68020 verdict.

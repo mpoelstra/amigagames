@@ -1,0 +1,11 @@
+Sparkpaw Level-1 renderer link-order - short 68030 gate
+======================================================
+
+This candidate changes no C gameplay or renderer operation. It restores the
+Level-1 renderer object's proven alpha.68 neighbourhood immediately after main,
+while keeping the Stormrail renderer cold at the end of the linked image.
+
+Briefly start Level 1, move/jump/shoot around enemies, then press Esc and confirm
+the ready screen. Select START AT: STORM RUINS, start, board and fly/shoot
+briefly, then press Esc again. Report only whether both sections and both Esc
+returns behave normally. This is not the 68020 performance measurement.

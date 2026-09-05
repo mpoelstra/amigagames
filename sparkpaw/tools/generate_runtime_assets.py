@@ -545,6 +545,32 @@ def make_collectible_diamond() -> tuple[Image.Image, bytes]:
     return image,bitmap_mask(image)
 
 
+def make_stormrail_heart() -> tuple[Image.Image, bytes]:
+    """Author the native 16x21 health pickup without scaling or filtering."""
+    image=indexed_image((32,21),FRONT16,0)
+    pixels=image.load()
+    spans=((2,6,9,13),(1,6,9,14),(0,15),(0,15),(0,15),(0,15),
+           (1,14),(1,14),(1,14),(2,13),(2,13),(3,12),(3,12),
+           (4,11),(5,10),(6,9),(7,8))
+    for row,span in enumerate(spans):
+        y=row+2
+        ranges=(span,) if len(span)==2 else (span[:2],span[2:])
+        for left,right in ranges:
+            for x in range(left,right+1):
+                edge=(x==left or x==right or row==0 or row==len(spans)-1)
+                pixels[x,y]=1 if edge else 2
+    # A small curved highlight describes soft volume without introducing the
+    # long angular facets that made the first version read as a gemstone.
+    for x,y in ((3,4),(4,4),(5,4),(2,5),(3,5),(2,6)):
+        pixels[x,y]=4
+    for x,y in ((6,4),(5,5),(6,5),(4,6),(5,6),(4,7)):
+        if pixels[x,y] not in (0,1): pixels[x,y]=3
+    image.crop((0,0,16,21)).save(
+        ROOT / "assets" / "concept" /
+        "sparkpaw-stormrail-heart-aga16-preview.png")
+    return image,bitmap_mask(image)
+
+
 def reserve_black_pen_zero(
         image: Image.Image,
         palette: list[tuple[int, int, int]],
@@ -1557,7 +1583,7 @@ def family_scale(poses: list[Image.Image], max_width: int = 46,
                max_height / max(p.height for p in poses))
 
 
-def make_sprites() -> tuple[Image.Image, bytes]:
+def make_sprites() -> tuple[Image.Image, bytes, Image.Image, bytes]:
     reference = Image.open(ROOT / "assets" / "sprites" /
                            "sparkpaw-sprites-reference-transparent.png").convert("RGBA")
     supplemental = Image.open(ROOT / "assets" / "sprites" /
@@ -1587,7 +1613,10 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     ledge_sheet = Image.open(ROOT / "assets" / "sprites" /
                              "sparkpaw-ledge-teeter-v1-transparent.png").convert("RGBA")
     cell_w = cell_h = 48
-    frame_count = 62
+    # Slot 62 is reserved for the Stormrail flight cockpit pilot.  It is built
+    # from the accepted native Level-1 idle pixels after slot 0 is authored,
+    # so it shares Sparkpaw's exact palette roles without resizing HUD art.
+    frame_count = 63
     rows = math.ceil(frame_count / 4)
     source = Image.new("RGBA", (cell_w * 4, cell_h * rows), (0, 0, 0, 0))
     ref_w, ref_h = reference.width // 4, reference.height // 4
@@ -1702,36 +1731,49 @@ def make_sprites() -> tuple[Image.Image, bytes]:
     # the accepted 0..57 baseline; all four cells share one scale and baseline.
     for i, pose in enumerate(ledge_poses):
         place(58 + i, pose, ledge_scale)
+    # Reuse the accepted Level-1 side-profile pixels without palette-role
+    # corrections. The upper fourteen rows keep the complete head, correct
+    # rear/front ear hierarchy and its authentic tiny cape overlap, while
+    # excluding every chest/arm row that previously obscured the hull accent.
+    level1_source = source.copy()
+    pilot = source.crop((17, 2, 40, 25)).resize(
+        (17, 17), Image.Resampling.NEAREST).crop((0, 0, 17, 14))
+    source.alpha_composite(pilot, ((62 & 3) * cell_w,
+                                   (62 >> 2) * cell_h))
     source.save(ROOT / "assets" / "sprites" / "sparkpaw-48x48-aga16-source.png")
-    # Preserve all authored poses. Left half contains the right-facing
-    # cells and the second half contains deterministic pixel-perfect mirrors.
-    # Direction changes therefore need no runtime flip or pixel copying.
-    doubled = Image.new("RGBA", (source.width * 2, source.height), (0, 0, 0, 0))
-    doubled.paste(source, (0, 0), source)
-    for row in range(rows):
-        for col in range(4):
-            cell = source.crop((col * cell_w, row * cell_h,
-                                col * cell_w + cell_w, row * cell_h + cell_h))
-            doubled.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
-                          (source.width + col * cell_w, row * cell_h))
-    source = doubled
-    image = indexed_image(source.size, FG_PALETTE, 0)
-    src = source.load()
-    dst = image.load()
-    mask_row = ((source.width + 15) // 16) * 2
-    mask = bytearray(mask_row * source.height)
-    for y in range(source.height):
-        for x in range(source.width):
-            r, g, b, a = src[x, y]
-            if a < 96:
-                continue
-            dst[x, y] = nearest_index((r, g, b), FG_PALETTE, avoid_zero=True)
-            mask[y * mask_row + (x >> 3)] |= 0x80 >> (x & 7)
+    def indexed_sheet(right: Image.Image) -> tuple[Image.Image, bytes]:
+        mirrored = Image.new("RGBA", (right.width * 2, right.height),
+                             (0, 0, 0, 0))
+        mirrored.paste(right, (0, 0), right)
+        for row in range(rows):
+            for col in range(4):
+                cell = right.crop((col * cell_w, row * cell_h,
+                                   col * cell_w + cell_w,
+                                   row * cell_h + cell_h))
+                mirrored.paste(cell.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
+                               (right.width + col * cell_w,row * cell_h))
+        image = indexed_image(mirrored.size, FG_PALETTE, 0)
+        src = mirrored.load()
+        dst = image.load()
+        mask_row = ((mirrored.width + 15) // 16) * 2
+        mask = bytearray(mask_row * mirrored.height)
+        for y in range(mirrored.height):
+            for x in range(mirrored.width):
+                r, g, b, a = src[x, y]
+                if a < 96:
+                    continue
+                dst[x, y] = nearest_index((r, g, b), FG_PALETTE,
+                                          avoid_zero=True)
+                mask[y * mask_row + (x >> 3)] |= 0x80 >> (x & 7)
+        return image, bytes(mask)
+
+    level1_image, level1_mask = indexed_sheet(level1_source)
+    image, mask = indexed_sheet(source)
     # Keep an exact, human-viewable copy of the 15-colour right-facing frames.
     preview = image.crop((0, 0, image.width // 2, image.height))
     preview.info["transparency"] = 0
     preview.save(ROOT / "assets" / "sprites" / "sparkpaw-48x48-aga16.png")
-    return image, bytes(mask)
+    return level1_image,level1_mask,image,mask
 
 
 def main() -> None:
@@ -1739,7 +1781,7 @@ def main() -> None:
     LEVELS.mkdir(parents=True, exist_ok=True)
     bg = make_authored_parallax()
     fg, collision = make_foreground()
-    sprites, mask = make_sprites()
+    sprites,mask,stormrail_sprites,stormrail_mask = make_sprites()
     beetle, beetle_mask = make_clockwork_beetle()
     strider, strider_mask = make_clockwork_strider()
     title, title_palette = load_aga_screen(TITLE_SOURCE)
@@ -1749,6 +1791,7 @@ def main() -> None:
     hud_base,hud_health,hud_lives,hud_diamonds,hud_score = make_hud()
     extra_life,extra_life_mask = make_extra_life_pickup(hud_base)
     collectible_diamond,collectible_diamond_mask = make_collectible_diamond()
+    stormrail_heart,stormrail_heart_mask = make_stormrail_heart()
     stormstone_core,stormstone_core_mask = make_stormstone_core()
 
     save_spbm(RUNTIME / "sparkpaw-title.spbm",title,title_palette,depth=6)
@@ -1772,6 +1815,8 @@ def main() -> None:
               HUD_PALETTE,depth=3)
     save_spbm(RUNTIME / "sparkpaw-diamond.spbm",collectible_diamond,
               FRONT16,depth=4,mask=collectible_diamond_mask)
+    save_spbm(RUNTIME / "stormrail-heart.spbm",stormrail_heart,
+              FRONT16,depth=4,mask=stormrail_heart_mask)
     save_spbm(RUNTIME / "stormstone-core.spbm",stormstone_core,
               FRONT16,depth=4,mask=stormstone_core_mask)
     save_spbm(RUNTIME / "sparkpaw-extra-life.spbm",extra_life,
@@ -1811,6 +1856,8 @@ def main() -> None:
               depth=3, mask=sprite_mask)
     save_spbm(RUNTIME / "sparkpaw-sprites4.spbm", sprites, FG_PALETTE,
               depth=4, mask=mask)
+    save_spbm(RUNTIME / "sparkpaw-sprites4-storm.spbm", stormrail_sprites,
+              FG_PALETTE,depth=4,mask=stormrail_mask)
     save_spbm(RUNTIME / "clockwork-beetle.spbm", beetle, FRONT16,
               depth=4, mask=beetle_mask)
     save_spbm(RUNTIME / "clockwork-storm-strider.spbm", strider, FRONT16,
@@ -1825,6 +1872,10 @@ def main() -> None:
         (ROOT / "sfx" / "raw" / "enemy-death.raw").read_bytes())
     (RUNTIME / "strider-shot.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "strider-shot.raw").read_bytes())
+    for name in ("harrier-fan-charge", "harrier-fan-fire",
+                 "harrier-hunter-charge", "harrier-hunter-fire"):
+        (RUNTIME / f"{name}.raw").write_bytes(
+            (ROOT / "sfx" / "raw" / f"{name}.raw").read_bytes())
     (RUNTIME / "jump.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "jump.raw").read_bytes())
     (RUNTIME / "collect-spark.raw").write_bytes(

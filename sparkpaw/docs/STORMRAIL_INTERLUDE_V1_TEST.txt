@@ -1,0 +1,46 @@
+SPARKPAW - STORMRAIL INTERLUDE V1
+
+This is an isolated, unnumbered Phase 6D gameplay proof. It does not replace
+Level 1, alter campaign progression or change the current ADF.
+
+RUN
+  Use FS-UAE with an A1200 / 68030 configuration.
+  Mount this drawer as DH0 and start: Stormrail-Test
+  The accepted disk/loading presentation appears briefly; intro and Level 1
+  are skipped and the short Stormrail foot approach loads directly.
+
+CONTROLS
+  Short departure: left/right moves Sparkpaw; FIRE near the Skimmer boards it.
+  The proof boards automatically after about seven seconds if FIRE is not used.
+  Shooter: joystick moves freely; FIRE launches one cyan shot at a time.
+  Press the left mouse button when finished. The test exits and writes
+  stormrail-proof.log into this drawer.
+
+WHAT TO CHECK
+  1. The short foot section is immediately recognizable as departure setup.
+  2. Boarding switches cleanly into fast forced horizontal parallax scrolling.
+  3. The Skimmer remains readable while moving in all four directions.
+  4. Flying enemies alternate between dart, square blocker and crescent/claw
+     silhouettes. No Level-1 beetle is used.
+  5. Controls and enemy pressure feel like a useful base for the full 2.5
+     minute Bubble-and-Squeak-inspired interlude.
+
+TEST SCOPE
+  Play the available roughly 20-second scrolling slice several times if
+  useful. Judge launch readability, boarding, steering, firing, collision,
+  damage feedback, enemy silhouettes, route readability, background quality
+  and overall feel. This is not yet the complete 2.5-minute encounter.
+
+LIMITS OF V1
+  This is the first mechanical/native-display slice, not a dist candidate.
+  The unique Stormrail rear panorama, foreground corridor, Skimmer and three
+  enemy silhouettes have passed an initial whole-display FS-UAE inspection.
+  The generated dedicated Stormrail loading composition is visually rejected;
+  the interlude will reuse the accepted disk/loading presentation. The first
+  collision route now uses
+  an inset Skimmer body, solid screen bounds, authored upper/lower obstruction
+  volumes, health damage, 45-field invulnerability and blink feedback. A
+  bounded unattended FS-UAE pass records three impacts and health 6 -> 3 while
+  whole-display review shows the vehicle redirected before the turbine rims.
+  Boarding animation, HUD/results, the complete 2.5-minute route, failure flow,
+  final audio and the complete encounter script are not claimed complete yet.

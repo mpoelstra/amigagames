@@ -1,0 +1,19 @@
+SPARKPAW CAMPAIGN LEVEL 1 BIG-GUNS PROFILE - STOCK 68020
+
+This broad diagnostic attributes the rejected integrated Level-1 cost across
+game update, Copper/scroll work, Bob pass, waits and individual restore/draw
+families. It changes no production logic. Its many CIA scopes add observer
+cost, so displayed/effective FPS is not an acceptance result.
+
+Use stock A1200/68020 FS-UAE and start Sparkpaw-L1-Prof.
+
+1. Keep START AT on STORM RUINS and select START GAME yourself.
+2. Play Level 1 normally through busy combat and collect the Stormstone Core.
+3. Confirm visuals and controls remain correct. At the held completion image,
+   press LEFT MOUSE BUTTON once, wait three seconds, then stop/reset FS-UAE.
+4. Leave renderdiag.log in the drawer and report the visibly worst area.
+
+The log will be used for median/p95/max subsystem attribution and correlation
+with camera/object load. Its top-line FPS must not be compared directly with
+the minimal 48.58/47.86/45.42 results. Any optimization selected from it must
+return to an integrated minimal-cadence build for acceptance.

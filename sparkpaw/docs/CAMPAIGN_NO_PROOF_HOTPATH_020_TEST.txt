@@ -1,0 +1,23 @@
+Sparkpaw no-proof-hotpath Level-1 cadence gate
+==============================================
+
+This stock-68020 minimal-cadence build is identical in gameplay and renderer
+structure to the accepted direct-call candidate. It additionally excludes the
+focused Stormrail screenshot-capture selector from campaign gameplay. Dedicated
+Stormrail proof executables retain those checks.
+
+Play a representative Level-1 route including a busy combat section. After the
+run, press the left mouse button once. The image freezes while renderdiag.log
+is written. Wait a few seconds, then stop/reset FS-UAE.
+
+Compare against
+---------------
+
+- alpha.68: 48.58 FPS, 2.9% two-field, zero three-plus;
+- direct calls with proof selector: 48.42 FPS, 3.26% two-field, zero
+  three-plus;
+- bound indirect operations: 47.25 FPS, 5.8% two-field;
+- integrated renderer: 44.56 FPS, 11.9% missed frames.
+
+Require zero ownership violations, no functional or visual regression and a
+matched or improved normalized distribution versus the direct-call result.

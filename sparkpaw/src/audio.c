@@ -6,6 +6,11 @@
 #include <hardware/custom.h>
 #include <hardware/dmabits.h>
 #include <proto/dos.h>
+#ifdef SPARKPAW_MULTI_ADF
+#include "disk_media.h"
+#undef Open
+#define Open diskMediaOpen
+#endif
 #include <proto/exec.h>
 
 static volatile struct Custom *hardware=(volatile struct Custom *)0xdff000;
@@ -19,6 +24,10 @@ static UBYTE *enemyDeathSample;
 static LONG enemyDeathSampleBytes;
 static UBYTE *striderShotSample;
 static LONG striderShotSampleBytes;
+static UBYTE *harrierFanChargeSample,*harrierFanFireSample;
+static UBYTE *harrierHunterChargeSample,*harrierHunterFireSample;
+static LONG harrierFanChargeSampleBytes,harrierFanFireSampleBytes;
+static LONG harrierHunterChargeSampleBytes,harrierHunterFireSampleBytes;
 static UBYTE *jumpSample;
 static LONG jumpSampleBytes;
 static UBYTE *collectSample;
@@ -39,6 +48,8 @@ static UBYTE hurtCooldown;
 static UBYTE enemyHitCooldown;
 static UBYTE enemyDeathCooldown;
 static UBYTE striderShotCooldown;
+static UBYTE harrierFanChargeCooldown,harrierFanFireCooldown;
+static UBYTE harrierHunterChargeCooldown,harrierHunterFireCooldown;
 static UBYTE jumpCooldown;
 static UBYTE collectCooldown;
 static UBYTE waterSplashCooldown;
@@ -54,6 +65,10 @@ enum AudioDiagnosticEvent {
     AUDIO_DIAG_ENEMY_HIT,
     AUDIO_DIAG_ENEMY_DEATH,
     AUDIO_DIAG_STRIDER_SHOT,
+    AUDIO_DIAG_HARRIER_FAN_CHARGE,
+    AUDIO_DIAG_HARRIER_FAN_FIRE,
+    AUDIO_DIAG_HARRIER_HUNTER_CHARGE,
+    AUDIO_DIAG_HARRIER_HUNTER_FIRE,
     AUDIO_DIAG_JUMP,
     AUDIO_DIAG_COLLECT,
     AUDIO_DIAG_WATER,
@@ -80,6 +95,9 @@ static ULONG diagnosticStarts[AUDIO_DIAG_COUNT];
 #define ENEMY_DEATH_COOLDOWN 6
 #define STRIDER_SHOT_PRIORITY 7
 #define STRIDER_SHOT_COOLDOWN 12
+#define HARRIER_CHARGE_COOLDOWN 16
+#define HARRIER_FAN_FIRE_COOLDOWN 8
+#define HARRIER_HUNTER_FIRE_COOLDOWN 6
 #define JUMP_PRIORITY 4
 #define JUMP_COOLDOWN 4
 #define COLLECT_PRIORITY 5
@@ -163,6 +181,14 @@ BOOL audioLoad(void)
                    &striderShotSample,&striderShotSampleBytes)) {
         audioUnload(); return FALSE;
     }
+#define LOAD_HARRIER_SAMPLE(name,field) \
+    if(!loadSample("PROGDIR:assets/runtime/" name ".raw", \
+                   &field##Sample,&field##SampleBytes)) { audioUnload(); return FALSE; }
+    LOAD_HARRIER_SAMPLE("harrier-fan-charge",harrierFanCharge)
+    LOAD_HARRIER_SAMPLE("harrier-fan-fire",harrierFanFire)
+    LOAD_HARRIER_SAMPLE("harrier-hunter-charge",harrierHunterCharge)
+    LOAD_HARRIER_SAMPLE("harrier-hunter-fire",harrierHunterFire)
+#undef LOAD_HARRIER_SAMPLE
     if(!loadSample("PROGDIR:assets/runtime/jump.raw",
                    &jumpSample,&jumpSampleBytes)) {
         audioUnload(); return FALSE;
@@ -216,6 +242,14 @@ void audioUnload(void)
         FreeMem(striderShotSample,striderShotSampleBytes);
         striderShotSample=NULL; striderShotSampleBytes=0;
     }
+#define FREE_HARRIER_SAMPLE(field) \
+    if(field##Sample) { FreeMem(field##Sample,field##SampleBytes); \
+        field##Sample=NULL; field##SampleBytes=0; }
+    FREE_HARRIER_SAMPLE(harrierFanCharge)
+    FREE_HARRIER_SAMPLE(harrierFanFire)
+    FREE_HARRIER_SAMPLE(harrierHunterCharge)
+    FREE_HARRIER_SAMPLE(harrierHunterFire)
+#undef FREE_HARRIER_SAMPLE
     if(jumpSample) {
         FreeMem(jumpSample,jumpSampleBytes);
         jumpSample=NULL; jumpSampleBytes=0;
@@ -251,6 +285,8 @@ void audioSetHardwareActive(BOOL active)
         gameplayPriority=0; hurtCooldown=0; enemyHitCooldown=0;
         enemyDeathCooldown=0;
         striderShotCooldown=0;
+        harrierFanChargeCooldown=harrierFanFireCooldown=0;
+        harrierHunterChargeCooldown=harrierHunterFireCooldown=0;
         jumpCooldown=0; collectCooldown=0; waterSplashCooldown=0;
         stormstoneCoreCooldown=0;
         tallyTickCooldown=0;
@@ -336,6 +372,26 @@ void audioPlayStriderShot(void)
                        );
 }
 
+#define HARRIER_AUDIO_FN(fn,event,sample,priority,cooldown,frames,volume) \
+void fn(void) { AUDIO_REQUEST(event); \
+    playGameplaySample(sample##Sample,sample##SampleBytes,priority,&cooldown,frames,volume \
+    AUDIO_DIAG_ARG(event)); }
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#define AUDIO_DIAG_ARG(event) ,event
+#else
+#define AUDIO_DIAG_ARG(event)
+#endif
+HARRIER_AUDIO_FN(audioPlayHarrierFanCharge,AUDIO_DIAG_HARRIER_FAN_CHARGE,
+                 harrierFanCharge,7,harrierFanChargeCooldown,HARRIER_CHARGE_COOLDOWN,64)
+HARRIER_AUDIO_FN(audioPlayHarrierFanFire,AUDIO_DIAG_HARRIER_FAN_FIRE,
+                 harrierFanFire,7,harrierFanFireCooldown,HARRIER_FAN_FIRE_COOLDOWN,64)
+HARRIER_AUDIO_FN(audioPlayHarrierHunterCharge,AUDIO_DIAG_HARRIER_HUNTER_CHARGE,
+                 harrierHunterCharge,7,harrierHunterChargeCooldown,HARRIER_CHARGE_COOLDOWN,64)
+HARRIER_AUDIO_FN(audioPlayHarrierHunterFire,AUDIO_DIAG_HARRIER_HUNTER_FIRE,
+                 harrierHunterFire,8,harrierHunterFireCooldown,HARRIER_HUNTER_FIRE_COOLDOWN,64)
+#undef HARRIER_AUDIO_FN
+#undef AUDIO_DIAG_ARG
+
 void audioPlayJump(void)
 {
     AUDIO_REQUEST(AUDIO_DIAG_JUMP);
@@ -352,6 +408,19 @@ void audioPlayCollect(void)
     AUDIO_REQUEST(AUDIO_DIAG_COLLECT);
     playGameplaySample(collectSample,collectSampleBytes,COLLECT_PRIORITY,
                        &collectCooldown,COLLECT_COOLDOWN,58
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_COLLECT
+#endif
+                       );
+}
+
+void audioPlayHealthCollect(void)
+{
+    /* A stronger version of the familiar collect sparkle: related enough to
+       read as a pickup, but more substantial than a diamond. */
+    AUDIO_REQUEST(AUDIO_DIAG_COLLECT);
+    playGameplaySample(collectSample,collectSampleBytes,COLLECT_PRIORITY,
+                       &collectCooldown,COLLECT_COOLDOWN,64
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                        ,AUDIO_DIAG_COLLECT
 #endif
@@ -418,6 +487,10 @@ void audioUpdate(void)
     if(enemyHitCooldown) enemyHitCooldown--;
     if(enemyDeathCooldown) enemyDeathCooldown--;
     if(striderShotCooldown) striderShotCooldown--;
+    if(harrierFanChargeCooldown) harrierFanChargeCooldown--;
+    if(harrierFanFireCooldown) harrierFanFireCooldown--;
+    if(harrierHunterChargeCooldown) harrierHunterChargeCooldown--;
+    if(harrierHunterFireCooldown) harrierHunterFireCooldown--;
     if(jumpCooldown) jumpCooldown--;
     if(collectCooldown) collectCooldown--;
     if(waterSplashCooldown) waterSplashCooldown--;
@@ -431,7 +504,9 @@ void audioDiagnosticWrite(BPTR file)
 {
     static const char *const names[AUDIO_DIAG_COUNT]={
         "shot","hurt","enemy_hit","enemy_death",
-        "strider_shot","jump","collect","water","stormstone_core",
+        "strider_shot","harrier_fan_charge","harrier_fan_fire",
+        "harrier_hunter_charge","harrier_hunter_fire",
+        "jump","collect","water","stormstone_core",
         "tally_tick","extra_life"
     };
     UWORD event;

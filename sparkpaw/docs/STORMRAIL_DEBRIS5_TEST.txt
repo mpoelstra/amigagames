@@ -1,0 +1,36 @@
+SPARKPAW STORMRAIL DEBRIS 5 - MONOTONE TIMELINE FIX
+====================================================
+
+Run only Sparkpaw-Debris5 with the usual A1200/68030 FS-UAE setup.
+
+Debris4 is rejected. Its 48-bit per-frame event rescanner allowed older events
+to reappear late in the actual Amiga build. The last spawn occurred at distance
+15199, immediately before the hard stop, despite the authored final distance
+being 11130. That caused the repetitive tail and abrupt disappearance.
+
+Debris5 uses one monotone next-event cursor. An event can be admitted or skipped
+once, after which the cursor can only advance. No old event can reopen. The
+visible sequence is also rebuilt as asymmetric phrases rather than repeated
+six-event templates. All approved large, pillar and shard families remain in
+use, with straight right-to-left paths and no bounce.
+
+Measured in the real compile-guarded Amiga runtime:
+
+- last event (id 47): distance 11331;
+- last active debris: distance 11815;
+- hard test endpoint: distance 15500;
+- approximately 18 seconds of moving empty route remain before the endpoint;
+- peak six obstacles, peak one large obstacle, zero unsafe Blits;
+- 1,290,992 bytes free Chip RAM.
+
+Seven actual FS-UAE captures were inspected across opening, middle, tail and
+empty reserve. They show differing compositions, no recurring diagonal train,
+and a fully empty still-scrolling section before the stop.
+
+Please play the complete field and judge only:
+
+1. Does the variation now remain credible through the entire field?
+2. Does debris end naturally instead of repeating until an abrupt clear?
+3. Is there an unmistakable stretch of empty moving flight after debris?
+
+Press LMB when finished if you want to freeze/save the diagnostic state.

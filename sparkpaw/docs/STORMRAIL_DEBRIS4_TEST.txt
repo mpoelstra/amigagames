@@ -1,0 +1,37 @@
+SPARKPAW STORMRAIL DEBRIS 4 - ONE AUTHORED FIELD
+================================================
+
+Run only Sparkpaw-Debris4 with the usual A1200/68030 FS-UAE setup.
+
+This replaces the rejected uniform Debris-3 stream. It is one continuous
+48-event debris field driven by monotone stormrailDistance, not two joined
+sections and not a repeating generator. Event spacing, lanes, speed and drift
+are explicitly authored across the complete passage.
+
+The visible mix is deliberately rebalanced to eight large 48x40 ruin blocks,
+sixteen 32x40 pillar/masonry pieces and twenty-four 16x16 shards. All three
+families and all approved prebuilt tumble pairs are used. Large blocks use only
+medium/fast leftward motion and the runtime still permits at most one large
+block at once. No object bounces or reverses direction.
+
+Two destructible large blocks are guaranteed a pool slot and can reveal one
+diamond each. A reservation may retire only the oldest ordinary small/medium
+cue already nearest the left exit; it never exceeds the six-object pool and
+cannot create a delayed tail.
+
+The last authored debris event is at distance 11130. Debris must visibly drain
+to zero. The temporary slice continues scrolling to distance 15200, leaving
+4070 empty distance units (just over twenty seconds at cruise speed) for later
+enemy-pattern and finale work. It then reaches one hard test endpoint; it must
+not loop or restart the debris.
+
+Please judge:
+
+1. Does variation remain convincing through the final third rather than
+   collapsing into identical horizontal or diagonal groups?
+2. Are large blocks, pillars and different shards visible throughout?
+3. Does the field feel like one sustained Zynaps-like organised chaos passage?
+4. Do both large loot blocks read clearly and produce a diamond when destroyed?
+5. Does the debris end cleanly, followed by a clearly long empty route reserve?
+
+Press LMB only when you want to freeze/save the diagnostic state.

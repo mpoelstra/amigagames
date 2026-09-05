@@ -1,5 +1,7 @@
 # Sparkpaw Stage 2 whole-codebase 68020 audit
 
+> Current status (2026-09-05): Performance investigation is parked. This is historical evidence; alpha.45 owns the 48.58-FPS result. Use LEVEL1_PERFORMANCE_EVIDENCE_REAUDIT.md for attribution corrections and CURRENT_STATUS.md for retained production state. See [status index](CURRENT_STATUS.md).
+
 Status: completed living audit on the alpha.45 Stage 5L/H7 baseline. The broad
 whole-codebase inventory and initial ranking are complete, and multiple
 measured candidates have since been accepted or rejected below. It remains the

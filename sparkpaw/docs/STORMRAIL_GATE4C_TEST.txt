@@ -1,0 +1,29 @@
+SPARKPAW STORMRAIL DEBRIS 1.0 - 68030 HD REFERENCE
+===================================================
+
+This is the preserved Debris 1.0 gameplay reference. It preserves the accepted four
+enemy formations and replaces the sparse Gate-4B passage with a deterministic
+28-event, six-slot ruin field inspired by the supplied Zynaps recording.
+
+Run the drawer's Sparkpaw executable with the usual A1200/68030 FS-UAE setup.
+After the fourth enemy wave, judge the following:
+
+1. The passage should feel continuously busy and somewhat claustrophobic, with
+   moving gaps that require steering rather than an impossible solid wall.
+2. Arches, slabs, pillars and fragments move at visibly different speeds and
+   gently drift vertically while their prebuilt frames suggest tumbling.
+3. Solid debris consumes shots and plays an impact sound but does not flash.
+   Destructible debris flashes after a hit, so the rule remains learnable.
+4. A large breakable arch takes six hits, becomes visibly cracked for its last
+   three hit points and releases a normal Sparkpaw diamond when destroyed.
+5. Debris contact costs one half-heart and plays the accepted hurt sound.
+6. All four earlier formations, enemy fire, scoring, restart behaviour,
+   pickups, parallax and Skimmer controls must remain unchanged.
+
+Please report whether the field is exciting or merely cluttered, whether the
+tumble reads at native scale, whether the large loot object is findable in the
+pressure, and any mask trail, loading hang, stale object or slowdown.
+
+This is a 68030 feel gate only. No 1UP, clouds, route extension, finale, Level 2
+or campaign integration is present, and no 68020 performance verdict is being
+claimed yet.

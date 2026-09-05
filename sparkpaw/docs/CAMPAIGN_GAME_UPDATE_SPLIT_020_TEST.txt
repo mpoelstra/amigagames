@@ -1,0 +1,21 @@
+Sparkpaw game-update boundary - full Level-1 68020 cadence gate
+================================================================
+
+This is the 68030-accepted campaign build in which the unchanged Stormrail
+simulation compiles outside Level 1's hot gameUpdate body. The cadence harness
+also evaluates level completion exactly once per frame.
+
+Play one normal, representative complete Level-1 route on stock A1200/68020.
+Do not optimize specifically for the first encounter: include your usual
+movement, combat, jumping and shooting across the whole level. After collecting
+the Core and reaching the held completed frame, click the left mouse button
+once. Wait several seconds for renderdiag.log to finish, then stop FS-UAE.
+
+Compare against
+---------------
+
+- collision-cache candidate: 49.30 FPS, 1.41% two-field, zero three-plus;
+- protected alpha.68 reference: 48.58 FPS, 2.9% two-field, zero three-plus.
+
+Acceptance still requires zero ownership violations and supplied gameplay feel;
+the distribution and the subjective complete-level result both matter.

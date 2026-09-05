@@ -49,6 +49,26 @@ def strider_shot():
                gain(tone(.13,184,19,-430,True),.52),
                gain(noise(.11,68520,23,.14),.64),
                gain(delay(tone(.11,620,21,-2400),.022),.34))
+def harrier_fan_charge():
+    # Ominous turbine wind-up: two octaves below the rejected toy-like cue.
+    return mix(gain(tone(.24,78,4,210),.92),
+               gain(tone(.22,156,6,430,True),.42),
+               gain(fade_in(noise(.20,68660,8,.10),.08),.24))
+def harrier_fan_fire():
+    return mix(gain(tone(.22,72,10,-48),1.0),
+               gain(tone(.15,145,16,-310,True),.68),
+               gain(noise(.11,68662,24,.16),.62),
+               gain(delay(tone(.10,390,22,-950),.018),.30))
+def harrier_hunter_charge():
+    # Denser target-lock growl with a restrained rising alarm overtone.
+    return mix(gain(tone(.25,92,3,330),.90),
+               gain(tone(.22,184,5,690,True),.46),
+               gain(delay(tone(.12,520,10,480),.075),.24))
+def harrier_hunter_fire():
+    return mix(gain(tone(.18,82,12,-65),.94),
+               gain(tone(.105,245,22,-720,True),.68),
+               gain(noise(.075,68663,34,.42),.58),
+               gain(delay(tone(.08,620,28,-1800),.012),.26))
 def enemy_hit(): return plasma_hit_energy_pop()
 
 def enemy_death():
@@ -229,6 +249,10 @@ EFFECTS=[
     ("jump",jump,58,4,4),("land",land,48,2,4),
     ("energy-shot",energy_shot,60,5,3),("charged-shot",charged_shot,64,8,8),
     ("strider-shot",strider_shot,60,7,12),
+    ("harrier-fan-charge",harrier_fan_charge,55,5,16),
+    ("harrier-fan-fire",harrier_fan_fire,62,7,8),
+    ("harrier-hunter-charge",harrier_hunter_charge,57,6,16),
+    ("harrier-hunter-fire",harrier_hunter_fire,64,8,6),
     ("enemy-hit",enemy_hit,60,6,4),("enemy-death",enemy_death,64,8,6),
     ("player-hurt",player_hurt,64,9,16),
     ("collect-spark",collect,52,4,3),("water-splash",water_splash,64,10,20),

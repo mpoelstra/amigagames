@@ -1,0 +1,21 @@
+Sparkpaw collision-mode-cache Level-1 cadence gate
+=================================================
+
+This stock-68020 minimal-cadence build uses the 68030-accepted section-local
+collision-mode cache. Level-1 collision probes retain their existing geometry
+but no longer call gameStormrailActive() for every tile or pixel query.
+
+Play a representative Level-1 route including busy combat, jumping and shots.
+After the run, press the left mouse button once. The image freezes while
+renderdiag.log is written. Wait a few seconds, then stop/reset FS-UAE.
+
+Compare against
+---------------
+
+- alpha.68: 48.58 FPS, 2.9% two-field, zero three-plus;
+- direct-call best: 48.42 FPS, 3.26% two-field, zero three-plus;
+- no-proof neutral run: 48.32 FPS, 3.46% two-field, zero three-plus;
+- bound indirect operations: 47.25 FPS, 5.8% two-field.
+
+Require zero ownership violations, no visual/gameplay regression and a
+materially improved normalized distribution rather than average-only movement.

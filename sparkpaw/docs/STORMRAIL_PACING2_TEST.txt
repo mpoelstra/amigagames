@@ -1,0 +1,34 @@
+SPARKPAW STORMRAIL PACING 2 - 68030 FEEL TEST
+================================================
+
+This candidate keeps the accepted Debris 2 native art, animation, collision,
+hit feedback and six-object pool. All 48 distance events are re-authored as one
+continuous passage at the same intended visual density: 16 large blocks, eight
+pillar fragments and 24 shards are interleaved throughout. Speeds remain in
+the accepted 2--4 pixel range but are balanced so slow large blocks cannot
+accumulate after faster small pieces disappear. It is not split into an old
+section and a separate add-on.
+
+Earlier encounter pacing is also slightly tighter. Complete-formation rewards
+enter sooner, travel faster, use 18-pixel spacing and cycle through four compact
+diamond patterns. Free pickup lines were moved so they do not block formation
+rewards in the four-slot reward pool.
+
+Run Sparkpaw-Pacing2 with the usual A1200/68030 FS-UAE setup. Please judge:
+
+1. Does the whole debris field retain the accepted organised-chaos feel?
+2. Is it similarly crowded throughout, without a sparse or repetitive tail?
+3. Do large blocks, pillar fragments and small shards remain visibly varied?
+4. Are the earlier waves separated by enough breathing room despite arriving
+   somewhat sooner?
+5. Do formation-reward diamonds appear promptly and in tighter clear patterns?
+6. Report any missing object, mask trail, loading hang, collision oddity or
+   slowdown.
+
+After the final debris objects leave, this development slice intentionally
+continues as empty open flight. That is not additional level content and no
+more debris should appear; the later enemy section and finale are not built.
+
+This is a 68030 visual/feel gate. It does not yet add ruin-dust particles,
+post-debris enemy patterns, hazards, the finale, Level 2 or campaign integration.
+The accepted Debris 2 cadence build remains archived as the rollback baseline.

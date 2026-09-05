@@ -1,0 +1,37 @@
+SPARKPAW - COMPLETE CAMPAIGN / DIRECT LEVEL-1 BOBS
+================================================
+
+Unnumbered logger-free candidate. Only the extra Level-1 masked-Bob argument
+adapter is removed. Scroll-column code, game update, audio, allocations,
+assets, campaign flow and the Stormrail renderer object remain unchanged.
+
+Drawer: Campaign-Play-HD
+Run: Sparkpaw-Play
+Candidate SHA256:
+b0eb6ca75269094f78cd5f9784783b90b8fc298e33c22af5e7ee549da3832ed6
+Previous logger-free baseline SHA256:
+cf861a89702d5642c4292502c1b40bc834992c54c7d407925f685ff00dee5656
+The previous complete drawer is preserved intact under older-builds.
+
+FIRST GATE: FS-UAE / 68030
+Use the normal intro, ready screen and START GAME. Check Level 1 with enemies,
+diamonds and shooting, then results / CONTINUE into Stormrail. Check its
+shooting, wall/Harrier and results. Watch for missing Bobs, trails, flicker or
+broken transitions. REPLAY LEVEL and Esc-to-ready must retain their behaviour.
+OPTIONS / START AT can start Stormrail directly for the focused section check.
+Report whether both sections and transitions remain correct.
+
+Only after that functional gate passes: stock-FS-UAE/68020 feel comparison.
+Compare ordinary Level-1 movement/scrolling and the early busy encounter with
+the previous logger-free build and original alpha.68. Keep route, firing and
+movement as similar as practical; enemy seeds can still differ between runs.
+Stormrail must retain its smoothness. No FPS is collected and no improvement
+is claimed before user testing.
+
+No left-mouse save action is needed; results remain interactive. Stop FS-UAE
+normally when done. No release, SemVer, ADF, WHDLoad or multidisk change.
+
+68030 RESULT: ACCEPTED (2026-09-05)
+MrDig reports the 68030 version is fine. Proceed with the same executable
+to stock FS-UAE/68020: compare Level-1 whole-level feel and the early busy
+encounter; Stormrail must stay smooth. No logger or rebuild is needed.

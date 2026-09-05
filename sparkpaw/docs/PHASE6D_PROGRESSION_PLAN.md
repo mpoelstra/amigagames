@@ -1,54 +1,40 @@
 # Phase 6D multi-level progression boundary
 
-Status: next engine/design boundary after the accepted alpha.68 Phase 6C.10
-checkpoint. Level-2 concept, art and route planning are intentionally owned by
-a separate session and are not specified here.
+> Work order update: user chose the 0.7.0-alpha.2 all-format checkpoint after
+> accepting HD and ADF; new campaign WHDLoad/hardware gates remain open. Standalone Gate-2 refactoring is superseded;
+> use it only as needed at the media boundary. See PHASE7_CAMPAIGN_HARDWARE_PLAN.md.
 
-## Purpose
+Current status: see [CURRENT_STATUS.md](CURRENT_STATUS.md). The released
+Level-1 -> Stormrail campaign and results flow are implemented and user-tested.
+Published alpha.68 remains the protected one-level release. Do not treat an
+old isolated results drawer as active or request implementation of CONTINUE again.
 
-Replace the temporary one-level-only results decision with an explicit flow
-that can support both replay and continuation when a second playable level
-exists. Preserve alpha.68's instant resident replay as the Level-1 `REPLAY`
-branch; do not turn that reset function into an implicit level loader.
+## Implemented progression contract
 
-```text
-LEVEL PLAY -> CORE COMPLETE -> RESULTS -> REPLAY CURRENT
-                                     -> CONTINUE TO NEXT
-```
+[CAMPAIGN_LOOP_CONTRACT.md](CAMPAIGN_LOOP_CONTRACT.md) owns the exact decisions,
+post-Level-1 snapshot, resident section replay, return-to-title and Escape rules.
+`enum CampaignSection`, `ResultDecision` and `CampaignState` already exist.
+Stormrail is the loadable next section; a separate playable Level 2 does not
+need to exist to justify the current Level-1 CONTINUE action.
 
-Until Level 2 is integrated, the results screen continues to expose only
-`REPLAY LEVEL`. Add `CONTINUE` only when it leads to a real, loadable next level.
+Preserve black/loading-bounded cross-section loads, resident replay without
+asset reload, one-shot score/snapshot decisions and reset of section-local state.
+[CAMPAIGN_ASSET_OWNERSHIP.md](CAMPAIGN_ASSET_OWNERSHIP.md) owns asset grouping.
+Integrated Stormrail replay restores the carried snapshot; its old isolated
+fresh-vitals replay is historical, not the campaign replay rule.
 
-## Contracts to define before implementation
+## Next bounded engineering proposal
 
-- one explicit current-level identifier and next-level selection result;
-- separation between a resident replay reset and a cross-level asset load;
-- which values persist between levels: total score, remaining lives and any
-  later progression flags;
-- which values reset per level: timer, encounter awards, diamonds, Core and
-  local secrets;
-- failure behaviour when the next level cannot load;
-- ADF storage/load budget and HD/WHDLoad path names for additional level data;
-- score-screen input/menu behaviour once both `REPLAY` and `CONTINUE` exist.
+Architecture Gate 2: extend existing typed section identity into the asset
+selection boundary, which still uses a Boolean Stormrail selector. Prove valid
+selection and partial-load cleanup while preserving exact files/load order and
+visible transitions. Do not combine this with hotpath extraction or redesign.
+This is a proposal following documentation reconciliation; no code was changed.
 
-## Protected alpha.68 behaviour
+## Deferred
 
-- `REPLAY LEVEL` fades the score display fully to black;
-- both rolling targets are restored from the canonical current-level world;
-- dynamic Bob history is cleared before publication;
-- collectibles start at valid authored presentation coordinates;
-- gameplay returns at a complete PAL frame boundary without a LOADING screen;
-- Level 1 begins as a fresh attempt with score/time/lives/local progress reset;
-- no change to Stage 5L/H7 display ownership, HUD split or player sprite layout.
-
-## First implementation gate
-
-Create a state/API proof, not Level-2 art: represent `REPLAY_CURRENT` and
-`CONTINUE_NEXT` as distinct decisions, keep only replay selectable in the
-shipping one-level build, and host-test the persistence/reset matrix. The proof
-must not allocate or package placeholder Level-2 assets.
-
-After the separate Level-2 session supplies an accepted asset/memory contract,
-measure its load path independently on FS-UAE/68030 and then FS-UAE/68020 before
-adding a second results option. Physical ADF, WHDLoad and normal HD remain
-separate acceptance gates for the first multi-level build.
+Performance tuning and encounter-placement experiments are explicitly parked.
+Section-state extraction and broader cold-renderer ownership changes remain
+later architecture gates. Level-2 content remains a separate design workstream.
+No SemVer/release, ADF/multidisk, WHDLoad or new platform acceptance is implied.
+The original plan is preserved in DOCUMENTATION_STATUS_HISTORY_2026_09_05.md.

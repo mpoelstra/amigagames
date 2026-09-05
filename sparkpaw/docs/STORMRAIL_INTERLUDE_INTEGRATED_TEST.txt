@@ -1,0 +1,36 @@
+SPARKPAW STORMRAIL COMPLETE INTERLUDE - INTEGRATED 68030 REVIEW
+
+This is the first complete resident Stormrail interlude test. It starts at the
+accepted short departure/boarding section, continues through the complete
+flight route and enters the accepted Gate-6 Harrier finale at distance 15500.
+It contains no results screen yet and writes no cadence log.
+
+Use the FS-UAE A1200/68030 configuration and launch Sparkpaw-Storm-Full.
+
+1. Jump physically into the open Skimmer cockpit; Fire must not teleport Paw.
+2. Check the accepted launch, controls, autoscroll, parallax, palette stages,
+   formations, rewards, debris, carriers, hearts, dust, HUD, audio and restart.
+3. Pay special attention after the final compact formation/reward flow. There
+   must be no loading screen, disk activity, Workbench flash, added route
+   distance, camera jump or blank frame before the boss.
+4. At distance 15500 the camera must latch directly onto the intact closed
+   Storm Ruins threshold. Existing route enemies, debris and rewards must
+   retire cleanly. Over the next 32 frames the full-height wall should slide
+   smoothly 32 pixels in from the right while the Harrier sweeps in faster
+   alongside it. Nothing may fire during this arrival; dust continues moving.
+5. Defeat the Harrier and confirm fire stop, gate opening, automatic centring
+   and controlled passage exactly as in the accepted focused finale.
+   If a life is lost first, the arrival must not replay: Sparkpaw resumes the
+   same fight with the Harrier's remaining HP preserved, all old projectiles
+   cleared and a fresh safe attack cycle. Watch the wall edge during dust and
+   projectile restores; not even a few pixels may be removed.
+6. During combat, deliberately fly into the Harrier once. Confirm exactly one
+   half heart is lost, the normal damage grace begins and the Skimmer is held
+   against the Harrier's left edge instead of passing through it. Remaining
+   Harrier HP must not change from contact.
+7. The build then holds the completed interlude image. Reset/stop FS-UAE.
+
+Report especially whether the last route beat has enough breathing room,
+whether the gate arrives naturally, and whether anything pops, disappears too
+early or visibly loads at the latch. This drawer is not a campaign, results,
+68020 cadence, ADF, multidisk or release build.

@@ -1,0 +1,33 @@
+SPARKPAW STORMRAIL DEBRIS 5.1 - PICKUP AND MICRO-VARIATION
+===========================================================
+
+Debris 5 is preserved as the accepted-enough fallback baseline. This 68030
+candidate changes only two bounded details above it.
+
+Restart contract
+----------------
+
+Like Level 1, losing a life restarts the section but does not respawn diamonds
+already collected during that level attempt. Their count and score remain too.
+This prevents deliberate life-loss farming and is unchanged in this candidate.
+
+Rock loot correction
+--------------------
+
+The two large loot rocks previously reused pickup IDs 12 and 13 from the fourth
+free diamond line. Collecting that line therefore suppressed their later drop.
+The rocks now own unique IDs 32 and 33 through a second 32-bit progress mask.
+Destroying each authored large loot rock can reveal one diamond. Once collected,
+that diamond remains consumed after life restart, matching every other pickup.
+
+Variation polish
+----------------
+
+The accepted Debris-5 routes, density, art, cursor and endpoint are unchanged.
+Objects now use five deterministic offscreen start-X positions instead of one,
+and tumble phase is derived from unique event ID rather than reused pool slot.
+This removes a small mechanical cadence without introducing runtime randomness.
+
+Please verify that at least one large destructible rock visibly drops a diamond,
+and whether the entrances feel slightly less patterned. Press LMB only when you
+want to freeze/save the diagnostic state.

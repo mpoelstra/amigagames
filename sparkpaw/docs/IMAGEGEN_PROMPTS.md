@@ -1,5 +1,251 @@
 # Built-in ImageGen prompts
 
+## Stormrail Gate 6 — Level 2 Storm Ruins threshold concept v1
+
+Built-in ImageGen concept workflow, 2026-09-04. The accepted Stormrail
+interlude composition, dark route panorama, native debris family and Level-1
+gameplay concept were supplied as separate identity, contrast, material and
+quality references. The request identifies Gate 6 as the Stormrail end fight
+at the threshold to **Level 2: Storm Ruins**, not an arbitrary rail checkpoint.
+
+The concept asks for exactly one original enclosed Harrier boss, one upper and
+one lower gate turret, and one monumental closed Storm Ruins gate. The Harrier
+uses a hooked predatory silhouette, layered navy/steel armour, cyan storm core,
+restrained copper joints and believable engines. The gate combines weathered
+carved ruin stone with recessed machinery and cyan/violet energy, so the
+destination architecture belongs to Storm Ruins while the defenders still read
+as Stormrail technology. Broad flight lanes, connected value planes,
+material-coloured edges and exact side-view reduction feasibility were required;
+primitive polygons, flat fills, uniform black outlines, saturated purple slabs,
+generic spaceships, neon stripe walls and noisy microdetail were forbidden.
+
+Saved as
+`assets/concept/sparkpaw-stormrail-gate6-storm-ruins-threshold-concept-v1.png`.
+Status: material and visual direction accepted, spatial composition superseded
+by v2. The angled three-quarter gate is unsuitable for the real flat side-view
+arena, the Harrier is too large, and the wall consumes too much manoeuvre space.
+It has not been reduced, cleaned, converted, cached or integrated into runtime.
+
+### Gate 6 Storm Ruins threshold concept v2 — flat encounter correction
+
+Built-in ImageGen edit workflow, 2026-09-04. V2 preserves v1's accepted
+Harrier, turret, ruin-stone, metal and energy language while replacing the
+encounter layout with a strict side elevation matching the actual shooter. The
+left two-thirds remains open for movement, player fire and dodgeable hostile
+patterns. One narrow boundary wall touches playfield ceiling and floor at the
+far right, with distinct upper/lower turrets and a central closed gate. The
+Harrier is separated from all three structures and reduced to roughly
+1.5--1.8 times the occupied Skimmer's perceived mass. The lower magenta band
+contains side-view-only orthographic source callouts.
+
+Saved as
+`assets/concept/sparkpaw-stormrail-gate6-storm-ruins-threshold-concept-v2.png`.
+Status: spatial composition accepted as the basis for native v1. Generated
+pixels remain concept-only; the runtime candidate uses a separate exact-size
+FRONT16 reduction with material-role mapping and native cluster cleanup.
+
+Native v1 is saved as
+`assets/concept/sparkpaw-stormrail-gate6-native-v1-aga16.png`, with its 4x
+nearest-neighbour inspection sheet at
+`assets/concept/sparkpaw-stormrail-gate6-native-v1-review-4x.png`. The sheet
+contains independently reduced 96x56 Harrier and 32x24 turret cells plus two
+unique 32x104 wall halves. This is the first 68030 art candidate, not accepted
+final art.
+
+## Stormrail interlude composition v1/v2
+
+Use case: pre-production composition and silhouette reference for the playable
+Phase 6D Stormrail interlude. V1 requested one original four-panel 1993 AGA
+pixel-art sequence: a very short Storm Ruins foot approach, Sparkpaw boarding
+an open-cockpit Stormrail Skimmer, immediate rail launch and a fast horizontal
+auto-scrolling shooter with upper/lower route readability. The established
+Sparkpaw gameplay concept and current Storm visual slice were supplied only as
+identity, palette, scale and environment references. The vehicle had to keep
+Sparkpaw visibly exposed, use a long low navy/steel silhouette, cyan energy
+drive and restrained amber trim; no HUD, text, logos or licensed designs.
+
+Saved as `assets/concept/sparkpaw-stormrail-interlude-concept-v1.png`.
+
+V1's shooter panel contained a beetle-like flying enemy. That contradicts the
+interlude's new airborne combat language and would make Level 1's ground enemy
+feel reused without purpose. V2 therefore retained the full composition,
+Sparkpaw and Skimmer while replacing every beetle silhouette with exactly
+three original flying machine roles: a slim cyan-nosed dart drone (Indexer), a
+compact square lane-blocker with amber warning face (Correction Stamp), and a
+larger crescent/claw capture drone with cyan core (Core Grapple). None may have
+legs, antennae, a domed shell or a ground-beetle body plan.
+
+Saved as `assets/concept/sparkpaw-stormrail-interlude-concept-v2.png`. This is
+the selected composition reference for the first native playable slice; it is
+not itself converted into runtime pixels.
+
+### Stormrail runtime family v1/v2
+
+V1 requested one clean magenta-backed production-source sheet derived from the
+approved composition and canonical Sparkpaw identity: two 112x48-proportion
+Skimmers and three distinct airborne drones. Its native FRONT16 reduction was
+technically clean, but the departure screenshot exposed a story error: the
+parked vehicle already contained Sparkpaw while the hardware-sprite Sparkpaw
+stood beside it. V1 is therefore rejected for the parked frame.
+
+The focused v2 edit changes only the top-left vehicle: Sparkpaw is removed and
+the open cockpit/seat is reconstructed empty. The flying top-right Skimmer
+retains its visible rider, and all three drones remain unchanged. V2 is stored
+as `assets/concept/sparkpaw-stormrail-runtime-family-v2-chroma.png`; its exact
+fixed-palette review is `sparkpaw-stormrail-runtime-family-v2-aga16.png` and it
+is the source of `assets/runtime/stormrail-family.spbm`.
+
+## Stormrail environment panorama and foreground kit v1
+
+Built-in ImageGen generation workflow, 2026-08-30. The new ultra-wide rear
+source establishes a Stormrail transit canyon after Level 1: diagonal rain,
+violet mountains, deep forest and ruin silhouettes, waterfalls, cyan energy,
+non-repeating broken turbine rings and one distant vortex/citadel destination.
+Actors, enemies, projectiles, HUD, text and foreground gameplay rails were
+excluded. It is stored as
+`assets/concept/sparkpaw-stormrail-rear-panorama-v1.png`.
+
+The companion orthographic kit supplies long energized rails, upper/lower
+conduit spans, curved route endcaps, pylons and a broken turbine arch on flat
+magenta. It is stored as
+`assets/concept/sparkpaw-stormrail-foreground-kit-v1-chroma.png`. Both sources
+are accepted for the isolated proof. Their hardware-exact reviews are
+`sparkpaw-stormrail-rear-aga8-preview-v1.png` and
+`sparkpaw-stormrail-front-aga16-preview-v1.png`; the matching proof-only
+runtime assets are `stormrail-rear.spbm` and `stormrail-front.spbm`.
+
+## Stormrail loading composition v1
+
+Built-in ImageGen generation workflow, 2026-08-30, using the approved
+interlude composition and rear panorama as separate references. The request
+places a single readable Sparkpaw in the open-cockpit Skimmer on an energized
+rail, against rain, waterfalls, turbine rings and the distant vortex. A dark
+lower band is reserved for deterministic runtime text. Generated text, HUD,
+enemies, collectibles, panels and duplicate actors/vehicles were excluded.
+
+Saved as `assets/concept/sparkpaw-stormrail-loading-concept-v1.png`. Its exact
+six-plane reduction is
+`assets/concept/sparkpaw-stormrail-loading-aga64-preview-v1.png`. Although its
+pen 0, Copper display and border are technically correct, supplied visual
+review rejects the composition. Stormrail will reuse the accepted disk/loading
+presentation instead; this generated plate is retained only as rejected
+concept history and is not a proof or release dependency.
+
+## Stormrail runtime family v6 — two-stage laid-back boarding family
+
+No new image-generation request was used. The accepted empty v3 Skimmer hull,
+its small attached cyan engine glow and Sparkpaw's accepted native player pose
+16 are recomposed deterministically by `tools/generate_stormrail_assets.py`.
+All six 112x48 vehicle frames use the identical hull pixels. Frames 1--5 keep
+one fixed 98%-scale rider: first contact, settle, brief forward controls-check
+sit, a light lean, then the approved laid-back pilot concept v1. The selected
+concept keeps open focused eyes, an attached gauntlet, coherent bent legs and
+both boots. It is reduced uniformly without geometric warping or rotation, so
+head, torso and limbs retain their drawn anatomy. Translation and
+cockpit occlusion create the descent; the rider and hull never shrink between
+frames. Exact indexed review output is saved as
+`assets/concept/sparkpaw-stormrail-runtime-family-v6-aga16.png`; integration is
+pending focused FS-UAE/HD review.
+
+V6 is rejected. The added row-sheared pose distorted Sparkpaw's head; the
+subsequent canonical closed-eye pose read as sleeping, and the generated
+laid-back concept lost canonical colour clustering and exposed a disconnected-
+looking knee after 48x48 reduction. Runtime returns to the five-frame v5
+baseline while the vehicle and cockpit are redesigned.
+
+## Stormrail Skimmer concept v4 — high-contrast AGA craft direction
+
+Built-in ImageGen concept pass using the rejected v3 Skimmer, the accepted
+Stormrail rear panorama and canonical Sparkpaw sheet as references. Requested
+a sleek airborne wedge, open negative space beneath the chassis, deep seat and
+backrest, navy/charcoal and steel-blue material planes, silver highlights,
+cyan energy and restrained copper trim. It explicitly excludes the former
+grey slab/ground-piece silhouette and noisy micro-dithering.
+
+Saved as `assets/concept/sparkpaw-stormrail-skimmer-concept-v4.png`. Status:
+pending visual review. The empty craft has materially stronger silhouette and
+contrast; rider posture and the feasibility of reducing its long hull to the
+current 112x48 Bob remain deliberately unapproved. No runtime asset is derived
+from this concept before explicit approval.
+
+## Stormrail Skimmer concept v5 — compact interceptor refinement
+
+Built-in ImageGen edit using v4 as the approved material/silhouette direction,
+the Stormrail panorama as contrast reference and canonical Sparkpaw for scale.
+The request preserves v4's navy/steel/silver planes, cyan engine and copper
+trim while shortening the hull, nose, engine mass and tail by roughly 20--25%,
+pulling the emitter toward the cockpit and retaining negative space underneath.
+It also requests a deep supported reclined seat suitable for shooter controls.
+
+Saved as `assets/concept/sparkpaw-stormrail-skimmer-concept-v5-compact.png`.
+Status: pending visual review. It reads more like a fast interceptor and its
+seat relationship is improved, but exact native width, rider identity and
+112x48 feasibility remain unapproved. No runtime conversion has been made.
+
+One subsequent built-in ImageGen extraction isolates only v5's occupied side
+view onto exact magenta for deterministic scale comparison. It is saved as
+`assets/concept/sparkpaw-stormrail-skimmer-v5-occupied-chroma.png`. The three
+scale candidates are all derived from that one source by
+`tools/generate_stormrail_scale_study.py`; ImageGen does not independently
+redraw the compared sizes.
+
+## Stormrail Skimmer concept v6 — head-only deep cockpit alternative
+
+Built-in ImageGen edit using compact v5 as the strict vehicle direction,
+canonical Sparkpaw for identity and the Stormrail panorama for contrast. It
+retains the compact navy/steel/cyan/copper interceptor but deepens the pilot
+pod so only Sparkpaw's head, ears and a small scarf edge remain visible. Torso,
+gauntlet, knees, legs and boots are explicitly inside the shell rather than
+removed from the character design.
+
+Saved as `assets/concept/sparkpaw-stormrail-skimmer-concept-v6-head-only.png`.
+Status: selected visual direction. The user approved both the compact cockpit
+solution and Sparkpaw's calm, confident facial expression on 2026-08-31.
+This direction materially simplifies native boarding and flight animation,
+avoids small-scale seated-anatomy failures and permits a cleaner compact hull.
+The native occupant must preserve this accepted focused expression and
+canonical head proportions.
+
+A subsequent ImageGen extraction isolates the approved occupied side view on
+exact magenta as
+`assets/concept/sparkpaw-stormrail-skimmer-v6-head-only-chroma.png`. The
+deterministic native FRONT16 comparison is saved as
+`assets/concept/sparkpaw-stormrail-skimmer-v6-head-only-scale-study.png` and
+`assets/concept/sparkpaw-stormrail-skimmer-v6-head-only-scale-study-2x.png`.
+
+A strict ImageGen edit then removed only Sparkpaw and supplied an empty deep
+cockpit on exact magenta. That source is preserved as
+`assets/concept/sparkpaw-stormrail-skimmer-v6-empty-chroma.png`. It is not used
+as an independently animated hull: `tools/generate_stormrail_v6_native_family.py`
+makes its 104x46 FRONT16 reduction canonical, then transplants only the
+approved head/scarf/cockpit rectangle into the occupied frame. Empty and
+occupied hull pixels are therefore identical outside the 23x23 pod region.
+The native proof and background review are saved as:
+
+- `assets/concept/sparkpaw-stormrail-skimmer-v6-native-family-aga16.png`
+- `assets/concept/sparkpaw-stormrail-skimmer-v6-native-family-review.png`
+- `assets/concept/sparkpaw-stormrail-skimmer-v6-native-family-review-3x.png`
+
+No runtime integration has been made.
+
+## Stormrail rear panorama v3 — approved open-shooter direction
+
+Built-in ImageGen generation workflow, 2026-08-30, using the accepted Level-1
+parallax v4 as the quality/layering reference and Stormrail interlude concept
+v2 only for narrative, material and mood. The prompt requested a brand-new
+ultra-wide Stormrail flight panorama with dense mountains, dark forest,
+waterfalls, cyan-lit broken towers, suspended rail arches, mist, rain and one
+restrained storm-vortex landmark. It explicitly excluded actors, Skimmer,
+enemies, HUD, floor/ceiling, corridor obstacles, flat sky, three horizontal
+strips, repeated wallpaper and a monochrome purple wash.
+
+Saved as `assets/concept/sparkpaw-stormrail-rear-panorama-v3.png`; the exact
+three-plane/twelve-transition preview is
+`assets/concept/sparkpaw-stormrail-rear-aga8-preview-v3.png`. Supplied V2 review
+finds this background materially better. It is retained as the visual basis for
+the revised open horizontal shooter; the rejected corridor foreground is not
+part of that acceptance.
+
 ## World diamond native-art direction v1 (concept reference)
 
 Use case: visual design reference for one native 16x21 Amiga AGA masked Bob
@@ -791,3 +1037,267 @@ behind the higher-priority player sprite. The v2 native-palette preview is
 `assets/concept/sparkpaw-stormstone-core-aga16-preview-v2.png`: contraction,
 a radial white/cyan/bronze release and fading fragments replace the directional
 threads. These frames do not alter or regenerate Sparkpaw's player sheet.
+
+## Stormrail route spans concept v1 — Gate 2.5 background study
+
+Built-in ImageGen generation workflow, 2026-09-01, using the approved v3 rear
+panorama only as environment, palette and quality reference. The prompt asks
+for one continuous four-region route study: vortex mountains, a rain-veiled
+ruin valley, a waterfall/broken-bridge basin and a cyan-lit rail citadel. It
+requires a calm central combat band for the later measured cap of five small
+enemies, five player shots and four hostile shots; dense highlights remain
+high, deep or along the lower silhouette. Natural cloud, rain, mist, forest
+and waterfall connector zones replace full-height duplicate seams. Actors,
+HUD, text, corridors, collision walls and obvious mirrored/repeated wallpaper
+are excluded.
+
+Saved as `assets/concept/sparkpaw-stormrail-route-spans-concept-v1.png`.
+Status: pending visual-direction review. It is concept material only and has
+not been quantized, tiled or integrated into a runtime asset.
+
+V2 is a built-in ImageGen colour/atmosphere edit using v1 as the strict
+composition target and Level-1 parallax v4 only as a colour-diversity
+reference. Geometry, horizon, calm combat band and four-region journey remain
+fixed. The requested colour arc moves continuously from lavender-violet and
+dark forest green through rain-veiled teal/blue-grey stone, pale waterfall mist
+and muted bronze/moss into the colder cyan/indigo citadel. Broad overlapping
+clouds, rain, mist, forest depth and material lighting must carry every change;
+vertical colour divisions, panels, hard palette lines and sudden hue switches
+are explicitly forbidden. Bright cyan, orange and cream remain sparse for
+future actor/projectile readability.
+
+Saved as `assets/concept/sparkpaw-stormrail-route-spans-concept-v2.png`.
+Status: accepted as the source direction for an exact REAR8 feasibility study;
+it is not itself runtime art.
+
+## Stormrail route spans native REAR8 study v3
+
+Local conversion study, 2026-09-01. The v2 concept was sampled as four
+representative 320x208 playfield views and reduced to the real rear-playfield
+constraint: three bitplanes, no more than eight colours on any scanline, AGA
+12-bit colour values and sixteen smoothly interpolated Copper palette stages.
+The palette banks are deliberately authored by route region rather than
+derived independently per strip, so departure violet, rain-valley slate and
+green, waterfall mist and moss, and citadel cyan remain distinct without hard
+horizontal colour bands. V1 and v2 were internal conversion attempts and were
+rejected as respectively noisy/muddy and too dull.
+
+The v3 contact sheet is
+`assets/concept/sparkpaw-stormrail-route-spans-aga8-study-v3.png`; its four
+individual native-size views use the matching `*-aga8-study-v3.png` names.
+`assets/concept/sparkpaw-stormrail-route-joins-aga8-study-v1.png` studies the
+three intermediate palette/scene connectors. The readability composite
+`assets/concept/sparkpaw-stormrail-route-combat-readability-aga8-v1.png`
+places the accepted runtime vehicle over all four native views without
+changing either palette owner.
+
+Status: exact-size and palette-feasible static study, pending art-direction
+review. It is not yet a seamless runtime strip and has not been integrated or
+verified in FS-UAE.
+## Stormrail compact flight-family studies — Gate 2 polish
+
+Built-in ImageGen reference/edit workflow, 2026-09-01. The accepted v7 native
+Stormrail family was the strict vehicle, Paw, palette-role and anatomy
+reference. V1 explored a roughly 67-percent shooter silhouette on magenta;
+the targeted v2 edit reduced overall bulk and Paw's relative scale while
+preserving the black hull, orange rail and cyan engine/muzzle identity. The
+v2 source is preserved as
+`assets/concept/sparkpaw-stormrail-compact-flight-source-v1.png`.
+
+Neither generated image is a runtime sprite: both remain proportion studies.
+The first was rejected for an oversized Paw and heavy hull. V2 is useful as
+direction only. Runtime art is a component-authored native 80x32 FRONT16 Bob:
+the accepted empty hull and pilot delta are reduced independently, Paw is
+seated separately, and the orange rail plus cyan engine/muzzle clusters are
+redrawn at exact native resolution. The rejected sink-neck/scarf treatment is
+explicitly excluded.
+
+### Stormrail compact cockpit study v2
+
+Built-in ImageGen reference/edit workflow, 2026-09-01. Inputs were the native
+80x32 compact v1 Bob and the accepted v7 boarding/launch family. The request
+kept the hull, right-facing direction, orange rail, cyan engine/emitter and
+Sparkpaw palette roles fixed, while placing Paw lower and forward inside a
+dark cockpit cavity with a continuous foreground rim across his lower
+scarf/shoulders. Floating-head composition, oversized Paw, hull redesign and
+the rejected sink-neck/scarf anatomy were explicitly forbidden.
+
+Saved as
+`assets/concept/sparkpaw-stormrail-compact-cockpit-study-v2.png`.
+
+Status: cockpit depth/composition direction approved, but the first native v2
+translation was rejected because an added red scarf/support cluster read as an
+unfamiliar red stain. Runtime v2 therefore uses only the established orange,
+cream and dark pilot roles at that support; it remains native 80x32 FRONT16
+with binary alpha and one combined Bob mask. In-game acceptance remains
+pending.
+
+V3 removed the explicit scarf but retained a warm reddish cockpit/neck edge
+and was rejected in supplied FS-UAE review. V4 was reauthored as one complete
+ship-plus-pilot composition with the general gameplay sheet as the identity
+reference: the visible cape beneath/behind the head is dark navy/blue-grey,
+the top cockpit rim is neutral steel, and warm orange is limited to fur and
+the long side energy rail. A matching isolated seated pilot source is saved as
+`assets/concept/sparkpaw-stormrail-seated-pilot-source-v4.png`; it is reduced
+offline and merged into one final 80x32 Bob, never rendered separately.
+
+Status: v4 concept direction accepted by correction request; native in-game
+review remains pending.
+
+The isolated bust experiments still made the head dominate after native
+reduction and were rejected before staging. The final path therefore converts
+the complete v4 ship-plus-Sparkpaw composition as one indivisible source into
+one 80x32 image and one mask. There is no separate pilot source, sprite,
+position, draw or restore at runtime. During FRONT16 conversion the reddish
+warm pen is disallowed for this complete Bob; fur and the long side rail use
+the normal orange role instead. Native in-game review remains pending.
+
+The first whole-source native reduction still left the head too dominant and
+lost eye/muzzle/inner-ear separation, reading as an orange haze at gameplay
+scale. Complete composition v5 keeps one indivisible ship-plus-pilot source
+but seats a roughly 20-percent smaller Sparkpaw deeper in the cockpit while
+retaining a visible blue-grey cape/torso wedge and forepaws. It explicitly
+preserves HUD-consistent identity roles without copying or rescaling the HUD
+portrait. V5 replaces v4 as the native conversion source.
+
+LANCZOS reduction of the whole v5 composition was rejected before staging
+because it blended the small face and cape into an orange haze. The selected
+conversion uses nearest-neighbour sampling of that already pixel-authored
+whole source, followed by one FRONT16 quantization and one binary mask. This
+preserves separate eye/outline, cream muzzle and inner-ear clusters without
+introducing any pilot overlay.
+### Stormrail compact cockpit study v6 — larger integrated pilot candidate
+
+- Source: `assets/concept/sparkpaw-stormrail-compact-cockpit-study-v5.png`
+- Output: `assets/concept/sparkpaw-stormrail-compact-cockpit-study-v6.png`
+- Status: native gameplay test candidate; visual acceptance must come from the
+  user's FS-UAE screenshot rather than the host-side enlarged preview.
+- Intent: preserve one combined ship-plus-Sparkpaw Bob and enlarge Sparkpaw by
+  roughly 18% inside the cockpit so the HUD identity survives reduction to
+  80x32. Keep cream muzzle/inner ears, readable eye, dark outline and a small
+  dark blue-grey torso/cape anchoring him in the cockpit. No red scarf, collar,
+  neck band or warm red strip under the head; no detached pilot overlay.
+- Conversion remains nearest-neighbour into the established FRONT16 palette;
+  ship, pilot, mask and draw stay one runtime object.
+
+### Stormrail compact cockpit study v7 — conservative larger-pilot candidate
+
+- Source: `assets/concept/sparkpaw-stormrail-compact-cockpit-study-v5.png`
+- Output: `assets/concept/sparkpaw-stormrail-compact-cockpit-study-v7.png`
+- Status: selected for native user-screenshot evaluation. The v6 18% study was
+  rejected before staging because its ears reached the 32-pixel cell boundary
+  and its head dominated the craft after reduction.
+- Intent: enlarge the integrated pilot only about 10%, seat him slightly lower,
+  and preserve clear ear, eye, cream muzzle and dark blue-grey torso clusters.
+  The complete composition still converts and renders as one 80x32 Bob.
+
+- User result: rejected. At native gameplay scale the larger face collapsed
+  into dark eye/forehead holes that visually read as transparency. Restore v5
+  as the drawer baseline; do not continue enlarging and reducing ImageGen
+  concepts for this pilot. Any next attempt must be authored and judged from
+  the exact indexed 80x32 frame with user screenshots as visual authority.
+### Stormrail cockpit head v1 — dedicated head-only hardware-sprite source
+
+- References: the user's rejected hybrid placement comparison,
+  `sparkpaw-hud-concept-v1.png`, and `sparkpaw-48x48-aga16-source.png`.
+- Output: `assets/concept/sparkpaw-stormrail-cockpit-head-v1.png`.
+- Status: native 030 review candidate pending; generated source is never used
+  directly and is reduced to an exact 16x15 FG_PALETTE sprite in slot 62.
+- Intent: a focused right-facing Sparkpaw head with two complete orange/cream
+  ears, HUD-like eye, cream muzzle and dark outline. Head only: no cape, scarf,
+  collar, neck, torso, hands, ship or cockpit. The ship remains a separate
+  80x32 Bob and the runtime head ends above its orange hull accent.
+- Background handling: remove only light neutral pixels connected to the source
+  canvas edge so enclosed pale eye and muzzle pixels can never become alpha.
+
+### Stormrail cockpit head v2 — strict one-eye native-grid source
+
+- References: cockpit head v1, the HUD concept and Level-1 sprite sheet.
+- Output: `assets/concept/sparkpaw-stormrail-cockpit-head-v2.png`.
+- Status: selected over v1 for native reduction; v1's three-quarter/two-eye
+  construction lost its identity at 16x15.
+- Intent: strict right-facing side profile, one readable eye, two complete
+  orange/cream ears and a compact cream muzzle. The enlarged source is built
+  from deliberately coarse logical pixel blocks and therefore uses nearest
+  reduction before exact FG_PALETTE indexing. No cape, neck or body.
+
+- Native result: rejected before staging. Its generated ear hierarchy was the
+  reverse of the accepted Level-1/HUD identity. The 16x15 reduction lost the
+  eye; the 18x17 reduction retained an eye but still read as a different fox.
+  Runtime returned to a fresh, uncorrected Level-1 head extraction with only
+  lower body rows omitted. The generated v1/v2 files remain review history and
+  are not consumed by the build.
+
+## Stormrail Debris 2.0 art study v1 — material-rich but too architectural
+
+Built-in ImageGen generation, 3 September 2026. References were the supplied
+Project-X asteroid capture for painted-volume restraint, the supplied Zynaps
+debris capture for readability/density, the accepted Storm Ruins foreground
+kit for material identity and the accepted Stormrail enemy family for palette
+quality. Exact prompt:
+
+```text
+Use case: stylized-concept
+Asset type: Sparkpaw Stormrail / Level-2 Storm Ruins debris pixel-art concept sheet; reference-only, not a runtime sprite sheet.
+Input images: Image 1 is Project-X Amiga rock lighting/volume restraint reference only; Image 2 is Zynaps Amiga density and readable-rock reference only; Image 3 is the authoritative Sparkpaw Storm Ruins castle masonry/material identity; Image 4 is the accepted Sparkpaw native enemy polish and palette-role quality reference.
+Primary request: Create one clean orthographic concept sheet showing three original families of airborne Storm Ruins debris: (A) shattered carved arch/lintel masonry, (B) broken gothic buttress/pillar fragments, and (C) storm-weathered massive castle wall chunks containing subtle structural Stormstone traces. For each family show one large, one medium, and two small related fragments, clearly separated and all genuinely different silhouettes. These are pieces of a ruined fantasy storm castle, never space asteroids.
+Style/medium: premium late-era Amiga AGA pixel art concept, crisp deliberately placed pixel clusters, readable at small gameplay scale, painted volume rather than line art. Use broad faceted material planes, chipped asymmetric silhouettes, sparse pitting and erosion, deep fracture faces and consistent upper-left illumination. Darkest pixels are local material shadow only, not a continuous outline. Details follow planes and mass.
+Composition/framing: organized object study on a flat solid magenta chroma background, generous separation, no overlap, no scene, no perspective floor, no cast shadows, no labels or text. Large pieces roughly 3x the visual width of small pieces. Include a few alternate true tumble orientations as separately redrawn views, with stable material identity and lighting.
+Color palette: restrained Sparkpaw FRONT16-like roles—neutral charcoal, violet-grey, mid steel-grey, pale stone highlight, tiny controlled cool blue/cyan Stormstone reflections, extremely sparse muted bronze weathering. Preserve strong contrast without large saturated panels.
+Constraints: original geometry; castle ruins unmistakable through carved arch curvature, masonry joints, broken moulding, buttress ribs and fractured blocks. Clean binary-looking edges suitable for later hand translation to native 48x40, 32x32 and 16x16 masked sprites. No scaling artifacts, anti-alias blur, gradients, semitransparency, thick black contour, comic inking, cel-shaded sticker look, WordArt, regular rectangular programmer blocks, neon cracks, decorative holes, purple sci-fi panels, round boulders, planets, metallic asteroids, enemies, ship, player, diamonds, explosions, HUD, typography, watermark.
+```
+
+Saved as `assets/concept/sparkpaw-stormrail-debris-study-v1.png`.
+Status: rejected as the direct debris direction. Its material richness is useful,
+but complete arches, bridges and towers read as miniature scenery; repeated
+scale ladders would collapse at native size.
+
+## Stormrail Debris 2.0 art study v2 — broken-mass review direction
+
+Built-in ImageGen edit/generation, 3 September 2026. V1 is material reference,
+Project-X is painted-volume reference and the Storm Ruins kit remains identity
+authority. Exact prompt:
+
+```text
+Use case: stylized-concept
+Asset type: revised Sparkpaw Storm Ruins airborne-debris pixel-art concept sheet.
+Input images: Image 1 is the first study and is only the material richness reference; fix its complete-building, repeated/scaled-family and over-detailed problems. Image 2 is the Project-X Amiga reference for broad readable rock volumes and restrained internal marks, not for asteroid subject matter. Image 3 is the authoritative Storm Ruins material and architectural language.
+Primary request: Create a completely revised sheet of exactly twelve isolated airborne broken castle-ruin chunks, arranged in three rows of four. Row 1: four large 48x40-proportion chunks. Row 2: four medium 32x24-proportion chunks. Row 3: four small 16x16-proportion chunks. Every piece must have unique geometry, not a resized duplicate. Mix unmistakable partial clues—one severed arch spring, one broken lintel corner, one buttress rib, one battered battlement cap, one fractured pillar drum, and irregular masonry masses—but no complete arch, bridge, tower, wall, doorway, facade or standing building.
+Style/medium: premium late-era Amiga pixel art, deliberately chunky and simple enough for hand translation to 48x40/32x24/16x16. Painted mineral volume like the Project-X reference: three or four broad connected light/shadow planes per piece, a few purposeful chips/pits, deep fracture faces, consistent upper-left light. Reduce Image 1's tiny brick-by-brick detailing by at least 70 percent.
+Composition: flat solid magenta chroma background, generous gaps, no overlap, no ground line, no cast shadows, no labels. Objects float at varied orientations and look torn from one Storm Ruins castle.
+Color/material: charcoal-violet fracture shadow, dark steel-grey, mid weathered grey, pale stone highlight; tiny sparse cyan mineral/Stormstone glints on only three of the twelve objects; tiny muted moss/bronze flecks on at most two. The material remains neutral stone overall.
+Critical constraints: no continuous black outer contour; edge pixels use local dark stone and broken highlights. No comic inking, sticker look, cel shading, WordArt, anti-aliasing, blur, gradients or semitransparency. No regular black seams around every brick. No scaled duplicates. No round asteroids, meteor craters, planets, metal rocks, sci-fi panels, neon cracks, decorative holes, ships, enemies, pickups, explosions, HUD, text or watermark. The large pieces must read as broken masses first and architectural remnants second.
+```
+
+Saved as `assets/concept/sparkpaw-stormrail-debris-study-v2.png`.
+Status: pending user direction review. V2 is substantially closer: isolated
+broken masses, unique size silhouettes and broad lighting planes. It remains a
+high-resolution reference only; its remaining brick seams must be simplified
+again during any native 48x40/32x24/16x16 hand translation.
+# Stormrail Gate 4A ruin masonry concept — pending review (3 September 2026)
+
+- References: rejected Gate-4A procedural obstacle sheet and accepted
+  `sparkpaw-stormrail-runtime-family-v8-aga16.png` enemy family.
+- Prompt intent: replace the smooth faceted boulder with one coherent family of
+  genuine castle-ruin masonry: intact and damaged 48x40 targets plus three
+  distinct 16x16 derived chunks. Requested layered blocks, a partial carved
+  arch/lintel, chipped stone, cold upper-left lighting, clean masks and restrained
+  warm fracture glints. Explicitly excluded purple panels, neon surface lines,
+  holes, round pebbles, scaling artefacts and programmer geometry.
+- Built-in ImageGen output:
+  `/Users/mpoelstra/.codex/generated_images/01a062bd-c934-7733-964e-750369b28e6d/exec-fa932929-4e82-4aab-b1b4-3f0b3d5b7d6e.png`
+- Status: **visual direction approved 3 September 2026**. The high-detail
+  concept itself remains reference-only and was not scaled into runtime art;
+  its masonry/arch language was redrawn natively at 48x40 and 16x16.
+
+
+## INSERT DISK typography candidate
+
+User screenshots reference plain INSERT and styled LOADING. Built-in imagegen
+prompt: text-only INSERT DISK 1 and INSERT DISK 2, one line each, chunky angular
+cyan/turquoise bevelled pixel letters, pale top bevel, navy stepped outline,
+gold corner accents, black background; no floppy or window. Source saved as
+assets/concept/sparkpaw-insert-disk-type-v1.png. generate_disk_status.py converts
+the two bands to 216x24 in the unchanged loading palette inside the 224x40 patch.
+Native and 2x preview inspected. Shared floppy artwork is byte-exact. User
+visual/native acceptance pending; no release change.

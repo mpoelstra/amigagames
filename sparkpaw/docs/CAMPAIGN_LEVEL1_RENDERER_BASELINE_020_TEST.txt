@@ -1,0 +1,10 @@
+Sparkpaw integrated Level-1 renderer A/B baseline
+=================================================
+
+This is the unchanged integrated-campaign stock-68020 baseline with minimal
+cadence logging. It is A in a causal A/B against the renderer-isolation drawer.
+
+Play a representative Level-1 route, including a busy combat section, as
+similarly as practical to B. After the run, press the left mouse button once.
+The image freezes while renderdiag.log is written. Wait a few seconds and then
+stop/reset FS-UAE.
