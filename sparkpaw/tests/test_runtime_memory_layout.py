@@ -2,6 +2,7 @@
 """Guard the visibility bounds used by the low-Chip runtime assets."""
 
 from pathlib import Path
+from hashlib import sha256
 import struct
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +34,20 @@ assert loading[:4] == (320, 256, 6, 0)
 assert charging[:4] == (224, 40, 6, 0)
 assert ready[:4] == (320, 256, 6, 0)
 assert ready_menu[:4] == (192, 1248, 6, 0)
+
+# Alpha.2 palettes and every visible planar row; omit only old zero padding.
+# Protect plane ordering, artwork and the complete flight-loop overlap.
+stormrail_visible = {
+    "stormrail-front.spbm": (3392, 4,
+        "77b831f55f210329b4eb121b611c79c456f92a1e0400771f115370ee60050b92"),
+    "stormrail-rear.spbm": (1120, 3,
+        "c393662c0c08d267e7d749b7d8fc2bdf54b9fa64134869c9c98b124a699ee526"),
+    "stormrail-flight-rear.spbm": (1120, 3,
+        "7bd5171f1fe7e49fee6d4d54cc7bd4cea2661ccbca4c48bd668aca39506cdaa9"),
+}
+for name, (width, depth, accepted_hash) in stormrail_visible.items():
+    assert header(name)[:4] == (width, 208, depth, 0), name
+    assert sha256((RUNTIME / name).read_bytes()[12:]).hexdigest() == accepted_hash, name
 
 ready_data = (RUNTIME / "sparkpaw-ready-screen.spbm").read_bytes()
 ready_menu_data = (RUNTIME / "readymenu.spbm").read_bytes()
@@ -181,8 +196,17 @@ menu_update = title_source[
     title_source.index("static void showReadyMenuState") :
     title_source.index("void titleRunLevelReadyMenu")
 ]
+# Menu asset is CPU-only Fast RAM. Never pass it directly to Blitter DMA.
+assert "blitReadyMenuPage" not in menu_update
+assert "hardware->bltapt" not in menu_update
 assert "readyMenuBack=AllocBitMap" in title_source
-assert "hidden->Planes[plane]+targetOffset" in menu_update
+ready_setup=title_source[title_source.index("BOOL titleShowLevelReady(void)"):title_source.index("static void copyScoreBase")]
+assert ready_setup.index("readyPatchPrepare(") < ready_setup.index("fadeTo(loading,FALSE)")
+assert ready_setup.index("readyMenuBack->Planes[plane]") < ready_setup.index("fadeTo(loading,FALSE)")
+assert ready_setup.index("fadeTo(loading,FALSE)") < ready_setup.index("loading->bitmap->Planes[plane]")
+
+assert "readyPatchApply(hidden->Planes,patches->bitmap->Planes" in menu_update
+assert menu_update.index("readyDustRestore(") < menu_update.index("readyPatchApply(") < menu_update.index("readyDustDraw(") < menu_update.index("hardware->cop1lc=")
 assert "waitOwnedCopperArmWindow()" in menu_update
 assert "hardware->cop1lc=(ULONG)copper[next]" in menu_update
 assert "platformSwitchCopper(copper[next])" not in menu_update

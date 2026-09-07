@@ -1,6 +1,8 @@
 """Authoritative logical ownership for the integrated campaign runtime."""
 
 SHARED_PRESENTATION = frozenset({
+    "hero-drive.lsmusic", "hero-drive.lsbank",
+    "neon-sky.lsmusic", "neon-sky.lsbank",
     "sparkpaw-title.spbm", "sparkpaw-level-loading.spbm",
     "level-charge-patch.spbm", "sparkpaw-ready-screen.spbm",
     "readymenu.spbm", "sparkpaw-level-complete.spbm",

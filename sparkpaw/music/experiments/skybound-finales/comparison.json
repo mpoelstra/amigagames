@@ -1,0 +1,38 @@
+[
+  {
+    "title": "Sparkpaw \u2014 IX-Shards-of-Victory",
+    "render_seconds": 60.434285714285714,
+    "scene_tempos": [
+      150,
+      150,
+      164,
+      164,
+      164
+    ],
+    "module_sha256": "9c2b90f55220f1bdddb9a78e59fea4b2fe2eed10df66c2907b9912ab1724102c"
+  },
+  {
+    "title": "Sparkpaw \u2014 VII-Sparkpaw-Rising",
+    "render_seconds": 60.434285714285714,
+    "scene_tempos": [
+      150,
+      150,
+      164,
+      164,
+      164
+    ],
+    "module_sha256": "21ac3c62218e3f95a3ddb5b845144997dea3feec5b7d8f866c3e9953d33eda09"
+  },
+  {
+    "title": "Sparkpaw \u2014 VIII-Hero-Drive",
+    "render_seconds": 60.434285714285714,
+    "scene_tempos": [
+      150,
+      150,
+      164,
+      164,
+      164
+    ],
+    "module_sha256": "f7b4bbeae7958876a754b0eeef1d3910f8870ffcc319ab234f83588b8e745f9d"
+  }
+]

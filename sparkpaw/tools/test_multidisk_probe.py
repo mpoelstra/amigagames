@@ -11,8 +11,10 @@ def compile_run(name,source,args=()):
  subprocess.run([str(OUT/name),*map(str,args)],check=True)
 
 def main():
- s=(ROOT/'src/assets.c').read_text();a=s.index('struct PackedReader {');b=s.index('\n#endif\n\nstatic void freeAsset',a)
+ s=(ROOT/'src/assets.c').read_text();a=s.index('struct PackedReader {');b=s.index('\n#endif\n\n#ifdef SPARKPAW_MULTI_ADF\n/* Reuse',a)
  body=s[a:b]
+ start=s.index("UBYTE *assetsLoadDiskData(")
+ body+=s[start:s.index("\n#endif",start)]
  header='''#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +26,8 @@ typedef int32_t LONG;typedef int BOOL;typedef char *STRPTR;typedef FILE *BPTR;
 #define TRUE 1
 #define FALSE 0
 #define MODE_OLDFILE 0
+#define AllocMem(n,flags) ((void)(flags),malloc(n))
+#define FreeMem(p,n) free(p)
 #define Open(name,mode) fopen(name,"rb")
 #define Close(file) fclose(file)
 #define Read(file,data,n) ((LONG)fread(data,1,n,file))
@@ -35,7 +39,12 @@ int main(int argc,char **argv){struct PackedReader r;UBYTE bytes[333],expected[3
 if(!packedOpen(argv[1],&r)){assert(atoi(argv[3])==0);fclose(raw);return 0;}
 for(chunk=0;(n=fread(expected,1,(chunk%3==0?12:chunk%3==1?97:333),raw))>0;chunk++){
 if(!packedRead(&r,bytes,n)){ok=FALSE;break;}if(memcmp(bytes,expected,n)){ok=FALSE;break;}}
-ok=packedClose(&r,ok);fclose(raw);assert(ok==atoi(argv[3]));return 0;}
+ok=packedClose(&r,ok);assert(ok==atoi(argv[3]));
+{ULONG size;UBYTE *data=assetsLoadDiskData(argv[1],0,&size);long length;
+fseek(raw,0,SEEK_END);length=ftell(raw);rewind(raw);
+if(ok&&length>0){long at;assert(data&&size==(ULONG)length);for(at=0;at<length;at++)assert(data[at]==fgetc(raw));free(data);}
+else assert(!data&&size==0);}
+fclose(raw);return 0;}
 '''
  # Compile once; run independent reference payloads with split reads and corruption.
  compile_run('reader',header+body+driver,prepare_first())

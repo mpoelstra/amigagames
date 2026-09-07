@@ -66,3 +66,26 @@ patterns 7/8/9 also change Level-1 hostile impact pixels despite identical
 runtime asset files. No cache-size or Blit-count increase follows from those
 pixel differences. See `LEVEL1_PRODUCTION_BASELINE_AUDIT.md`; these are audit
 findings, not changes made to accepted Stormrail assets or ownership lifetimes.
+
+## Accepted Chip2 development baseline — 2026-09-06
+
+The current source now omits beetle, Strider, Core and extra-life conversion
+loads and their six associated cache families during Stormrail only. Shared
+static-collectible preparation and all audio remain unchanged. Existing alpha.2
+packages and their physical disk carryover lists are untouched; files remain
+in the HD manifest because Level 1 still needs them. The user accepted Chip2 HD on a real A1200 on 2026-09-06;
+approximately 1.45 MB free Chip RAM remains insufficient. See STORMRAIL_CHIP_RAM_AUDIT.md; this candidate does not claim full
+section residency isolation or change the accepted media baseline.
+
+## Title music candidate — 2026-09-06
+
+neon-sky.lsmusic/lsbank are shared presentation assets in the development
+manifest. Score uses Fast memory; bank uses Chip until the READY fade ends.
+Neither belongs to gameplay residency. Released media are unchanged; new ADF
+capacity and WHDLoad playback are unverified. See TITLE_AND_INTRO_MUSIC.md.
+
+## Intro music — 7 September 2026
+
+hero-drive.lsmusic/lsbank are shared presentation assets. Their one-shot lifetime
+ends on story completion/skip, before title bank loading. No gameplay residency.
+Current media baselines remain untouched. See TITLE_AND_INTRO_MUSIC.md.

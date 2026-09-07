@@ -1,0 +1,100 @@
+{
+  "title": "Sparkpaw \u2014 Stormbound",
+  "status": "original title candidate; user listening pending",
+  "bpm": 144,
+  "speed": 6,
+  "channels": 4,
+  "patterns": 12,
+  "bars": 48,
+  "render_seconds": 79.93469387755103,
+  "module_bytes": 117026,
+  "sample_bytes": 103654,
+  "module_sha256": "14909cf1c12c5b2de5af92b072fac19c733963127282077695c67de5a3bdae0a",
+  "peak_before_master": 24308,
+  "preview_gain": 1.3154034943661328,
+  "reference_samples_used": false,
+  "runtime_integrated": false,
+  "render_engine": "micromod, actual MOD playback",
+  "samples": [
+    {
+      "name": "THUNDER KICK + HAT",
+      "bytes": 2402,
+      "volume": 62
+    },
+    {
+      "name": "STEEL SNARE + HAT",
+      "bytes": 2486,
+      "volume": 55
+    },
+    {
+      "name": "TIGHT AIR",
+      "bytes": 662,
+      "volume": 24
+    },
+    {
+      "name": "OPEN AIR",
+      "bytes": 2650,
+      "volume": 29
+    },
+    {
+      "name": "ENGINE TOM",
+      "bytes": 2816,
+      "volume": 52
+    },
+    {
+      "name": "CRASH AND KICK",
+      "bytes": 6462,
+      "volume": 56
+    },
+    {
+      "name": "SHARD PULSE BASS",
+      "bytes": 3976,
+      "volume": 57
+    },
+    {
+      "name": "STORMBRASS HERO",
+      "bytes": 12430,
+      "volume": 47
+    },
+    {
+      "name": "CYAN CRYSTAL",
+      "bytes": 5800,
+      "volume": 38
+    },
+    {
+      "name": "CLOCKWORK PLUCK",
+      "bytes": 1822,
+      "volume": 32
+    },
+    {
+      "name": "Em STORM STRINGS",
+      "bytes": 10358,
+      "volume": 34
+    },
+    {
+      "name": "C STORM STRINGS",
+      "bytes": 10358,
+      "volume": 34
+    },
+    {
+      "name": "D STORM STRINGS",
+      "bytes": 10358,
+      "volume": 34
+    },
+    {
+      "name": "B7 STORM STRINGS",
+      "bytes": 10358,
+      "volume": 34
+    },
+    {
+      "name": "Am STORM STRINGS",
+      "bytes": 10358,
+      "volume": 34
+    },
+    {
+      "name": "G STORM STRINGS",
+      "bytes": 10358,
+      "volume": 34
+    }
+  ]
+}

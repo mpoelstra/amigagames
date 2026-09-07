@@ -186,6 +186,29 @@ static BOOL packedClose(struct PackedReader *reader,BOOL complete)
 }
 #endif
 
+#ifdef SPARKPAW_MULTI_ADF
+/* Reuse the disk reader for losslessly packed presentation music. No extra
+   decoded copy: samples go directly into Chip, score directly into Fast. */
+UBYTE *assetsLoadDiskData(const char *name,ULONG flags,ULONG *size)
+{
+    struct PackedReader reader;
+    UBYTE *data;
+    BOOL valid;
+    *size=0;
+    if(!packedOpen(name,&reader)) return NULL;
+    if(!reader.expectedSize||reader.expectedSize>512UL*1024UL) {
+        packedClose(&reader,FALSE); return NULL;
+    }
+    data=AllocMem(reader.expectedSize,flags);
+    if(!data) { packedClose(&reader,FALSE); return NULL; }
+    valid=packedRead(&reader,data,(LONG)reader.expectedSize);
+    valid=packedClose(&reader,valid);
+    if(!valid) { FreeMem(data,reader.expectedSize); return NULL; }
+    *size=reader.expectedSize;
+    return data;
+}
+#endif
+
 static void freeAsset(struct PlanarAsset *asset)
 {
     UBYTE plane;
@@ -350,10 +373,10 @@ BOOL assetsLoadGameplay(void)
                   "PROGDIR:assets/runtime/sparkpaw-sprites4-storm.spbm":
                   "PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
                   &playerSprites,4,FALSE)||
-       !loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
-                  &enemySprites,4,FALSE)||
-       !loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
-                  &striderSprites,4,FALSE)||
+       (!loadStormrailGameplay&&!loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
+                  &enemySprites,4,FALSE))||
+       (!loadStormrailGameplay&&!loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
+                  &striderSprites,4,FALSE))||
        !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
                   &hudBase,3,TRUE)||
        !loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-health.spbm",
@@ -366,10 +389,10 @@ BOOL assetsLoadGameplay(void)
                   &hudScore,3,TRUE)||
        !loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
                   &collectibleDiamond,4,FALSE)||
-       !loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
-                  &stormstoneCore,4,FALSE)||
-       !loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
-                  &extraLife,4,FALSE)) return FALSE;
+       (!loadStormrailGameplay&&!loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
+                  &stormstoneCore,4,FALSE))||
+       (!loadStormrailGameplay&&!loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
+                  &extraLife,4,FALSE))) return FALSE;
     if(!loadStormrailGameplay) return TRUE;
     return loadAsset("PROGDIR:assets/runtime/stormrail-flight-rear.spbm",
                      &stormrailFlightRear,3,TRUE)&&

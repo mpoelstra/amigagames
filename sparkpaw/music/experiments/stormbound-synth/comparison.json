@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Sparkpaw \u2014 D-Voltage-Run",
+    "bpm": 168,
+    "render_seconds": 68.54530612244898,
+    "module_bytes": 197582,
+    "sample_bytes": 184210,
+    "module_sha256": "bc347913b2af4b38103ccea17f75bb66d42a2e6f92e6c8ef47778089e9f25779"
+  },
+  {
+    "title": "Sparkpaw \u2014 E-Neon-Sky",
+    "bpm": 160,
+    "render_seconds": 71.9934693877551,
+    "module_bytes": 247298,
+    "sample_bytes": 233926,
+    "module_sha256": "4a48e8e24415485ad949204f55ae4fbed4ae84fa0fcfd15ac31d948f5ad221c3"
+  },
+  {
+    "title": "Sparkpaw \u2014 F-Turbo-Shards",
+    "bpm": 176,
+    "render_seconds": 65.41061224489796,
+    "module_bytes": 200316,
+    "sample_bytes": 186944,
+    "module_sha256": "79dd544a1e5146f72608bbcf016c5c7ce860dc8499398d1b089b22282436dc9d"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Sparkpaw \u2014 I-The-Sleeping-Sky",
+    "bpm": 126,
+    "render_seconds": 60.95238095238095,
+    "module_bytes": 432154,
+    "sample_bytes": 422878,
+    "module_sha256": "d77aadfe557692f4404a559b5d597beb66ec3b127439a973f3667e816f86302d"
+  },
+  {
+    "title": "Sparkpaw \u2014 II-Archivolts-Lament",
+    "bpm": 126,
+    "render_seconds": 60.95238095238095,
+    "module_bytes": 432154,
+    "sample_bytes": 422878,
+    "module_sha256": "385662b4a0df91a45bbe7323e6c683ff172eba93502cd4b1667e44e6c8577e90"
+  },
+  {
+    "title": "Sparkpaw \u2014 III-A-Shard-of-Hope",
+    "bpm": 126,
+    "render_seconds": 60.95238095238095,
+    "module_bytes": 432154,
+    "sample_bytes": 422878,
+    "module_sha256": "bc2fb3c2565c83027e92136e5d7a6d1a8e4547440c7b303aee9b24f28ae3b080"
+  }
+]

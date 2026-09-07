@@ -1,0 +1,32 @@
+[
+  {
+    "variant": "A-Stormdrive",
+    "bpm": 152,
+    "seconds": 75.75510204081633,
+    "mod_bytes": 197582,
+    "sample_bytes": 184210,
+    "sha256": "2e452b2c22f97ba58b3351ce804f2985797755eacdd831683179d9f6c656bf61",
+    "lead_hard_cuts": 0,
+    "status": "user listening pending"
+  },
+  {
+    "variant": "B-Skyward",
+    "bpm": 144,
+    "seconds": 79.93469387755103,
+    "mod_bytes": 247298,
+    "sample_bytes": 233926,
+    "sha256": "6a8da153b4609252802cd000134e109c965cc4d72137b69c0bcc538c86ceafbc",
+    "lead_hard_cuts": 0,
+    "status": "user listening pending"
+  },
+  {
+    "variant": "C-Paula-Power",
+    "bpm": 150,
+    "seconds": 76.8,
+    "mod_bytes": 200316,
+    "sample_bytes": 186944,
+    "sha256": "aeb8a5e7e284b17c0e8b1566241fe7914cea3a680004236a267f72d9fd1d8025",
+    "lead_hard_cuts": 0,
+    "status": "user listening pending"
+  }
+]

@@ -66,3 +66,110 @@ baseline delta: campaign progression, boarding/flight, scenery, enemies/rewards,
 debris, finale/audio/results and package-specific changes. Do not present an
 existing alpha.68 feature as new (Level-1 instant replay and button assignment
 already existed), or turn speculative performance work into a promised gain.
+
+## Free Chip RAM and campaign peaks — 2026-09-05
+
+A successful Level-1 launch is not a campaign-wide memory guarantee. The user
+reports real-Amiga HD/WHDLoad success but a separate HD Stormrail crash with
+about 1.45 MB Chip free at launch. Audit actual asset heights, duplicate DMA
+copies and section-specific caches before sacrificing art or replay. Installed
+2 MB Chip capacity differs from free/largest-block capacity. An old isolated
+flight log does not prove the integrated preload/results peak. See
+STORMRAIL_CHIP_RAM_AUDIT.md; allocation cause and actual savings remain unmeasured.
+
+## Accepted optimization is not a lower memory guarantee — 2026-09-06
+
+Chip2 HD is user-accepted on real A1200 and retained in normal development.
+The user explicitly reports Stormrail still requires more than about 1.45 MB
+free Chip RAM. Keep functional acceptance separate from minimum-memory claims:
+source allocation savings do not establish peak availability or fragmentation.
+Match the accepted ZIP's executable and all assets before promoting its status;
+preserve shipped alpha.2 artifacts and avoid unnecessary rebuild/test variants.
+
+## Music lifetime and peak memory — 2026-09-06
+
+READY uses disabled Exec interrupts; an OS VBlank player alone would stop there.
+Preserve active audio DMA at takeover and explicitly tick from the owned display
+wait, then stop DMA before releasing music samples. Ending before gameplay does
+not remove the preceding load/READY peak: report that additional Chip bank.
+Intro duration must come from actual eleven passages/fades, not an old storyboard.
+
+## Intro cue completion — 7 September 2026
+
+Bound a cinematic cue by the converted stream frame count; scene I/O and manual
+advances vary, so a looping player can otherwise restart the peaceful opening
+at the end of a slow intro. Stop on skip/completion and release its bank before
+allocating the next cue. Archive cleanup preserves contents/hashes and records
+path moves, including old public releases and user drawers.
+
+## Music on ADF — 7 September 2026
+
+Measure actual FFS capacity including file headers, not only raw payload sums.
+Neon Sky's raw bank overflows Disk 1; existing disk-only lossless packing saves
+space while preserving decoded music. Route music reads through the same media
+resolver as graphics/SFX so return-to-title works with Disk 2. Strip intro music
+references with the story flag. Keep music assets out of the generic bitmap
+Makefile generation rule to avoid conflicting recipes.
+
+## Background-only READY animation — 7 September 2026
+
+Almost-black background uses multiple palette entries; COLOR00 alone is not a
+sufficient mask. Protect the union of all menu states plus complete foreground
+silhouettes so dark interior art is not treated as background. Restore dirty
+bytes per hidden target before patches/new particles. Keep the clean READY
+source untouched and coalesce input changes into the existing one-frame music/
+Copper cadence. Native timing remains a user-test gate.
+
+## Avoid invisible background barriers — 7 September 2026
+
+The user rejected broad artwork exclusion rectangles and a union of inactive
+menu text because dust disappeared over visually empty background. Use current
+state masks and connected-background silhouettes instead. Full-width motion can
+still be visually truncated by masking; inspect both before adjusting lifetime.
+Read-only mask growth saves Chip buffers but still costs executable/disk space.
+
+## READY particle silhouettes — 7 September 2026
+
+An extra pixel beneath a short streak reads as a tiny object/ship at native
+resolution. Keep wind streaks single-row and vary brightness with the existing
+palette; use sparse warm pulses for accents without new Chip assets.
+
+READY dust feedback: intensity can mean density rather than brightness. Very
+short, rare accents can also be lost to foreground occlusion; tune duration
+and staggered frequency as well as palette contrast.
+
+## READY input costs share the music frame budget — 7 September 2026
+
+A frame-driven music tick exposes foreground menu copy stalls as audio slowdown.
+Audit input-triggered work separately from idle animation: 624 tiny CopyMem calls
+and 14976 Chip bytes per buffer update can matter on 020 despite 030 acceptance.
+Precompute differences outside the owned loop and verify every state transition
+against full-patch output. Byte reduction is not a native timing measurement.
+
+Distinguish selection changes from page changes: sparse dirty spans reduced
+START/OPTIONS highlight writes by 91%, but full OPTIONS page transitions still
+cover every row. Trial the already-owned Blitter for those rectangles while
+keeping the accepted sparse CPU path. Wait before CPU dust writes resumes.
+
+## Fast2 DMA ownership regression — 7 September 2026
+
+The preceding proposed Blitter shortcut was invalid: menu patch planes live in
+Fast RAM (dmaSource=FALSE), not Chip RAM. Owning/enabling the Blitter and using a
+hidden Chip destination does not make the source DMA-accessible. Check both
+ends before replacing a CPU copy with DMA; host pixel parity cannot validate
+Amiga address visibility. Fast2 rejected, known working CPU baseline restored.
+
+User preference: a proven byte-identical restoration does not require another
+manual retest. Reserve the next user test for an actual new candidate.
+
+Precomputation that saves menu frame time can create a black loading pause if
+placed after fade-out. Perform CPU preparation and hidden-buffer seeding while
+the current loading image remains visible; defer displayed-buffer writes until
+black. Distinguish reducing black duration from reducing total load time.
+
+## Alpha.3 checkpoint consolidation — 7 September 2026
+
+The music, Chip RAM, READY performance and rejected Fast2 DMA lessons above
+are retained in alpha.3. See RELEASE_0_7_0_ALPHA_3.md for verification and
+medium-specific acceptance. Do not infer fresh WHDLoad/hardware acceptance
+from HD testing or repeat user tests after a proven byte-identical restoration.

@@ -89,3 +89,14 @@ runs them and publishes the versioned ADF pair. Completed test drawers are
 archived; the current manual set is Sparkpaw-0.7.0-alpha.2. See
 sparkpaw/docs/RELEASE_0_7_0_ALPHA_2.md for all six hashes, native evidence and
 pending WHDLoad/hardware tests. No automatic emulator launch is part of release.
+
+## Sparkpaw alpha.3 music and media
+
+Approved MOD sources live in sparkpaw/music; audition MP3/WAV files stay local.
+The Makefile uses the repository's existing mrdigs-futsal/third_party/LSPlayer
+CMake converter with -shrink -fixed50hz. Only sample tails are trimmed; no
+ADPCM and no HD disk compression. Runtime .lsmusic/.lsbank files are generated.
+Build with make PYTHON=../.venv/bin/python3 and make release from sparkpaw,
+then run tools/verify_checkpoint_release.py with the same Python environment.
+The ADF pair retains lossless SPL1/SPR1 and explicitly allows a smaller free
+reserve (alpha.3 Disk1: 9 blocks). All-file readback remains mandatory.

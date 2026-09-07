@@ -17,7 +17,7 @@ from amitools.fs.blkdev.BlkDevFactory import BlkDevFactory
 from amitools.fs.ADFSVolume import ADFSVolume
 from amitools.fs.FSString import FSString
 ALIAS={'readymenu.spbm':'level-ready-menu.spr1','sparkpaw-ready-screen.spbm':'level-ready.spr1','sparkpaw-level-complete.spbm':'level-complete.spr1'}
-ORDER='''sparkpaw-title.spbm sparkpaw-level-loading.spbm level-charge-patch.spbm
+ORDER='''neon-sky.lsmusic neon-sky.lsbank sparkpaw-title.spbm sparkpaw-level-loading.spbm level-charge-patch.spbm
 storm-front.spbm stormrail-front.spbm storm-rear.spbm stormrail-rear.spbm
 sparkpaw-sprites4.spbm sparkpaw-sprites4-storm.spbm clockwork-beetle.spbm clockwork-storm-strider.spbm
 sparkpaw-hud-base.spbm sparkpaw-hud-health.spbm sparkpaw-hud-lives.spbm sparkpaw-hud-diamonds.spbm sparkpaw-hud-score.spbm
@@ -30,7 +30,12 @@ sparkpaw-ready-screen.spbm readymenu.spbm sparkpaw-level-complete.spbm sparkpaw-
 disk1-patch.spbm disk2-patch.spbm'''.split()
 def sha(data):return hashlib.sha256(data).hexdigest()
 def main():
- common=(SHARED_PRESENTATION-{n for n in SHARED_PRESENTATION if n.startswith('intro')})|SHARED_GAMEPLAY|{'disk1-patch.spbm','disk2-patch.spbm'}
+ import argparse
+ parser=argparse.ArgumentParser()
+ parser.add_argument("--minimum-free-blocks",type=int,default=32,help="Required free 512-byte blocks per disk (default: 32)")
+ args=parser.parse_args()
+ assert args.minimum_free_blocks>=1
+ common=(SHARED_PRESENTATION-{n for n in SHARED_PRESENTATION if n.startswith(('intro','hero-drive.'))})|SHARED_GAMEPLAY|{'disk1-patch.spbm','disk2-patch.spbm'}
  sets=[common|LEVEL1|{n for n in STORMRAIL if n.endswith('.raw')},common|STORMRAIL|(LEVEL1-{'storm-front.spbm','storm-rear.spbm','sparkpaw-sprites4.spbm'})]
  allnames=set.union(*map(set,sets));assert allnames==set(ORDER)
  payloads={};rows={}
@@ -38,14 +43,14 @@ def main():
  for name in ORDER:
   source=(OUT/'status'/name) if name.startswith('disk') else ROOT/'assets/runtime'/name
   raw=source.read_bytes();data=raw;target=name
-  if name.endswith('.spbm'):
+  if name.endswith('.spbm') or name.startswith('neon-sky.'):
    data=min((rle(raw),lz(raw)),key=len);assert (unlz(data) if data[:4]==b'SPL1' else unrle(data))==raw
-   target=ALIAS.get(name,name[:-5]+'.spr1')
+   if name.endswith('.spbm'):target=ALIAS.get(name,name[:-5]+'.spr1')
    p=packed/target;p.write_bytes(data)
    subprocess.run([str(OUT/'tests/reader'),str(p),str(source),'1'],check=True)
   assert len(target)<=30
   payloads[name]=(target,data)
-  rows[name]={'disk_name':target,'raw_bytes':len(raw),'stored_bytes':len(data),'codec':data[:4].decode() if name.endswith('.spbm') else 'raw','decoded_sha256':sha(raw)}
+  rows[name]={'disk_name':target,'raw_bytes':len(raw),'stored_bytes':len(data),'codec':data[:4].decode() if name.endswith('.spbm') or name.startswith('neon-sky.') else 'raw','decoded_sha256':sha(raw)}
  embedded=executable_runtime_files(OUT/'Sparkpaw')
  available={target for target,data in payloads.values()}
  for name in embedded:
@@ -97,7 +102,7 @@ def main():
      layout.append({'path':name,'bytes':len(data),'sha256':sha(data),'header':child.block.blk_num,'extensions':child.ext_blk_nums,'data_blocks':blocks,'runs':sum(i==0 or b!=blocks[i-1]+1 for i,b in enumerate(blocks))})
   walk(vol.get_root_dir());assert seen==set(files)
   report={'disk':disk,'sha256':sha(adf.read_bytes()),'free_blocks':vol.get_free_blocks(),'used_blocks':vol.get_used_blocks(),'root_block':vol.root.blk_num,'directories':directories,'write_order':list(files),'files':layout}
-  assert report['free_blocks']>=32,report['free_blocks']
+  assert report['free_blocks']>=args.minimum_free_blocks,report['free_blocks']
   byname={r['path']:r for r in layout}
   ordered=[b for name in files for b in byname[name]['data_blocks']]
   assert ordered==sorted(ordered), 'payload allocation must not wrap backwards'

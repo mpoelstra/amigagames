@@ -14,6 +14,9 @@
 
 #include "assets.h"
 #include "audio.h"
+#include "music.h"
+#include "ready_dust.h"
+#include "ready_patch.h"
 #include "platform_amiga.h"
 
 #define COPPER_WORDS 380
@@ -63,6 +66,10 @@ static ULONG chipFree,chipLargest;
 static BOOL buildingIntroCopper;
 static struct BitMap *readyMenuBack;
 static UBYTE readyMenuBufferIndex;
+static struct ReadyDustHistory readyDustHistory[2];
+static UBYTE readyDustBufferState[2],readyDustState,readyDustPens[6];
+static ULONG readyDustFrame;
+
 static struct BitMap *scoreBuffers[2];
 static UBYTE scoreBufferIndex;
 
@@ -299,6 +306,7 @@ static void waitOwnedDisplayFrame(void)
        real PAL frame boundary directly from the beam instead. */
     if(rasterLine()<300) while(rasterLine()<300) { }
     while(rasterLine()>=300) { }
+    musicOwnedFrame();
 }
 
 static void waitOwnedCopperArmWindow(void)
@@ -431,6 +439,7 @@ static BOOL titleShowInternal(BOOL playStory)
     }
 #ifdef SPARKPAW_STORY_INTRO
     if(playStory) {
+    musicPlayIntro();
     for(plate=0;plate<5&&!skipIntro;plate++) {
         if(plate) {
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
@@ -463,6 +472,7 @@ static BOOL titleShowInternal(BOOL playStory)
         fadeTo(assetsStoryIntro(),FALSE);
         assetsUnloadStoryIntro();
     }
+    musicStop(); /* Release intro bank before loading title/music. */
     if(!assetsLoadTitle()) {
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
         introDiagnosticEvent("title_load_failed",4); introDiagnosticClose();
@@ -477,6 +487,7 @@ static BOOL titleShowInternal(BOOL playStory)
     installCopper(currentCopper^1);
     }
 #endif
+    musicPlayTitle();
     fadeTo(assetsTitle(),TRUE);
     titleStartFrame=GfxBase->VBCounter;
     return TRUE;
@@ -502,6 +513,7 @@ BOOL titleShowMainFromResults(void)
        score memory and can hang forever on a black frame. */
     buildCopper(assetsTitle(),next,0);
     installCopper(next);
+    musicPlayTitle();
     fadeTo(assetsTitle(),TRUE);
     for(index=0;index<2;index++) if(scoreBuffers[index]) {
         FreeBitMap(scoreBuffers[index]); scoreBuffers[index]=NULL;
@@ -650,6 +662,7 @@ BOOL titleShowLevelReady(void)
        assetsLevelReadyMenu()->width!=READY_MENU_PATCH_W||
        assetsLevelReadyMenu()->height!=READY_MENU_PATCH_H*READY_MENU_STATE_COUNT) {
         failureReason="ready screen asset has invalid geometry";
+        musicStop();
         assetsUnloadLevelReadyMenu();
         assetsUnloadLevelReady();
         return FALSE;
@@ -658,23 +671,42 @@ BOOL titleShowLevelReady(void)
                               BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     if(!readyMenuBack) {
         failureReason="tear-free ready buffer allocation failed";
+        musicStop();
         assetsUnloadLevelReadyMenu();
         assetsUnloadLevelReady();
         return FALSE;
     }
-    /* Gameplay is already fully prepared. Seed both presentation buffers while
-       black; later menu changes patch only the hidden buffer and publish it
-       through the inactive Copper list. */
-    fadeTo(loading,FALSE);
-    WaitTOF();
+    /* CPU-only preparation and the hidden buffer can be completed while
+       CHARGING remains visible and the OS VBlank music player is active. */
+    readyMenuBufferIndex=0;
+    readyDustHistory[0].count=readyDustHistory[1].count=0;
+    readyDustBufferState[0]=readyDustBufferState[1]=readyDustState=0;
+    readyDustFrame=0;
+    readyPatchPrepare(assetsLevelReadyMenu()->bitmap->Planes);
+    /* Match soft cool/neutral/warm dust to the existing 64-colour palette. */
+    {
+        static const UBYTE rgb[6][3]={{60,90,105},{88,132,148},{125,173,185},{174,211,216},{220,238,232},{254,158,2}};
+        UBYTE style,pen,best;LONG bestError,error,delta;UBYTE c;
+        for(style=0;style<6;style++) {
+            best=1;bestError=0x7fffffffL;
+            for(pen=1;pen<64;pen++) {
+                error=0;
+                for(c=0;c<3;c++) { delta=(LONG)ready->palette[pen][c]-rgb[style][c];error+=delta*delta; }
+                if(error<bestError) {bestError=error;best=pen;}
+            }
+            readyDustPens[style]=best;
+        }
+    }
     planeBytes=(LONG)loading->bitmap->BytesPerRow*loading->height;
-    for(plane=0;plane<6;plane++) {
-        CopyMem(ready->bitmap->Planes[plane],loading->bitmap->Planes[plane],
-                planeBytes);
+    for(plane=0;plane<6;plane++)
         CopyMem(ready->bitmap->Planes[plane],readyMenuBack->Planes[plane],
                 planeBytes);
-    }
-    readyMenuBufferIndex=0;
+    /* The displayed loading bitmap must only be overwritten once black. */
+    fadeTo(loading,FALSE);
+    WaitTOF();
+    for(plane=0;plane<6;plane++)
+        CopyMem(ready->bitmap->Planes[plane],loading->bitmap->Planes[plane],
+                planeBytes);
     backDisplay=*ready;
     backDisplay.bitmap=readyMenuBack;
     buildCopper(&backDisplay,currentCopper^1,256);
@@ -943,27 +975,23 @@ static void readReadyMenuInput(BOOL *up,BOOL *down,BOOL *left,BOOL *right,
     *fire=(((*(volatile UBYTE *)0xbfe001)&0x80)==0)||keyFire;
 }
 
-static void showReadyMenuState(UBYTE state)
+static void showReadyMenuState(UBYTE state) { readyDustState=state; }
+
+static void renderReadyDustFrame(void)
 {
-    UBYTE next,plane;
-    UWORD row;
-    LONG sourceRowBytes,targetRowBytes,planeOffset,targetOffset;
+    UBYTE next;
     const struct PlanarAsset *loading=assetsLevelLoading();
     const struct PlanarAsset *ready=assetsLevelReady();
     const struct PlanarAsset *patches=assetsLevelReadyMenu();
     struct PlanarAsset hiddenDisplay=*ready;
     struct BitMap *hidden=readyMenuBufferIndex?loading->bitmap:readyMenuBack;
-    sourceRowBytes=patches->bitmap->BytesPerRow;
-    targetRowBytes=hidden->BytesPerRow;
-    planeOffset=(LONG)state*READY_MENU_PATCH_H*sourceRowBytes;
-    targetOffset=(LONG)READY_MENU_PATCH_Y*targetRowBytes+
-                 READY_MENU_PATCH_X/8;
-    for(plane=0;plane<6;plane++)
-        for(row=0;row<READY_MENU_PATCH_H;row++)
-            CopyMem(patches->bitmap->Planes[plane]+planeOffset+
-                    (LONG)row*sourceRowBytes,
-                    hidden->Planes[plane]+targetOffset+
-                    (LONG)row*targetRowBytes,sourceRowBytes);
+    readyDustRestore(hidden->Planes,&readyDustHistory[readyMenuBufferIndex]);
+    if(readyDustBufferState[readyMenuBufferIndex]!=readyDustState)
+        readyPatchApply(hidden->Planes,patches->bitmap->Planes,
+                        readyDustBufferState[readyMenuBufferIndex],readyDustState);
+    readyDustBufferState[readyMenuBufferIndex]=readyDustState;
+    readyDustDraw(hidden->Planes,&readyDustHistory[readyMenuBufferIndex],
+                  readyDustFrame++,readyDustPens,readyDustState);
     hiddenDisplay.bitmap=hidden;
     next=currentCopper^1;
     buildCopper(&hiddenDisplay,next,256);
@@ -999,12 +1027,12 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
 #ifdef SPARKPAW_WHDLOAD
         if(platformWHDLoadQuitRequested()) return;
 #endif
-        waitOwnedDisplayFrame();
+        renderReadyDustFrame();
         readReadyMenuInput(&up,&down,&left,&right,&oldFire);
     }
     oldUp=up; oldDown=down; oldLeft=left; oldRight=right;
     for(;;) {
-        waitOwnedDisplayFrame();
+        renderReadyDustFrame();
         readReadyMenuInput(&up,&down,&left,&right,&fire);
 #ifdef SPARKPAW_WHDLOAD
         if(platformWHDLoadQuitRequested()) return;
@@ -1085,6 +1113,7 @@ void titleFadeOut(void)
                 ((ULONG)(FADE_FRAMES-frame)*256)/FADE_FRAMES));
             waitOwnedDisplayFrame();
         }
+        musicStop();
         assetsUnloadLevelReadyMenu();
         assetsUnloadLevelReady();
     } else if(displayed&&assetsLevelLoading()->bitmap)
@@ -1114,6 +1143,7 @@ void titleRestoreSystemView(void)
 void titleRelease(void)
 {
     UBYTE index;
+    musicStop();
     displayed=FALSE;
     if(readyMenuBack) {
         FreeBitMap(readyMenuBack);

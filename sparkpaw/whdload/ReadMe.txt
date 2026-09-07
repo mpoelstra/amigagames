@@ -48,16 +48,19 @@ finale and results. Both sections support resident replay. Esc returns to the
 ready screen; BACK TO TITLE clears the campaign. OPTIONS can start Stormrail.
 
 This package now builds the full campaign with the existing WHDLoad F10 hooks,
-not the old single-level executable. All 48 assets are included on the HD data
+not the old single-level executable. All 52 assets are included on the HD data
 volume; no physical disk swaps are needed. Kickstart memory setup is unchanged:
 2 MB Chip allocation minus 4 KiB and 8 MB expansion including its ROM area.
 
-Verification: assembly, compilation, file coverage, archive extraction and icon
-checks only for this campaign WHDLoad build. Earlier alpha.68 real-A1200 startup
-and F10 observations do not establish the new campaign's native acceptance.
-Test intro, both sections, Continue/replay/Esc/title return and F10 before claiming
-WHDLoad compatibility. Ordinary HD and ADF campaign approval does not substitute.
-Physical A1200/Gotek and Analogue Pocket tests remain separate.
+Hero Drive plays during the story; Neon Sky accompanies title through READY.
+Gameplay uses sound effects only. READY includes background wind particles,
+orange sparks and improved menu handling on 68020.
+
+Verification: package assembly, compiled asset coverage, archive extraction and
+icon checks. Prior campaign WHDLoad was user-tested on real Amiga; this new
+music/READY build still needs its own WHDLoad/native presentation check.
+Test intro, both sections, Continue/replay/Esc/title return and F10. Physical
+A1200/Gotek and Analogue Pocket tests remain separate.
 
 The Sparkpaw project icon contains an 86x93, 34-colour NewIcons image and an
 86x93 fallback using the eight standard OS 2.x/3.x Workbench pens.

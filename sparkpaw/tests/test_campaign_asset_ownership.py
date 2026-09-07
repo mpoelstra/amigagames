@@ -17,7 +17,9 @@ for name in ALL:
     assert len(name) <= 30, f"Amiga-unsafe asset name: {name}"
     assert (ROOT / "assets/runtime" / name).is_file(), f"missing owned asset: {name}"
 
-campaign = ROOT / "build/sparkpaw-campaign-test"
+campaign = ROOT / "sparkpaw"
+# Verify the normal production binary; archived diagnostic builds may predate
+# newly integrated presentation assets.
 if campaign.is_file():
     refs = set(executable_runtime_files(campaign))
     assert refs == ALL, (f"campaign refs without ownership={sorted(refs-ALL)}; "

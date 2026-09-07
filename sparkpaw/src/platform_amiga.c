@@ -10,6 +10,7 @@
 #include <proto/graphics.h>
 
 #include "audio.h"
+#include "music.h"
 #include "performance_profile.h"
 
 struct GfxBase *GfxBase;
@@ -71,6 +72,7 @@ BOOL platformOpen(void)
 
 void platformClose(void)
 {
+    musicShutdown();
     if(GfxBase) {
         CloseLibrary((struct Library *)GfxBase);
         GfxBase=NULL;
@@ -97,10 +99,12 @@ void platformBeginTakeover(void)
 
 void platformFinishTakeover(UWORD *copper)
 {
+    UWORD musicDma;
     hardware->potgo=PORT2_CD32_RESET_HIGH;
     OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
     Disable(); interruptsDisabled=TRUE;
-    hardware->intena=0x7fff; hardware->dmacon=DMAF_ALL;
+    musicDma=musicIsPlaying()?(hardware->dmaconr&0x000f):0;
+    hardware->intena=0x7fff; hardware->dmacon=DMAF_ALL&~musicDma;
     hardware->cop1lc=(ULONG)copper; hardware->copjmp1=0;
     /* Title/loading/ready Copper lists do not own sprite pointers. Keep
        sprite DMA disabled until the gameplay list that initializes all

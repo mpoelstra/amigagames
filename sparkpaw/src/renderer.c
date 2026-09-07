@@ -3219,6 +3219,9 @@ static void animateWater(void)
 {
     UBYTE index;
     UBYTE frame=(UBYTE)((game->frameCounter>>1)&(WATER_FRAMES-1));
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(game->stormrailActive) return;
+#endif
     /* Restore passes have finished. Update clean first and display second so
        later Bob draws and next-frame restores see the identical background.
        A resident off-screen strip does not need every animation frame; update
@@ -3807,6 +3810,11 @@ BOOL rendererPrepareGameplay(void)
 #endif
     game=gameState();
 #ifdef SPARKPAW_STORMRAIL_PROOF
+#define LEVEL1_PREPARE(expression) (game->stormrailActive?TRUE:(expression))
+#else
+#define LEVEL1_PREPARE(expression) (expression)
+#endif
+#ifdef SPARKPAW_STORMRAIL_PROOF
     memset(stormFlightTargetClean,0,sizeof(stormFlightTargetClean));
     stormApproachReleased=FALSE;
     if(game->stormrailActive) {
@@ -3947,10 +3955,10 @@ BOOL rendererPrepareGameplay(void)
 #endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     DIAG_LOAD(DIAG_LOAD_BEETLE,
-        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE));
+        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)));
     DIAG_LOAD(DIAG_LOAD_STRIDER,
-        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE));
-    DIAG_LOAD(DIAG_LOAD_STRIDER_STAGE,prepareStriderStages());
+        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)));
+    DIAG_LOAD(DIAG_LOAD_STRIDER_STAGE,LEVEL1_PREPARE(prepareStriderStages()));
     DIAG_LOAD(DIAG_LOAD_PLASMA,buildPlasmaPatterns());
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game->stormrailActive&&!buildStormrailPatterns()) return FALSE;
@@ -3959,33 +3967,33 @@ BOOL rendererPrepareGameplay(void)
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game->stormrailActive&&!buildHeartPattern()) return FALSE;
 #endif
-    DIAG_LOAD(DIAG_LOAD_DIAMOND,buildCorePattern());
-    DIAG_LOAD(DIAG_LOAD_DIAMOND,buildExtraLifePattern());
+    DIAG_LOAD(DIAG_LOAD_DIAMOND,LEVEL1_PREPARE(buildCorePattern()));
+    DIAG_LOAD(DIAG_LOAD_DIAMOND,LEVEL1_PREPARE(buildExtraLifePattern()));
     DIAG_LOAD(DIAG_LOAD_STATIC_COLLECTIBLES,prepareStaticCollectibles());
-    DIAG_LOAD(DIAG_LOAD_WATER,buildWaterPatterns());
-    DIAG_LOAD(DIAG_LOAD_SPLASH,buildSplashPatterns());
+    DIAG_LOAD(DIAG_LOAD_WATER,LEVEL1_PREPARE(buildWaterPatterns()));
+    DIAG_LOAD(DIAG_LOAD_SPLASH,LEVEL1_PREPARE(buildSplashPatterns()));
 #else
 #ifdef SPARKPAW_STARTUP_DIAGNOSTIC
     STARTUP_REQUIRE("beetle_patterns",
-        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE));
+        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)));
     STARTUP_REQUIRE("strider_patterns",
-        buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE));
-    STARTUP_REQUIRE("strider_stages",prepareStriderStages());
+        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)));
+    STARTUP_REQUIRE("strider_stages",LEVEL1_PREPARE(prepareStriderStages()));
     STARTUP_REQUIRE("plasma_patterns",buildPlasmaPatterns());
     STARTUP_REQUIRE("diamond_pattern",buildDiamondPattern());
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game->stormrailActive)
         STARTUP_REQUIRE("heart_pattern",buildHeartPattern());
 #endif
-    STARTUP_REQUIRE("core_pattern",buildCorePattern());
-    STARTUP_REQUIRE("extra_life_pattern",buildExtraLifePattern());
+    STARTUP_REQUIRE("core_pattern",LEVEL1_PREPARE(buildCorePattern()));
+    STARTUP_REQUIRE("extra_life_pattern",LEVEL1_PREPARE(buildExtraLifePattern()));
     STARTUP_REQUIRE("static_collectibles",prepareStaticCollectibles());
-    STARTUP_REQUIRE("water_patterns",buildWaterPatterns());
-    STARTUP_REQUIRE("splash_patterns",buildSplashPatterns());
+    STARTUP_REQUIRE("water_patterns",LEVEL1_PREPARE(buildWaterPatterns()));
+    STARTUP_REQUIRE("splash_patterns",LEVEL1_PREPARE(buildSplashPatterns()));
 #else
-    if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)||
-       !buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)||
-       !prepareStriderStages()||
+    if(!LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE))||
+       !LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE))||
+       !LEVEL1_PREPARE(prepareStriderStages())||
        !buildPlasmaPatterns()||
 #ifdef SPARKPAW_STORMRAIL_PROOF
        (game->stormrailActive&&!buildStormrailPatterns())||
@@ -3994,10 +4002,10 @@ BOOL rendererPrepareGameplay(void)
 #ifdef SPARKPAW_STORMRAIL_PROOF
        (game->stormrailActive&&!buildHeartPattern())||
 #endif
-       !buildCorePattern()||
-       !buildExtraLifePattern()||
-       !prepareStaticCollectibles()||!buildWaterPatterns()||
-       !buildSplashPatterns())
+       !LEVEL1_PREPARE(buildCorePattern())||
+       !LEVEL1_PREPARE(buildExtraLifePattern())||
+       !prepareStaticCollectibles()||!LEVEL1_PREPARE(buildWaterPatterns())||
+       !LEVEL1_PREPARE(buildSplashPatterns()))
         return FALSE;
 #endif
 #endif
@@ -4066,6 +4074,7 @@ BOOL rendererPrepareGameplay(void)
 #undef DIAG_LOAD
 #endif
     return TRUE;
+#undef LEVEL1_PREPARE
 }
 
 void rendererResetGameplay(void)

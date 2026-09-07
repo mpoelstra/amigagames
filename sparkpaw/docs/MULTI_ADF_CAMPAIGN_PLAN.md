@@ -1,5 +1,11 @@
 # Campaign multidisk and loading plan
 
+Alpha.3 checkpoint (7 September 2026): see RELEASE_0_7_0_ALPHA_3.md for the
+current artifact set and acceptance matrix. HD READY/menu/transition user
+accepted, previous music/dust ADF user accepted; final alpha.3 ADF/WHDLoad
+presentation and hardware tests remain open. Disk1 free: 9 blocks; Disk2: 345.
+Historical candidate status below does not supersede this checkpoint.
+
 Current: user approved the corrected ADFs and both styled INSERT prompts.
 Included in 0.7.0-alpha.2; see RELEASE_0_7_0_ALPHA_2.md for current hashes.
 Physical A1200/Gotek/Pocket and new campaign WHDLoad remain separate gates.
@@ -238,3 +244,44 @@ Executable: 156284 bytes; SHA256 `649da2d4d1653cdd23977527c4e21a7c202f00e1f3fb20
 Both images are 901,120 bytes; this pair is now archived at
 dist/older-builds/Campaign-2Disk-Art-030. Current release image hashes differ
 because of FFS timestamps; executable and runtime payloads match this pair.
+
+## Title music ADF test — 7 September 2026
+
+User requests ADF testing without story intro and asks whether title music fits.
+The first raw-music Disk 1 exceeded capacity. The disk-only music loader now
+reuses the existing CRC-checked SPL1/SPR1 reader for score/bank, decoding directly
+into Fast/Chip allocations without an extra full-size copy. Both decoded files
+are identical to HD: 150,421 raw bytes become 99,650 stored bytes. No lossy sample
+change and no HD compression. Intro music references are excluded from no-story
+builds; neither Hero Drive nor story plates are on the ADFs. Music files follow
+the established disk resolver, including DF1 and DF0 swap handling.
+
+Same active music test set: dist/Intro-Title-Music-HD/ADF/Music-Disk1.adf and
+Music-Disk2.adf. Disk 1 has 92 free blocks / 46 KiB, Disk 2 has 345 / 172.5 KiB.
+Both are 901,120-byte DOS1/FFS images; Disk 1 boot checksum verified. Full file
+readback, actual C decode/CRC comparison, per-volume dependency checks, 45
+reader cases, DOS-stub media tests, full host suite and native compilation pass.
+Actual music continuity during floppy I/O remains user FS-UAE/030 testing, then
+accepted 020/performance and real hardware. No automatic emulator run.
+
+All 57 latest-release files and the existing HD test payload remain unchanged.
+No release, commit or push. Build/readback/capacity evidence and hashes are in
+build/multidisk-probe/media.json and music-*.log. Historical probe packager now
+includes title-music ownership/order but excludes HD-only intro music.
+
+## READY dust 4 ADF candidate — 7 September 2026
+
+User approves current dust appearance and requests the corresponding ADF trial.
+Built no-intro, title-music two-ADF candidate from current source (200792-byte
+executable). Disk 1 fits with only 10 free blocks/5 KiB; Disk 2 retains 345
+blocks/172.5 KiB. Initial packaging stopped at the default 32-block reserve.
+Added explicit --minimum-free-blocks option, default still 32, and used 1 for
+this test. No filesystem capacity/readback checks bypassed. Both 901120-byte
+DOS1 images, boot checksum, all file readbacks, per-volume compiled references
+and actual C packed decoding pass; 45 loader cases and disk-media host tests
+also pass. Existing ADF lossless packing retained; HD compression unchanged.
+
+Pair staged inside the one active set: dist/Ready-Dust4-HD/ADF/Dust-Disk1.adf
+and Dust-Disk2.adf. All 57 release files unchanged. ADF runtime, disk swaps,
+020 cadence and hardware remain pending for this pair; no emulator was run.
+Small remaining Disk 1 capacity must be reconsidered before further growth.

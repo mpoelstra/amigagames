@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Sparkpaw \u2014 IV-Morning-Sparks",
+    "scene_tempos": [
+      132,
+      128,
+      120,
+      130,
+      132
+    ],
+    "scene_start_seconds": [
+      0,
+      10.909090909090908,
+      22.159090909090907,
+      38.15909090909091,
+      49.23601398601399
+    ],
+    "render_seconds": 60.120816326530615,
+    "module_bytes": 432154,
+    "module_sha256": "6c2e20be9887bc8b161dfd93a82c5662b11ac3a55e952ca5abe7bb778b3324ed"
+  },
+  {
+    "title": "Sparkpaw \u2014 V-Clockwork-Dawn",
+    "scene_tempos": [
+      150,
+      132,
+      150,
+      132,
+      150
+    ],
+    "scene_start_seconds": [
+      0,
+      11.2,
+      22.10909090909091,
+      38.10909090909091,
+      49.018181818181816
+    ],
+    "render_seconds": 60.21224489795918,
+    "module_bytes": 433178,
+    "module_sha256": "4803d4044dd6e29378493b98c2a1336752aafbc1ec20c327e41a8c6612491f09"
+  },
+  {
+    "title": "Sparkpaw \u2014 VI-Skybound",
+    "scene_tempos": [
+      150,
+      150,
+      164,
+      150,
+      172
+    ],
+    "scene_start_seconds": [
+      0,
+      11.2,
+      22.4,
+      38.49756097560976,
+      49.697560975609754
+    ],
+    "render_seconds": 60.83700680272109,
+    "module_bytes": 434202,
+    "module_sha256": "c4f0670645c6ac49d2731a63444c915d6d4410034c8f2bacdde7c27bb512f85e"
+  }
+]

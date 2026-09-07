@@ -1,0 +1,115 @@
+{
+  "title": "Sparkpaw \u2014 IV-Morning-Sparks",
+  "status": "original title candidate; user listening pending",
+  "bpm": 132,
+  "scene_tempos": [
+    132,
+    128,
+    120,
+    130,
+    132
+  ],
+  "scene_start_seconds": [
+    0,
+    10.909090909090908,
+    22.159090909090907,
+    38.15909090909091,
+    49.23601398601399
+  ],
+  "speed": 6,
+  "channels": 4,
+  "patterns": 8,
+  "bars": 32,
+  "render_seconds": 60.120816326530615,
+  "module_bytes": 432154,
+  "sample_bytes": 422878,
+  "module_sha256": "6c2e20be9887bc8b161dfd93a82c5662b11ac3a55e952ca5abe7bb778b3324ed",
+  "peak_before_master": 18640,
+  "preview_gain": 1.8508508084445385,
+  "reference_samples_used": false,
+  "runtime_integrated": false,
+  "revision": "IV-Morning-Sparks: bright morning, dark middle, hopeful return; scene tempo changes",
+  "render_engine": "micromod, actual MOD playback",
+  "samples": [
+    {
+      "name": "THUNDER KICK + HAT",
+      "bytes": 2402,
+      "volume": 62
+    },
+    {
+      "name": "STEEL SNARE + HAT",
+      "bytes": 2486,
+      "volume": 55
+    },
+    {
+      "name": "TIGHT AIR",
+      "bytes": 662,
+      "volume": 24
+    },
+    {
+      "name": "OPEN AIR",
+      "bytes": 2650,
+      "volume": 29
+    },
+    {
+      "name": "ENGINE TOM",
+      "bytes": 2816,
+      "volume": 52
+    },
+    {
+      "name": "CRASH AND KICK",
+      "bytes": 6462,
+      "volume": 56
+    },
+    {
+      "name": "ANALOGUE OCTAVE BASS",
+      "bytes": 20716,
+      "volume": 45
+    },
+    {
+      "name": "IV-Morning-Sparks LEAD",
+      "bytes": 53866,
+      "volume": 47
+    },
+    {
+      "name": "CYAN CRYSTAL",
+      "bytes": 5800,
+      "volume": 38
+    },
+    {
+      "name": "CLOCKWORK PLUCK",
+      "bytes": 1822,
+      "volume": 32
+    },
+    {
+      "name": "Em STORM STRINGS",
+      "bytes": 53866,
+      "volume": 34
+    },
+    {
+      "name": "C STORM STRINGS",
+      "bytes": 53866,
+      "volume": 34
+    },
+    {
+      "name": "D STORM STRINGS",
+      "bytes": 53866,
+      "volume": 34
+    },
+    {
+      "name": "B7 STORM STRINGS",
+      "bytes": 53866,
+      "volume": 34
+    },
+    {
+      "name": "Am STORM STRINGS",
+      "bytes": 53866,
+      "volume": 34
+    },
+    {
+      "name": "G STORM STRINGS",
+      "bytes": 53866,
+      "volume": 34
+    }
+  ]
+}

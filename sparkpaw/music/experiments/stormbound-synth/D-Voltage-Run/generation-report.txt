@@ -1,0 +1,101 @@
+{
+  "title": "Sparkpaw \u2014 D-Voltage-Run",
+  "status": "original title candidate; user listening pending",
+  "bpm": 168,
+  "speed": 6,
+  "channels": 4,
+  "patterns": 12,
+  "bars": 48,
+  "render_seconds": 68.54530612244898,
+  "module_bytes": 197582,
+  "sample_bytes": 184210,
+  "module_sha256": "bc347913b2af4b38103ccea17f75bb66d42a2e6f92e6c8ef47778089e9f25779",
+  "peak_before_master": 22184,
+  "preview_gain": 1.4288455249100622,
+  "reference_samples_used": false,
+  "runtime_integrated": false,
+  "revision": "D-Voltage-Run: extended original melody and four-channel arrangement",
+  "render_engine": "micromod, actual MOD playback",
+  "samples": [
+    {
+      "name": "THUNDER KICK + HAT",
+      "bytes": 2402,
+      "volume": 62
+    },
+    {
+      "name": "KICK SNARE STACK",
+      "bytes": 2486,
+      "volume": 59
+    },
+    {
+      "name": "TIGHT AIR",
+      "bytes": 662,
+      "volume": 24
+    },
+    {
+      "name": "OPEN AIR",
+      "bytes": 2650,
+      "volume": 29
+    },
+    {
+      "name": "ENGINE TOM",
+      "bytes": 2816,
+      "volume": 52
+    },
+    {
+      "name": "CRASH AND KICK",
+      "bytes": 6462,
+      "volume": 56
+    },
+    {
+      "name": "ANALOGUE OCTAVE BASS",
+      "bytes": 5800,
+      "volume": 53
+    },
+    {
+      "name": "D-Voltage-Run LEAD",
+      "bytes": 53866,
+      "volume": 47
+    },
+    {
+      "name": "CYAN CRYSTAL",
+      "bytes": 5800,
+      "volume": 38
+    },
+    {
+      "name": "CLOCKWORK PLUCK",
+      "bytes": 1822,
+      "volume": 32
+    },
+    {
+      "name": "Em STORM STRINGS",
+      "bytes": 16574,
+      "volume": 34
+    },
+    {
+      "name": "C STORM STRINGS",
+      "bytes": 16574,
+      "volume": 34
+    },
+    {
+      "name": "D STORM STRINGS",
+      "bytes": 16574,
+      "volume": 34
+    },
+    {
+      "name": "B7 STORM STRINGS",
+      "bytes": 16574,
+      "volume": 34
+    },
+    {
+      "name": "Am STORM STRINGS",
+      "bytes": 16574,
+      "volume": 34
+    },
+    {
+      "name": "G STORM STRINGS",
+      "bytes": 16574,
+      "volume": 34
+    }
+  ]
+}

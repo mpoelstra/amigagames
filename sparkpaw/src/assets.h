@@ -23,6 +23,7 @@ const char *assetsLoadFailureReason(void);
 BOOL assetsLoadLevelLoading(void);
 #ifdef SPARKPAW_MULTI_ADF
 void assetsRetireOldLoading(void);
+UBYTE *assetsLoadDiskData(const char *name,ULONG flags,ULONG *size);
 BOOL assetsLoadDiskPatch(UBYTE disk);
 #endif
 void assetsUnloadLevelLoading(void);

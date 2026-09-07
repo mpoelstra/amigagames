@@ -20,8 +20,10 @@ FLIGHT_REAR_SOURCE = CONCEPT / "sparkpaw-stormrail-route-spans-concept-v2.png"
 FRONT_SOURCE = CONCEPT / "sparkpaw-stormrail-foreground-kit-v1-chroma.png"
 LOADING_SOURCE = CONCEPT / "sparkpaw-stormrail-loading-concept-v1.png"
 LEVEL1_KIT = CONCEPT / "sparkpaw-foreground-kit-concept-v2.png"
-WORLD_W, WORLD_H, REAR_W = 3392, 256, 1120
+WORLD_W, REAR_W = 3392, 1120
 GAMEPLAY_H = 208
+# The separate HUD owns rows 208..255; world DMA sources need only gameplay.
+WORLD_H = GAMEPLAY_H
 
 # Four authored route palettes share stable dark-to-light pen meanings. The
 # flight Copper morphs between them as the bounded 768px span advances.

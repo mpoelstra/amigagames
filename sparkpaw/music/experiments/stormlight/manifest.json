@@ -1,0 +1,101 @@
+{
+  "title": "Storm Light \u2014 listening sketch",
+  "status": "experimental; user listening pending",
+  "channels": 4,
+  "patterns": 6,
+  "bars": 24,
+  "speed": 8,
+  "bpm_command": 125,
+  "quarter_note_bpm_at_four_rows_per_beat": 93.75,
+  "expected_seconds": 61.44,
+  "module_bytes": 241534,
+  "sample_bytes": 234306,
+  "module_sha256": "d84d5728feedc51e8c12315056ac448127f400b79f1298e2632254b47c23613b",
+  "samples": [
+    {
+      "name": "LOW ROUND KICK",
+      "bytes": 3230,
+      "volume": 61
+    },
+    {
+      "name": "PAPER SNARE",
+      "bytes": 3480,
+      "volume": 49
+    },
+    {
+      "name": "SOFT CLOSED HAT",
+      "bytes": 786,
+      "volume": 20
+    },
+    {
+      "name": "OPEN AIR HAT",
+      "bytes": 3480,
+      "volume": 24
+    },
+    {
+      "name": "ROUND TOM",
+      "bytes": 4142,
+      "volume": 48
+    },
+    {
+      "name": "DARK CRASH",
+      "bytes": 7458,
+      "volume": 25
+    },
+    {
+      "name": "FINGER SYNTH BASS",
+      "bytes": 9530,
+      "volume": 55
+    },
+    {
+      "name": "AMBER REED",
+      "bytes": 19888,
+      "volume": 46
+    },
+    {
+      "name": "GLASS RESPONSE",
+      "bytes": 14088,
+      "volume": 36
+    },
+    {
+      "name": "Dm9 SILK",
+      "bytes": 24032,
+      "volume": 31
+    },
+    {
+      "name": "Bbmaj7 SILK",
+      "bytes": 24032,
+      "volume": 31
+    },
+    {
+      "name": "Fmaj7 SILK",
+      "bytes": 24032,
+      "volume": 31
+    },
+    {
+      "name": "Cadd9 SILK",
+      "bytes": 24032,
+      "volume": 31
+    },
+    {
+      "name": "Gm9 SILK",
+      "bytes": 24032,
+      "volume": 31
+    },
+    {
+      "name": "A7 SILK",
+      "bytes": 24032,
+      "volume": 31
+    },
+    {
+      "name": "Dm SILK",
+      "bytes": 24032,
+      "volume": 31
+    }
+  ],
+  "reference_audio_used_as_sample_data": false,
+  "raw_render_peak_dbfs": -4.883553938619308,
+  "render_seconds": 61.44,
+  "preview_gain": 1.4738175684720622,
+  "render_engine": "upstream micromod; host preview, no hardware verification"
+}

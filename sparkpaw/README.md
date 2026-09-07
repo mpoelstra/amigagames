@@ -1,14 +1,33 @@
 # Sparkpaw: The Stormstone Quest
 
-Current checkpoint: **0.7.0-alpha.2 / Phase 7A.2**, full campaign HD,
-two-ADF and WHDLoad packages. HD game bytes are unchanged; the user approved
-the corrected ADF flow and styled INSERT DISK 1/2. New campaign WHDLoad native
-testing and physical A1200/Gotek/Pocket gates remain open. Public itch remains
-alpha.68; original artifacts are protected. See [current status](docs/CURRENT_STATUS.md) and [release record](docs/RELEASE_0_7_0_ALPHA_2.md).
+Current checkpoint: **0.7.0-alpha.3 / Phase 7A.2**, campaign presentation and
+memory maintenance, released 7 September 2026. All six packages plus the HD
+review drawer are in `sparkpaw/dist` (use `dist` from the Sparkpaw directory).
+The verified public itch baseline is still **0.6.0-alpha.68**; publication to
+itch is separate from this repository release. Older alpha.2 and test drawers
+are preserved byte-identically under `dist/older-builds`.
 
-Performance research is explicitly parked. Completed local alpha.1 and disk
-candidates are archived intact. Older dated entries below are historical,
-not instructions to reactivate tests or claims about current native acceptance.
+This checkpoint retains the complete Storm Ruins -> Stormrail campaign and
+accepted Chip1/Chip2 savings, adds Hero Drive intro music (HD/WHDLoad), Neon Sky
+title-through-READY music (also ADF), twelve background wind particles with
+orange accents, faster CPU menu copies on 020 and preparation while CHARGING
+remains visible. Gameplay/results remain SFX-only. No Fast-RAM Blitter route.
+
+User acceptance: Chip2 on real A1200; music/dust ADF preceding final menu tuning;
+HD 020 READY selection/OPTIONS and final CHARGING transition improvements.
+Final alpha.3 ADF/WHDLoad presentation, real-hardware music/READY, physical
+ADF/Gotek and Pocket remain separate open gates. About 1.45 MB free Chip RAM
+is still insufficient for ordinary HD Stormrail; exact threshold is unknown.
+The intermittent real-Amiga HUD-boundary issue stays open. No general gameplay
+FPS improvement is claimed. Performance research and music-player research
+remain parked.
+
+Build, full host suite, ADF loader/decoder/readback and independent ZIP/LHA/icon
+checks pass. Disk 1 has 9 free 512-byte blocks; Disk 2 has 345. See
+`docs/RELEASE_0_7_0_ALPHA_3.md`, `docs/ALPHA3_ARTIFACT_SHA256.json` and
+`docs/RELEASE_NOTES_0_7_0_ALPHA_3.md` under Sparkpaw for exact scope and hashes.
+No routine automatic FS-UAE tests. No retest request for a proven byte-identical
+restoration of a user-tested build. Keep at most one future active full test set.
 
 Milestone 2A of an original Commodore Amiga 1200 AGA action platformer by
 MrDig Productions.

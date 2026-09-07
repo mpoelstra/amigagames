@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.7.0-alpha.2"
+RELEASE_VERSION = "0.7.0-alpha.3"
 ROADMAP_CHECKPOINT = "7A.2"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -107,16 +107,20 @@ connected campaign flow, carried vitals, resident replay and section selection.
 The Level-1 renderer retains small tested optimizations, but no noticeable
 speed increase is claimed.
 
-Verification: full campaign user testing on FS-UAE/68030 and stock-68020
-configuration. This exact game executable matches the accepted HD test build.
-Real-A1200 acceptance of this campaign version is still pending. The older
-alpha.68 real-hardware results do not establish this version's compatibility.
-The intermittent real-Amiga HUD-boundary issue remains open.
+New presentation: Hero Drive accompanies the HD/WHDLoad story intro;
+Neon Sky plays from the title through READY. Gameplay retains sound effects.
+READY has background wind particles and orange sparks, smoother 68020 menu
+handling and a shorter black pause after CHARGING. Stormrail uses less Chip
+RAM and skips unused Level-1 loads. About 1.45 MB free Chip RAM is still not
+sufficient for Stormrail in ordinary HD; exact minimum free memory is unknown.
 
-This alpha also has a separate two-ADF edition and WHDLoad ZIP/LHA. ADF
-starts without the story intro; Disk 2 holds Stormrail. Disk swaps and INSERT
-presentation are user-approved in FS-UAE. Real Gotek/Pocket tests and this new
-campaign WHDLoad runtime remain pending. Alpha.68 packages remain unchanged.
+Verification: the HD READY/menu/transition improvements have user FS-UAE
+approval, including 68020 tests. A preceding music/dust two-ADF build works
+according to the user. Chip RAM improvements were accepted on real A1200.
+Final alpha.3 ADF/WHDLoad presentation and physical Gotek/Pocket testing remain
+separate open gates. The intermittent real-Amiga HUD-boundary issue stays open.
+ADF omits the story intro but retains title music. Disk 2 holds Stormrail.
+
 """
 
 
@@ -372,7 +376,9 @@ def main() -> None:
     # Rebuild/read back the same accepted two-disk route; no legacy one-level ADF.
     for tool in ("generate_disk_status.py", "test_multidisk_probe.py",
                  "build_multidisk_probe.py", "package_multidisk_probe.py"):
-        subprocess.run([sys.executable, str(ROOT / "tools" / tool)], cwd=ROOT, check=True)
+        # Music campaign has less than the usual 16 KiB spare; keep all readback checks.
+        args = ["--minimum-free-blocks", "1"] if tool == "package_multidisk_probe.py" else []
+        subprocess.run([sys.executable, str(ROOT / "tools" / tool), *args], cwd=ROOT, check=True)
     for disk in (1, 2):
         source = ROOT / "build/multidisk-probe" / f"Sparkpaw-Disk{disk}.adf"
         destination = DIST / f"{RELEASE_NAME}-Disk{disk}.adf"

@@ -127,15 +127,17 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 	assets/runtime/renderbench-rear16.raw
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
-	src/title.c
+	src/title.c src/ready_patch.c src/ready_dust.c src/music.c build/music_lsp.o
 SPLIT_RENDERER_SOURCES = $(filter-out src/renderer.c,$(SOURCES)) \
 	src/renderer_level1_unit.c src/renderer_stormrail_unit.c src/renderer_dispatch.c
-HEADERS = src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
+HEADERS = src/ready_patch.h src/ready_dust.h src/ready_dust_mask.h src/music.h src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
 	src/stormrail_results_contract.h
-RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
+RUNTIME_ASSETS = assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank \
+	assets/runtime/neon-sky.lsmusic assets/runtime/neon-sky.lsbank \
+	assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
 	assets/runtime/sparkpaw-level-loading.spbm \
 	assets/runtime/level-charge-patch.spbm \
@@ -201,6 +203,10 @@ RUNTIME_ASSETS = assets/runtime/storm-world.spbm \
 all: assets $(TARGET)
 
 test:
+	$(PYTHON) tests/test_ready_dust.py
+	$(PYTHON) tests/test_ready_patch.py
+	$(PYTHON) tests/test_title_music.py
+	$(PYTHON) tests/test_stormrail_load_selection.py
 	$(PYTHON) tests/test_campaign_level1_isolation.py
 	$(PYTHON) tests/test_campaign_asset_ownership.py
 	@mkdir -p build/host-tests
@@ -444,7 +450,7 @@ $(READY_SCREEN_ASSET) $(READY_MENU_ASSET): tools/generate_ready_screen.py tools/
 	docs/concepts/ready-screen/assets/sparkpaw-logo-wordmark-source-v2.png
 	$(PYTHON) tools/generate_ready_screen.py
 
-$(RUNTIME_ASSETS): tools/generate_runtime_assets.py tools/generate_score_screen.py \
+$(filter-out %.lsmusic %.lsbank,$(RUNTIME_ASSETS)): tools/generate_runtime_assets.py tools/generate_score_screen.py \
 	docs/concepts/score-system/sparkpaw-level-complete-score-concept-v4-title-character.png \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
 	assets/concept/sparkpaw-level-loading-concept-v3.png \
@@ -1743,3 +1749,27 @@ $(RENDER_DIAG_ADF_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS)
 
 clean:
 	$(RM) $(TARGET) $(BENCH_TARGETS) sparkpaw-renderbench src/*.o
+
+# The replay data is prepared from the approved four-channel Neon Sky MOD.
+# Explicit target avoids regenerating listening experiments in ordinary builds.
+build/music_lsp.o: src/music_lsp.s third_party/LSPlayer/LightSpeedPlayer.asm
+	@mkdir -p build
+	$(VBCC_ROOT)/bin/vasmm68k_mot -Fhunk -quiet -nowarn=62 $< -o $@
+
+LSP_CONVERT = ../mrdigs-futsal/third_party/LSPlayer/build/LSPConvert
+$(LSP_CONVERT):
+	cmake -S ../mrdigs-futsal/third_party/LSPlayer -B ../mrdigs-futsal/third_party/LSPlayer/build
+	cmake --build ../mrdigs-futsal/third_party/LSPlayer/build
+
+assets/runtime/neon-sky.lsmusic assets/runtime/neon-sky.lsbank: music/neon-sky.mod $(LSP_CONVERT)
+	$(LSP_CONVERT) $< -shrink -fixed50hz -lsmusic assets/runtime/neon-sky.lsmusic -lsbank assets/runtime/neon-sky.lsbank
+
+music-assets: assets/runtime/neon-sky.lsmusic assets/runtime/neon-sky.lsbank
+
+assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank: music/hero-drive.mod $(LSP_CONVERT)
+	$(LSP_CONVERT) $< -shrink -fixed50hz -lsmusic assets/runtime/hero-drive.lsmusic -lsbank assets/runtime/hero-drive.lsbank
+
+music-assets: assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank
+
+src/ready_dust_mask.h: tools/generate_ready_dust_mask.py assets/runtime/sparkpaw-ready-screen.spbm assets/runtime/readymenu.spbm
+	$(PYTHON) tools/generate_ready_dust_mask.py

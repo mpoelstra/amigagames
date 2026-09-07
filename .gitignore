@@ -60,3 +60,7 @@
 /sparkpaw/sfx/sparkpaw-sfx.bank
 /sparkpaw/sfx/sparkpaw-sfx.json
 /sparkpaw/assets/sfx/previews/
+
+# Local Sparkpaw music audition renders; MOD sources and generators are tracked.
+/sparkpaw/music/experiments/**/*.wav
+/sparkpaw/music/experiments/**/*.mp3

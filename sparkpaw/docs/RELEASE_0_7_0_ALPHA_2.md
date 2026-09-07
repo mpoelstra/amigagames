@@ -22,8 +22,9 @@ and no left-mouse cancellation. No per-frame allocation or disk I/O was added.
 
 WHDLoad now compiles the full campaign with F10 hooks and all 48 runtime assets.
 The Kickstart slave's old alpha.49 version is corrected; memory/startup mechanism
-is unchanged. This new campaign WHDLoad requires native testing; do not inherit
-alpha.68 startup/F10 approval. No WHDLoad executable or Kickstart ROM is bundled.
+is unchanged. At packaging time native testing was pending. On 2026-09-05 the user reports
+successful real-Amiga campaign WHDLoad testing; individual F10/intro checks
+were not enumerated. No WHDLoad executable or Kickstart ROM is bundled.
 
 ## Manual use and acceptance
 
@@ -36,8 +37,10 @@ alpha.68 startup/F10 approval. No WHDLoad executable or Kickstart ROM is bundled
 
 User explicitly states "de adf zijn goed en insert disk 1 en 2 etc is ook ok".
 This is ADF approval in the FS-UAE conversation; CPU was not restated in that
-final report. HD 030/020 observations remain recorded in the re-audit. Native
-campaign WHDLoad, physical A1200/Gotek timing and Analogue Pocket are open gates.
+final report. HD 030/020 observations remain recorded in the re-audit. On 2026-09-05 the user additionally reports successful real-Amiga HD and
+campaign WHDLoad tests. A separate HD run with about 1.45 MB free Chip RAM
+plays Level 1 but crashes on Stormrail; exact stage/cause remain unverified.
+Physical ADF/Gotek, matched cold timing and Analogue Pocket remain open gates.
 The intermittent real-Amiga HUD-boundary issue remains open.
 
 ## Offline verification

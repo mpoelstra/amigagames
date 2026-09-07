@@ -46,7 +46,9 @@ def main():
     inventory=ROOT/'docs/ALPHA68_ARTIFACT_SHA256.json'
     for name,digest in json.loads(inventory.read_text()).items():
         if name.startswith('dist/Sparkpaw-'):
-            assert hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest,name
+            path=ROOT/name
+            if not path.exists(): path=ROOT/'dist/older-builds'/Path(name).relative_to('dist')
+            assert hashlib.sha256(path.read_bytes()).hexdigest()==digest,name
     result={'version':RELEASE_NAME,'files':len(expected),'assets':len(RUNTIME_FILES),
             'executable_sha256':hashlib.sha256(expected['Sparkpaw']).hexdigest(),
             'zip_lha_drawer_byte_parity':True,'icon_byte_parity':True,
