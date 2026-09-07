@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.7.0-alpha.3"
+RELEASE_VERSION = "0.7.0-alpha.4"
 ROADMAP_CHECKPOINT = "7A.2"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -107,6 +107,10 @@ connected campaign flow, carried vitals, resident replay and section selection.
 The Level-1 renderer retains small tested optimizations, but no noticeable
 speed increase is claimed.
 
+Alpha.4 restores visible loading for direct OPTIONS Stormrail starts and
+retires intro display DMA before freeing its image. LMB skip is latched during
+fades; existing joystick-Fire text controls remain. Native fixes need testing.
+
 New presentation: Hero Drive accompanies the HD/WHDLoad story intro;
 Neon Sky plays from the title through READY. Gameplay retains sound effects.
 READY has background wind particles and orange sparks, smoother 68020 menu
@@ -117,7 +121,7 @@ sufficient for Stormrail in ordinary HD; exact minimum free memory is unknown.
 Verification: the HD READY/menu/transition improvements have user FS-UAE
 approval, including 68020 tests. A preceding music/dust two-ADF build works
 according to the user. Chip RAM improvements were accepted on real A1200.
-Final alpha.3 ADF/WHDLoad presentation and physical Gotek/Pocket testing remain
+Final alpha.4 HD/ADF/WHDLoad corrections and presentation and physical Gotek/Pocket testing remain
 separate open gates. The intermittent real-Amiga HUD-boundary issue stays open.
 ADF omits the story intro but retains title music. Disk 2 holds Stormrail.
 

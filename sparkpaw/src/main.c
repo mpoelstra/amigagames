@@ -47,9 +47,9 @@ static BOOL loadLevelFiles(void)
 static BOOL switchPreparedLevel1ToStormrail(struct CampaignState *campaign,
                                             ULONG enemySeed)
 {
-#ifdef SPARKPAW_MULTI_ADF
+    /* All media need a visible load when OPTIONS replaces prepared Level 1.
+       Callers already faded READY and released exclusive hardware ownership. */
     if(!titleShowReplayLoading()) return FALSE;
-#endif
     rendererCleanup(); audioUnload();
     gameSetStormrailActive(TRUE);
     assetsSetStormrailGameplay(TRUE);
@@ -57,11 +57,13 @@ static BOOL switchPreparedLevel1ToStormrail(struct CampaignState *campaign,
     gameInit(enemySeed);
     gameRestoreCampaignVitals(campaign->postLevel1Lives,
         campaign->postLevel1Health,campaign->postLevel1Diamonds);
-    return loadLevelFiles()&&
+    if(!loadLevelFiles()||
 #ifdef SPARKPAW_MULTI_ADF
-           titleShowLevelCharging()&&
+       !titleShowLevelCharging()||
 #endif
-           rendererPrepareGameplay();
+       !rendererPrepareGameplay()) return FALSE;
+    titleFadeOut();
+    return TRUE;
 }
 #endif
 

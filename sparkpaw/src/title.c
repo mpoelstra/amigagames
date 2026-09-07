@@ -132,6 +132,8 @@ static void stageIntroTextColour(const struct PlanarAsset *asset,UWORD level);
 #endif
 
 #ifdef SPARKPAW_STORY_INTRO
+static BOOL introInputActive,introSkipRequested;
+
 static BOOL introFireHeld(void)
 {
     return ((*(volatile UBYTE *)0xbfe001)&0x80)==0;
@@ -139,13 +141,14 @@ static BOOL introFireHeld(void)
 
 static BOOL introImmediateSkip(void)
 {
-    return ((*(volatile UBYTE *)0xbfe001)&0x40)==0;
+    if(((*(volatile UBYTE *)0xbfe001)&0x40)==0) introSkipRequested=TRUE;
+    return introSkipRequested;
 }
 
 static BOOL waitIntroPassage(UWORD passage)
 {
     UWORD frames=0,held;
-    while(introFireHeld()) WaitTOF();
+    while(introFireHeld()) { if(introImmediateSkip()) return TRUE; WaitTOF(); }
     while(frames<INTRO_PASSAGE_HOLD_FRAMES) {
         if(introImmediateSkip()) return TRUE;
         if(introFireHeld()) {
@@ -348,6 +351,7 @@ static void fadeIntroText(const struct PlanarAsset *asset)
 {
     UWORD frame;
     for(frame=0;frame<INTRO_TEXT_FADE_FRAMES;frame++) {
+        (void)introImmediateSkip();
         stageIntroTextColour(asset,(UWORD)(256-
             ((ULONG)(frame+1)*256)/INTRO_TEXT_FADE_FRAMES));
         WaitTOF();
@@ -372,7 +376,11 @@ static void fadeTo(const struct PlanarAsset *asset,BOOL fadeIn)
 {
     UWORD frame;
     for(frame=1;frame<=FADE_FRAMES;frame++) {
-        UWORD level=fadeIn?(UWORD)(((ULONG)frame*256)/FADE_FRAMES):
+        UWORD level;
+#ifdef SPARKPAW_STORY_INTRO
+        if(introInputActive) (void)introImmediateSkip();
+#endif
+        level=fadeIn?(UWORD)(((ULONG)frame*256)/FADE_FRAMES):
                            (UWORD)(((ULONG)(FADE_FRAMES-frame)*256)/FADE_FRAMES);
         stagePalette(asset,level);
         WaitTOF();
@@ -385,6 +393,7 @@ static BOOL titleShowInternal(BOOL playStory)
     static const UBYTE passageCounts[5]={2,2,3,2,2};
     UBYTE plate,passage,next;
     BOOL skipIntro=FALSE;
+    introInputActive=playStory; introSkipRequested=FALSE;
 #endif
     chipFree=AvailMem(MEMF_CHIP);
     chipLargest=AvailMem(MEMF_CHIP|MEMF_LARGEST);
@@ -463,15 +472,24 @@ static BOOL titleShowInternal(BOOL playStory)
             installCopper(next);
         }
         fadeTo(assetsStoryIntro(),TRUE);
+        skipIntro=introImmediateSkip();
         for(passage=0;passage<passageCounts[plate]&&!skipIntro;passage++) {
             stageIntroText(passage,0);
             stageIntroTextColour(assetsStoryIntro(),256);
             skipIntro=waitIntroPassage(passage);
             fadeIntroText(assetsStoryIntro());
+            if(introImmediateSkip()) skipIntro=TRUE;
         }
         fadeTo(assetsStoryIntro(),FALSE);
+        if(introImmediateSkip()) skipIntro=TRUE;
+        /* Black palette alone does not stop DMA fetching freed bitplanes.
+           Retire the old display before unloading or reusing its Chip RAM.
+           Leave audio DMA and OS VBlank active throughout the next cold load. */
+        hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
+        WaitTOF();
         assetsUnloadStoryIntro();
     }
+    introInputActive=FALSE;
     musicStop(); /* Release intro bank before loading title/music. */
     if(!assetsLoadTitle()) {
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC

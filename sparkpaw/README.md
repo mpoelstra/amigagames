@@ -1,10 +1,15 @@
 # Sparkpaw: The Stormstone Quest
 
-Current checkpoint: **0.7.0-alpha.3 / Phase 7A.2**, campaign presentation and
+Alpha.4 adds safe intro DMA retirement, LMB skip latching during fades and
+visible loading for direct OPTIONS Stormrail starts. Existing joystick-Fire
+text controls are unchanged; FS-UAE input mapping remains unconfirmed.
+Host checks pass; native correction checks remain pending. No new itch notes.
+
+Current checkpoint: **0.7.0-alpha.4 / Phase 7A.2**, campaign presentation and
 memory maintenance, released 7 September 2026. All six packages plus the HD
 review drawer are in `sparkpaw/dist` (use `dist` from the Sparkpaw directory).
 The verified public itch baseline is still **0.6.0-alpha.68**; publication to
-itch is separate from this repository release. Older alpha.2 and test drawers
+itch is separate from this repository release. Older alpha.3 and test drawers
 are preserved byte-identically under `dist/older-builds`.
 
 This checkpoint retains the complete Storm Ruins -> Stormrail campaign and
@@ -15,7 +20,7 @@ remains visible. Gameplay/results remain SFX-only. No Fast-RAM Blitter route.
 
 User acceptance: Chip2 on real A1200; music/dust ADF preceding final menu tuning;
 HD 020 READY selection/OPTIONS and final CHARGING transition improvements.
-Final alpha.3 ADF/WHDLoad presentation, real-hardware music/READY, physical
+Final alpha.4 HD/ADF/WHDLoad corrections and presentation, real-hardware music/READY, physical
 ADF/Gotek and Pocket remain separate open gates. About 1.45 MB free Chip RAM
 is still insufficient for ordinary HD Stormrail; exact threshold is unknown.
 The intermittent real-Amiga HUD-boundary issue stays open. No general gameplay
@@ -24,7 +29,7 @@ remain parked.
 
 Build, full host suite, ADF loader/decoder/readback and independent ZIP/LHA/icon
 checks pass. Disk 1 has 9 free 512-byte blocks; Disk 2 has 345. See
-`docs/RELEASE_0_7_0_ALPHA_3.md`, `docs/ALPHA3_ARTIFACT_SHA256.json` and
+`docs/RELEASE_0_7_0_ALPHA_4.md`, `docs/ALPHA4_ARTIFACT_SHA256.json` and
 `docs/RELEASE_NOTES_0_7_0_ALPHA_3.md` under Sparkpaw for exact scope and hashes.
 No routine automatic FS-UAE tests. No retest request for a proven byte-identical
 restoration of a user-tested build. Keep at most one future active full test set.

@@ -173,3 +173,21 @@ The music, Chip RAM, READY performance and rejected Fast2 DMA lessons above
 are retained in alpha.3. See RELEASE_0_7_0_ALPHA_3.md for verification and
 medium-specific acceptance. Do not infer fresh WHDLoad/hardware acceptance
 from HD testing or repeat user tests after a proven byte-identical restoration.
+
+## Direct section-start presentation — 7 September 2026
+
+A shared direct-start helper can accidentally hide presentation behind a media
+compile flag. Test HD, WHDLoad and ADF call ordering, and distinguish OPTIONS
+section start from campaign CONTINUE. Visible loading belongs to all cold
+section switches, not only the edition that may need a disk swap.
+
+## Intro display retirement — 7 September 2026
+
+A black palette does not stop Chip DMA. Retire Copper/bitplane fetches and wait
+for the boundary before freeing the displayed intro, including between plates.
+Preserve audio DMA and avoid solving lifetime hazards by adding overlapping
+Chip buffers. Latch intro skip during fades; close intro input before title.
+Source lifetime checks are not native proof of an intermittent reported flash.
+
+Alpha.4 preserves the intro DMA and direct-start lessons above. Do not claim
+FS-UAE-only input mapping without evidence; no broader control rewrite shipped.

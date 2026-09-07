@@ -52,6 +52,10 @@ not the old single-level executable. All 52 assets are included on the HD data
 volume; no physical disk swaps are needed. Kickstart memory setup is unchanged:
 2 MB Chip allocation minus 4 KiB and 8 MB expansion including its ROM area.
 
+Direct OPTIONS Stormrail starts now show loading. Intro image memory is freed
+only after display DMA stops; LMB skip is latched through fades. Joystick-Fire
+text controls remain unchanged. These alpha.4 corrections need native review.
+
 Hero Drive plays during the story; Neon Sky accompanies title through READY.
 Gameplay uses sound effects only. READY includes background wind particles,
 orange sparks and improved menu handling on 68020.

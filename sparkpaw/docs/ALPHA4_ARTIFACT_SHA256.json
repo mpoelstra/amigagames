@@ -1,0 +1,33 @@
+{
+  "version": "0.7.0-alpha.4",
+  "HD_game_sha256": "17d712ebc7458335500e3a401f1b80d7282a3364b118c74526e9639ffac5bfb3",
+  "WHDLoad_game_sha256": "2557b6d0447d2e53119552a6c456e2cae249ec27474466658d575d4cccd0ffd3",
+  "WHDLoad_slave_sha256": "eb89746773e41707ae9746027b8b5018855737c77036ca594a0f1d38ca67ff36",
+  "artifacts": {
+    "Sparkpaw-0.7.0-alpha.4.zip": {
+      "bytes": 1088707,
+      "sha256": "d9021792c606ea38b7aacc192edb931bca285c3f365d5c147b12d1c3a4b8a90c"
+    },
+    "Sparkpaw-0.7.0-alpha.4.lha": {
+      "bytes": 1102104,
+      "sha256": "f6e2bba3f7ac796d071c05b078fa2a3a4dd9b804800eb9e6a794d1250a11c146"
+    },
+    "Sparkpaw-0.7.0-alpha.4-Disk1.adf": {
+      "bytes": 901120,
+      "sha256": "720a3d28996d4b4fcc80c4929fb730b0657807a023b0926f426d4500ee21d2a9"
+    },
+    "Sparkpaw-0.7.0-alpha.4-Disk2.adf": {
+      "bytes": 901120,
+      "sha256": "e1ae3afa6278be1d346430ab6f8a7f7bc39538ea13ea2f6c1979590afc0a75d9"
+    },
+    "Sparkpaw-0.7.0-alpha.4-WHDLoad.zip": {
+      "bytes": 1096726,
+      "sha256": "02d4ad1fb04039ad5b28be0c7b94c99fee0e805e3e56bc0e7eb281baf71b28e4"
+    },
+    "Sparkpaw-0.7.0-alpha.4-WHDLoad.lha": {
+      "bytes": 1109495,
+      "sha256": "dc16c05d8ce49de6cb60707158b08e8b6f99747c10bb5bae9fe524f4aa342331"
+    }
+  },
+  "native_evidence": "HD READY 020/menu/transition user accepted; preceding music/dust ADF user accepted; alpha.4 intro retirement and direct-start loading corrections host-verified; final native HD/ADF/WHDLoad checks pending"
+}

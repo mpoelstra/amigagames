@@ -1,5 +1,56 @@
 # Sparkpaw current status and next work
 
+## Alpha.4 maintenance checkpoint — 7 September 2026
+
+Includes direct OPTIONS Stormrail loading and safe intro DMA retirement/LMB
+latching. No further input rewrite: joystick-Fire still advances text, no new
+VBlank input server, and FS-UAE-only behavior is not established. Native symptom
+resolution remains pending. User requested release/commit/push with minimal
+docs and no new itch notes. See RELEASE_0_7_0_ALPHA_4.md and artifact JSON.
+
+Earlier alpha.3/candidate entries below are historical.
+
+## Intro skip/display retirement candidate — 7 September 2026
+
+User reports intermittent old intro imagery after title when repeatedly
+clicking LMB or skipping during text scroll. No recording supplied; timing
+cause not proven. Source audit found active intro Copper/bitplane DMA remained
+pointed at Chip memory after assetsUnloadStoryIntro, until next plate/title
+installation. After the existing black fade, stop RASTER/COPPER/SPRITE DMA and
+wait a VBlank before unloading. Audio DMA/OS interrupts stay active. Every plate
+uses this retirement; installCopper re-enables display DMA for the next image.
+No extra Chip bitmap or simultaneous title/intro allocation.
+
+LMB skip now latches through fades and passage waits (including held-fire entry).
+Reset on a new title invocation; intro input disabled before title loading.
+It cannot restart the intro via repeated clicks. Frame polling can still miss
+sub-frame clicks; no unconditional guarantee for input during blocking I/O.
+
+Native build and full host suite pass. Actual C skip test covers 240 passage
+press timings, latch persistence and held-fire handling; structural guards check
+DMA retirement before free. Native symptom resolution remains pending.
+Single active set: dist/Intro-Skip-HD, includes pending Stormrail direct-start
+loading fix. Previous candidate archived byte-identically; 52 assets verified,
+all 61 alpha.3 release files unchanged. No emulator, release, commit or push.
+
+
+## Direct Stormrail OPTIONS loading candidate — 7 September 2026
+
+After alpha.3 release, user reports direct OPTIONS -> START AT STORMRAIL ->
+START GAME loads over black, although Level-1 CONTINUE shows the disk image.
+Source confirms switchPreparedLevel1ToStormrail guarded titleShowReplayLoading
+with SPARKPAW_MULTI_ADF. Removed that guard so HD/WHDLoad use the same loading
+presenter before teardown/load. Successful preparation now fades that presenter
+before callers take over for gameplay. Existing ADF CHARGING call retained.
+All three direct-start call sites (initial, Escape and back-to-title) share the
+helper. Normal Level-1 start/CONTINUE implementation is unchanged.
+
+Native build and full host suite pass. New test compiles the actual helper
+with HD/WHDLoad/ADF flags and checks load ordering and failure exits. Staged
+52 assets in dist/Storm-Start-Loading-HD; all 61 alpha.3 release files preserved.
+Native visible transition pending. No new release, commit/push or emulator.
+
+
 Current checkpoint: **0.7.0-alpha.3 / Phase 7A.2**, campaign presentation and
 memory maintenance, released 7 September 2026. All six packages plus the HD
 review drawer are in `sparkpaw/dist` (use `dist` from the Sparkpaw directory).

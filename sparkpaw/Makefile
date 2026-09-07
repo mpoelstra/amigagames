@@ -206,7 +206,9 @@ test:
 	$(PYTHON) tests/test_ready_dust.py
 	$(PYTHON) tests/test_ready_patch.py
 	$(PYTHON) tests/test_title_music.py
+	$(PYTHON) tests/test_intro_skip.py
 	$(PYTHON) tests/test_stormrail_load_selection.py
+	$(PYTHON) tests/test_stormrail_start_loading.py
 	$(PYTHON) tests/test_campaign_level1_isolation.py
 	$(PYTHON) tests/test_campaign_asset_ownership.py
 	@mkdir -p build/host-tests
