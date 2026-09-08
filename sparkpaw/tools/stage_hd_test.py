@@ -50,6 +50,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--executable-name", required=True)
     parser.add_argument("--readme", required=True, type=Path)
     parser.add_argument("--extra-runtime", action="append", default=[])
+    parser.add_argument("--standalone-runtime", type=Path,
+                        help="audio/tool proof only: stage discovered references; extra assets from this directory")
+    parser.add_argument("--additional-runtime-dir", type=Path,
+                        help="extra candidate assets only; never overrides production runtime files")
     parser.add_argument("--replace", action="store_true")
     return parser.parse_args()
 
@@ -65,7 +69,7 @@ def main() -> None:
     if not readme.is_file():
         raise SystemExit(f"missing ReadMe: {readme}")
 
-    runtime_files = list(RUNTIME_FILES)
+    runtime_files = [] if args.standalone_runtime else list(RUNTIME_FILES)
     discovered_runtime = executable_runtime_files(executable)
     for name in discovered_runtime:
         if name not in runtime_files:
@@ -76,6 +80,18 @@ def main() -> None:
             runtime_files.append(name)
     for name in runtime_files:
         validate_component(name)
+
+    if args.standalone_runtime and (not discovered_runtime or args.extra_runtime):
+        raise SystemExit("standalone proof requires literal references and forbids dynamic extras")
+    def runtime_source(name):
+        if args.standalone_runtime:
+            override = args.standalone_runtime.resolve() / name
+            if override.is_file():
+                return override
+        source = ROOT / "assets" / "runtime" / name
+        if not source.exists() and args.additional_runtime_dir:
+            return args.additional_runtime_dir.resolve() / name
+        return source
 
     before = release_inventory()
     destination = DIST / args.drawer
@@ -88,7 +104,7 @@ def main() -> None:
     shutil.copy2(readme, staged / "ReadMe.txt")
 
     for name in runtime_files:
-        source = ROOT / "assets" / "runtime" / name
+        source = runtime_source(name)
         if not source.is_file():
             raise SystemExit(f"runtime manifest source missing: {source}")
         shutil.copy2(source, runtime_destination / name)
@@ -106,7 +122,7 @@ def main() -> None:
             f"missing={sorted(expected-actual)} extra={sorted(actual-expected)}"
         )
     for name in runtime_files:
-        source = ROOT / "assets" / "runtime" / name
+        source = runtime_source(name)
         copied = runtime_destination / name
         if file_hash(source) != file_hash(copied):
             raise SystemExit(f"staged runtime asset differs: {name}")

@@ -91,6 +91,8 @@ assert(diskMediaRequire(2));assert(prompts==1&&reloads==1&&activeDrive==0);asser
 assert(!diskMediaRequire(0)&&!diskMediaRequire(3));puts("Media: DF1 automatic, wrong version, DF0 swap, path rewrite and requester restoration pass");return 0;}
 '''
  compile_run('media',stubs+media+'\n'+driver)
+ music_stubs=stubs.replace('SP07D','SP07M')
+ compile_run('media-music','#define SPARKPAW_LEVEL1_MUSIC\n'+music_stubs+media+'\n'+driver)
  print('Native reader source cases passed:',count)
 def prepare_first():
  r=OUT/'first.raw';r.write_bytes(b'test');p=OUT/'first.packed';p.write_bytes(pack(b'test'));return p,r,'1'

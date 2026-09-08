@@ -211,6 +211,7 @@ int main(void)
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     platformProfileTimerStart();
 #endif
+    platformStartGameplayAudio();
     state=APP_PLAYING;
 #else
     state=APP_TITLE_LOADING;
@@ -327,6 +328,7 @@ int main(void)
     platformProfileTimerStart();
 #endif
     titleRelease();
+    platformStartGameplayAudio();
     state=APP_PLAYING;
 #endif
     for(;;) {
@@ -586,7 +588,9 @@ int main(void)
         }
         rendererUpdateGameplay();
         platformSwitchCopper(rendererCopperList());
-        titleRelease(); state=APP_PLAYING;
+        titleRelease();
+        platformStartGameplayAudio();
+        state=APP_PLAYING;
         continue;
 #else
         state=APP_BOOT;
@@ -690,6 +694,7 @@ int main(void)
             while(platformRasterLine()<300) { }
             while(platformRasterLine()>=300) { }
             platformSwitchCopper(rendererCopperList());
+            platformStartGameplayAudio();
             state=APP_PLAYING;
             continue;
         }
@@ -767,7 +772,9 @@ int main(void)
             }
             rendererUpdateGameplay();
             platformSwitchCopper(rendererCopperList());
-            titleRelease(); state=APP_PLAYING;
+            titleRelease();
+            platformStartGameplayAudio();
+            state=APP_PLAYING;
             continue;
         }
 #endif
@@ -792,6 +799,7 @@ int main(void)
         while(platformRasterLine()<300) { }
         while(platformRasterLine()>=300) { }
         platformSwitchCopper(rendererCopperList());
+        platformStartGameplayAudio();
         state=APP_PLAYING;
         continue;
     }

@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from campaign_asset_manifest import ALL, GROUPS, LEVEL1, STORMRAIL  # noqa: E402
+from campaign_asset_manifest import HD_ALL as ALL, HD_GROUPS as GROUPS, LEVEL1, STORMRAIL  # noqa: E402
 from runtime_asset_refs import executable_runtime_files  # noqa: E402
 
 seen = set()

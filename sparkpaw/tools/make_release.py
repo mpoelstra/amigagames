@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.7.0-alpha.4"
-ROADMAP_CHECKPOINT = "7A.2"
+RELEASE_VERSION = "0.7.0-alpha.5"
+ROADMAP_CHECKPOINT = "7A.3"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -61,7 +61,7 @@ ADF_RAW_NAMES = {
 }
 LHA = Path(os.environ.get("LHA", ROOT / ".toolchain" / "lha" / "bin" / "lha"))
 
-from campaign_asset_manifest import ALL as CAMPAIGN_RUNTIME_FILES
+from campaign_asset_manifest import HD_ALL as CAMPAIGN_RUNTIME_FILES
 from runtime_asset_refs import executable_runtime_files
 
 RUNTIME_FILES = tuple(sorted(CAMPAIGN_RUNTIME_FILES))
@@ -107,23 +107,26 @@ connected campaign flow, carried vitals, resident replay and section selection.
 The Level-1 renderer retains small tested optimizations, but no noticeable
 speed increase is claimed.
 
-Alpha.4 restores visible loading for direct OPTIONS Stormrail starts and
-retires intro display DMA before freeing its image. LMB skip is latched during
-fades; existing joystick-Fire text controls remain. Native fixes need testing.
+Alpha.5 adds Copper Sprint for Level 1 and Iron Horizon for Stormrail.
+Three Paula channels play music; two software-mixed effect voices share the
+fourth. Existing shots, hurt, pickups, debris and Harrier warning/fire cues
+remain active. Music continues through life resets; results retain their tally
+sounds and replay restarts the track. Intro/title retain all four channels.
 
-New presentation: Hero Drive accompanies the HD/WHDLoad story intro;
-Neon Sky plays from the title through READY. Gameplay retains sound effects.
-READY has background wind particles and orange sparks, smoother 68020 menu
-handling and a shorter black pause after CHARGING. Stormrail uses less Chip
-RAM and skips unused Level-1 loads. About 1.45 MB free Chip RAM is still not
-sufficient for Stormrail in ordinary HD; exact minimum free memory is unknown.
+Hero Drive accompanies the HD/WHDLoad story intro; Neon Sky plays from title
+through READY. READY has wind particles, orange sparks and smoother 68020
+menu handling. Intro skipping and direct Stormrail loading retain alpha.4 fixes.
+The two-ADF edition starts at title (no story intro), preserves music/SFX
+losslessly, and has 15 KiB free on Disk1 and 159 KiB on Disk2. Disk-only packed
+READY tables and audio unpack before use; there is no gameplay decompression.
+Use both alpha.5 disks together; older disk pairs have different media markers.
 
-Verification: the HD READY/menu/transition improvements have user FS-UAE
-approval, including 68020 tests. A preceding music/dust two-ADF build works
-according to the user. Chip RAM improvements were accepted on real A1200.
-Final alpha.4 HD/ADF/WHDLoad corrections and presentation and physical Gotek/Pocket testing remain
-separate open gates. The intermittent real-Amiga HUD-boundary issue stays open.
-ADF omits the story intro but retains title music. Disk 2 holds Stormrail.
+User emulator testing reports working HD and two-ADF music/campaign builds.
+This alpha is ready for real-hardware testing, not a claim of completed native
+acceptance. New WHDLoad music, F10 exit, physical ADF/Gotek, Pocket, memory on
+busy Workbench setups and the intermittent real-Amiga HUD boundary issue
+remain test points. Minimum: PAL A1200/AGA, 68020, 2 MB Chip + 8 MB Fast RAM.
+
 
 """
 
@@ -381,7 +384,7 @@ def main() -> None:
     for tool in ("generate_disk_status.py", "test_multidisk_probe.py",
                  "build_multidisk_probe.py", "package_multidisk_probe.py"):
         # Music campaign has less than the usual 16 KiB spare; keep all readback checks.
-        args = ["--minimum-free-blocks", "1"] if tool == "package_multidisk_probe.py" else []
+        args = ["--minimum-free-blocks", "24"] if tool == "package_multidisk_probe.py" else []
         subprocess.run([sys.executable, str(ROOT / "tools" / tool), *args], cwd=ROOT, check=True)
     for disk in (1, 2):
         source = ROOT / "build/multidisk-probe" / f"Sparkpaw-Disk{disk}.adf"

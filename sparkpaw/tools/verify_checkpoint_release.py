@@ -49,6 +49,6 @@ def main():
   assert bytes(v.get_file_path_name(FSString('assets/runtime/storm-collision.bin')).get_file_data())==(ROOT/'assets/runtime/storm-collision.bin').read_bytes()
   dev.close()
  paths=[DIST/(RELEASE_NAME+s) for s in ('.zip','.lha','-Disk1.adf','-Disk2.adf','-WHDLoad.zip','-WHDLoad.lha')]
- report={'version':RELEASE_VERSION,'HD_game_sha256':digest(ROOT/'sparkpaw'),'WHDLoad_game_sha256':digest(STAGE/'data/Sparkpaw'),'WHDLoad_slave_sha256':digest(STAGE/'Sparkpaw.Slave'),'artifacts':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p)} for p in paths},'native_evidence':'HD READY 020/menu/transition user accepted; preceding music/dust ADF user accepted; alpha.4 intro retirement and direct-start loading corrections host-verified; final native HD/ADF/WHDLoad checks pending'}
+ report={'version':RELEASE_VERSION,'HD_game_sha256':digest(ROOT/'sparkpaw'),'WHDLoad_game_sha256':digest(STAGE/'data/Sparkpaw'),'WHDLoad_slave_sha256':digest(STAGE/'Sparkpaw.Slave'),'artifacts':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p)} for p in paths},'native_evidence':'User reports working integrated HD Level1/Stormrail music and two-ADF candidate; first requested tests were 030. New WHDLoad music and alpha.5 real-hardware paths pending; no automatic emulator run.'}
  (ROOT/'build/checkpoint-release-verification.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
 if __name__=='__main__':main()

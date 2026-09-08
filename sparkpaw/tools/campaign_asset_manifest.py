@@ -43,3 +43,9 @@ GROUPS = {
     "stormrail": STORMRAIL,
 }
 ALL = frozenset().union(*GROUPS.values())
+
+# HD/WHDLoad campaign audio assets; ADF selects the appropriate track per disk.
+LEVEL1_HD_AUDIO = frozenset({"pulse-score.bin", "pulse-bank.bin"})
+STORMRAIL_HD_AUDIO = frozenset({"rail-score.bin", "rail-bank.bin"})
+HD_GROUPS = dict(GROUPS, level1_audio=LEVEL1_HD_AUDIO, stormrail_audio=STORMRAIL_HD_AUDIO)
+HD_ALL = ALL | LEVEL1_HD_AUDIO | STORMRAIL_HD_AUDIO

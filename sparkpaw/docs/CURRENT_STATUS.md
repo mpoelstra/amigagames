@@ -1,5 +1,110 @@
 # Sparkpaw current status and next work
 
+Current checkpoint: **0.7.0-alpha.5 / Phase 7A.3**, released 9 September 2026.
+The sole current release is the six HD/ADF/WHDLoad packages plus HD review
+drawer in `sparkpaw/dist`. The public itch download baseline, checked live,
+is **0.6.0-alpha.68**; this release has not been published to itch.
+
+Intro Hero Drive and title-to-READY Neon Sky retain four-channel LightSpeedPlayer
+playback. Level 1 now plays Copper Sprint (164 BPM); Stormrail plays Iron Horizon
+(172 BPM). Three music channels use CIA-timed ProTracker replay; the fourth
+Paula channel carries two mixed effect voices, one reserved for plasma and one
+priority-managed for the other effects. All 16 existing effects remain supported.
+Results retain their original sound effects. General gameplay-performance
+research stays parked; no renderer or gameplay redesign is part of this release.
+
+HD/WHDLoad contain the cinematic intro; the two ordinary 880-KiB ADFs start at
+the title. ADF-only lossless packing of audio and external READY masks leaves
+15 KiB free on Disk 1 and 159 KiB on Disk 2. Assets are unpacked before use,
+not during gameplay mixing. HD/WHDLoad assets remain unpacked.
+
+Evidence: repeated user 68020/68030 audio/gameplay trials were positive; the
+integrated HD tracks and two-ADF candidate also received positive user reports.
+The final HD executable matches the accepted Stormrail candidate. Builds, full
+host suite, ADF decoder/readback, independent archive extraction and icon checks
+pass. New WHDLoad audio/F10 and final real-hardware, physical floppy/Gotek and
+Pocket acceptance remain open; compilation is not runtime acceptance.
+Target remains PAL A1200/AGA, 68020+, 2 MB Chip + 8 MB Fast RAM. The intermittent
+real-Amiga HUD-boundary issue and exact free-Chip launch threshold remain open.
+
+Next step: test these alpha.5 packages on real hardware and record platform-
+specific findings. No routine automatic FS-UAE tests or further microbenchmarks.
+See `sparkpaw/docs/RELEASE_0_7_0_ALPHA_5.md` for inventory, hashes and evidence,
+and `sparkpaw/docs/RELEASE_NOTES_0_7_0_ALPHA_5.md` for the full English itch delta.
+Superseded releases and test drawers are preserved intact in `dist/older-builds`.
+
+## Historical investigation record — superseded by alpha.5 above
+
+## Phase trace 020 findings — 8 September 2026
+
+Both complete 020 logs show two seven-field gaps at water reset + next frame,
+including original-SFX A. Time is in renderer/Bob phase, consistent with both
+rolling targets rebuilding after the camera jump. New audio is not required
+for those gaps; general renderer optimization remains parked.
+B separately has six three-field ordinary-gameplay gaps, with rendering near/
+after the line<=4 publication window. Audio/trace/workload attribution remains
+open; no full performance acceptance or runtime fix. Logs preserved; active
+Level1-Trace-A/B-030-HD pair retained. See LEVEL1_AUDIO_PROOF.md for exact data.
+
+## Active Level-1 audio gameplay candidate — 7 September 2026
+
+Level1-Audio-A-030-HD (original SFX) and Level1-Audio-B-030-HD (music+mixer),
+executable Level1-Audio. Direct Level-1 start, same game/render source and seed.
+LMB/Escape stops, restores OS and saves. Native build and adapter/stager host
+checks pass. Supplied 030 and 020 gameplay/audio is positive; both 020 logs
+complete. User notices no FPS difference, B includes water and longer play.
+020 aggregate rates ~49.68/49.27; B includes zero/two-field pairs plus two
+three- and two seven-field deltas. Timing attribution remains OPEN; no full
+performance acceptance or audio-regression claim. Review sampling boundaries
+before another targeted trace; routes differ. See LEVEL1_AUDIO_PROOF.md.
+No production src edits or release changes. Prior Audio-Block pair archived.
+See LEVEL1_AUDIO_PROOF.md and experiments/audio-gameplay/README.md.
+
+## Block-mixer 020 result — 7 September 2026
+
+Supplied Audio-Block-A/B 020 listening is positive; both scripts complete and
+all effect counts match. Measured service fraction falls from 13.32% to 3.06%;
+mixer time falls about 85.2%, with music/DMA nearly unchanged. This supports
+the next scoped Level-1 integration candidate. Average service timing is not
+worst-window CPU-budget or integrated gameplay acceptance. Production and all
+release baselines remain unchanged. Logs and limits: LEVEL1_AUDIO_PROOF.md.
+Current pair remains available; archive intact when staging the next candidate.
+
+## Previous audio timing gate — 7 September 2026
+
+User authorized timing then Level-1 gameplay proof. Active set:
+Audio-EClock-A-030-HD (ReadEClock service timing) and Audio-EClock-B-030-HD
+(unmeasured control). Both run Audio-Level1 for 94 seconds, save and return.
+Supplied E-clock A/B 030 and 020 listening is positive; effect counts match.
+020 instrumented service bodies consume 13.32% of elapsed time, mostly mixer
+(12.04%). This does not establish exact production CPU cost and does not meet
+the provisional efficiency gate. Reduce isolated mixer work before gameplay
+integration; general gameplay performance stays parked. See proof document.
+Previous audition drawer archived intact. See LEVEL1_AUDIO_PROOF.md.
+
+## Completed standalone listening candidate — 7 September 2026
+
+Research advanced to one user-authorized audio-only proof. See
+[LEVEL1_AUDIO_PROOF.md](LEVEL1_AUDIO_PROOF.md). Sole drawer Audio-Level1-030-HD;
+run Audio-Level1 for ~94 seconds or LMB stop/save. It returns to the OS.
+Copper Sprint is three-voice 164-BPM Level-1 accompaniment, with all 15 original
+SFX plus louder health variant. Intro/title retain four channels unchanged.
+Native compile/host checks pass. User completed both 030 and 020 auditions, reporting good sound and no
+perceived difference. All effect start/suppression counts match between runs.
+Raster timing is inconclusive; integrated gameplay remains unverified. See the proof document for evidence.
+All 61 alpha.4 release files remain unchanged; no new release/commit/push.
+
+
+## Audio system research — 7 September 2026
+
+User reopens player/sharing research and broadens it to the complete audio system.
+Research only; alpha.4 runtime/releases remain unchanged. Prefer evaluating an
+independent audio clock, faithful direct/converted replay and three uninterrupted music voices
+plus two SFX mixed onto the fourth Paula output. Two music/two direct SFX is the
+fallback. No backend selected or integrated; no native concurrency proof.
+See [audio system plan](AUDIO_SYSTEM_PLAN.md) and [source audit](INGAME_MUSIC_AUDIT.md).
+General gameplay performance remains parked. No build/emulator/release/commit/push.
+
 ## Alpha.4 maintenance checkpoint — 7 September 2026
 
 Includes direct OPTIONS Stormrail loading and safe intro DMA retirement/LMB

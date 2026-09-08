@@ -1,5 +1,29 @@
 #include "ready_dust.h"
+#ifdef SPARKPAW_MULTI_ADF
+#include "assets.h"
+#include <exec/memory.h>
+#include <proto/exec.h>
+static unsigned char *readyDustMask;
+#define readyDustMenuMask (readyDustMask+10240)
+int readyDustLoad(void)
+{
+    ULONG size;
+    if(readyDustMask) return 1;
+    readyDustMask=assetsLoadDiskData("PROGDIR:assets/runtime/ready-dust-mask.bin",
+                                   MEMF_FAST,&size);
+    if(!readyDustMask) return 0;
+    if(size!=40192) {
+        FreeMem(readyDustMask,size); readyDustMask=0; return 0;
+    }
+    return 1;
+}
+void readyDustUnload(void)
+{
+    if(readyDustMask) { FreeMem(readyDustMask,40192); readyDustMask=0; }
+}
+#else
 #include "ready_dust_mask.h"
+#endif
 void readyDustRestore(unsigned char **planes,struct ReadyDustHistory *h)
 {
     unsigned char i,p;

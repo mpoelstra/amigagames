@@ -1,0 +1,16 @@
+Sparkpaw - Stormrail music (unnumbered main HD candidate)
+
+Launch Sparkpaw-Music. First gate: PAL A1200 / 68030, 2 MB Chip + 8 MB Fast.
+Skip the story intro if desired. At READY choose OPTIONS, select STORMRAIL,
+then START GAME. No need to replay Level 1 first.
+
+Iron Horizon should play from departure through flight and the Harrier fight.
+Listen for the melody, energy and balance with shots, impacts, debris, hurt,
+pickups and the Harrier charge/fire cues. No extra load at the finale.
+Life loss keeps the music running. Results use the original tally sounds;
+REPLAY LEVEL restarts the music from the beginning. Escape returns to READY
+with Neon Sky. Level 1 still uses Copper Sprint.
+
+This is ordinary gameplay: no automatic input, diagnostics or LMB log save.
+Report how the track feels and any missing/unclear effect or transition fault.
+Stop/reset the emulator normally. Existing release files remain unchanged.

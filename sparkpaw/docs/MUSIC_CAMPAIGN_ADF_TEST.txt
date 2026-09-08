@@ -1,0 +1,26 @@
+Sparkpaw - Music campaign ADF candidate (no new release)
+
+Two ordinary 880-KiB DOS1/FFS ADFs. PAL A1200/AGA, 2 MB Chip + 8 MB Fast.
+First user gate: FS-UAE 68030. Use BOTH images from this drawer together;
+old alpha.4 disks are deliberately rejected by the new media marker.
+
+Boot Music-Disk1.adf in DF0. As in alpha.4 ADF, start at title/READY:
+no story intro/Hero Drive. Neon Sky plays through READY, Copper Sprint in
+Level 1 and Iron Horizon during Stormrail, alongside the existing effects.
+
+First listen/play briefly in Level 1. Escape returns to READY. OPTIONS ->
+STORMRAIL -> START GAME lets you check Disk 2 without finishing Level 1.
+With one drive, wait for INSERT DISK 2 before swapping DF0 to Music-Disk2.adf.
+With Disk 2 already in DF1 it should be found automatically, without a prompt.
+Escape/back-to-title may require Disk 1 again in a single-drive setup.
+
+Check that music and effects work after the load/swap. Results tally should
+stay SFX-only; resident REPLAY LEVEL restarts its track without reloading.
+No diagnostic log or mouse-save/freeze. Report any failed load, wrong music,
+stuck effect or broken transition. Stop/reset the emulator normally.
+
+Free space: Disk1 30 blocks / 15 KiB; Disk2 318 blocks / 159 KiB.
+All graphics, sound samples and music decompress losslessly before use.
+READY masks are loaded once into Fast RAM; no gameplay decompression.
+Original HD executable and all 61 alpha.4 release files are unchanged.
+ADF boot/swap/audio on emulator and real hardware await user testing.

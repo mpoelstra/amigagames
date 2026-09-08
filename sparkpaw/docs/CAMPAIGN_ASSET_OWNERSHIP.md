@@ -1,5 +1,12 @@
 # Campaign asset ownership contract
 
+> Alpha.5 checkpoint (9 September 2026): campaign music plus mixed SFX now
+> ships in HD, ADF and WHDLoad. Positive user HD/ADF reports are recorded;
+> new WHDLoad audio and final hardware acceptance remain pending.
+> See RELEASE_0_7_0_ALPHA_5.md. Earlier candidate/no-release statements below
+> are historical and superseded by the explicitly authorized release.
+
+
 > Current status (2026-09-05): Current ownership rules remain in force. The user-approved two-ADF release duplicates shared and still-requested carryover assets; typed loader/renderer restructuring remains deferred. Performance/placement changes are parked. See [status index](CURRENT_STATUS.md).
 
 `tools/campaign_asset_manifest.py` is the authoritative logical ownership list.

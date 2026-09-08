@@ -18,7 +18,11 @@ static BOOL findDisk(UBYTE disk)
     APTR window=process->pr_WindowPtr;
     UBYTE drive; BOOL found=FALSE;
     char path[]="DF0:Sparkpaw.disk",marker[8];
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    const char *wanted=disk==1?"SP07M1\n":"SP07M2\n";
+#else
     const char *wanted=disk==1?"SP07D1\n":"SP07D2\n";
+#endif
     process->pr_WindowPtr=(APTR)-1;
     for(drive=0;drive<2;drive++) {
         BPTR file; LONG count;

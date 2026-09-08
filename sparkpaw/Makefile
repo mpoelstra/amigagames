@@ -128,11 +128,15 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
 	src/title.c src/ready_patch.c src/ready_dust.c src/music.c build/music_lsp.o
+GAME_AUDIO_SOURCES = src/level1_audio.c src/audio_mix.c build/game_ptplayer.o build/audio_game_irq.o
+GAME_AUDIO_ASSETS = assets/runtime/pulse-score.bin assets/runtime/pulse-bank.bin \
+	assets/runtime/rail-score.bin assets/runtime/rail-bank.bin
 SPLIT_RENDERER_SOURCES = $(filter-out src/renderer.c,$(SOURCES)) \
 	src/renderer_level1_unit.c src/renderer_stormrail_unit.c src/renderer_dispatch.c
 HEADERS = src/ready_patch.h src/ready_dust.h src/ready_dust_mask.h src/music.h src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
+HEADERS += src/level1_audio.h src/audio_mix.h src/audio_catalog.h
 HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
 	src/stormrail_results_contract.h
 RUNTIME_ASSETS = assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank \
@@ -203,6 +207,8 @@ RUNTIME_ASSETS = assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsb
 all: assets $(TARGET)
 
 test:
+	$(PYTHON) tests/test_level1_audio.py
+	$(PYTHON) tests/test_adf_ready_mask.py
 	$(PYTHON) tests/test_ready_dust.py
 	$(PYTHON) tests/test_ready_patch.py
 	$(PYTHON) tests/test_title_music.py
@@ -695,7 +701,9 @@ $(CAMPAIGN_SPLIT_RENDERER_TARGET) $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET): Mak
 		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
 		-DSPARKPAW_SPLIT_RENDERER_CLIENT \
 		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),-DSPARKPAW_CAMPAIGN_PLAY,-DSPARKPAW_CAMPAIGN_TRANSITION_TRACE) \
-		$(if $(filter $(WHDLOAD_TARGET),$@),-DSPARKPAW_WHDLOAD) -o $@ $(SPLIT_RENDERER_SOURCES)
+		$(if $(filter $(WHDLOAD_TARGET),$@),-DSPARKPAW_WHDLOAD) \
+		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),-DSPARKPAW_LEVEL1_MUSIC) -o $@ $(SPLIT_RENDERER_SOURCES) \
+		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),$(GAME_AUDIO_SOURCES))
 
 campaign-split-renderer: $(CAMPAIGN_SPLIT_RENDERER_TARGET)
 
@@ -1775,3 +1783,12 @@ music-assets: assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank
 
 src/ready_dust_mask.h: tools/generate_ready_dust_mask.py assets/runtime/sparkpaw-ready-screen.spbm assets/runtime/readymenu.spbm
 	$(PYTHON) tools/generate_ready_dust_mask.py
+
+# Campaign audio for HD and WHDLoad; ADF derives this build with disk-only packing.
+$(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET): $(GAME_AUDIO_SOURCES) $(GAME_AUDIO_ASSETS)
+build/game_ptplayer.asm $(GAME_AUDIO_ASSETS) &: tools/prepare_game_audio.py third_party/ptplayer/ptplayer.asm music/level1/copper-sprint.mod music/stormrail/iron-horizon.mod
+	$(PYTHON) tools/prepare_game_audio.py
+build/game_ptplayer.o: build/game_ptplayer.asm
+	$(VBCC_ROOT)/bin/vasmm68k_mot -quiet -Fhunk -m68020 -DOSCOMPAT=1 -DENABLE_SAWRECT=0 -o $@ $<
+build/audio_game_irq.o: src/audio_game_irq.s
+	$(VBCC_ROOT)/bin/vasmm68k_mot -quiet -Fhunk -m68020 -o $@ $<

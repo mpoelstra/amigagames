@@ -10,7 +10,14 @@
 #include <proto/graphics.h>
 
 #include "audio.h"
+#ifdef SPARKPAW_MULTI_ADF
+#include "ready_dust.h"
+#endif
 #include "music.h"
+#ifdef SPARKPAW_LEVEL1_MUSIC
+#include "level1_audio.h"
+static BOOL audioInterruptsEnabled;
+#endif
 #include "performance_profile.h"
 
 struct GfxBase *GfxBase;
@@ -72,6 +79,9 @@ BOOL platformOpen(void)
 
 void platformClose(void)
 {
+#ifdef SPARKPAW_MULTI_ADF
+    readyDustUnload();
+#endif
     musicShutdown();
     if(GfxBase) {
         CloseLibrary((struct Library *)GfxBase);
@@ -115,6 +125,18 @@ void platformFinishTakeover(UWORD *copper)
     audioSetHardwareActive(TRUE);
 }
 
+void platformStartGameplayAudio(void)
+{
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    if(interruptsDisabled&&!audioInterruptsEnabled&&level1AudioStart()) {
+        /* Keep Exec tasks forbidden; enable only CIA-B music and AUD3. */
+        hardware->intena=0xa400;
+        audioInterruptsEnabled=TRUE;
+        Enable();
+    }
+#endif
+}
+
 void platformSwitchCopper(UWORD *copper)
 {
     hardware->cop1lc=(ULONG)copper;
@@ -127,6 +149,9 @@ void platformSwitchCopper(UWORD *copper)
 void platformReleaseForLoading(BOOL keepDisplay)
 {
     if(interruptsDisabled) {
+#ifdef SPARKPAW_LEVEL1_MUSIC
+        if(audioInterruptsEnabled) { Disable(); audioInterruptsEnabled=FALSE; }
+#endif
         audioSetHardwareActive(FALSE);
         if(!keepDisplay) {
             hardware->dmacon=DMAF_RASTER|DMAF_COPPER|DMAF_SPRITE;
@@ -159,6 +184,9 @@ BOOL platformGameEscapeRequested(void)
 void platformRestore(void)
 {
     if(interruptsDisabled) {
+#ifdef SPARKPAW_LEVEL1_MUSIC
+        if(audioInterruptsEnabled) { Disable(); audioInterruptsEnabled=FALSE; }
+#endif
         audioSetHardwareActive(FALSE);
         hardware->dmacon=DMAF_ALL;
         hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|oldDma;
@@ -282,6 +310,9 @@ void platformPrepareDebugFlush(void)
        mask and release the OS locks.  The caller writes/closes its log and
        then waits for reset without freeing or redisplaying any bitmap. */
     if(interruptsDisabled) {
+#ifdef SPARKPAW_LEVEL1_MUSIC
+        if(audioInterruptsEnabled) { Disable(); audioInterruptsEnabled=FALSE; }
+#endif
         stopProfileTimer();
         audioSetHardwareActive(FALSE);
         hardware->dmacon=DMAF_ALL;

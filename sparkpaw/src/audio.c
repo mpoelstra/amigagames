@@ -1,5 +1,12 @@
 #include "audio.h"
 #include "audio_contract.h"
+#ifdef SPARKPAW_LEVEL1_MUSIC
+#include "level1_audio.h"
+#include "game.h"
+#define AUDIO_MIX(id) do { if(level1AudioRunning()) { level1AudioRequest(id); return; } } while(0)
+#else
+#define AUDIO_MIX(id) ((void)0)
+#endif
 
 #include <exec/memory.h>
 #include <dos/dos.h>
@@ -8,6 +15,7 @@
 #include <proto/dos.h>
 #ifdef SPARKPAW_MULTI_ADF
 #include "disk_media.h"
+#include "assets.h"
 #undef Open
 #define Open diskMediaOpen
 #endif
@@ -143,6 +151,12 @@ static void startOneShot(UBYTE channel,UWORD dmaMask,UBYTE *sample,
 
 static BOOL loadSample(CONST_STRPTR name,UBYTE **sample,LONG *sampleBytes)
 {
+#ifdef SPARKPAW_MULTI_ADF
+    ULONG size;
+    *sample=assetsLoadDiskData(name,MEMF_CHIP,&size);
+    *sampleBytes=(LONG)size;
+    return *sample!=NULL;
+#else
     BPTR file=Open(name,MODE_OLDFILE);
     LONG size;
     if(!file) return FALSE;
@@ -155,6 +169,7 @@ static BOOL loadSample(CONST_STRPTR name,UBYTE **sample,LONG *sampleBytes)
         *sample=NULL; return FALSE;
     }
     Close(file); *sampleBytes=size; return TRUE;
+#endif
 }
 
 BOOL audioLoad(void)
@@ -213,11 +228,19 @@ BOOL audioLoad(void)
                    &extraLifeSample,&extraLifeSampleBytes)) {
         audioUnload(); return FALSE;
     }
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    if(!level1AudioLoad(gameStormrailActive())) {
+        audioUnload(); return FALSE;
+    }
+#endif
     return TRUE;
 }
 
 void audioUnload(void)
 {
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    level1AudioUnload();
+#endif
     if(silenceSample) {
         FreeMem(silenceSample,sizeof(UWORD));
         silenceSample=NULL;
@@ -278,6 +301,9 @@ void audioUnload(void)
 
 void audioSetHardwareActive(BOOL active)
 {
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    if(!active) level1AudioStop();
+#endif
     hardwareActive=active;
     if(!active) {
         hardware->dmacon=DMAF_AUD0|DMAF_AUD1;
@@ -296,6 +322,7 @@ void audioSetHardwareActive(BOOL active)
 
 void audioPlayShot(void)
 {
+    AUDIO_MIX(0);
     AUDIO_REQUEST(AUDIO_DIAG_SHOT);
     if(!shotSample||!hardwareActive) return;
     startOneShot(0,DMAF_AUD0,shotSample,shotSampleBytes,60);
@@ -326,6 +353,7 @@ static void playGameplaySample(UBYTE *sample,LONG sampleBytes,UBYTE priority,
 
 void audioPlayPlayerHurt(void)
 {
+    AUDIO_MIX(1);
     AUDIO_REQUEST(AUDIO_DIAG_HURT);
     playGameplaySample(hurtSample,hurtSampleBytes,PLAYER_HURT_PRIORITY,
                        &hurtCooldown,
@@ -338,6 +366,7 @@ void audioPlayPlayerHurt(void)
 
 void audioPlayEnemyHit(void)
 {
+    AUDIO_MIX(2);
     AUDIO_REQUEST(AUDIO_DIAG_ENEMY_HIT);
     playGameplaySample(enemyHitSample,enemyHitSampleBytes,ENEMY_HIT_PRIORITY,
                        &enemyHitCooldown,
@@ -350,6 +379,7 @@ void audioPlayEnemyHit(void)
 
 void audioPlayEnemyDeath(void)
 {
+    AUDIO_MIX(3);
     AUDIO_REQUEST(AUDIO_DIAG_ENEMY_DEATH);
     playGameplaySample(enemyDeathSample,enemyDeathSampleBytes,
                        ENEMY_DEATH_PRIORITY,&enemyDeathCooldown,
@@ -362,6 +392,7 @@ void audioPlayEnemyDeath(void)
 
 void audioPlayStriderShot(void)
 {
+    AUDIO_MIX(4);
     AUDIO_REQUEST(AUDIO_DIAG_STRIDER_SHOT);
     playGameplaySample(striderShotSample,striderShotSampleBytes,
                        STRIDER_SHOT_PRIORITY,&striderShotCooldown,
@@ -372,8 +403,8 @@ void audioPlayStriderShot(void)
                        );
 }
 
-#define HARRIER_AUDIO_FN(fn,event,sample,priority,cooldown,frames,volume) \
-void fn(void) { AUDIO_REQUEST(event); \
+#define HARRIER_AUDIO_FN(fn,event,sample,priority,cooldown,frames,volume,mixid) \
+void fn(void) { AUDIO_MIX(mixid); AUDIO_REQUEST(event); \
     playGameplaySample(sample##Sample,sample##SampleBytes,priority,&cooldown,frames,volume \
     AUDIO_DIAG_ARG(event)); }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -382,18 +413,19 @@ void fn(void) { AUDIO_REQUEST(event); \
 #define AUDIO_DIAG_ARG(event)
 #endif
 HARRIER_AUDIO_FN(audioPlayHarrierFanCharge,AUDIO_DIAG_HARRIER_FAN_CHARGE,
-                 harrierFanCharge,7,harrierFanChargeCooldown,HARRIER_CHARGE_COOLDOWN,64)
+                 harrierFanCharge,7,harrierFanChargeCooldown,HARRIER_CHARGE_COOLDOWN,64,11)
 HARRIER_AUDIO_FN(audioPlayHarrierFanFire,AUDIO_DIAG_HARRIER_FAN_FIRE,
-                 harrierFanFire,7,harrierFanFireCooldown,HARRIER_FAN_FIRE_COOLDOWN,64)
+                 harrierFanFire,7,harrierFanFireCooldown,HARRIER_FAN_FIRE_COOLDOWN,64,12)
 HARRIER_AUDIO_FN(audioPlayHarrierHunterCharge,AUDIO_DIAG_HARRIER_HUNTER_CHARGE,
-                 harrierHunterCharge,7,harrierHunterChargeCooldown,HARRIER_CHARGE_COOLDOWN,64)
+                 harrierHunterCharge,7,harrierHunterChargeCooldown,HARRIER_CHARGE_COOLDOWN,64,13)
 HARRIER_AUDIO_FN(audioPlayHarrierHunterFire,AUDIO_DIAG_HARRIER_HUNTER_FIRE,
-                 harrierHunterFire,8,harrierHunterFireCooldown,HARRIER_HUNTER_FIRE_COOLDOWN,64)
+                 harrierHunterFire,8,harrierHunterFireCooldown,HARRIER_HUNTER_FIRE_COOLDOWN,64,14)
 #undef HARRIER_AUDIO_FN
 #undef AUDIO_DIAG_ARG
 
 void audioPlayJump(void)
 {
+    AUDIO_MIX(5);
     AUDIO_REQUEST(AUDIO_DIAG_JUMP);
     playGameplaySample(jumpSample,jumpSampleBytes,JUMP_PRIORITY,
                        &jumpCooldown,JUMP_COOLDOWN,58
@@ -405,6 +437,7 @@ void audioPlayJump(void)
 
 void audioPlayCollect(void)
 {
+    AUDIO_MIX(6);
     AUDIO_REQUEST(AUDIO_DIAG_COLLECT);
     playGameplaySample(collectSample,collectSampleBytes,COLLECT_PRIORITY,
                        &collectCooldown,COLLECT_COOLDOWN,58
@@ -416,6 +449,7 @@ void audioPlayCollect(void)
 
 void audioPlayHealthCollect(void)
 {
+    AUDIO_MIX(15);
     /* A stronger version of the familiar collect sparkle: related enough to
        read as a pickup, but more substantial than a diamond. */
     AUDIO_REQUEST(AUDIO_DIAG_COLLECT);
@@ -429,6 +463,7 @@ void audioPlayHealthCollect(void)
 
 void audioPlayWaterSplash(void)
 {
+    AUDIO_MIX(7);
     AUDIO_REQUEST(AUDIO_DIAG_WATER);
     playGameplaySample(waterSplashSample,waterSplashSampleBytes,
                        WATER_SPLASH_PRIORITY,&waterSplashCooldown,
@@ -441,6 +476,7 @@ void audioPlayWaterSplash(void)
 
 void audioPlayStormstoneCore(void)
 {
+    AUDIO_MIX(8);
     AUDIO_REQUEST(AUDIO_DIAG_STORMSTONE_CORE);
     playGameplaySample(stormstoneCoreSample,stormstoneCoreSampleBytes,
                        STORMSTONE_CORE_PRIORITY,&stormstoneCoreCooldown,
@@ -453,6 +489,7 @@ void audioPlayStormstoneCore(void)
 
 void audioPlayTallyTick(void)
 {
+    AUDIO_MIX(9);
     AUDIO_REQUEST(AUDIO_DIAG_TALLY_TICK);
     playGameplaySample(tallyTickSample,tallyTickSampleBytes,
                        TALLY_TICK_PRIORITY,&tallyTickCooldown,
@@ -465,6 +502,7 @@ void audioPlayTallyTick(void)
 
 void audioPlayExtraLife(void)
 {
+    AUDIO_MIX(10);
     AUDIO_REQUEST(AUDIO_DIAG_EXTRA_LIFE);
     playGameplaySample(extraLifeSample,extraLifeSampleBytes,
                        EXTRA_LIFE_PRIORITY,&extraLifeCooldown,
@@ -477,6 +515,9 @@ void audioPlayExtraLife(void)
 
 void audioUpdate(void)
 {
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    if(level1AudioRunning()) { level1AudioUpdate(); return; }
+#endif
     if(hardwareActive&&shotDmaTicks&&!--shotDmaTicks)
         hardware->dmacon=DMAF_AUD0;
     if(hardwareActive&&gameplayDmaTicks&&!--gameplayDmaTicks) {

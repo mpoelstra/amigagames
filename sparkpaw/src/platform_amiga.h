@@ -7,6 +7,7 @@ BOOL platformOpen(void);
 void platformClose(void);
 void platformBeginTakeover(void);
 void platformFinishTakeover(UWORD *copper);
+void platformStartGameplayAudio(void);
 void platformSwitchCopper(UWORD *copper);
 void platformReleaseForLoading(BOOL keepDisplay);
 void platformResetGameInput(void);

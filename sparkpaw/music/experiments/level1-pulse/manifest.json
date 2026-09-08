@@ -1,0 +1,56 @@
+{
+  "title": "Copper Sprint",
+  "bpm": 164,
+  "bars": 32,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "seconds": 46.81142857142857,
+  "module_bytes": 20828,
+  "sample_bytes": 11552,
+  "score_bytes": 9276,
+  "sha256": "1ee59873fc1e4f185558f3bd70efe9ac9b52d2094a2efb0fe44545e7c38c8b21",
+  "native_accepted": false,
+  "preview_engine": "micromod; not native ptplayer evidence",
+  "samples": [
+    {
+      "name": "DRIVE KICK HAT",
+      "bytes": 1574,
+      "volume": 42
+    },
+    {
+      "name": "METAL SNARE HAT",
+      "bytes": 1324,
+      "volume": 39
+    },
+    {
+      "name": "CLOSED HAT",
+      "bytes": 372,
+      "volume": 19
+    },
+    {
+      "name": "OPEN HAT",
+      "bytes": 1076,
+      "volume": 23
+    },
+    {
+      "name": "PULSE BASS C",
+      "bytes": 1740,
+      "volume": 39
+    },
+    {
+      "name": "SYNC SAW C",
+      "bytes": 1490,
+      "volume": 34
+    },
+    {
+      "name": "MINOR POWER STAB",
+      "bytes": 2154,
+      "volume": 32
+    },
+    {
+      "name": "TURNAROUND TOM",
+      "bytes": 1822,
+      "volume": 35
+    }
+  ]
+}

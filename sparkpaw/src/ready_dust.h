@@ -1,6 +1,10 @@
 #ifndef READY_DUST_H
 #define READY_DUST_H
 #define READY_DUST_DIRTY 48
+#ifdef SPARKPAW_MULTI_ADF
+int readyDustLoad(void);
+void readyDustUnload(void);
+#endif
 struct ReadyDustHistory {
     unsigned char count;
     unsigned short offset[READY_DUST_DIRTY];

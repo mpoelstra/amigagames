@@ -1,9 +1,15 @@
 """Build an unnumbered, no-intro disk-only campaign executable outside dist."""
 from pathlib import Path
-import json,os,subprocess,hashlib,shlex
+import json,os,subprocess,hashlib,shlex,re
 ROOT=Path(__file__).resolve().parents[1]
 def main():
  out=ROOT/'build/multidisk-probe';out.mkdir(exist_ok=True)
+ # Exact existing mask bytes; disk-only externalization, no art regeneration.
+ text=(ROOT/'src/ready_dust_mask.h').read_text()
+ mask=bytes(int(x) for a in re.findall(r'=\{(.*?)\};',text,re.S) for x in re.findall(r'\d+',a))
+ assert len(mask)==40192
+ (out/'status').mkdir(exist_ok=True)
+ (out/'status/ready-dust-mask.bin').write_bytes(mask)
  dry=subprocess.check_output(['make','-nB','build/sparkpaw-campaign-play'],cwd=ROOT,text=True)
  commands=[shlex.split(line) for line in dry.replace('\\\n',' ').splitlines() if line.startswith(str(ROOT/'.toolchain/sdk/bin/vc'))]
  matches=[c for c in commands if '-o' in c and c[c.index('-o')+1]=='build/sparkpaw-campaign-play']

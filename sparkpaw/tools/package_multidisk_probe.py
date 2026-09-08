@@ -6,7 +6,7 @@ Never writes dist or the accepted HD/original alpha.68 artifacts.
 """
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
-from campaign_asset_manifest import SHARED_PRESENTATION,SHARED_GAMEPLAY,LEVEL1,STORMRAIL
+from campaign_asset_manifest import SHARED_PRESENTATION,SHARED_GAMEPLAY,LEVEL1,STORMRAIL,LEVEL1_HD_AUDIO,STORMRAIL_HD_AUDIO
 from pack_disk_asset import pack as lz,decode as unlz
 from pack_adf_asset import pack as rle,decode as unrle
 from runtime_asset_refs import executable_runtime_files
@@ -27,7 +27,8 @@ energy-shot.raw player-hurt.raw enemy-hit.raw enemy-death.raw strider-shot.raw
 harrier-fan-charge.raw harrier-fan-fire.raw harrier-hunter-charge.raw harrier-hunter-fire.raw
 jump.raw collect-spark.raw water-splash.raw stormstone-core.raw tally-tick.raw extra-life.raw
 sparkpaw-ready-screen.spbm readymenu.spbm sparkpaw-level-complete.spbm sparkpaw-score-glyphs.spbm
-disk1-patch.spbm disk2-patch.spbm'''.split()
+disk1-patch.spbm disk2-patch.spbm ready-dust-mask.bin
+pulse-score.bin pulse-bank.bin rail-score.bin rail-bank.bin'''.split()
 def sha(data):return hashlib.sha256(data).hexdigest()
 def main():
  import argparse
@@ -35,22 +36,22 @@ def main():
  parser.add_argument("--minimum-free-blocks",type=int,default=32,help="Required free 512-byte blocks per disk (default: 32)")
  args=parser.parse_args()
  assert args.minimum_free_blocks>=1
- common=(SHARED_PRESENTATION-{n for n in SHARED_PRESENTATION if n.startswith(('intro','hero-drive.'))})|SHARED_GAMEPLAY|{'disk1-patch.spbm','disk2-patch.spbm'}
- sets=[common|LEVEL1|{n for n in STORMRAIL if n.endswith('.raw')},common|STORMRAIL|(LEVEL1-{'storm-front.spbm','storm-rear.spbm','sparkpaw-sprites4.spbm'})]
+ common=(SHARED_PRESENTATION-{n for n in SHARED_PRESENTATION if n.startswith(('intro','hero-drive.'))})|SHARED_GAMEPLAY|{'disk1-patch.spbm','disk2-patch.spbm','ready-dust-mask.bin'}
+ sets=[common|LEVEL1|LEVEL1_HD_AUDIO|{n for n in STORMRAIL if n.endswith('.raw')},common|STORMRAIL|STORMRAIL_HD_AUDIO|(LEVEL1-{'storm-front.spbm','storm-rear.spbm','sparkpaw-sprites4.spbm'})]
  allnames=set.union(*map(set,sets));assert allnames==set(ORDER)
  payloads={};rows={}
  packed=OUT/'packed';packed.mkdir(exist_ok=True)
  for name in ORDER:
-  source=(OUT/'status'/name) if name.startswith('disk') else ROOT/'assets/runtime'/name
+  source=(OUT/'status'/name) if name.startswith('disk') or name=='ready-dust-mask.bin' else ROOT/'assets/runtime'/name
   raw=source.read_bytes();data=raw;target=name
-  if name.endswith('.spbm') or name.startswith('neon-sky.'):
+  if name.endswith(('.spbm','.raw')) or name.startswith('neon-sky.') or name in LEVEL1_HD_AUDIO|STORMRAIL_HD_AUDIO or name=='ready-dust-mask.bin':
    data=min((rle(raw),lz(raw)),key=len);assert (unlz(data) if data[:4]==b'SPL1' else unrle(data))==raw
    if name.endswith('.spbm'):target=ALIAS.get(name,name[:-5]+'.spr1')
    p=packed/target;p.write_bytes(data)
    subprocess.run([str(OUT/'tests/reader'),str(p),str(source),'1'],check=True)
   assert len(target)<=30
   payloads[name]=(target,data)
-  rows[name]={'disk_name':target,'raw_bytes':len(raw),'stored_bytes':len(data),'codec':data[:4].decode() if name.endswith('.spbm') or name.startswith('neon-sky.') else 'raw','decoded_sha256':sha(raw)}
+  rows[name]={'disk_name':target,'raw_bytes':len(raw),'stored_bytes':len(data),'codec':data[:4].decode() if name.endswith(('.spbm','.raw')) or name.startswith('neon-sky.') or name in LEVEL1_HD_AUDIO|STORMRAIL_HD_AUDIO or name=='ready-dust-mask.bin' else 'raw','decoded_sha256':sha(raw)}
  embedded=executable_runtime_files(OUT/'Sparkpaw')
  available={target for target,data in payloads.values()}
  for name in embedded:
@@ -63,19 +64,19 @@ def main():
  references={n[:-5]+'.spr1' if n.endswith('.spbm') else n for n in embedded}
  for i,names in enumerate(sets):
   present={payloads[n][0] for n in names}
-  required=references-section_graphics[1-i]
+  required=references-section_graphics[1-i]-(STORMRAIL_HD_AUDIO if i==0 else LEVEL1_HD_AUDIO)
   assert required<=present, ('missing section load dependency',i+1,sorted(required-present))
  env=os.environ.copy();env['PYTHONPATH']=str(ROOT/'.toolchain/amitools')
  reports=[]
  for disk,names in enumerate(sets,1):
   stage=OUT/f'disk{disk}-files';stage.mkdir(exist_ok=True)
-  files={'Sparkpaw.disk':f'SP07D{disk}\n'.encode()}
+  files={'Sparkpaw.disk':f'SP07M{disk}\n'.encode()}
   if disk==1:files={'Sparkpaw':(OUT/'Sparkpaw').read_bytes(),'S/startup-sequence':b'Sparkpaw\n',**files}
   for name in ORDER:
    if name in names:
     target,data=payloads[name];files['assets/runtime/'+target]=data
   adf=OUT/f'Sparkpaw-Disk{disk}.adf'
-  cmd=[sys.executable,'-m','amitools.tools.xdftool','-f',str(adf),'format',f'SP07D{disk}','DOS1']
+  cmd=[sys.executable,'-m','amitools.tools.xdftool','-f',str(adf),'format',f'SP07M{disk}','DOS1']
   if disk==1:cmd+=['+','boot','install']
   for directory in (['S'] if disk==1 else [])+['assets','assets/runtime']:cmd+=['+','makedir',directory]
   subprocess.run(cmd,env=env,check=True)

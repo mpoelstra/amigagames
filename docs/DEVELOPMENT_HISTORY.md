@@ -7181,3 +7181,264 @@ latching. No further input rewrite: joystick-Fire still advances text, no new
 VBlank input server, and FS-UAE-only behavior is not established. Native symptom
 resolution remains pending. User requested release/commit/push with minimal
 docs and no new itch notes. See RELEASE_0_7_0_ALPHA_4.md and artifact JSON.
+
+## 7 September 2026 — audio system research reopened after alpha.4
+
+User requests research only into music concurrent with SFX, then broadens scope
+to the complete audio system and reliable native MOD replay. Audited audio/LSP,
+IRQ/takeover, actual sample/MOD sizes, campaign/media lifetimes and upstream
+ptplayer/mixer/native replay alternatives. The initial borrowing-first proposal
+is superseded by three uninterrupted music voices plus two software SFX voices
+on the fourth Paula output, pending one isolated fidelity/timing proof. Backend
+remains unselected; 2+2 direct is the fallback. Noted CIA-B profiler conflict,
+SFX silence-word mismatch and the 4,608-byte Disk-1 capacity gate. See
+sparkpaw/docs/AUDIO_SYSTEM_PLAN.md and INGAME_MUSIC_AUDIT.md. Documentation only;
+no runtime/assets/build/emulator/release/commit/push. No new native evidence.
+
+Follow-up explicitly permits alternate runtime formats. Expanded the plan with
+tempo-preserving LSP/P61, offline combined phrases, startup sample synthesis,
+PCM/compressed-stream arithmetic and partial music mixing. Direct MOD is not a
+mandatory selection criterion; fidelity/ownership/budgets are. No conversions
+or tests were executed; general gameplay performance remains parked.
+
+## 7 September 2026 — authorized Copper Sprint standalone audio proof
+
+User clarifies four-channel intro/title, per-level uptempo accompaniment and all
+existing effects, then authorizes the loose Level-1 proof. Created original
+164-BPM three-voice Copper Sprint (~46.81 s), direct CIA ptplayer with generated
+empty-channel isolation and bounded actual-C two-voice SFX mixing. Added full
+trigger/sample inventory including debris aliases. Standalone native executable
+and host sanitizer/scripted replay tests pass; 17-asset Audio-Level1-030-HD
+staged with explicit standalone mode in the existing stager. All 61 alpha.4
+release files hash-identical, original SFX preserved. User 030 listening pending;
+no emulator, integrated gameplay, ADF, release, commit or push. See
+sparkpaw/docs/LEVEL1_AUDIO_PROOF.md for identity and separate timing limitations.
+
+### 2026-09-07 — standalone audio listening evidence
+
+Preserved separate complete 030 and 020 logs under sparkpaw/testresults. User
+reports good 030 sound and no perceived difference on 020. Effect start and
+suppression counts match across both runs. Coarse raster instrumentation cannot
+establish CPU headroom; integrated gameplay and ADF fit remain open. No runtime,
+release, commit or push changes in this review. See LEVEL1_AUDIO_PROOF.md.
+
+### 2026-09-07 — E-clock audio timing candidate
+
+Prepared Audio-EClock-A/B-030-HD: instrumented service bodies versus unmeasured
+control, identical original audio workload/assets. ReadEClock avoids the CIA-B
+profiler conflict, nested accounting avoids double-counting music inside mixing.
+Native compile and host accounting tests pass; user native gate pending. Prior
+audition archived intact, 61 release hashes preserved. Gameplay candidate remains
+next after cost evidence; no production/runtime release modification.
+
+### 2026-09-07 — block mixer candidate
+
+Replaced isolated proof's per-byte voice checks with silence/copy/add spans.
+40,000 randomized operations and 13,225 tail pairs match the frozen reference
+byte/state exactly under sanitizers. Native compilation and assembly inspection
+pass. Audio-Block-A/B-030-HD is the active measured/control pair; prior EClock
+drawers archived intact. All 61 release hashes and 17 runtime assets unchanged.
+Native efficiency remains pending; gameplay and release untouched.
+
+### 2026-09-07 — block mixer 020 evidence
+
+Both supplied runs complete with matching effect counts and no reported strange
+sounds. Measured service fraction 3.06% versus prior 13.32%; mixer total about
+85.2% lower. Logs preserved separately. Scoped Level-1 integration is next;
+no worst-window, game FPS or physical-hardware acceptance inferred. No runtime
+changes, release, commit or push during evidence review.
+
+### 2026-09-07 — Level-1 audio gameplay v1 candidate
+
+Built/staged Level1-Audio-A/B-030-HD, original SFX versus music/block mixer,
+direct production Level-1 loop and matched renderer flags. Candidate-only
+generated platform enables EXTER/AUD3 under Forbid; quiesces CIA before restore.
+Adapter failure/mapping/cleanup sanitizer tests and ordinary-manifest candidate
+addition tests pass; native gameplay/exit pending. A/B binaries 117392/128256
+bytes, 52 common assets + 2 candidate music files. 61 release hashes intact.
+Previous Audio-Block pair archived with all evidence; no release/commit/push.
+
+### 2026-09-08 — Level-1 gameplay audio 020 evidence
+
+User reports both audio/gameplay OK, no perceived FPS difference; B longer
+after water fall. Logs preserved; aggregate publication rates ~49.68/49.27.
+B's two three-field and inferred two seven-field TOD deltas remain unresolved
+amid zero/two-field sampling pairs. Positive subjective gate, incomplete
+performance attribution; no release promotion or blanket regression verdict.
+
+### 2026-09-08 — bounded gameplay audio phase trace
+
+Prepared Level1-Trace-A/B-030-HD to locate 020 timing anomalies by update,
+renderer/Bobs, publication and water/reset context. Post-publication bookkeeping
+and reset work identified as possible locations, no cause or fix claimed.
+Actual-C trace selection/bounds tests and native compile pass; native route
+pending. Previous pair archived intact, runtime and 61 release hashes retained.
+
+### 2026-09-08 — fixed-work audio comparison
+
+Prepared Level1-Fixed-A/B-030-HD: 1000 automatic game steps, last480 measured.
+Only generated input boundary changes, real game/render code retained. Host
+actual-C route repeats with zero resets, measured camera892–1133; native
+selected-state hash/completion gates remain. Detailed trace removed, light
+readiness/cadence histograms retain clock caveats. Native builds compile,
+assets and61 release hashes preserved, prior trace pair archived intact.
+No production fix, automatic emulator run, release, commit or push.
+
+
+## Pragmatic main-game adoption candidate — 8 September 2026
+
+User explicitly stopped micro-optimization and approved integrating the proved
+track and effects in the main game. The 020 fixed-work residual (+80ms in a
+~9.6s window) and one extra pickup admission remain recorded, not blockers or
+new optimization tasks. Repeated supplied listening/feel was positive; this
+is not a new assertion of exact visible FPS or real-hardware acceptance.
+
+Normal HD `make` enables SPARKPAW_LEVEL1_MUSIC for the production campaign
+play target. `audio.c` retains the original effect backend for READY/results
+and Stormrail, dispatching Level-1 gameplay calls to `level1_audio.c` and the
+proved block mixer in `audio_mix.c`. All 16 APIs, samples, gains and priorities
+are retained; proof counters and scripted input are omitted. The new score is
+byte-identical to the auditioned Copper Sprint MOD, now under music/level1.
+
+Lifecycle: preload score/bank/Fast effects during the ordinary Level-1 load;
+reserve CIA-B timers without touching title playback; start only after
+`titleRelease` at APP_PLAYING entry. The platform keeps Forbid but balances
+its Disable with one Enable while only EXTER/CIA-B and AUD3 are enabled.
+Every loading/restore/debug boundary balances that Enable before stopping the
+player, clearing pending CIA requests and restoring the AUD3 vector. Timer B
+is explicitly stopped and its DMA-phase toggle reset before replay so an
+interrupted delayed-DMA phase cannot survive into a new song. Water/life reset
+stays inside gameplay and keeps music running; resident replay reinitializes
+the song without file I/O. Results use the original SFX path. Cross-section
+loads free the Level-1 backend, so Stormrail owns no new music/mixer IRQ work.
+
+The pristine ptplayer6.4 upstream is retained in third_party/ptplayer with its
+license. tools/prepare_game_audio.py applies auditable changes: the proved
+empty fourth-track reservation, timer-only OS install/remove (music.c already
+owns audio.device), deferred player initialization, and caller-owned interrupt
+masking for setters. No MOD effect/timing conversion is added. The CIA player
+uses Fxx tempo; the LSP title path is unchanged. Native interrupt latency and
+all complete-game transitions still require user playback.
+
+Memory tradeoff deliberately favors safe resident results: legacy Chip SFX
+remain loaded, alongside 11552 bytes music-bank Chip +224 bytes mixer-output
+Chip, 9276 bytes score Fast +48130 bytes scaled effects Fast (allocation and
+code overhead additional). The earlier proof's net Chip saving does NOT apply
+to this integration. No runtime allocation occurs in the audio IRQ. New asset
+payload is20828 bytes plus executable growth; ADF/WHDLoad have not adopted
+this backend and no release/media files were rebuilt. HD-specific logical
+asset ownership is separate from the accepted media manifest.
+
+Verification: normal native build succeeds (existing renderer optimizer
+warnings only); full host suite succeeds. Actual backend tests cover every
+allocation failure, install failure, preloading with title live, refusing a
+premature start, 24 start/stop cycles, vector restore, IRQ quiesce and balanced
+cleanup under ASan/UBSan. Production mixer output/state matches the independent
+sample-at-a-time oracle for40000 randomized operations and13225 paired tails.
+Standard staging verifies54 runtime references/assets and preserves61 release
+files. Fixed A/B drawers and metadata archived intact. No emulator launched.
+
+Active `dist/Level1-Music-Game-030-HD/Sparkpaw-Music` is the normal full game,
+without diagnostics or LMB log saving. Ask for one functional 030 play through
+READY/start, Escape/restart and results/replay/continue as reached. No new A/B
+performance loop. After functional acceptance, corresponding020 check remains.
+No SemVer, release, commit or push.
+
+
+## Stormrail music continuation — 9 September 2026
+
+Stormrail music integration — 9 September 2026. User reports the prior
+main-game Level-1 candidate “lijkt allemaal goed” after the requested030 test;
+no new log or configuration details were supplied. Preserve this general
+positive report without inventing individual transition or020/hardware checks.
+
+Main HD now selects Copper Sprint for Level1 and original Iron Horizon for
+Stormrail. Iron Horizon:172 BPM,64 bars,~89s loop, three music voices, catchy
+returning theme/power-fifth accents, two mixed SFX voices on Paula3. Same
+backend/priority/gain/lifecycle; section selection happens only during load.
+Only one track is resident. Intro/title/READY and original results tally stay
+unchanged. Stormrail departure->flight->Harrier has no new load; life reset
+keeps music playing, resident replay restarts it.
+
+Sole active drawer: `Stormrail-Music-030-HD`, executable `Sparkpaw-Music`.
+Use READY OPTIONS->STORMRAIL->START GAME for a focused030 audition. No need
+to complete Level1 first. No diagnostics, A/B route or LMB log saving.
+Normal native build/full host suite pass;56 staged assets match references,
+61 release files remain identical. User Stormrail music/feel/native transitions
+remain pending. Prior Level1 drawer archived intact. HD only; ADF/WHDLoad,
+release/commit/push and general performance work remain out of scope.
+See `sparkpaw/docs/STORMRAIL_MUSIC.md` and `STORMRAIL_MUSIC_GAME_TEST.txt`.
+
+## Music campaign ADF — 9 September 2026
+
+Music campaign ADF candidate — 9 September 2026. User reports the Stormrail
+HD music “ok gaat goed” after the requested030 audition; no extra machine/log
+or individual-transition details supplied. User now authorized an ADF version.
+
+Sole active test set: `dist/Music-Campaign-ADF/Music-Disk1.adf` and
+`Music-Disk2.adf`. Ordinary880-KiB FFS disks, PAL A1200/2MB Chip+8MB Fast.
+Disk1 has30 blocks/15KiB free; Disk2 has318 blocks/159KiB free. Title/READY
+Neon Sky, Level1 Copper Sprint, Stormrail Iron Horizon + mixed SFX; results
+original SFX. Like alpha.4 ADF, story intro/Hero Drive omitted.
+
+Disk-only: pack scores/banks/SFX with existing SPR1/SPL1 decoder; externalize
+40192-byte READY masks as6423-byte packed data, loaded once into Fast before
+READY. No gameplay decompression, no HD compression, no audio/visual changes.
+Markers SP07M1/SP07M2 reject mixing these files with older SP07D disks.
+Native compile/full host suite/actual C decode+per-disk readback checks pass;
+HD executable byte-identical and61 alpha.4 release files preserved. Boot,
+DF0 swap/DF1 discovery and audio remain user-native gates; no emulator run.
+Use first030, OPTIONS->STORMRAIL for quick Disk2 testing. No A/B/log save.
+Prior Stormrail HD drawer and previous multidisk build/evidence archived intact.
+No release/commit/push. See `sparkpaw/docs/MUSIC_CAMPAIGN_ADF.md` and
+`MUSIC_CAMPAIGN_ADF_TEST.txt`.
+
+## 2026-09-09 — Sparkpaw 0.7.0-alpha.5 / Phase 7A.3
+
+Current checkpoint: **0.7.0-alpha.5 / Phase 7A.3**, released 9 September 2026.
+The sole current release is the six HD/ADF/WHDLoad packages plus HD review
+drawer in `sparkpaw/dist`. The public itch download baseline, checked live,
+is **0.6.0-alpha.68**; this release has not been published to itch.
+
+Intro Hero Drive and title-to-READY Neon Sky retain four-channel LightSpeedPlayer
+playback. Level 1 now plays Copper Sprint (164 BPM); Stormrail plays Iron Horizon
+(172 BPM). Three music channels use CIA-timed ProTracker replay; the fourth
+Paula channel carries two mixed effect voices, one reserved for plasma and one
+priority-managed for the other effects. All 16 existing effects remain supported.
+Results retain their original sound effects. General gameplay-performance
+research stays parked; no renderer or gameplay redesign is part of this release.
+
+HD/WHDLoad contain the cinematic intro; the two ordinary 880-KiB ADFs start at
+the title. ADF-only lossless packing of audio and external READY masks leaves
+15 KiB free on Disk 1 and 159 KiB on Disk 2. Assets are unpacked before use,
+not during gameplay mixing. HD/WHDLoad assets remain unpacked.
+
+Evidence: repeated user 68020/68030 audio/gameplay trials were positive; the
+integrated HD tracks and two-ADF candidate also received positive user reports.
+The final HD executable matches the accepted Stormrail candidate. Builds, full
+host suite, ADF decoder/readback, independent archive extraction and icon checks
+pass. New WHDLoad audio/F10 and final real-hardware, physical floppy/Gotek and
+Pocket acceptance remain open; compilation is not runtime acceptance.
+Target remains PAL A1200/AGA, 68020+, 2 MB Chip + 8 MB Fast RAM. The intermittent
+real-Amiga HUD-boundary issue and exact free-Chip launch threshold remain open.
+
+Next step: test these alpha.5 packages on real hardware and record platform-
+specific findings. No routine automatic FS-UAE tests or further microbenchmarks.
+See `sparkpaw/docs/RELEASE_0_7_0_ALPHA_5.md` for inventory, hashes and evidence,
+and `sparkpaw/docs/RELEASE_NOTES_0_7_0_ALPHA_5.md` for the full English itch delta.
+Superseded releases and test drawers are preserved intact in `dist/older-builds`.
+
+
+## Alpha.5 release closure — 9 September 2026
+
+- Deliver verified hardware packages first when requested; finish the detailed
+  documentation afterward without silently changing the delivered binaries.
+- Compare the live itch download filenames with the latest devlog. Cached web
+  results showed alpha.62 while live downloads and the 30 August devlog confirmed
+  alpha.68. Release notes must cover the entire intervening campaign delta.
+- An HD audio pass does not establish WHDLoad acceptance: its takeover/restore
+  and F10 paths require separate native testing even when compilation passes.
+- Preserve the exact old release bytes when archiving; filesystem metadata can
+  change regenerated ADF hashes even with identical verified file payloads.
+- Report mixer service fractions as measured service time, not guaranteed game
+  FPS. Keep hardware limits and remaining shared-effect priority contention clear.

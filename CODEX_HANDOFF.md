@@ -1,38 +1,52 @@
 # Codex handoff: Amiga game workspace
 
-Alpha.4 adds safe intro DMA retirement, LMB skip latching during fades and
-visible loading for direct OPTIONS Stormrail starts. Existing joystick-Fire
-text controls are unchanged; FS-UAE input mapping remains unconfirmed.
-Host checks pass; native correction checks remain pending. No new itch notes.
+Current checkpoint: **0.7.0-alpha.5 / Phase 7A.3**, released 9 September 2026.
+The sole current release is the six HD/ADF/WHDLoad packages plus HD review
+drawer in `sparkpaw/dist`. The public itch download baseline, checked live,
+is **0.6.0-alpha.68**; this release has not been published to itch.
 
-Current checkpoint: **0.7.0-alpha.4 / Phase 7A.2**, campaign presentation and
-memory maintenance, released 7 September 2026. All six packages plus the HD
-review drawer are in `sparkpaw/dist` (use `dist` from the Sparkpaw directory).
-The verified public itch baseline is still **0.6.0-alpha.68**; publication to
-itch is separate from this repository release. Older alpha.3 and test drawers
-are preserved byte-identically under `dist/older-builds`.
+Intro Hero Drive and title-to-READY Neon Sky retain four-channel LightSpeedPlayer
+playback. Level 1 now plays Copper Sprint (164 BPM); Stormrail plays Iron Horizon
+(172 BPM). Three music channels use CIA-timed ProTracker replay; the fourth
+Paula channel carries two mixed effect voices, one reserved for plasma and one
+priority-managed for the other effects. All 16 existing effects remain supported.
+Results retain their original sound effects. General gameplay-performance
+research stays parked; no renderer or gameplay redesign is part of this release.
 
-This checkpoint retains the complete Storm Ruins -> Stormrail campaign and
-accepted Chip1/Chip2 savings, adds Hero Drive intro music (HD/WHDLoad), Neon Sky
-title-through-READY music (also ADF), twelve background wind particles with
-orange accents, faster CPU menu copies on 020 and preparation while CHARGING
-remains visible. Gameplay/results remain SFX-only. No Fast-RAM Blitter route.
+HD/WHDLoad contain the cinematic intro; the two ordinary 880-KiB ADFs start at
+the title. ADF-only lossless packing of audio and external READY masks leaves
+15 KiB free on Disk 1 and 159 KiB on Disk 2. Assets are unpacked before use,
+not during gameplay mixing. HD/WHDLoad assets remain unpacked.
 
-User acceptance: Chip2 on real A1200; music/dust ADF preceding final menu tuning;
-HD 020 READY selection/OPTIONS and final CHARGING transition improvements.
-Final alpha.4 HD/ADF/WHDLoad corrections and presentation, real-hardware music/READY, physical
-ADF/Gotek and Pocket remain separate open gates. About 1.45 MB free Chip RAM
-is still insufficient for ordinary HD Stormrail; exact threshold is unknown.
-The intermittent real-Amiga HUD-boundary issue stays open. No general gameplay
-FPS improvement is claimed. Performance research and music-player research
-remain parked.
+Evidence: repeated user 68020/68030 audio/gameplay trials were positive; the
+integrated HD tracks and two-ADF candidate also received positive user reports.
+The final HD executable matches the accepted Stormrail candidate. Builds, full
+host suite, ADF decoder/readback, independent archive extraction and icon checks
+pass. New WHDLoad audio/F10 and final real-hardware, physical floppy/Gotek and
+Pocket acceptance remain open; compilation is not runtime acceptance.
+Target remains PAL A1200/AGA, 68020+, 2 MB Chip + 8 MB Fast RAM. The intermittent
+real-Amiga HUD-boundary issue and exact free-Chip launch threshold remain open.
 
-Build, full host suite, ADF loader/decoder/readback and independent ZIP/LHA/icon
-checks pass. Disk 1 has 9 free 512-byte blocks; Disk 2 has 345. See
-`docs/RELEASE_0_7_0_ALPHA_4.md`, `docs/ALPHA4_ARTIFACT_SHA256.json` and
-`docs/RELEASE_NOTES_0_7_0_ALPHA_3.md` under Sparkpaw for exact scope and hashes.
-No routine automatic FS-UAE tests. No retest request for a proven byte-identical
-restoration of a user-tested build. Keep at most one future active full test set.
+Next step: test these alpha.5 packages on real hardware and record platform-
+specific findings. No routine automatic FS-UAE tests or further microbenchmarks.
+See `sparkpaw/docs/RELEASE_0_7_0_ALPHA_5.md` for inventory, hashes and evidence,
+and `sparkpaw/docs/RELEASE_NOTES_0_7_0_ALPHA_5.md` for the full English itch delta.
+Superseded releases and test drawers are preserved intact in `dist/older-builds`.
+
+## Standing communication preference — 8 September 2026
+
+The user is a frontend software engineer with an interest in Amiga internals,
+but does not write C or assembly. Give moderately more technical detail in
+progress updates and findings by default: explain the approach, why it was
+chosen, how the relevant hardware/code works, and how measurements support the
+conclusion. Define unfamiliar C/assembly/hardware terms briefly in context.
+For logs, include a few meaningful numbers and their practical interpretation;
+distinguish source facts, host checks, supplied native evidence and hypotheses.
+Do not reduce results to only “passes” or “looks good”, and do not overwhelm
+with long essays, raw counter dumps or unexplained jargon. A few connected
+paragraphs or a compact comparison table are usually sufficient. Use Dutch
+for the conversation; the English release-notes agreement below still applies.
+This is an explicit user preference, not a requirement for extra tests or work.
 
 ## Standing release-notes agreement
 
@@ -75,10 +89,7 @@ backups.
 
 ## Build, release and verification
 
-Target: PAL A1200/AGA. The supplied real A1200/68030 at about 34.5 MHz may be
-the minimum release CPU if stock-68020 50 Hz cannot be reached without visual
-or gameplay concessions; FS-UAE/68020 remains the optimization stress target.
-Memory minimum remains 2 MB Chip plus 8 MB Fast RAM.
+Target: PAL A1200/AGA, 68020+, 2 MB Chip plus 8 MB Fast RAM.
 
 From `sparkpaw/` always run after implementation:
 
@@ -87,14 +98,11 @@ make PYTHON=../.venv/bin/python3
 make release PYTHON=../.venv/bin/python3
 ```
 
-Current release is `0.6.0-alpha.68`, Phase 6C.10. A normal release contains:
+Current release is `0.7.0-alpha.5`, Phase 7A.3: HD ZIP/LHA, Disk1/Disk2
+ADF, WHDLoad ZIP/LHA and the extracted same-version HD drawer. Full inventory
+and checksums: `sparkpaw/docs/RELEASE_0_7_0_ALPHA_5.md`.
 
-- `Sparkpaw-0.6.0-alpha.68.lha`
-- `Sparkpaw-0.6.0-alpha.68.zip`
-- `Sparkpaw-0.6.0-alpha.68.adf`
-- `Sparkpaw-0.6.0-alpha.68-WHDLoad.lha`
-- `Sparkpaw-0.6.0-alpha.68-WHDLoad.zip`
-- extracted review drawer `Sparkpaw-0.6.0-alpha.68/`
+### Historical alpha.68 baseline (preserved)
 
 Alpha.68 is the Phase 6C.10 instant-Level-1-replay checkpoint. The results
 prompt reads `REPLAY LEVEL`; confirmation still fades the six-plane score

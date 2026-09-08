@@ -1,5 +1,18 @@
 # Title and intro music — 6 September 2026
 
+> Alpha.5 checkpoint (9 September 2026): campaign music plus mixed SFX now
+> ships in HD, ADF and WHDLoad. Positive user HD/ADF reports are recorded;
+> new WHDLoad audio and final hardware acceptance remain pending.
+> See RELEASE_0_7_0_ALPHA_5.md. Earlier candidate/no-release statements below
+> are historical and superseded by the explicitly authorized release.
+
+
+Update, 7 September 2026: the user reopens this research for gameplay music/SFX
+and then the whole audio system. See [AUDIO_SYSTEM_PLAN.md](AUDIO_SYSTEM_PLAN.md)
+for the current proposed direction and [INGAME_MUSIC_AUDIT.md](INGAME_MUSIC_AUDIT.md)
+for source findings. No presentation player or release changes. Historical
+parked/candidate statements below do not override this research-only scope.
+
 Released in 0.7.0-alpha.3. See CURRENT_STATUS.md and RELEASE_0_7_0_ALPHA_3.md
 for current acceptance and open platform gates. Candidate entries below are
 historical; their active drawer/pending release statements are superseded.

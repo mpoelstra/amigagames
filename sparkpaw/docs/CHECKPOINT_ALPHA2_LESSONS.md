@@ -191,3 +191,159 @@ Source lifetime checks are not native proof of an intermittent reported flash.
 
 Alpha.4 preserves the intro DMA and direct-start lessons above. Do not claim
 FS-UAE-only input mapping without evidence; no broader control rewrite shipped.
+
+## Audio ownership versus replay fidelity — 7 September 2026
+
+Fixed50 is the current LSP conversion choice, not a ptplayer requirement.
+Separate MOD interpretation, audio scheduling and Paula voice ownership.
+A timer-driven player still stalls when interrupts are masked. Blank MOD tracks
+are not register isolation. Borrowing loses notes; it does not restore elapsed
+sample phase. Three music voices plus one mixed SFX output can preserve melody,
+but must pay CPU/headroom/buffering and changes stereo placement.
+
+Existing SFX share period 322, making a bounded two-voice SFX mixer worth testing
+without music resampling. No cost/quality result is inferred. Current diagnostic
+profiler owns CIA-B Timer B: never measure a CIA player by reprogramming its DMA
+timer. Source budgets and upstream benchmarks are not native acceptance. See
+AUDIO_SYSTEM_PLAN.md; no implementation or release change in this research.
+
+The user explicitly accepts converting MOD masters to a suitable runtime format.
+Preserve tempo/fidelity rather than mandating raw MOD playback. Conversion alone
+does not create Paula voices; offline phrase combination, runtime mixing and
+startup sample synthesis exchange different CPU/Chip/Fast/disk costs. Full PCM
+music is especially expensive on the nearly full Disk 1. Research comparisons
+must budget complete data/code and preserve current source masters.
+
+## First isolated audio proof — 7 September 2026
+
+Channel masking in a player may suppress LC/LEN but still write PER for an empty
+track. Inspect every call/write path; the three-voice proof explicitly skips the
+certified-empty fourth-track replay, retaining normal player ownership at init/
+end. A dedicated SFX channel must remain protected from live master-volume calls.
+Protect shared voice publication against higher-priority audio interrupts.
+
+Inventory effect triggers as well as files: debris reuses hit/death/hurt, health
+shares pickup at a different volume. Two virtual voices is a concurrency limit,
+not a two-sound library. Host previews use the actual C mixer and pinned MOD
+renderer but cannot establish native scheduling, panning feel or hardware sound.
+Explicit standalone staging can use literal references; preserve the full-game
+manifest default and hash every protected release before/after staging.
+
+## Audio proof timing evidence — 7 September 2026
+
+A complete, positively heard 030 audition does not establish a 020 CPU budget.
+Separate VPOSR/VHPOSR reads can tear; combining a raster position with a
+lower-priority software VBlank count can produce inconsistent timestamps.
+Do not translate coarse late-gap counters into dropouts or raster maxima into
+CPU cost without validating the clock. Preserve raw logs and subjective
+listening feedback independently.
+
+The follow-up timing candidate uses interrupt-safe ReadEClock in the OS-live
+harness, covering CIA music and DMA services as well as mixing. Count nested
+services once when summing exclusive totals; retain inclusive duration for
+service latency. Calibrate read overhead, retain an unmeasured listening
+control, and state dispatch/accounting limits. Do not carry this OS-live
+clock or CIA ownership blindly into the interrupt-disabled gameplay owner.
+
+The E-clock 020 result preserves a distinction between audible success and
+affordable game-time cost: 13.32% instrumented service-body fraction despite
+no heard faults. Never extrapolate the 030 run's 0.262% to stock 020, or treat
+CPU model labels as equivalent emulator timing configurations. Prioritize the
+measured mixer scope; prove block-based silence/tail handling before adoption.
+
+For fixed-rate voices, divide buffers at sample endings and select silence,
+copy or addition once per span. Preserve a frozen reference renderer in host
+tests and compare state as well as PCM: completion counts, final pointers and
+priority clearing can regress even when the preview sounds similar. Inspect
+68020 compiler output, but require native timing before claiming a speedup.
+
+Supplied 020 block-mixer evidence lowers measured service fraction from 13.32%
+to 3.06%, with mixer totals about 85.2% lower and unchanged music/DMA cost.
+Host exact-output parity and native timing together support the optimization;
+the average alone does not prove worst-window headroom during gameplay.
+
+The first gameplay audio gate uses a matched direct-start harness. Forbid and
+Disable are distinct: permit only required custom interrupt sources while
+keeping scheduling/display handlers out. Balance takeover/restore interrupt
+nesting and quiesce owned CIA sources before restoring OS masks. Never share
+CIA-B Timer B with the old profiler. Host lifecycle mocks validate bookkeeping,
+not real interrupt scheduling; require native input/display/exit evidence.
+
+Post-publication TOD snapshots can yield zero/two-field pairs even in a
+positively perceived 030 run. Preserve zero deltas; never turn them into
+>50-FPS claims or classify every two-field delta as a missed visible deadline.
+Unequal manual routes require normalized counts and explicit uncertainty.
+
+A positive 020 listening/smoothness report can coexist with anomalous timing
+counters. Preserve both: gameplay audio B contains two three-field and two
+seven-field TOD deltas without event timestamps. Do not explain them away as
+water/respawn or measurement artifacts without evidence. Resolve sampling and
+correlate events before interpreting unmatched-route cadence as audio cost.
+
+When investigating rare long intervals, sample named phases and record reset/
+water context. Keep rare-event storage separate from abundant zero/two timing
+examples and report dropped records. A timestamp after a publication function
+includes its bookkeeping; it is not the instant COPJMP1 was written. Coherent
+raster reads in a diagnostic do not fix the production boundary reader.
+
+020 phase trace reproduces paired seven-field gaps in original-SFX A and
+music B at water reset, in renderer/Bob work. Alternating rolling-window
+rebuilds explain the pair at source level. Separate these from B's ordinary
+three-field boundary misses. One publication attempt does not imply no missed
+window: the caller may already have waited a whole field before that attempt.
+
+Fixed-work comparisons should index inputs by simulation step, preserve input
+edge semantics and use the real collision/actor code. Validate route coverage
+on host, then check native selected-state hashes and event requests before
+attributing time differences. Keep warmup separate from the measured window.
+A hash of selected state supports comparability but does not prove all actor/
+renderer state identical. Lightweight raw clock histograms still have phase
+and observer limits; they are not exact visible-deadline instruments.
+
+
+Fixed-route 020 audio evidence: equal game-state hashes and event requests do
+not imply equal sound admissions. Original SFX releases priority by estimated
+game-update countdown; IRQ mixing releases by sample consumption. Keep request,
+start and suppression counts separate, especially when frame duration varies.
+Report aggregate fixed-work elapsed cost separately from CPU utilization and
+raw per-publication TOD deltas; one A/B pair cannot establish repeatability.
+
+
+Prioritize perceptible faults and functional adoption over indefinite audio
+microbenchmarks once listening and bounded target-CPU evidence are sufficient.
+A small measurable difference is not automatically a blocker. Standalone
+audio proofs also hide shared ownership: the main title player already owns
+audio.device, so a second player must share that reservation rather than
+allocate the same four channels again. Preload must not reset Paula/filter;
+stop must clear a pending two-phase CIA-B DMA handoff before replay.
+
+
+Extend accepted audio to another section by selecting its score during load,
+not by changing the IRQ hot path or rewriting priorities. Keep only the active
+track resident and use the existing direct section selector for auditions.
+A baked chord sample still consumes one Paula voice; account for sample memory
+instead of presenting its harmony as additional runtime channels.
+
+ADF capacity: examine embedded immutable tables before reducing art/music or
+adding a new codec. Externalizing exact READY masks saved about33KiB gross
+with the existing checked disk decoder, without changing HD or runtime output.
+When a loader changes raw samples to packed data, change media markers too.
+Compare compiled dependencies per disk, excluding only the opposite section's
+proven-unreachable graphics/track. Keep replay data resident.
+Do not run VC -notmpfile HD and ADF builds concurrently: both emit src/*.o and
+can cross-link objects with different macros. Serialize native builds and check
+the protected HD hash after disk-only changes; host tests can run independently.
+
+## Alpha.5 release closure — 9 September 2026
+
+- Deliver verified hardware packages first when requested; finish the detailed
+  documentation afterward without silently changing the delivered binaries.
+- Compare the live itch download filenames with the latest devlog. Cached web
+  results showed alpha.62 while live downloads and the 30 August devlog confirmed
+  alpha.68. Release notes must cover the entire intervening campaign delta.
+- An HD audio pass does not establish WHDLoad acceptance: its takeover/restore
+  and F10 paths require separate native testing even when compilation passes.
+- Preserve the exact old release bytes when archiving; filesystem metadata can
+  change regenerated ADF hashes even with identical verified file payloads.
+- Report mixer service fractions as measured service time, not guaranteed game
+  FPS. Keep hardware limits and remaining shared-effect priority contention clear.

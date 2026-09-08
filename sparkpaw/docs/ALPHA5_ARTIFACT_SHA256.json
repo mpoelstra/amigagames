@@ -1,0 +1,295 @@
+{
+  "version": "0.7.0-alpha.5",
+  "HD_game_sha256": "549f43fce3a8de4187b9ebec20758667f8f016f9131389366d57ced30afeaed2",
+  "WHDLoad_game_sha256": "0530b67659b19416520630f5b439d2a782bd30ae863da788bf8ecdc5936b365e",
+  "WHDLoad_slave_sha256": "568990e9d517c1f9f5c74988c10ceee41dbae025654db325abc70678d66185de",
+  "artifacts": {
+    "Sparkpaw-0.7.0-alpha.5.zip": {
+      "bytes": 1112799,
+      "sha256": "5fa48e03ef4e790848b7eb1aa57b151b8f4024e95c76bf904191cfb202e75d7a"
+    },
+    "Sparkpaw-0.7.0-alpha.5.lha": {
+      "bytes": 1125218,
+      "sha256": "7c4a958af996baa58b7c9e4b03f0b07e75a5ff7023876f4fc87fee887ad73f46"
+    },
+    "Sparkpaw-0.7.0-alpha.5-Disk1.adf": {
+      "bytes": 901120,
+      "sha256": "df10b257e392c5b7d12cf05794e02098d3f2fb4b4f42d1c6ab7c9eab899916df"
+    },
+    "Sparkpaw-0.7.0-alpha.5-Disk2.adf": {
+      "bytes": 901120,
+      "sha256": "6c664ea59f30c042ce2263f27a3d2190f2143ec755aa4fd7ffb6df4326fdfbb8"
+    },
+    "Sparkpaw-0.7.0-alpha.5-WHDLoad.zip": {
+      "bytes": 1120914,
+      "sha256": "c565f51db6aac34469f99efe4b114fc98e0bb70984037bf17b13ea3f9b787cd1"
+    },
+    "Sparkpaw-0.7.0-alpha.5-WHDLoad.lha": {
+      "bytes": 1132681,
+      "sha256": "dc51dbc793d7b6913f39453f5df91c123149b02ad5eca130c2d96dc0df5ee47d"
+    }
+  },
+  "native_evidence": "Positive user HD and ADF candidate reports; repeated 020/030 audio trials. Final hardware and new WHDLoad audio/F10 pending.",
+  "release_files": {
+    "dist/Sparkpaw-0.7.0-alpha.5/ReadMe.txt": {
+      "bytes": 3095,
+      "sha256": "dc5d361edd669bf421943ab02bddb59eaa20fd53f3394ec3c303f7aa619d4cce"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/Sparkpaw": {
+      "bytes": 218036,
+      "sha256": "549f43fce3a8de4187b9ebec20758667f8f016f9131389366d57ced30afeaed2"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/Sparkpaw.info": {
+      "bytes": 11002,
+      "sha256": "db2ae340797017b6153e4ca06f7937b8a4667fb4dd482158d0b78706493e1ef5"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/clockwork-beetle.spbm": {
+      "bytes": 8700,
+      "sha256": "3f5528b6feaeb917cec2ac1e89709b690005a5594ec24cb15ed68c9a87c1529f"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/clockwork-storm-strider.spbm": {
+      "bytes": 143420,
+      "sha256": "4cb404aa01f843bcf955a9a67d276edcecd3ad6ad0d35ce4ad085f52b43fe172"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/collect-spark.raw": {
+      "bytes": 2152,
+      "sha256": "f45cc5e05e2e09f3dc6bef906bf21df86b0bb13b4e108802813318ec241d9f32"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/enemy-death.raw": {
+      "bytes": 2646,
+      "sha256": "9165e4d1b335a018255fc8b6f0be57a2118d6254daf3cbc5bf12e7f0ced7e60d"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/enemy-hit.raw": {
+      "bytes": 1654,
+      "sha256": "d2382da0b4cf86be71e0362c70df52b34f1339c421417da9351d8b6f42f7fa72"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/energy-shot.raw": {
+      "bytes": 1874,
+      "sha256": "9b16e1adf506e0002a37dfaebee12e18c5b71daf718401564852d5fb7cccec96"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/extra-life.raw": {
+      "bytes": 4962,
+      "sha256": "9838bffc5cc52557291dee7dd82deeac5c10bc9bad099f14e0c138d6363795ad"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/harrier-fan-charge.raw": {
+      "bytes": 2646,
+      "sha256": "a0143f4169e48ee5423fbfb81cfb4a44524baa26662f4ee874fdb0593db8c23e"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/harrier-fan-fire.raw": {
+      "bytes": 2426,
+      "sha256": "758a22e98249c0d875235b3266f4ab11b1485a7832080143fafa1208b9cd4238"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/harrier-hunter-charge.raw": {
+      "bytes": 2756,
+      "sha256": "866dd5f53e01ab40b555a20f1df7919e99308191f22b9fbe7069cac66e004e37"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/harrier-hunter-fire.raw": {
+      "bytes": 1984,
+      "sha256": "dff7eed19a672fb8a788a07a92bc7385bbac4980d8064575ebaec0b788f6aebe"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/hero-drive.lsbank": {
+      "bytes": 190812,
+      "sha256": "77fe2946a72198714434bb522d204d0f29f1852a5168e1f652efeda887d37596"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/hero-drive.lsmusic": {
+      "bytes": 5752,
+      "sha256": "366f04c79edf89da8596b16a804411d49050be6fa64f4bc38a2966e3af96c82f"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/intro1.spbm": {
+      "bytes": 146124,
+      "sha256": "ca32b12566bc93db7b0edebd29d399c5d0fb0ff7ebe45f1c819edb6d2aba238d"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/intro2.spbm": {
+      "bytes": 146124,
+      "sha256": "1bc19098c786b130dc5d6eb0abe8130d2ea32e7925a86dc5f1ed63aeae1bca0e"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/intro3.spbm": {
+      "bytes": 188364,
+      "sha256": "a81cc2f92cac3e223c026837ec330c42eaa80308e8cd3b6423cf3c89f5aff30c"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/intro4.spbm": {
+      "bytes": 146124,
+      "sha256": "1a498ae6a35b8c07806e6bbfd2e6d8d6722a553373cc61e97f7ece51ee892551"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/intro5.spbm": {
+      "bytes": 146124,
+      "sha256": "56c1825a817e02ab2460c266658d70b6a1043cb30bc5c0f7431f0322fcdf231a"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/jump.raw": {
+      "bytes": 2426,
+      "sha256": "26eaefe9acd52fad9ba634176e5ea906217eaeba924841fbea724a487e285249"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/level-charge-patch.spbm": {
+      "bytes": 6924,
+      "sha256": "96c1d2848a2c38cdec0a46b09253fc8d4f5051db4ca29f8d7b66aaae340cf46c"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/neon-sky.lsbank": {
+      "bytes": 142796,
+      "sha256": "52cc99ec8cd3a92cdf0745372d600e8f042c04ee8c90e0c185e6d2cf60cfe4db"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/neon-sky.lsmusic": {
+      "bytes": 7625,
+      "sha256": "112edd3c0ac221220840d1e00f1ac30e84b615a8787a48bcd24966ecc4c9a9de"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/player-hurt.raw": {
+      "bytes": 1544,
+      "sha256": "a0df648cf0431bd6d4488c3d608f43a3a5a3202978dfe5bb8c9567697b083697"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/pulse-bank.bin": {
+      "bytes": 11552,
+      "sha256": "ec620a477a3f727c7f22e7832e1b2c8b1ec4f814880c03792f3daf5c3413d797"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/pulse-score.bin": {
+      "bytes": 9276,
+      "sha256": "17ab9042ee22fe55bf60eebaa86375fd1623d439047eaedf508637af2f82e883"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/rail-bank.bin": {
+      "bytes": 11552,
+      "sha256": "68c924c072e13d26dc1b336b4992b9c8abe2fd06416980779a27c42f06ae40ff"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/rail-score.bin": {
+      "bytes": 17468,
+      "sha256": "b38625cac7e5959f5b7f9cd6c64832b09013eb19f0cecb23d0565793575bb923"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/readymenu.spbm": {
+      "bytes": 179916,
+      "sha256": "7e3109efffc17666aa0e2acb67bf678d8fce4b5a94667e39ee13a416dde9bc97"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-diamond.spbm": {
+      "bytes": 480,
+      "sha256": "60d3c0f677d06d827c6154f1cc2929578a2c8e177779b300d6f47e341d9ef451"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-extra-life.spbm": {
+      "bytes": 500,
+      "sha256": "efe82dc58a3531149dcede8935ed8b2e5a23b57178497405ef9aecfa8fd758a7"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-hud-base.spbm": {
+      "bytes": 6084,
+      "sha256": "e85b533e711bcaaa1972868851c1d23a677b0803e2c8db1c19f4bd2e6b215727"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-hud-diamonds.spbm": {
+      "bytes": 14436,
+      "sha256": "78c45d257d710f00c8606b7e20c9bb46a7ae808121db23a7f75b2cce76c4bb2d"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-hud-health.spbm": {
+      "bytes": 6756,
+      "sha256": "93e244a261faf8ab0dc77100a3a6b3553ed667e608d155f6e68706ef8840ba38"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-hud-lives.spbm": {
+      "bytes": 2628,
+      "sha256": "c0e5c1716b3098fa285a3d755bfa8e5f98d5f0d9e0c91a49f3fb6de2e71d8fa1"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-hud-score.spbm": {
+      "bytes": 4596,
+      "sha256": "583015161ca86ed26c9e3bf2b5b77d3d7c8a02a38c49f0742cf4ee2af39b0286"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-level-complete.spbm": {
+      "bytes": 61644,
+      "sha256": "3ce84fc4fbce7ec2eb4f840a8f410e3ef1825c40763f0a2674657a2095dca4f9"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-level-loading.spbm": {
+      "bytes": 61644,
+      "sha256": "1b73361c811567455d49d843e8d85f3011aeed84cee4e0ec2fe6ab7dcea314f8"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-ready-screen.spbm": {
+      "bytes": 61644,
+      "sha256": "e3791b24b271a95e65df08450a9eecc8fa805ffdf897bf1cebf5cc16ae6fabd6"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-score-glyphs.spbm": {
+      "bytes": 19644,
+      "sha256": "826d288e4a2851291b80034b0d1cbc82a26d328e7ac6c86b344267d903125b1f"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-sprites4-storm.spbm": {
+      "bytes": 184380,
+      "sha256": "39033dcfb4d3189bf255a41f398f5130ca2ffa37cbc49cebb983f79ae11130a9"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-sprites4.spbm": {
+      "bytes": 184380,
+      "sha256": "e02eadbad5879b563aa2ca020e87f67f9ab2d70c232acc8f41c279c1cedf47b3"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/sparkpaw-title.spbm": {
+      "bytes": 61644,
+      "sha256": "7d53d6f0488af75e7ef78b05101bb3593514f5395484d94895e76ab0f5f59d2b"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/storm-collision.bin": {
+      "bytes": 2968,
+      "sha256": "30d5b04b0991275652aabb760a7b09ee596f330ea63ab791fc1452f5c8b87713"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/storm-front.spbm": {
+      "bytes": 352828,
+      "sha256": "4645a37128fddda244b2e14eaa03b62a39321c7eb3099d15ff8755cbbff07716"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/storm-rear.spbm": {
+      "bytes": 87396,
+      "sha256": "600374464bcf3951734f1b60e72b9bbc2fdba7287a6189634d3f0248338ec247"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormrail-family.spbm": {
+      "bytes": 48060,
+      "sha256": "606b9fec4f46830c32b1573bf740a30783a11d7b38064081370b790b5efd0b12"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormrail-flight-rear.spbm": {
+      "bytes": 87396,
+      "sha256": "60f33d0fa4cb46cef889a5ef56200de6cb313227ef129bf8f2fcd8713ceec665"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormrail-front.spbm": {
+      "bytes": 352828,
+      "sha256": "18931988699e507ade0c162a900bcd38be9fff72cbca61fa36408c2f446b2c8c"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormrail-heart.spbm": {
+      "bytes": 480,
+      "sha256": "5098790f058af0319e8628ad71f066be42c77d155312d32c4dab53e39383b1fc"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormrail-obstacles.spbm": {
+      "bytes": 10060,
+      "sha256": "baa11660eac08c4058fd436b0c25e0eb8dfa0a130b0162ee983a650da317194f"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormrail-rear.spbm": {
+      "bytes": 87396,
+      "sha256": "5278fd2b82bdcf4e257b1ea34d5010f85300a1a9c6ad35d21ffe67328de7c075"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormstone-core.raw": {
+      "bytes": 12678,
+      "sha256": "4f635504faac37d34de0de6d58ebf437e7d893edf64520c15ad0b3c701c1c091"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/stormstone-core.spbm": {
+      "bytes": 34620,
+      "sha256": "269f3294632b6a284e3b3eba6c49828aa7c8b89b84bcfeb84c4004d86ecbf927"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/strider-shot.raw": {
+      "bytes": 2206,
+      "sha256": "26aa71c6901bfb87cc8a2ca0d3147be45bdaff836c433a5f8c3a0f8046f9520f"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/tally-tick.raw": {
+      "bytes": 496,
+      "sha256": "9f766cddc9f9abe585335f050b502c1b69d60aad57da6fa6e639c9f5802bb8b0"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5/assets/runtime/water-splash.raw": {
+      "bytes": 3528,
+      "sha256": "7d6a0dfd9449a91bf2d152fc7c4b88fb8bec499a58946dd4cb1bc738753f2eed"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5-Disk1.adf": {
+      "bytes": 901120,
+      "sha256": "df10b257e392c5b7d12cf05794e02098d3f2fb4b4f42d1c6ab7c9eab899916df"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5-Disk2.adf": {
+      "bytes": 901120,
+      "sha256": "6c664ea59f30c042ce2263f27a3d2190f2143ec755aa4fd7ffb6df4326fdfbb8"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5-WHDLoad.lha": {
+      "bytes": 1132681,
+      "sha256": "dc51dbc793d7b6913f39453f5df91c123149b02ad5eca130c2d96dc0df5ee47d"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5-WHDLoad.zip": {
+      "bytes": 1120914,
+      "sha256": "c565f51db6aac34469f99efe4b114fc98e0bb70984037bf17b13ea3f9b787cd1"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5.lha": {
+      "bytes": 1125218,
+      "sha256": "7c4a958af996baa58b7c9e4b03f0b07e75a5ff7023876f4fc87fee887ad73f46"
+    },
+    "dist/Sparkpaw-0.7.0-alpha.5.zip": {
+      "bytes": 1112799,
+      "sha256": "5fa48e03ef4e790848b7eb1aa57b151b8f4024e95c76bf904191cfb202e75d7a"
+    }
+  }
+}

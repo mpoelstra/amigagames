@@ -1,0 +1,20 @@
+Sparkpaw - Level 1 music integration (unnumbered HD candidate)
+
+Launch Sparkpaw-Music from this drawer. First test: PAL A1200 / 68030,
+2 MB Chip + 8 MB Fast. This is the normal complete game, not an A/B script.
+
+Intro and title/READY retain their existing four-channel music. Starting
+Storm Ruins plays Copper Sprint with all existing gameplay sound effects.
+Water/life restarts keep music flowing. Results stop gameplay music and retain
+the original tally effects. REPLAY LEVEL starts the track afresh without a
+reload. CONTINUE goes to the unchanged SFX-only Stormrail. Escape returns to
+READY/title music; OPTIONS -> Stormrail must not start Copper Sprint.
+
+Play normally. Check the first music handoff, Escape and restarting Level 1.
+When reaching results, check replay and then continuation to Stormrail.
+Report any missing/stuck sound, click or broken transition and where it occurs.
+No diagnostic log, automatic input or LMB-save/freeze is enabled. There is no
+need to replay an identical timed route. Stop/reset the emulator normally.
+
+Existing 0.7.0-alpha.4 release archives/ADFs are unchanged. This candidate is
+HD only; ADF and WHDLoad adoption/packaging remain separate work.

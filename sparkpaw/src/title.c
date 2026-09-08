@@ -665,6 +665,12 @@ BOOL titleShowLevelReady(void)
         failureReason="loading display unavailable for ready screen";
         return FALSE;
     }
+#ifdef SPARKPAW_MULTI_ADF
+    if(!readyDustLoad()) {
+        failureReason="ready dust mask load failed";
+        return FALSE;
+    }
+#endif
     if(!assetsLoadLevelReady()) {
         failureReason="six-plane ready screen asset load failed";
         return FALSE;

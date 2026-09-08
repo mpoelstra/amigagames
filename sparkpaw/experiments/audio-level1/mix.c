@@ -1,0 +1,73 @@
+#include "mix.h"
+#include <string.h>
+int mixRequest(Mixer *m,const Effect *fx,unsigned id)
+{
+    Voice *v;unsigned cooldownId;
+    if(id>=FX_COUNT) return 0;
+    m->requests[id]++;
+    cooldownId=id==15?6:id; /* health shares the production collect cooldown */
+    v=&m->voice[id==0?0:1];
+    if(m->cooldown[cooldownId]||(v->remaining&&v->priority>fx[id].priority)) {
+        m->rejected[id]++;return 0;
+    }
+    v->data=fx[id].data;v->remaining=fx[id].length;
+    v->priority=fx[id].priority;m->cooldown[cooldownId]=fx[id].cooldown;
+    m->starts[id]++;return 1;
+}
+void mixField(Mixer *m)
+{
+    unsigned i;for(i=0;i<FX_COUNT;i++) if(m->cooldown[i]) m->cooldown[i]--;
+}
+/* Divide at voice tails: at most two active spans and one silence span.
+   The IRQ owns voice state while rendering; requests publish with AUD3 masked. */
+void mixRender(Mixer *m,int8_t *out,unsigned count)
+{
+    Voice *a=&m->voice[0],*b=&m->voice[1];
+    unsigned left=count,n;
+    if(a->remaining&&b->remaining)m->overlaps++;
+    while(left) {
+        n=left;
+        if(a->remaining&&b->remaining) {
+            if(a->remaining<n)n=(unsigned)a->remaining;
+            if(b->remaining<n)n=(unsigned)b->remaining;
+            {
+                const int8_t *pa=a->data,*pb=b->data;
+                int8_t *dest=out;unsigned span=n;
+                do {*dest++=(int8_t)(*pa+++*pb++);}while(--span);
+            }
+        } else if(a->remaining||b->remaining) {
+            Voice *v=a->remaining?a:b;
+            if(v->remaining<n)n=(unsigned)v->remaining;
+            memcpy(out,v->data,n);
+        } else {
+            memset(out,0,n);
+        }
+        if(a->remaining) {
+            a->data+=n;a->remaining-=n;
+            if(!a->remaining){a->priority=0;m->completed[0]++;}
+        }
+        if(b->remaining) {
+            b->data+=n;b->remaining-=n;
+            if(!b->remaining){b->priority=0;m->completed[1]++;}
+        }
+        out+=n;left-=n;
+    }
+    m->rendered+=count;
+}
+
+unsigned mixSchedule(Mixer *m,const Effect *fx,uint32_t field)
+{
+ uint32_t phase;unsigned id=0xffff;
+ mixField(m);
+ if(field<2342)return id;
+ phase=field-2342;
+ if(phase<1600&&phase%100==0){id=(unsigned)(phase/100);mixRequest(m,fx,id);}
+ if(phase>=1600&&phase<2050) {
+   if(phase%12==0)mixRequest(m,fx,0);
+   if(phase%75==0){id=(phase%150==0)?1:3;mixRequest(m,fx,id);}
+   if(phase%75==1)mixRequest(m,fx,5);
+ }
+ if(phase==2050){id=8;mixRequest(m,fx,id);}
+ if(phase>=2120&&phase<2170&&phase%8==0){id=9;mixRequest(m,fx,id);}
+ return id;
+}

@@ -48,16 +48,18 @@ finale and results. Both sections support resident replay. Esc returns to the
 ready screen; BACK TO TITLE clears the campaign. OPTIONS can start Stormrail.
 
 This package now builds the full campaign with the existing WHDLoad F10 hooks,
-not the old single-level executable. All 52 assets are included on the HD data
+not the old single-level executable. All 56 assets are included on the HD data
 volume; no physical disk swaps are needed. Kickstart memory setup is unchanged:
 2 MB Chip allocation minus 4 KiB and 8 MB expansion including its ROM area.
 
 Direct OPTIONS Stormrail starts now show loading. Intro image memory is freed
 only after display DMA stops; LMB skip is latched through fades. Joystick-Fire
-text controls remain unchanged. These alpha.4 corrections need native review.
+text controls remain unchanged. These retained corrections and the new audio need alpha.5 hardware review.
 
 Hero Drive plays during the story; Neon Sky accompanies title through READY.
-Gameplay uses sound effects only. READY includes background wind particles,
+Copper Sprint plays in Level 1; Iron Horizon plays in Stormrail, alongside
+two effect voices software-mixed onto the fourth Paula channel. Results keep
+their original tally effects; resident replay restarts the music. READY includes background wind particles,
 orange sparks and improved menu handling on 68020.
 
 Verification: package assembly, compiled asset coverage, archive extraction and

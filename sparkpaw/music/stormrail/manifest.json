@@ -1,0 +1,56 @@
+{
+  "title": "Iron Horizon",
+  "bpm": 172,
+  "bars": 64,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "seconds": 89.16462585034013,
+  "module_bytes": 29020,
+  "sample_bytes": 11552,
+  "score_bytes": 17468,
+  "sha256": "457629049962daeae9b4a621e583123819dda350cab6715c57169262743245c4",
+  "native_accepted": false,
+  "preview_engine": "micromod; not native ptplayer evidence",
+  "samples": [
+    {
+      "name": "DRIVE KICK HAT",
+      "bytes": 1574,
+      "volume": 42
+    },
+    {
+      "name": "METAL SNARE HAT",
+      "bytes": 1324,
+      "volume": 39
+    },
+    {
+      "name": "CLOSED HAT",
+      "bytes": 372,
+      "volume": 19
+    },
+    {
+      "name": "OPEN HAT",
+      "bytes": 1076,
+      "volume": 23
+    },
+    {
+      "name": "PULSE BASS C",
+      "bytes": 1740,
+      "volume": 39
+    },
+    {
+      "name": "HORIZON LEAD C",
+      "bytes": 1490,
+      "volume": 34
+    },
+    {
+      "name": "WIDE POWER FIFTH",
+      "bytes": 2154,
+      "volume": 32
+    },
+    {
+      "name": "TURNAROUND TOM",
+      "bytes": 1822,
+      "volume": 35
+    }
+  ]
+}
