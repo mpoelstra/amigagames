@@ -74,7 +74,8 @@ struct PackedReader {
     ULONG packedRemaining,expectedSize,produced,expectedCRC,crc;
     BOOL run;
 #ifdef SPARKPAW_MULTI_ADF
-    BOOL lz;
+    BOOL lz,delta;
+    UBYTE deltaPrevious;
     UBYTE flags,flagMask;
     UWORD distance;
 #endif
@@ -111,12 +112,14 @@ static BOOL packedOpen(const char *name,struct PackedReader *reader)
        (memcmp(header,"SPR1",4)!=0
 #ifdef SPARKPAW_MULTI_ADF
         &&memcmp(header,"SPL1",4)!=0
+        &&memcmp(header,"SPD1",4)!=0
 #endif
         )) {
         Close(reader->file); reader->file=0; return FALSE;
     }
 #ifdef SPARKPAW_MULTI_ADF
-    reader->lz=memcmp(header,"SPL1",4)==0;
+    reader->delta=memcmp(header,"SPD1",4)==0;
+    reader->lz=memcmp(header,"SPL1",4)==0||reader->delta;
 #endif
     reader->expectedSize=readBigEndian32(header+4);
     reader->expectedCRC=readBigEndian32(header+8);
@@ -153,6 +156,11 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
             else if(!packedByte(reader,&value)) return FALSE;
             if(reader->produced>=reader->expectedSize) return FALSE;
             diskDecodeWindow[reader->produced&4095]=value;
+            /* LZ references contain differences; CRC and consumers see PCM. */
+            if(reader->delta) {
+                value=(UBYTE)(value+reader->deltaPrevious);
+                reader->deltaPrevious=value;
+            }
         } else {
 #endif
         if(!reader->tokenRemaining) {
@@ -626,7 +634,9 @@ BOOL assetsLoadLevelReady(void)
 
 BOOL assetsLoadLevelReadyMenu(void)
 {
-#ifdef ADF_PACKED_ASSETS
+#if defined(SPARKPAW_MULTI_ADF)&&defined(SPARKPAW_CAMPAIGN)
+    return TRUE; /* Exact menu pixels and masks are already in the offline cache. */
+#elif defined(ADF_PACKED_ASSETS)
     return loadPackedAsset("PROGDIR:assets/runtime/level-ready-menu.spr1",
                            &levelReadyMenu,6,FALSE);
 #else
@@ -652,6 +662,17 @@ BOOL assetsLoadLevelComplete(void)
                            &levelComplete,6,FALSE);
 #else
     return loadAsset("PROGDIR:assets/runtime/sparkpaw-level-complete.spbm",
+                     &levelComplete,6,FALSE);
+#endif
+}
+
+BOOL assetsLoadGameOver(void)
+{
+#ifdef ADF_PACKED_ASSETS
+    return loadPackedAsset("PROGDIR:assets/runtime/game-over.spr1",
+                           &levelComplete,6,FALSE);
+#else
+    return loadAsset("PROGDIR:assets/runtime/game-over.spbm",
                      &levelComplete,6,FALSE);
 #endif
 }

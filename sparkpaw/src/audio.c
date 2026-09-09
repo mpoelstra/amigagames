@@ -3,9 +3,9 @@
 #ifdef SPARKPAW_LEVEL1_MUSIC
 #include "level1_audio.h"
 #include "game.h"
-#define AUDIO_MIX(id) do { if(level1AudioRunning()) { level1AudioRequest(id); return; } } while(0)
+#define AUDIO_MIX(id) do { if(gameplayAudio&&audioMode==AUDIO_MUSIC_ONLY) return; if(level1AudioRunning()) { level1AudioRequest(id); return; } } while(0)
 #else
-#define AUDIO_MIX(id) ((void)0)
+#define AUDIO_MIX(id) do { if(gameplayAudio&&audioMode==AUDIO_MUSIC_ONLY) return; } while(0)
 #endif
 
 #include <exec/memory.h>
@@ -64,7 +64,11 @@ static UBYTE waterSplashCooldown;
 static UBYTE stormstoneCoreCooldown;
 static UBYTE tallyTickCooldown;
 static UBYTE extraLifeCooldown;
-static BOOL hardwareActive;
+static BOOL hardwareActive,gameplayAudio;
+static enum AudioMode audioMode=AUDIO_FX_MUSIC;
+void audioSetMode(enum AudioMode mode) { if(mode<=AUDIO_FX_MUSIC) audioMode=mode; }
+enum AudioMode audioGetMode(void) { return audioMode; }
+void audioBeginGameplay(void) { gameplayAudio=TRUE; }
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 enum AudioDiagnosticEvent {
@@ -306,6 +310,7 @@ void audioSetHardwareActive(BOOL active)
 #endif
     hardwareActive=active;
     if(!active) {
+        gameplayAudio=FALSE;
         hardware->dmacon=DMAF_AUD0|DMAF_AUD1;
         shotDmaTicks=0; gameplayDmaTicks=0;
         gameplayPriority=0; hurtCooldown=0; enemyHitCooldown=0;
@@ -556,4 +561,22 @@ void audioDiagnosticWrite(BPTR file)
                 names[event],diagnosticRequests[event],diagnosticStarts[event],
                 diagnosticRequests[event]-diagnosticStarts[event]);
 }
+#endif
+
+#ifndef SPARKPAW_MULTI_ADF
+/* Solo preview uses the original samples and gains, not mixed-game panning.
+   Caller has stopped LSP/CIA/mixer before granting direct-effect ownership. */
+void audioPreviewEffect(unsigned id)
+{
+    static void (*const play[])(void)={audioPlayShot,audioPlayPlayerHurt,
+        audioPlayEnemyHit,audioPlayEnemyDeath,audioPlayStriderShot,audioPlayJump,
+        audioPlayCollect,audioPlayWaterSplash,audioPlayStormstoneCore,
+        audioPlayTallyTick,audioPlayExtraLife,audioPlayHarrierFanCharge,
+        audioPlayHarrierFanFire,audioPlayHarrierHunterCharge,
+        audioPlayHarrierHunterFire,audioPlayHealthCollect};
+    if(id>=16) return;
+    audioSetHardwareActive(FALSE); audioSetHardwareActive(TRUE);
+    play[id]();
+}
+BOOL audioPreviewEffectPlaying(void) { return shotDmaTicks||gameplayDmaTicks; }
 #endif

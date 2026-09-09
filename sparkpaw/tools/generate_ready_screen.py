@@ -118,7 +118,7 @@ def spbm_payload(indexed, width, height, depth=6):
     return payload
 
 
-def build_ready_screen():
+def ready_background():
     image = Image.new("RGB", (320, 256), (2, 7, 17))
     background = ImageOps.contain(Image.open(BACKGROUND).convert("RGB"),
                                   (320, 256), Image.Resampling.LANCZOS)
@@ -151,6 +151,11 @@ def build_ready_screen():
     logo.thumbnail((300, 106), Image.Resampling.LANCZOS)
     image.paste(logo, ((320-logo.width)//2, 7), logo)
 
+    return image
+
+
+def build_ready_screen():
+    image = ready_background()
     screens = [menu_screen(image, state) for state in range(12)]
     for state, screen in enumerate(screens):
         for box in ((0, PATCH_Y, PATCH_X, PATCH_Y + PATCH_H),

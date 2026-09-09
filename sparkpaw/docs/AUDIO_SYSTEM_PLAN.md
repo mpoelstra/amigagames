@@ -1,5 +1,13 @@
 # Sparkpaw audio system direction — 7 September 2026
 
+9 September 2026: the alpha.5 menu/audio extension investigation is recorded in
+[AUDIO_OPTIONS_SOUNDTEST_RESEARCH.md](AUDIO_OPTIONS_SOUNDTEST_RESEARCH.md).
+User confirms gameplay-only AUDIO MODE directly in OPTIONS for all editions.
+HD/WHDLoad adds SOUNDTEST, opening a two-selector SFX TEST / MUSIC TEST submenu.
+Both players and existing intro/title/results audio are preserved. Up/Down
+selects rows; Left/Right changes values. Implemented HD candidate now staged in
+`dist/Audio-Options-030-HD`; host checks pass, user native acceptance pending.
+
 > Alpha.5 checkpoint (9 September 2026): campaign music plus mixed SFX now
 > ships in HD, ADF and WHDLoad. Positive user HD/ADF reports are recorded;
 > new WHDLoad audio and final hardware acceptance remain pending.

@@ -1,7 +1,7 @@
 """Exercise actual disk-only reader and media source with host DOS stubs."""
 from pathlib import Path
 import subprocess,random,struct,zlib
-from pack_disk_asset import pack
+from pack_disk_asset import pack,pack_delta
 from pack_adf_asset import pack as spr1
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'build/multidisk-probe/tests';OUT.mkdir(parents=True,exist_ok=True)
 
@@ -50,11 +50,11 @@ fclose(raw);return 0;}
  compile_run('reader',header+body+driver,prepare_first())
  rng=random.Random(68020)
  payloads=[b'',b'A',b'A'*9000,bytes(range(256))*40,bytes(rng.randrange(256) for _ in range(8000))]
- payloads += [(ROOT/'assets/runtime'/n).read_bytes() for n in ['readymenu.spbm','sparkpaw-sprites4.spbm','stormrail-family.spbm']]
+ payloads += [(ROOT/'assets/runtime'/n).read_bytes() for n in ['readymenu.spbm','sparkpaw-sprites4.spbm','stormrail-family.spbm','storm-light.lsbank','neon-sky.lsbank']]
  count=0
  for i,raw in enumerate(payloads):
   rp=OUT/'raw';rp.write_bytes(raw)
-  for encoder in [spr1,pack]:
+  for encoder in [spr1,pack,pack_delta]:
    cp=OUT/'packed';data=encoder(raw);cp.write_bytes(data)
    subprocess.run([str(OUT/'reader'),str(cp),str(rp),'1'],check=True);count+=1
    if len(data)>16:
@@ -93,6 +93,8 @@ assert(!diskMediaRequire(0)&&!diskMediaRequire(3));puts("Media: DF1 automatic, w
  compile_run('media',stubs+media+'\n'+driver)
  music_stubs=stubs.replace('SP07D','SP07M')
  compile_run('media-music','#define SPARKPAW_LEVEL1_MUSIC\n'+music_stubs+media+'\n'+driver)
+ gameover_stubs=stubs.replace('SP07D','SP07G').replace('BADVER','SP07M2')
+ compile_run('media-gameover','#define SPARKPAW_GAME_OVER_ADF\n'+gameover_stubs+media+'\n'+driver)
  print('Native reader source cases passed:',count)
 def prepare_first():
  r=OUT/'first.raw';r.write_bytes(b'test');p=OUT/'first.packed';p.write_bytes(pack(b'test'));return p,r,'1'

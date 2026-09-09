@@ -35,6 +35,7 @@ struct Custom {UWORD intena,intenar,intreq,dmacon;struct {UWORD *ac_ptr;UWORD ac
 static struct Custom fakeCustom;static UBYTE filter=2;
 static int allocations,opens,failOpen,installOK=1,locks,resourcesOwned,quiesced,vector,titlePlaying=1;
 static int initCount,pauseCount,allocCalls,failAlloc;
+static void *lastScore,*lastBank;
 static ULONG filePos,fileLength;static struct Library resource;
 static void *OpenResource(const char *s){(void)s;return &resource;}
 static int musicInitialize(int hz){assert(hz==50);return 1;}
@@ -56,7 +57,7 @@ UBYTE mt_Enable;
 int mt_install(void){assert(locks);if(installOK)resourcesOwned=1;return installOK;}
 void mt_remove(void){assert(resourcesOwned&&quiesced&&locks&&!vector);resourcesOwned=0;}
 void mt_pause_timer_b(void){assert(locks);pauseCount++;}
-void mt_init(void *h,void *s,void *b,UBYTE x){(void)h;(void)s;(void)b;(void)x;assert(resourcesOwned&&locks&&!titlePlaying);initCount++;}
+void mt_init(void *h,void *s,void *b,UBYTE x){(void)h;(void)x;lastScore=s;lastBank=b;assert(resourcesOwned&&locks&&!titlePlaying);initCount++;}
 void mt_end(void *h){(void)h;assert(quiesced&&locks);}
 void mt_channelmask(void *h,UBYTE x){(void)h;assert(x==7);}
 void mt_mastervol(void *h,UWORD x){(void)h;assert(x==48);}
@@ -87,6 +88,36 @@ int main(void){
   level1AudioUnload();level1AudioUnload();assert(!allocations&&!resourcesOwned&&!vector&&!locks);
   initCount=0;
  }
+ /* Music-only preview never installs AUD3, renders buffers, or admits SFX.
+    Temporary Iron data cannot replace the prepared Copper allocations. */
+ titlePlaying=0;assert(level1AudioLoad(FALSE));
+ { UBYTE *originalScore=score,*originalBank=bank;int resident=allocations;
+   int n;
+   for(n=0;n<12;n++) {
+    assert(level1AudioPreviewPrepare(TRUE));assert(allocations==resident+2);
+    assert(score==originalScore&&bank==originalBank);
+    Disable();assert(level1AudioStartMusic());Enable();
+    assert(running&&!mixing&&!vector&&lastScore==previewScore&&lastBank==previewBank);
+    level1AudioRequest(1);level1AudioUpdate();level1AudioIRQ();
+    assert(!mixer.voice[1].remaining&&nextBuffer==1);
+    level1AudioPreviewClear();assert(previewScore); /* refuse unsafe free */
+    Disable();level1AudioStop();Enable();level1AudioPreviewClear();
+    assert(!previewScore&&!previewBank&&allocations==resident);
+    assert(level1AudioPreviewPrepare(FALSE));
+    Disable();assert(level1AudioStartMusic());Enable();
+    assert(lastScore==originalScore&&lastBank==originalBank&&!vector);
+    Disable();level1AudioStop();Enable();
+   }
+   for(n=1;n<=2;n++) {
+    allocCalls=0;failAlloc=n;assert(!level1AudioPreviewPrepare(TRUE));
+    assert(allocations==resident&&!previewScore&&!previewBank&&score==originalScore);
+   }
+   failAlloc=0;failOpen=opens+2;assert(!level1AudioPreviewPrepare(TRUE));failOpen=0;
+   assert(allocations==resident&&!previewScore&&!previewBank);
+   Disable();assert(level1AudioStart());Enable();assert(mixing&&vector);
+   Disable();level1AudioStop();Enable();
+ }
+ level1AudioUnload();assert(!allocations&&!locks&&!vector&&!resourcesOwned);
  assert(pauseCount>=48);
  puts("PASS: preload with title live, every allocation failure, install failure, 24 starts/stops, IRQ quiesce and balanced cleanup");return 0;
 }

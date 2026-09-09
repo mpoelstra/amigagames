@@ -1,6 +1,6 @@
 """Build an unnumbered, no-intro disk-only campaign executable outside dist."""
 from pathlib import Path
-import json,os,subprocess,hashlib,shlex,re
+import json,os,subprocess,hashlib,shlex,re,sys
 ROOT=Path(__file__).resolve().parents[1]
 def main():
  out=ROOT/'build/multidisk-probe';out.mkdir(exist_ok=True)
@@ -16,7 +16,8 @@ def main():
  assert len(matches)==1, 'production compile command must be unambiguous'
  cmd=matches[0];flags=cmd[1:cmd.index('-o')]
  flags=[f for f in flags if f!='-DSPARKPAW_STORY_INTRO']
- flags+=['-DSPARKPAW_MULTI_ADF','-DADF_PACKED_ASSETS']
+ flags+=['-DSPARKPAW_MULTI_ADF','-DADF_PACKED_ASSETS','-DSPARKPAW_GAME_OVER_ADF']
+ if '--three-disks' in sys.argv: flags+=['-DSPARKPAW_THREE_ADF']
  sources=cmd[cmd.index('-o')+2:]+['src/disk_media.c'];sdk=ROOT/'.toolchain/sdk'
  env=dict(os.environ,VBCC=str(sdk),PATH=str(sdk/'bin')+os.pathsep+os.environ['PATH'],TMPDIR=str(out))
  exe=out/'Sparkpaw'

@@ -24,6 +24,8 @@ void readyDustUnload(void)
 #else
 #include "ready_dust_mask.h"
 #endif
+static const unsigned char *customMenuMask;
+void readyDustSetMenuMask(const unsigned char *mask) { customMenuMask=mask; }
 void readyDustRestore(unsigned char **planes,struct ReadyDustHistory *h)
 {
     unsigned char i,p;
@@ -38,8 +40,11 @@ static void point(unsigned char **planes,struct ReadyDustHistory *h,
     unsigned char bit,i,p;
     if(x<0||x>=320||y<0||y>=256) return;
     offset=(unsigned short)(y*40+x/8);bit=(unsigned char)(128>>(x&7));
-    if(x>=64&&x<256&&y>=118&&y<222) {
-        if(!(readyDustMenuMask[(unsigned long)state*2496+(y-118)*24+(x-64)/8]&bit)) return;
+    if(customMenuMask&&x>=48&&x<272&&y>=118&&y<222) {
+        if(!(customMenuMask[(y-118)*28+(x-48)/8]&bit)) return;
+    } else if(x>=64&&x<256&&y>=118&&y<222) {
+        const unsigned char *mask=readyDustMenuMask+(unsigned long)state*2496;
+        if(!(mask[(y-118)*24+(x-64)/8]&bit)) return;
     } else if(!(readyDustMask[offset]&bit)) return;
     for(i=0;i<h->count;i++) if(h->offset[i]==offset) break;
     if(i==h->count) {

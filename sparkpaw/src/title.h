@@ -17,6 +17,8 @@ BOOL titleShowInsertDisk(UBYTE disk);
 BOOL titleShowLevelCharging(void);
 BOOL titleShowLevelReady(void);
 BOOL titleShowLevelComplete(void);
+BOOL titleShowGameOver(ULONG total);
+void titleRunGameOver(void);
 void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
                            ULONG elapsedFields,ULONG liveScore);
 void titleRunLevelCompleteWithBonus(UWORD enemies,UWORD diamonds,

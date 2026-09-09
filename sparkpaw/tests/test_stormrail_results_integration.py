@@ -38,7 +38,7 @@ assert "runLevelCompleteMenu(enemies,diamonds,timeSeconds,liveScore,1)" in title
 
 # Replay uses resident initialization/reset only. No level-file load may appear
 # between results handling and the next APP_PLAYING transition.
-results_branch = main.split("if(state==APP_LEVEL_COMPLETE)", 1)[1]
+results_branch = main.split("if(state==APP_LEVEL_COMPLETE||state==APP_GAME_OVER)", 1)[1]
 assert "titleFadeOut();" in results_branch
 assert "gameInit(" in results_branch
 assert "rendererResetGameplay();" in results_branch

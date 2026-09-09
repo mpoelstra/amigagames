@@ -127,19 +127,19 @@ BENCH_ASSETS = assets/runtime/renderbench-strider-idle.raw \
 	assets/runtime/renderbench-rear16.raw
 SOURCES = src/main.c src/renderer.c src/hud.c src/assets.c src/audio.c src/collision.c src/collectibles.c src/performance_profile.c \
 	src/enemies.c src/game.c src/level_data.c src/platform_amiga.c src/player.c src/projectiles.c \
-	src/title.c src/ready_patch.c src/ready_dust.c src/music.c build/music_lsp.o
+	src/title.c src/ready_ui.c src/ready_patch.c src/ready_dust.c src/music.c build/music_lsp.o
 GAME_AUDIO_SOURCES = src/level1_audio.c src/audio_mix.c build/game_ptplayer.o build/audio_game_irq.o
 GAME_AUDIO_ASSETS = assets/runtime/pulse-score.bin assets/runtime/pulse-bank.bin \
 	assets/runtime/rail-score.bin assets/runtime/rail-bank.bin
 SPLIT_RENDERER_SOURCES = $(filter-out src/renderer.c,$(SOURCES)) \
 	src/renderer_level1_unit.c src/renderer_stormrail_unit.c src/renderer_dispatch.c
-HEADERS = src/ready_patch.h src/ready_dust.h src/ready_dust_mask.h src/music.h src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
+HEADERS = src/game_over_art.h src/ready_ui_cache_adf_data.h src/ready_ui_cache_adf_size.h src/ready_ui_cache_data.h src/ready_ui_cache_size.h src/ready_ui.h src/ready_ui_data.h src/ready_patch.h src/ready_dust.h src/ready_dust_mask.h src/music.h src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
 HEADERS += src/level1_audio.h src/audio_mix.h src/audio_catalog.h
 HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
 	src/stormrail_results_contract.h
-RUNTIME_ASSETS = assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank \
+RUNTIME_ASSETS = assets/runtime/game-over.spbm assets/runtime/storm-light.lsmusic assets/runtime/storm-light.lsbank assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank \
 	assets/runtime/neon-sky.lsmusic assets/runtime/neon-sky.lsbank \
 	assets/runtime/storm-world.spbm \
 	assets/runtime/sparkpaw-title.spbm \
@@ -207,6 +207,14 @@ RUNTIME_ASSETS = assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsb
 all: assets $(TARGET)
 
 test:
+	$(PYTHON) tests/test_campaign_hud_carry.py
+	$(PYTHON) tests/test_game_over.py
+	$(PYTHON) tests/test_game_pause.py
+	$(PYTHON) tests/test_menu_display_resume.py
+	$(PYTHON) tests/test_ready_audio_controls.py
+	$(PYTHON) tests/test_ready_audio_ui.py
+	$(PYTHON) tests/test_ready_audio_ui.py --adf
+	$(PYTHON) tests/test_audio_modes.py
 	$(PYTHON) tests/test_level1_audio.py
 	$(PYTHON) tests/test_adf_ready_mask.py
 	$(PYTHON) tests/test_ready_dust.py
@@ -458,7 +466,7 @@ $(READY_SCREEN_ASSET) $(READY_MENU_ASSET): tools/generate_ready_screen.py tools/
 	docs/concepts/ready-screen/assets/sparkpaw-logo-wordmark-source-v2.png
 	$(PYTHON) tools/generate_ready_screen.py
 
-$(filter-out %.lsmusic %.lsbank,$(RUNTIME_ASSETS)): tools/generate_runtime_assets.py tools/generate_score_screen.py \
+$(filter-out %.lsmusic %.lsbank assets/runtime/game-over.spbm,$(RUNTIME_ASSETS)): tools/generate_runtime_assets.py tools/generate_score_screen.py \
 	docs/concepts/score-system/sparkpaw-level-complete-score-concept-v4-title-character.png \
 	assets/concept/sparkpaw-title-concept-aga64-preview.png \
 	assets/concept/sparkpaw-level-loading-concept-v3.png \
@@ -1792,3 +1800,16 @@ build/game_ptplayer.o: build/game_ptplayer.asm
 	$(VBCC_ROOT)/bin/vasmm68k_mot -quiet -Fhunk -m68020 -DOSCOMPAT=1 -DENABLE_SAWRECT=0 -o $@ $<
 build/audio_game_irq.o: src/audio_game_irq.s
 	$(VBCC_ROOT)/bin/vasmm68k_mot -quiet -Fhunk -m68020 -o $@ $<
+
+src/ready_ui_data.h: tools/generate_ready_audio_ui.py tools/generate_ready_screen.py assets/runtime/sparkpaw-ready-screen.spbm
+	$(PYTHON) tools/generate_ready_audio_ui.py
+
+# Offline-only rasterization/diff discovery; never restore it in the READY loop.
+src/ready_ui_cache_data.h src/ready_ui_cache_size.h &: tools/generate_ready_ui_cache.py tools/ready_ui_layout.c tools/ready_ui_layout.h src/ready_ui_data.h assets/runtime/readymenu.spbm
+	$(PYTHON) tools/generate_ready_ui_cache.py
+
+assets/runtime/game-over.spbm src/game_over_art.h: tools/generate_game_over.py assets/concept/sparkpaw-game-over-v2.png
+	$(PYTHON) tools/generate_game_over.py
+
+assets/runtime/storm-light.lsmusic assets/runtime/storm-light.lsbank: music/game-over/StormLight.mod $(LSP_CONVERT)
+	$(LSP_CONVERT) $< -shrink -fixed50hz -lsmusic assets/runtime/storm-light.lsmusic -lsbank assets/runtime/storm-light.lsbank

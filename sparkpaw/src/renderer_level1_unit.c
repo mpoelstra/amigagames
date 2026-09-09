@@ -5,6 +5,7 @@
 #define rendererLoadGameplay rendererLevel1LoadGameplay
 #define rendererPrepareGameplay rendererLevel1PrepareGameplay
 #define rendererResetGameplay rendererLevel1ResetGameplay
+#define rendererFadeOut rendererLevel1FadeOut
 #define rendererCleanup rendererLevel1Cleanup
 #define rendererCopperList rendererLevel1CopperList
 #define rendererUpdateGameplay rendererLevel1UpdateGameplay

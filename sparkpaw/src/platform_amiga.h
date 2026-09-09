@@ -8,10 +8,15 @@ void platformClose(void);
 void platformBeginTakeover(void);
 void platformFinishTakeover(UWORD *copper);
 void platformStartGameplayAudio(void);
+void platformStopMenuPreview(void);
+BOOL platformStartMenuMusic(void);
 void platformSwitchCopper(UWORD *copper);
 void platformReleaseForLoading(BOOL keepDisplay);
+/* Resume a retained READY display after release(TRUE); never replace its Copper. */
+void platformResumeMenuAfterLoading(void);
 void platformResetGameInput(void);
 BOOL platformGameEscapeRequested(void);
+BOOL platformGamePauseToggleRequested(void);
 void platformRestore(void);
 UWORD platformRasterLine(void);
 ULONG platformFieldCounter(void);

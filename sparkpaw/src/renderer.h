@@ -7,6 +7,7 @@ BOOL rendererLoadGameplay(void);
 BOOL rendererPrepareGameplay(void);
 void rendererResetGameplay(void);
 void rendererCleanup(void);
+void rendererFadeOut(void);
 UWORD *rendererCopperList(void);
 #if defined(SPARKPAW_SPLIT_RENDERER_CLIENT) && \
     !defined(SPARKPAW_RENDERER_IMPLEMENTATION_UNIT) && \

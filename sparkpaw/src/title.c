@@ -15,6 +15,15 @@
 #include "assets.h"
 #include "audio.h"
 #include "music.h"
+#include "game_over_art.h"
+#include "ready_ui.h"
+#include <string.h>
+#if defined(SPARKPAW_LEVEL1_MUSIC)&&!defined(SPARKPAW_MULTI_ADF)
+#include "level1_audio.h"
+#define READY_HAS_SOUNDTEST 1
+#else
+#define READY_HAS_SOUNDTEST 0
+#endif
 #include "ready_dust.h"
 #include "ready_patch.h"
 #include "platform_amiga.h"
@@ -66,6 +75,11 @@ static ULONG chipFree,chipLargest;
 static BOOL buildingIntroCopper;
 static struct BitMap *readyMenuBack;
 static UBYTE readyMenuBufferIndex;
+#ifdef SPARKPAW_CAMPAIGN
+static struct ReadyUI *readyUI;
+static struct ReadySelection readySelection;
+static BOOL readyUiDirty[2];
+#endif
 static struct ReadyDustHistory readyDustHistory[2];
 static UBYTE readyDustBufferState[2],readyDustState,readyDustPens[6];
 static ULONG readyDustFrame;
@@ -682,9 +696,12 @@ BOOL titleShowLevelReady(void)
     }
     ready=assetsLevelReady();
     if(!ready->bitmap||ready->width!=320||ready->height!=256||
+#if !defined(SPARKPAW_MULTI_ADF)||!defined(SPARKPAW_CAMPAIGN)
        !assetsLevelReadyMenu()->bitmap||
        assetsLevelReadyMenu()->width!=READY_MENU_PATCH_W||
-       assetsLevelReadyMenu()->height!=READY_MENU_PATCH_H*READY_MENU_STATE_COUNT) {
+       assetsLevelReadyMenu()->height!=READY_MENU_PATCH_H*READY_MENU_STATE_COUNT||
+#endif
+       FALSE) {
         failureReason="ready screen asset has invalid geometry";
         musicStop();
         assetsUnloadLevelReadyMenu();
@@ -706,7 +723,18 @@ BOOL titleShowLevelReady(void)
     readyDustHistory[0].count=readyDustHistory[1].count=0;
     readyDustBufferState[0]=readyDustBufferState[1]=readyDustState=0;
     readyDustFrame=0;
+#ifdef SPARKPAW_CAMPAIGN
+    if(!readyUI) readyUI=AllocMem(sizeof(*readyUI),MEMF_FAST|MEMF_CLEAR);
+    if(!readyUI) { failureReason="audio menu Fast memory unavailable"; return FALSE; }
+    /* Mandatory 020 contract: decode all menu caches before the fade/takeover.
+       See docs/READY_UI_PERFORMANCE_CONTRACT.md and test_ready_audio_ui.py. */
+    readyUiInit(readyUI,NULL);
+    memset(&readySelection,0,sizeof(readySelection));
+    readyUiDirty[0]=readyUiDirty[1]=FALSE;
+    readyDustSetMenuMask(NULL);
+#else
     readyPatchPrepare(assetsLevelReadyMenu()->bitmap->Planes);
+#endif
     /* Match soft cool/neutral/warm dust to the existing 64-colour palette. */
     {
         static const UBYTE rgb[6][3]={{60,90,105},{88,132,148},{125,173,185},{174,211,216},{220,238,232},{254,158,2}};
@@ -782,6 +810,47 @@ BOOL titleShowLevelComplete(void)
     display=*assetsLevelComplete(); display.bitmap=scoreBuffers[0];
     buildCopper(&display,0,0); installCopper(0);
     scoreBufferIndex=0;
+    fadeTo(&display,TRUE);
+    return TRUE;
+}
+
+BOOL titleShowGameOver(ULONG total)
+{
+    struct PlanarAsset display;
+    char digits[10]; UBYTE count=0,i,gy,gx,xx,yy,plane;
+    UWORD x,y; ULONG offset; UBYTE mask;
+    if(!assetsLoadGameOver()||!allocateCopper()) {
+        failureReason="game-over asset or Copper unavailable"; return FALSE;
+    }
+    if(assetsLevelComplete()->width!=320||assetsLevelComplete()->height!=256) {
+        failureReason="game-over geometry invalid"; return FALSE;
+    }
+    scoreBuffers[0]=AllocBitMap(320,256,6,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
+    if(!scoreBuffers[0]) { failureReason="game-over Chip bitmap unavailable"; return FALSE; }
+    copyScoreBase(scoreBuffers[0]);
+    do { digits[count++]=(char)(total%10); total/=10; } while(total&&count<10);
+    while(count<6) digits[count++]=0;
+    /* One-time opaque digit ink on a not-yet-displayed bitmap. No live text
+       drawing, no additional glyph atlas and no four-digit HUD truncation. */
+    for(i=0;i<count;i++) for(gy=0;gy<7;gy++) for(gx=0;gx<5;gx++)
+        if(gameOverDigits[(UBYTE)digits[count-i-1]][gy]&(1<<(4-gx)))
+            for(yy=0;yy<2;yy++) for(xx=0;xx<2;xx++) {
+                x=(UWORD)(GAME_OVER_SCORE_CENTER_X-(count*12-2)/2+i*12+gx*2+xx);
+                y=(UWORD)(GAME_OVER_SCORE_Y+gy*2+yy);
+                offset=(ULONG)y*scoreBuffers[0]->BytesPerRow+(x>>3);
+                mask=(UBYTE)(0x80>>(x&7));
+                for(plane=0;plane<6;plane++) {
+                    UBYTE *p=scoreBuffers[0]->Planes[plane]+offset;
+                    if(GAME_OVER_SCORE_PEN&(1<<plane)) *p|=mask;
+                    else *p&=(UBYTE)~mask;
+                }
+            }
+    previousView=GfxBase->ActiView;
+    savedDma=hardware->dmaconr&DMAF_ALL;
+    LoadView(NULL); WaitTOF(); WaitTOF();
+    display=*assetsLevelComplete(); display.bitmap=scoreBuffers[0];
+    buildCopper(&display,0,0); installCopper(0); scoreBufferIndex=0;
+    musicPlayGameOver();
     fadeTo(&display,TRUE);
     return TRUE;
 }
@@ -882,6 +951,22 @@ static BOOL resultFire(void)
     BOOL left,right,down,jump,fire;
     platformReadGameKeys(&left,&right,&down,&jump,&fire);
     return fire||((*(volatile UBYTE *)0xbfe001)&0x80)==0;
+}
+
+void titleRunGameOver(void)
+{
+    UWORD frames=0;
+    BOOL released=FALSE,fire;
+    for(;;) {
+        waitOwnedDisplayFrame();
+        fire=resultFire();
+#ifdef SPARKPAW_WHDLOAD
+        if(platformWHDLoadQuitRequested()) return;
+#endif
+        if(!fire) released=TRUE;
+        if(frames<50) { frames++; released=!fire; continue; }
+        if((released&&fire)||platformGameEscapeRequested()) return;
+    }
 }
 
 void titleRunLevelComplete(UWORD enemies,UWORD diamonds,
@@ -1010,9 +1095,16 @@ static void renderReadyDustFrame(void)
     struct PlanarAsset hiddenDisplay=*ready;
     struct BitMap *hidden=readyMenuBufferIndex?loading->bitmap:readyMenuBack;
     readyDustRestore(hidden->Planes,&readyDustHistory[readyMenuBufferIndex]);
+#ifdef SPARKPAW_CAMPAIGN
+    if(readyUiDirty[readyMenuBufferIndex]) {
+        readyUiApply(readyUI,hidden->Planes,readyMenuBufferIndex);
+        readyUiDirty[readyMenuBufferIndex]=FALSE;
+    }
+#else
     if(readyDustBufferState[readyMenuBufferIndex]!=readyDustState)
         readyPatchApply(hidden->Planes,patches->bitmap->Planes,
                         readyDustBufferState[readyMenuBufferIndex],readyDustState);
+#endif
     readyDustBufferState[readyMenuBufferIndex]=readyDustState;
     readyDustDraw(hidden->Planes,&readyDustHistory[readyMenuBufferIndex],
                   readyDustFrame++,readyDustPens,readyDustState);
@@ -1026,6 +1118,170 @@ static void renderReadyDustFrame(void)
     readyMenuBufferIndex^=1;
 }
 
+#ifdef SPARKPAW_CAMPAIGN
+static void refreshReadyUI(void)
+{
+    /* Owned-frame path: lookup/copy only, never rasterize or scan images. */
+    readyUiCompose(readyUI,NULL,
+                   &readySelection,READY_HAS_SOUNDTEST);
+    readyUiDirty[0]=readyUiDirty[1]=TRUE;
+    readyDustState=readySelection.page==READY_PAGE_MAIN?readySelection.row:0;
+    readyDustSetMenuMask(readySelection.page==READY_PAGE_MAIN?NULL:readyUI->mask);
+}
+#if READY_HAS_SOUNDTEST
+static BOOL readyPreviewUsed;
+static UBYTE readyPreviewKind; /* 0 silent, 1 direct sample, 2 LSP, 3 CIA music */
+static void stopReadyPreview(void)
+{
+    /* Stop the interrupt-driven owner before LSP/direct Paula writes. */
+    platformStopMenuPreview();
+    musicSuspend();
+    readyPreviewKind=0;
+    readySelection.status=READY_PREVIEW_IDLE;
+}
+static void startReadyPreview(void)
+{
+    BOOL ok=TRUE;
+    stopReadyPreview(); readyPreviewUsed=TRUE;
+    if(readySelection.row==0) {
+        audioPreviewEffect(readySelection.sfx); readyPreviewKind=1;
+    } else {
+        /* DOS work must occur outside Forbid/Disable, with the published menu
+           and every prepared gameplay allocation still owned and resident. */
+        readySelection.status=READY_PREVIEW_LOADING;
+        refreshReadyUI(); renderReadyDustFrame();
+        platformReleaseForLoading(TRUE);
+        level1AudioPreviewClear();
+        if(readySelection.track==0) ok=musicPlayIntro();
+        else if(readySelection.track==1) {
+            if(!musicRestartTitle()) ok=musicPlayTitle();
+        } else if(readySelection.track==4) ok=musicPlayGameOver();
+        else ok=level1AudioPreviewPrepare(readySelection.track==3);
+        platformResetGameInput();
+        platformResumeMenuAfterLoading();
+        if(ok&&(readySelection.track==2||readySelection.track==3)) ok=platformStartMenuMusic();
+        if(ok) readyPreviewKind=(readySelection.track==2||readySelection.track==3)?3:2;
+    }
+    readySelection.status=ok?READY_PREVIEW_PLAYING:READY_PREVIEW_ERROR;
+}
+static void leaveReadySoundtest(void)
+{
+    if(!readyPreviewUsed) return; /* preserve uninterrupted title playback */
+    stopReadyPreview(); level1AudioPreviewClear();
+    if(!musicRestartTitle()) {
+        readySelection.status=READY_PREVIEW_LOADING;
+        refreshReadyUI(); renderReadyDustFrame();
+        platformReleaseForLoading(TRUE);
+        musicPlayTitle(); /* optional title failure remains silent */
+        platformResetGameInput(); platformResumeMenuAfterLoading();
+    }
+    readyPreviewUsed=FALSE; readySelection.status=READY_PREVIEW_IDLE;
+}
+#endif
+void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
+                           enum CampaignStartSection *startSection)
+{
+    BOOL up,down,left,right,fire,oldUp,oldDown,oldLeft,oldRight,oldFire;
+    BOOL reseed=TRUE;
+    readySelection.page=READY_PAGE_MAIN;readySelection.row=0;
+    readySelection.secondary=(UBYTE)*secondaryAction;
+    readySelection.section=(UBYTE)*startSection;
+    readySelection.mode=(UBYTE)audioGetMode();
+    readySelection.status=READY_PREVIEW_IDLE;
+#if READY_HAS_SOUNDTEST
+    readyPreviewUsed=FALSE;readyPreviewKind=0;
+#endif
+    refreshReadyUI();
+    oldUp=oldDown=oldLeft=oldRight=oldFire=TRUE;
+    for(;;) {
+        BOOL move,change,press; int delta,count;
+        renderReadyDustFrame();
+        readReadyMenuInput(&up,&down,&left,&right,&fire);
+#ifdef SPARKPAW_WHDLOAD
+        if(platformWHDLoadQuitRequested()) {
+#if READY_HAS_SOUNDTEST
+            stopReadyPreview();level1AudioPreviewClear();
+#endif
+            return;
+        }
+#endif
+#if READY_HAS_SOUNDTEST
+        if(readyPreviewKind==1) {
+            audioUpdate();
+            if(!audioPreviewEffectPlaying()) {
+                readyPreviewKind=0;readySelection.status=READY_PREVIEW_IDLE;refreshReadyUI();
+            }
+        } else if(readyPreviewKind==2&&!musicAudible()) {
+            musicSuspend();readyPreviewKind=0;
+            readySelection.status=READY_PREVIEW_IDLE;refreshReadyUI();
+        }
+#endif
+        if(reseed) {
+            /* A loading/page-entry press is consumed until all controls release. */
+            if(up||down||left||right||fire) continue;
+            oldUp=oldDown=oldLeft=oldRight=oldFire=FALSE;reseed=FALSE;
+            continue;
+        }
+        move=(up&&!oldUp)||(down&&!oldDown);
+        change=(left&&!oldLeft)||(right&&!oldRight);
+        press=fire&&!oldFire;
+        delta=(up&&!oldUp)?-1:1;
+        if(move) {
+#if READY_HAS_SOUNDTEST
+            if(readySelection.page==READY_PAGE_SOUND&&readyPreviewUsed) stopReadyPreview();
+#endif
+            count=readySelection.page==READY_PAGE_MAIN?2:
+                  readySelection.page==READY_PAGE_OPTIONS?(READY_HAS_SOUNDTEST?5:4):3;
+            readySelection.row=(UBYTE)((readySelection.row+count+delta)%count);
+            refreshReadyUI();
+        } else if(change) {
+            delta=(left&&!oldLeft)?-1:1;
+            if(readySelection.page==READY_PAGE_OPTIONS) {
+                if(readySelection.row==0) {
+                    *secondaryAction=(enum SecondaryButtonAction)(readySelection.secondary^1);
+                    readySelection.secondary=(UBYTE)*secondaryAction;
+                } else if(readySelection.row==1) {
+                    *startSection=(enum CampaignStartSection)(readySelection.section^1);
+                    readySelection.section=(UBYTE)*startSection;
+                } else if(readySelection.row==2) {
+                    readySelection.mode=(UBYTE)((readySelection.mode+3+delta)%3);
+                    audioSetMode((enum AudioMode)readySelection.mode);
+                }
+            }
+#if READY_HAS_SOUNDTEST
+            else if(readySelection.page==READY_PAGE_SOUND) {
+                if(readyPreviewUsed) stopReadyPreview();
+                if(readySelection.row==0) readySelection.sfx=(UBYTE)((readySelection.sfx+16+delta)%16);
+                if(readySelection.row==1) readySelection.track=(UBYTE)((readySelection.track+5+delta)%5);
+            }
+#endif
+            refreshReadyUI();
+        } else if(press) {
+            if(readySelection.page==READY_PAGE_MAIN) {
+                if(readySelection.row==0) return;
+                readySelection.page=READY_PAGE_OPTIONS;readySelection.row=0;
+            } else if(readySelection.page==READY_PAGE_OPTIONS) {
+                if(READY_HAS_SOUNDTEST&&readySelection.row==3) {
+                    readySelection.page=READY_PAGE_SOUND;readySelection.row=0;
+                } else { readySelection.page=READY_PAGE_MAIN;readySelection.row=0; }
+            }
+#if READY_HAS_SOUNDTEST
+            else if(readySelection.row==2) {
+                leaveReadySoundtest();
+                readySelection.page=READY_PAGE_OPTIONS;readySelection.row=3;
+            } else {
+                /* Effects retrigger on every new Fire edge; music toggles. */
+                if(readySelection.row==0) startReadyPreview();
+                else if(readySelection.status==READY_PREVIEW_PLAYING) stopReadyPreview();
+                else startReadyPreview();
+            }
+#endif
+            refreshReadyUI();reseed=TRUE;
+        }
+        oldUp=up;oldDown=down;oldLeft=left;oldRight=right;oldFire=fire;
+    }
+}
+#else
 #ifdef SPARKPAW_CAMPAIGN
 static UBYTE readyCampaignOptionsState(
     enum SecondaryButtonAction secondaryAction,
@@ -1119,6 +1375,8 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
     }
 }
 
+#endif
+
 UWORD *titleCopperList(void) { return copper[currentCopper]; }
 
 void titleFadeOut(void)
@@ -1168,6 +1426,10 @@ void titleRelease(void)
 {
     UBYTE index;
     musicStop();
+#ifdef SPARKPAW_CAMPAIGN
+    readyDustSetMenuMask(NULL);
+    if(readyUI) { FreeMem(readyUI,sizeof(*readyUI)); readyUI=NULL; }
+#endif
     displayed=FALSE;
     if(readyMenuBack) {
         FreeBitMap(readyMenuBack);

@@ -2,8 +2,10 @@
 #include <exec/memory.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
+#include <proto/graphics.h>
 
 #include "audio.h"
+#include "music.h"
 #include "assets.h"
 #include "campaign_contract.h"
 #include "collision.h"
@@ -24,6 +26,7 @@ enum AppState {
     APP_LEVEL_LOADING,
     APP_PLAYING,
     APP_LEVEL_COMPLETE,
+    APP_GAME_OVER,
     APP_RETURN_READY
 };
 
@@ -38,7 +41,11 @@ static void cleanup(void)
 static BOOL loadLevelFiles(void)
 {
 #ifdef SPARKPAW_MULTI_ADF
+#ifdef SPARKPAW_THREE_ADF
+    if(!diskMediaRequire(gameStormrailActive()?3:2)) return FALSE;
+#else
     if(!diskMediaRequire(gameStormrailActive()?2:1)) return FALSE;
+#endif
 #endif
     return rendererLoadGameplay()&&collisionLoad()&&audioLoad();
 }
@@ -140,6 +147,7 @@ int main(void)
     BOOL loadingShown;
     enum SecondaryButtonAction secondaryButtonAction=SECONDARY_BUTTON_JUMP;
     enum CampaignStartSection startSection=CAMPAIGN_START_STORM_RUINS;
+    BOOL paused=FALSE;
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     BOOL prototypePublished;
 #endif
@@ -225,6 +233,11 @@ int main(void)
         cleanup(); return 10;
     }
     state=APP_TITLE_READY;
+#ifdef SPARKPAW_THREE_ADF
+    /* Disk 1 owns the full cue; retain exact decoded bytes in Fast so defeat
+       on either gameplay disk never requires a music disk swap. */
+    if(!musicPreloadGameOver()) { cleanup(); return 10; }
+#endif
     if(!titlePrepareLevelLoading()) {
         PutStr("Sparkpaw: loading image unavailable.\n");
         PutStr((STRPTR)titleFailureReason()); PutStr("\n");
@@ -334,17 +347,31 @@ int main(void)
     for(;;) {
     while(state==APP_PLAYING) {
         ULONG profileStart;
-#ifdef SPARKPAW_WHDLOAD
         BOOL ignoredLeft,ignoredRight,ignoredDown,ignoredJump,ignoredFire;
-        /* Poll once even while a gameplay state temporarily skips player
-           input. The later player poll reads the same cached key state. */
+        /* Poll before simulation so P/Escape/F10 also work while paused. The
+           later player poll reads the same cached movement/action state. */
         platformReadGameKeys(&ignoredLeft,&ignoredRight,&ignoredDown,
                              &ignoredJump,&ignoredFire);
+        if(platformGamePauseToggleRequested()) paused=!paused;
+#ifdef SPARKPAW_WHDLOAD
         if(platformWHDLoadQuitRequested()) {
             state=APP_BOOT;
             break;
         }
 #endif
+#ifdef SPARKPAW_CAMPAIGN
+        if(platformGameEscapeRequested()) {
+            state=APP_RETURN_READY;
+            break;
+        }
+#endif
+        if(paused) {
+            /* Keep the last complete frame resident. Music and a currently
+               playing effect continue; simulation and elapsed time stop. */
+            while(platformRasterLine()<300) { }
+            while(platformRasterLine()>=300) { }
+            continue;
+        }
 #ifdef SPARKPAW_UPDATE_LINE100_REFERENCE
         while(platformRasterLine()<100) { }
 #endif
@@ -402,6 +429,7 @@ int main(void)
         profileStart=performanceProfileBegin();
         gameUpdate();
         performanceProfileEnd(PERF_GAME_UPDATE,profileStart);
+        if(gameOver()) { state=APP_GAME_OVER; break; }
 #ifdef SPARKPAW_CAMPAIGN
         if(platformGameEscapeRequested()) {
             state=APP_RETURN_READY;
@@ -538,6 +566,7 @@ int main(void)
 #endif
 #endif
     }
+    paused=FALSE;
     if(state==APP_RETURN_READY) {
 #ifdef SPARKPAW_CAMPAIGN
         /* Escape abandons the active run. Re-enter through the existing
@@ -596,7 +625,8 @@ int main(void)
         state=APP_BOOT;
 #endif
     }
-    if(state==APP_LEVEL_COMPLETE) {
+    if(state==APP_LEVEL_COMPLETE||state==APP_GAME_OVER) {
+        BOOL defeated=state==APP_GAME_OVER;
         const struct GameState *result=gameState();
 #ifdef SPARKPAW_CAMPAIGN
         BOOL stormrail=gameStormrailActive();
@@ -614,8 +644,18 @@ int main(void)
         ULONG elapsed=result->elapsedFields;
         ULONG score=result->score;
 #endif
+        if(defeated) rendererFadeOut();
         platformReleaseForLoading(FALSE);
-        if(!titleShowLevelComplete()) {
+        if(defeated) {
+            /* Display DMA was disabled above; finish its boundary before freeing. */
+            WaitTOF();
+            rendererCleanup(); audioUnload();
+        }
+        if(!(defeated?titleShowGameOver(
+#ifdef SPARKPAW_CAMPAIGN
+            campaign.bankedScore+
+#endif
+            result->score):titleShowLevelComplete())) {
             PutStr("Sparkpaw: level-complete screen unavailable.\n");
             PutStr((STRPTR)titleFailureReason()); PutStr("\n");
             platformRestore(); titleRelease(); audioUnload();
@@ -627,7 +667,13 @@ int main(void)
         platformFinishTakeover(titleCopperList());
 #ifdef SPARKPAW_CAMPAIGN
         campaignBeginResults(&campaign);
-        if(stormrail) {
+        if(defeated) {
+            titleRunGameOver();
+#ifdef SPARKPAW_WHDLOAD
+            if(platformWHDLoadQuitRequested()) { cleanup(); return 0; }
+#endif
+            decision=RESULT_DECISION_BACK_TO_TITLE;
+        } else if(stormrail) {
             const struct StormrailResultsSnapshot *stormResult=
                 &result->stormrailResults;
             decision=titleRunLevelCompleteWithBonusMenu(
@@ -706,7 +752,8 @@ int main(void)
 #ifdef SPARKPAW_CAMPAIGN_TRANSITION_TRACE
             writeBackTitleStage("decision_back",FALSE);
 #endif
-            rendererCleanup(); audioUnload();
+            musicStop();
+            if(!defeated) { rendererCleanup(); audioUnload(); }
 #ifdef SPARKPAW_CAMPAIGN_TRANSITION_TRACE
             writeBackTitleStage("renderer_clean",FALSE);
 #endif

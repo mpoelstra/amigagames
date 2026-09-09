@@ -81,3 +81,10 @@ replay remains resident. Wait for INSERT before swapping in a single drive.
 See MULTI_ADF_030_TEST.txt for continuation, direct Stormrail selection, replay,
 Esc, title return and two-drive tests. Existing HD flow and release bytes remain
 unchanged; a failed read uses cleanup, never partial gameplay publication.
+
+## HUD from the first section frame
+
+Both initially prepared HUD buffers must reflect the restored campaign state,
+not default new-game counters. Stormrail approach, boarding and flight use the
+same carried health source. Direct OPTIONS start remains a fresh 3-life/6-health
+entry; replay uses the saved entry snapshot. See tests/test_campaign_hud_carry.py.

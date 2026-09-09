@@ -1,5 +1,34 @@
 # Phase 7 — campaign releases and hardware validation
 
+## Current release — 0.7.0-alpha.7, 10 September 2026
+
+Phase 7A.3 now includes audio OPTIONS, five-track/16-effect Soundtest in HD
+and WHDLoad, P pause, terminal game over with full AGA art and Storm Light,
+centered score/prompt, and HUD carry from Stormrail boarding onward. Normal
+fresh/direct starts use three lives; replay restores section-entry vitals.
+Two ordinary ADFs retain full image/audio quality using lossless disk packing
+and Shrinkler startup compression. Both exceed the 16-KiB free-space reserve.
+
+Build, release packaging, full host suite and independent checkpoint checks
+pass. No automatic emulator run. Earlier HD black-after-Fire remains a known
+unresolved issue; new ADF/WHDLoad, HUD/audio and real-hardware acceptance are
+pending. Do not equate packaging verification with runtime acceptance.
+
+Release set: six alpha.7 HD/ADF/WHDLoad files plus the HD review drawer in dist.
+Alpha.5 is archived intact after alpha.7 verification. Current HD/ADF test
+variants remain alongside the release per explicit user request. User-authored
+itch text, dated development statistics and alpha.5 release-header art have
+been preserved. Alpha.7 itch page copy and new release documents are updated.
+Public itch still serves alpha.68 (checked live 10 September); no itch upload.
+
+Authoritative details: sparkpaw/docs/RELEASE_0_7_0_ALPHA_7.md,
+sparkpaw/docs/RELEASE_NOTES_0_7_0_ALPHA_7.md and
+sparkpaw/docs/ALPHA7_ARTIFACT_SHA256.json. The alpha.6 file is a preserved
+working draft used as the basis for this new release, not a published package.
+
+## Earlier working notes (historical; current release statement above wins)
+
+
 ## Phase 7A.3: campaign soundtrack release — 9 September 2026
 
 Current checkpoint: **0.7.0-alpha.5 / Phase 7A.3**, released 9 September 2026.

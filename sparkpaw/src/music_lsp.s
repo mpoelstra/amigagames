@@ -1,4 +1,9 @@
         code
+        xdef _lsp_active
+_lsp_active:
+        moveq #0,d0
+        move.b lsp_enabled(pc),d0
+        rts
         xdef _lsp_frame
         xdef _lsp_set_once
         xdef _lsp_init

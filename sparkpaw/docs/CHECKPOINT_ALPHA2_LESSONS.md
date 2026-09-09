@@ -347,3 +347,39 @@ the protected HD hash after disk-only changes; host tests can run independently.
   change regenerated ADF hashes even with identical verified file payloads.
 - Report mixer service fractions as measured service time, not guaranteed game
   FPS. Keep hardware limits and remaining shared-effect priority contention clear.
+
+## READY cache bypass regression — 9 September 2026
+
+Extending OPTIONS with audio/SOUNDTEST replaced the accepted precomputed patch
+path in campaign builds. Although final writes were sparse and pixel tests
+passed, live glyph drawing, dust-margin generation and full-image comparisons
+returned to the owned loop. The user reports 020 particles/music stalling again.
+Sparse output alone is not bounded input-time work. All variants/masks and
+transition bounds must be prepared before takeover; future menu extensions
+must preserve that boundary and per-target identity. See the mandatory
+[READY UI performance contract](READY_UI_PERFORMANCE_CONTRACT.md) and its
+normal-suite guard. The repaired candidate still needs user 020 acceptance.
+
+## Alpha.7 — terminal state, first-frame HUD and media budgets
+
+- Final-life loss must be terminal for every death path. Finish an active water
+  splash, preserve the score, and stop gameplay before building game over.
+- Keep the runtime score coordinates generated alongside the static plate.
+  A prompt such as PRESS FIRE TO CONTINUE must match the actual input model.
+- Restoring campaign data is insufficient if the initial HUD still contains
+  new-game defaults. Initialize both hidden buffers from the restored state
+  and select the carried health source during boarding, not only flight.
+  Preserve direct OPTIONS start and section-replay semantics separately.
+- Menu extensions must update offline cache, state mapping and exhaustive
+  reference coverage together. Do not add live rasterization to READY.
+- A failed existing packer proves only that layout/codec combination fails.
+  Measure native assets and executable compression before adding another disk.
+  Exact PCM delta coding and a verified executable cruncher retained two disks
+  without reducing art, instruments or sample fidelity.
+- Keep CRC/bounds checks, exact decoded bytes, per-volume dependencies, normal
+  free-space reserve and source/output hash bindings. ZIP download size does
+  not measure floppy capacity. Native decompression time remains a user gate.
+- Do not infer a game-over return fix from a screenshot of game over itself.
+  The reported black-after-Fire path remains open in alpha.7.
+- Superseded release/test sets are archived intact only after replacements
+  verify. The user explicitly retains current HD and ADF test variants together.

@@ -10,6 +10,7 @@ struct ReadyDustHistory {
     unsigned short offset[READY_DUST_DIRTY];
     unsigned char original[READY_DUST_DIRTY][6];
 };
+void readyDustSetMenuMask(const unsigned char *mask);
 void readyDustRestore(unsigned char **planes,struct ReadyDustHistory *history);
 void readyDustDraw(unsigned char **planes,struct ReadyDustHistory *history,
                    unsigned long frame,const unsigned char *pens,unsigned char state);

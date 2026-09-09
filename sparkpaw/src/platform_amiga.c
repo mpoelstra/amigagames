@@ -28,6 +28,7 @@ static struct View *systemView;
 static UWORD oldDma,oldIntena;
 static BOOL systemLocked,interruptsDisabled;
 static UBYTE gameKeys;
+static BOOL pauseToggleRequested;
 #ifdef SPARKPAW_WHDLOAD
 static BOOL whdloadQuitRequested;
 #endif
@@ -65,6 +66,7 @@ static BOOL profileTimerActive;
 #define GAMEKEY_D 0x08
 #define GAMEKEY_SPACE 0x10
 #define GAMEKEY_ESCAPE 0x20
+#define GAMEKEY_P 0x40
 
 BOOL platformOpen(void)
 {
@@ -127,14 +129,39 @@ void platformFinishTakeover(UWORD *copper)
 
 void platformStartGameplayAudio(void)
 {
+    /* P is gameplay-only; discard any request accumulated in READY/loading. */
+    pauseToggleRequested=FALSE;
+    audioBeginGameplay();
 #ifdef SPARKPAW_LEVEL1_MUSIC
-    if(interruptsDisabled&&!audioInterruptsEnabled&&level1AudioStart()) {
+    if(interruptsDisabled&&!audioInterruptsEnabled&&audioGetMode()!=AUDIO_FX_ONLY&&
+       (audioGetMode()==AUDIO_MUSIC_ONLY?level1AudioStartMusic():level1AudioStart())) {
         /* Keep Exec tasks forbidden; enable only CIA-B music and AUD3. */
-        hardware->intena=0xa400;
+        hardware->intena=audioGetMode()==AUDIO_MUSIC_ONLY?0xa000:0xa400;
         audioInterruptsEnabled=TRUE;
         Enable();
     }
 #endif
+}
+
+/* Return to READY's interrupt-disabled owner without touching its display. */
+void platformStopMenuPreview(void)
+{
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    if(audioInterruptsEnabled) { Disable(); audioInterruptsEnabled=FALSE; }
+#endif
+    audioSetHardwareActive(FALSE);
+    hardware->intena=0x7fff;
+    audioSetHardwareActive(TRUE);
+}
+BOOL platformStartMenuMusic(void)
+{
+#ifdef SPARKPAW_LEVEL1_MUSIC
+    if(interruptsDisabled&&!audioInterruptsEnabled&&level1AudioStartMusic()) {
+        hardware->intena=0xa000; /* EXTER/CIA-B only; no AUD3 mixer. */
+        audioInterruptsEnabled=TRUE; Enable(); return TRUE;
+    }
+#endif
+    return FALSE;
 }
 
 void platformSwitchCopper(UWORD *copper)
@@ -171,14 +198,40 @@ void platformReleaseForLoading(BOOL keepDisplay)
     }
 }
 
+/* Pair ONLY with platformReleaseForLoading(TRUE) on the still-visible READY
+   display. Reacquire ownership without restarting Copper/bitplane pointers
+   at an arbitrary raster line after DOS I/O. */
+void platformResumeMenuAfterLoading(void)
+{
+    UWORD musicDma;
+    hardware->potgo=PORT2_CD32_RESET_HIGH;
+    OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
+    Disable(); interruptsDisabled=TRUE;
+    musicDma=musicIsPlaying()?(hardware->dmaconr&DMAF_AUDIO):0;
+    hardware->intena=0x7fff;
+    /* Retain all display DMA and active LSP channels. Disk/OS sprite DMA
+       must not follow us into the exclusively owned menu. */
+    hardware->dmacon=DMAF_DISK|DMAF_SPRITE|(DMAF_AUDIO&~musicDma);
+    hardware->dmacon=DMAF_SETCLR|DMAF_BLITTER;
+    audioSetHardwareActive(TRUE);
+}
+
 void platformResetGameInput(void)
 {
     gameKeys=0;
+    pauseToggleRequested=FALSE;
 }
 
 BOOL platformGameEscapeRequested(void)
 {
     return (gameKeys&GAMEKEY_ESCAPE)!=0;
+}
+
+BOOL platformGamePauseToggleRequested(void)
+{
+    BOOL requested=pauseToggleRequested;
+    pauseToggleRequested=FALSE;
+    return requested;
 }
 
 void platformRestore(void)
@@ -343,32 +396,45 @@ static void acknowledgeKeyboard(void)
     CIAA_CRA&=(UBYTE)~CIACRAF_SPMODE;
 }
 
+static void handleGameRawKey(UBYTE code)
+{
+    UBYTE flag=0;
+#ifdef SPARKPAW_WHDLOAD
+    /* Exec's keyboard interrupt cannot reach the KickEmu quit-key patch while
+       Sparkpaw owns the machine, so preserve F10 explicitly. */
+    if(code==0x59) whdloadQuitRequested=TRUE;
+#endif
+    switch(code&0x7f) {
+        case 0x11: flag=GAMEKEY_W; break;
+        case 0x19:
+            /* Ignore key-repeat: one physical P press produces one toggle. */
+            if(code&0x80) gameKeys&=(UBYTE)~GAMEKEY_P;
+            else {
+                if(!(gameKeys&GAMEKEY_P)) pauseToggleRequested=TRUE;
+                gameKeys|=GAMEKEY_P;
+            }
+            return;
+        case 0x20: flag=GAMEKEY_A; break;
+        case 0x21: flag=GAMEKEY_S; break;
+        case 0x22: flag=GAMEKEY_D; break;
+        case 0x40: flag=GAMEKEY_SPACE; break;
+        case 0x45: flag=GAMEKEY_ESCAPE; break;
+    }
+    if(flag) {
+        if(code&0x80) gameKeys&=(UBYTE)~flag;
+        else gameKeys|=flag;
+    }
+}
+
 void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
                           BOOL *jump,BOOL *fire)
 {
-    UBYTE code,flag=0;
+    UBYTE code;
     if(CIAA_ICR&CIAICRF_SP) {
         code=(UBYTE)~CIAA_SDR;
         code=(UBYTE)((code>>1)|(code<<7));
         acknowledgeKeyboard();
-#ifdef SPARKPAW_WHDLOAD
-        /* Once Sparkpaw owns the custom chips, Exec's keyboard interrupt no
-           longer reaches the KickEmu quit-key patch. Preserve F10 explicitly
-           and return through the program/slave boundary instead. */
-        if(code==0x59) whdloadQuitRequested=TRUE;
-#endif
-        switch(code&0x7f) {
-            case 0x11: flag=GAMEKEY_W; break;
-            case 0x20: flag=GAMEKEY_A; break;
-            case 0x21: flag=GAMEKEY_S; break;
-            case 0x22: flag=GAMEKEY_D; break;
-            case 0x40: flag=GAMEKEY_SPACE; break;
-            case 0x45: flag=GAMEKEY_ESCAPE; break;
-        }
-        if(flag) {
-            if(code&0x80) gameKeys&=(UBYTE)~flag;
-            else gameKeys|=flag;
-        }
+        handleGameRawKey(code);
     }
     *left=(gameKeys&GAMEKEY_A)!=0;
     *right=(gameKeys&GAMEKEY_D)!=0;

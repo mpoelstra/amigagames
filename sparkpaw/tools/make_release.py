@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.7.0-alpha.5"
+RELEASE_VERSION = "0.7.0-alpha.7"
 ROADMAP_CHECKPOINT = "7A.3"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -88,7 +88,8 @@ Level 1 results offer REPLAY LEVEL or CONTINUE. Stormrail results offer
 REPLAY LEVEL or BACK TO TITLE. Replay stays resident; continuing carries
 remaining lives, health and the live diamond meter into Stormrail.
 Esc abandons the run and returns to the ready screen. OPTIONS includes a
-section start selector for testing and the secondary-button assignment.
+section start selector, secondary-button assignment and gameplay audio mode.
+HD/WHDLoad also include a SOUNDTEST for all 16 effects and five themes.
 
 Requirements: PAL Amiga A1200 / AGA, 68020 or better, 2 MB Chip + 8 MB Fast RAM.
 This package is the complete ordinary HD edition. Copy the entire drawer to
@@ -96,7 +97,7 @@ your hard drive and launch Sparkpaw (Workbench icon or Shell). Keep the
 assets/runtime directory beside the executable. No installer is needed.
 
 Controls: joystick port 2 or keyboard. Keyboard A/D move, W jumps, S crouches,
-and Space shoots/confirms. Joystick directions move; Up jumps, Down crouches,
+Space shoots/confirms, and P pauses/resumes gameplay. Joystick directions move; Up jumps, Down crouches,
 and Fire shoots/confirms. The secondary joystick button can be
 assigned to Jump or Fire in OPTIONS. In flight use directions to steer.
 Stop/reset after play; this build has no diagnostic log-save action.
@@ -107,7 +108,7 @@ connected campaign flow, carried vitals, resident replay and section selection.
 The Level-1 renderer retains small tested optimizations, but no noticeable
 speed increase is claimed.
 
-Alpha.5 adds Copper Sprint for Level 1 and Iron Horizon for Stormrail.
+Alpha.7 includes Copper Sprint for Level 1 and Iron Horizon for Stormrail.
 Three Paula channels play music; two software-mixed effect voices share the
 fourth. Existing shots, hurt, pickups, debris and Harrier warning/fire cues
 remain active. Music continues through life resets; results retain their tally
@@ -115,11 +116,21 @@ sounds and replay restarts the track. Intro/title retain all four channels.
 
 Hero Drive accompanies the HD/WHDLoad story intro; Neon Sky plays from title
 through READY. READY has wind particles, orange sparks and smoother 68020
-menu handling. Intro skipping and direct Stormrail loading retain alpha.4 fixes.
+menu handling. AUDIO MODE selects SFX only, music only or both during gameplay;
+title and results audio are unchanged. HD/WHDLoad SOUNDTEST previews every
+effect and Hero Drive, Neon Sky, Copper Sprint, Iron Horizon and Storm Light. P freezes the
+gameplay simulation and elapsed time while the soundtrack continues.
+Intro skipping and direct Stormrail loading retain alpha.4 fixes.
 The two-ADF edition starts at title (no story intro), preserves music/SFX
-losslessly, and has 15 KiB free on Disk1 and 159 KiB on Disk2. Disk-only packed
+losslessly, and keeps at least 16 KiB free on each disk. Disk-only packed
 READY tables and audio unpack before use; there is no gameplay decompression.
-Use both alpha.5 disks together; older disk pairs have different media markers.
+The executable unpacks at startup. Losing the final life shows GAME OVER,
+the total campaign score and Storm Light. PRESS FIRE TO CONTINUE returns to
+the title. Carried lives/health now appear from the first Stormrail boarding
+frame; OPTIONS -> Stormrail still starts with 3 lives and full health.
+Known issue: an earlier HD test was reported to stay black after Fire on the
+game-over screen. The cause and a fix are not yet verified.
+Use both alpha.7 disks together; older disk pairs have different media markers.
 
 User emulator testing reports working HD and two-ADF music/campaign builds.
 This alpha is ready for real-hardware testing, not a claim of completed native
@@ -382,9 +393,9 @@ def main() -> None:
     paths = [zip_path, lha_path]
     # Rebuild/read back the same accepted two-disk route; no legacy one-level ADF.
     for tool in ("generate_disk_status.py", "test_multidisk_probe.py",
-                 "build_multidisk_probe.py", "package_multidisk_probe.py"):
-        # Music campaign has less than the usual 16 KiB spare; keep all readback checks.
-        args = ["--minimum-free-blocks", "24"] if tool == "package_multidisk_probe.py" else []
+                 "build_multidisk_probe.py", "crunch_adf_executable.py", "package_multidisk_probe.py"):
+        # Preserve the ordinary 16 KiB reserve and bind the crunched binary.
+        args = ["--crunched-executable", str(ROOT / "build/multidisk-probe/Sparkpaw-crunched")] if tool == "package_multidisk_probe.py" else []
         subprocess.run([sys.executable, str(ROOT / "tools" / tool), *args], cwd=ROOT, check=True)
     for disk in (1, 2):
         source = ROOT / "build/multidisk-probe" / f"Sparkpaw-Disk{disk}.adf"

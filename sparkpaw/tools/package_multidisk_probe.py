@@ -7,7 +7,7 @@ Never writes dist or the accepted HD/original alpha.68 artifacts.
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 from campaign_asset_manifest import SHARED_PRESENTATION,SHARED_GAMEPLAY,LEVEL1,STORMRAIL,LEVEL1_HD_AUDIO,STORMRAIL_HD_AUDIO
-from pack_disk_asset import pack as lz,decode as unlz
+from pack_disk_asset import pack as lz,decode as unlz,pack_delta
 from pack_adf_asset import pack as rle,decode as unrle
 from runtime_asset_refs import executable_runtime_files
 ROOT=Path(__file__).resolve().parents[1]
@@ -26,7 +26,7 @@ stormrail-flight-rear.spbm stormrail-heart.spbm stormrail-family.spbm stormrail-
 energy-shot.raw player-hurt.raw enemy-hit.raw enemy-death.raw strider-shot.raw
 harrier-fan-charge.raw harrier-fan-fire.raw harrier-hunter-charge.raw harrier-hunter-fire.raw
 jump.raw collect-spark.raw water-splash.raw stormstone-core.raw tally-tick.raw extra-life.raw
-sparkpaw-ready-screen.spbm readymenu.spbm sparkpaw-level-complete.spbm sparkpaw-score-glyphs.spbm
+sparkpaw-ready-screen.spbm game-over.spbm storm-light.lsmusic storm-light.lsbank sparkpaw-level-complete.spbm sparkpaw-score-glyphs.spbm
 disk1-patch.spbm disk2-patch.spbm ready-dust-mask.bin
 pulse-score.bin pulse-bank.bin rail-score.bin rail-bank.bin'''.split()
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -34,9 +34,17 @@ def main():
  import argparse
  parser=argparse.ArgumentParser()
  parser.add_argument("--minimum-free-blocks",type=int,default=32,help="Required free 512-byte blocks per disk (default: 32)")
+ parser.add_argument("--crunched-executable",type=Path,help="Verified cruncher output; reference coverage still uses the original build")
  args=parser.parse_args()
  assert args.minimum_free_blocks>=1
- common=(SHARED_PRESENTATION-{n for n in SHARED_PRESENTATION if n.startswith(('intro','hero-drive.'))})|SHARED_GAMEPLAY|{'disk1-patch.spbm','disk2-patch.spbm','ready-dust-mask.bin'}
+ build=json.loads((OUT/'build.json').read_text())
+ assert '-DSPARKPAW_GAME_OVER_ADF' in build['flags'], 'SP07G disk markers require matching executable'
+ assert sha((OUT/'Sparkpaw').read_bytes())==build['sha256']
+ if args.crunched_executable:
+  proof=json.loads(args.crunched_executable.with_suffix('.json').read_text())
+  assert proof['input_sha256']==build['sha256'], 'crunched executable is stale'
+  assert proof['output_sha256']==sha(args.crunched_executable.read_bytes())
+ common=((SHARED_PRESENTATION-{'readymenu.spbm'})-{n for n in SHARED_PRESENTATION if n.startswith(('intro','hero-drive.'))})|SHARED_GAMEPLAY|{'disk1-patch.spbm','disk2-patch.spbm','ready-dust-mask.bin'}
  sets=[common|LEVEL1|LEVEL1_HD_AUDIO|{n for n in STORMRAIL if n.endswith('.raw')},common|STORMRAIL|STORMRAIL_HD_AUDIO|(LEVEL1-{'storm-front.spbm','storm-rear.spbm','sparkpaw-sprites4.spbm'})]
  allnames=set.union(*map(set,sets));assert allnames==set(ORDER)
  payloads={};rows={}
@@ -44,14 +52,16 @@ def main():
  for name in ORDER:
   source=(OUT/'status'/name) if name.startswith('disk') or name=='ready-dust-mask.bin' else ROOT/'assets/runtime'/name
   raw=source.read_bytes();data=raw;target=name
-  if name.endswith(('.spbm','.raw')) or name.startswith('neon-sky.') or name in LEVEL1_HD_AUDIO|STORMRAIL_HD_AUDIO or name=='ready-dust-mask.bin':
-   data=min((rle(raw),lz(raw)),key=len);assert (unlz(data) if data[:4]==b'SPL1' else unrle(data))==raw
+  if name.endswith(('.spbm','.raw')) or name.startswith(('neon-sky.','storm-light.')) or name in LEVEL1_HD_AUDIO|STORMRAIL_HD_AUDIO or name=='ready-dust-mask.bin':
+   candidates=[rle(raw),lz(raw)]
+   if name.endswith('.lsbank'):candidates.append(pack_delta(raw))
+   data=min(candidates,key=len);assert (unlz(data) if data[:4] in (b'SPL1',b'SPD1') else unrle(data))==raw
    if name.endswith('.spbm'):target=ALIAS.get(name,name[:-5]+'.spr1')
    p=packed/target;p.write_bytes(data)
    subprocess.run([str(OUT/'tests/reader'),str(p),str(source),'1'],check=True)
   assert len(target)<=30
   payloads[name]=(target,data)
-  rows[name]={'disk_name':target,'raw_bytes':len(raw),'stored_bytes':len(data),'codec':data[:4].decode() if name.endswith(('.spbm','.raw')) or name.startswith('neon-sky.') or name in LEVEL1_HD_AUDIO|STORMRAIL_HD_AUDIO or name=='ready-dust-mask.bin' else 'raw','decoded_sha256':sha(raw)}
+  rows[name]={'disk_name':target,'raw_bytes':len(raw),'stored_bytes':len(data),'codec':data[:4].decode() if name.endswith(('.spbm','.raw')) or name.startswith(('neon-sky.','storm-light.')) or name in LEVEL1_HD_AUDIO|STORMRAIL_HD_AUDIO or name=='ready-dust-mask.bin' else 'raw','decoded_sha256':sha(raw)}
  embedded=executable_runtime_files(OUT/'Sparkpaw')
  available={target for target,data in payloads.values()}
  for name in embedded:
@@ -70,13 +80,13 @@ def main():
  reports=[]
  for disk,names in enumerate(sets,1):
   stage=OUT/f'disk{disk}-files';stage.mkdir(exist_ok=True)
-  files={'Sparkpaw.disk':f'SP07M{disk}\n'.encode()}
-  if disk==1:files={'Sparkpaw':(OUT/'Sparkpaw').read_bytes(),'S/startup-sequence':b'Sparkpaw\n',**files}
+  files={'Sparkpaw.disk':f'SP07G{disk}\n'.encode()}
+  if disk==1:files={'Sparkpaw':(args.crunched_executable or OUT/'Sparkpaw').read_bytes(),'S/startup-sequence':b'Sparkpaw\n',**files}
   for name in ORDER:
    if name in names:
     target,data=payloads[name];files['assets/runtime/'+target]=data
   adf=OUT/f'Sparkpaw-Disk{disk}.adf'
-  cmd=[sys.executable,'-m','amitools.tools.xdftool','-f',str(adf),'format',f'SP07M{disk}','DOS1']
+  cmd=[sys.executable,'-m','amitools.tools.xdftool','-f',str(adf),'format',f'SP07G{disk}','DOS1']
   if disk==1:cmd+=['+','boot','install']
   for directory in (['S'] if disk==1 else [])+['assets','assets/runtime']:cmd+=['+','makedir',directory]
   subprocess.run(cmd,env=env,check=True)

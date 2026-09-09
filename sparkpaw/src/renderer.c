@@ -1813,9 +1813,8 @@ static void setHudPointers(void)
     UBYTE health=player->health<=PLAYER_MAX_HEALTH?player->health:
                                                   PLAYER_MAX_HEALTH;
 #ifdef SPARKPAW_STORMRAIL_PROOF
-    if(game->stormrailActive&&
-       game->stormrailMode>=STORMRAIL_MODE_LAUNCH_OUT)
-        health=game->stormrailHealth;
+    /* Campaign health already belongs to Stormrail during approach/boarding. */
+    if(game->stormrailActive) health=game->stormrailHealth;
 #endif
     const struct BitMap *display;
     WORD plane;
@@ -4129,6 +4128,36 @@ void rendererResetGameplay(void)
     SPRITE_STAGE_CACHE_COMMIT(&hwSpriteStageCache[0],0,0);
     SPRITE_STAGE_CACHE_COMMIT(&hwSpriteStageCache[1],0,0);
     setScroll(0,0);
+}
+
+/* Terminal transition only: freeze geometry, fade every AGA colour write
+   (including low nibbles and HUD/sprite banks) on the inactive Copper list. */
+void rendererFadeOut(void)
+{
+#ifdef SPARKPAW_ROLLING_PROTOTYPE
+    UWORD original[COP_WORDS],frame,i,value,level;
+    UBYTE target;
+    CopyMem(prototypeCopper[prototypeActiveCopper],original,sizeof(original));
+    for(frame=1;frame<=24;frame++) {
+        UWORD *next;
+        target=(UBYTE)(prototypeActiveCopper^1); next=prototypeCopper[target];
+        CopyMem(original,next,sizeof(original)); level=(UWORD)(24-frame);
+        for(i=0;i+1<COP_WORDS;i+=2) {
+            if(original[i]==0xffff&&original[i+1]==0xfffe) break;
+            if(original[i]>=0x180&&original[i]<=0x1be&&!(original[i]&1)) {
+                value=original[i+1];
+                next[i+1]=(UWORD)((((value>>8)&15)*level/24)<<8|
+                                  (((value>>4)&15)*level/24)<<4|
+                                   (value&15)*level/24);
+            }
+        }
+        while(platformRasterLine()<300) { }
+        while(platformRasterLine()>=300) { }
+        platformSwitchCopper(next); prototypeActiveCopper=target;
+    }
+    while(platformRasterLine()<300) { }
+    while(platformRasterLine()>=300) { }
+#endif
 }
 
 void rendererCleanup(void)

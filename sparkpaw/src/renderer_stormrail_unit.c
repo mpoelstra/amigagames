@@ -2,6 +2,7 @@
 #define rendererLoadGameplay rendererStormrailLoadGameplay
 #define rendererPrepareGameplay rendererStormrailPrepareGameplay
 #define rendererResetGameplay rendererStormrailResetGameplay
+#define rendererFadeOut rendererStormrailFadeOut
 #define rendererCleanup rendererStormrailCleanup
 #define rendererCopperList rendererStormrailCopperList
 #define rendererUpdateGameplay rendererStormrailUpdateGameplay

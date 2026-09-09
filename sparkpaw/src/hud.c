@@ -150,7 +150,11 @@ static void composeCpu(UBYTE index,UBYTE health,UBYTE lives,UBYTE diamonds,
 
 BOOL hudPrepare(void)
 {
-    UBYTE index;
+    const struct GameState *state=gameState();
+    UBYTE health=playerState()->health,index;
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(state->stormrailActive) health=state->stormrailHealth;
+#endif
     base=assetsHudBase(); healthAtlas=assetsHudHealth();
     livesAtlas=assetsHudLives(); diamondsAtlas=assetsHudDiamonds();
     scoreAtlas=assetsHudScore();
@@ -174,7 +178,9 @@ BOOL hudPrepare(void)
             return FALSE;
         if(index==0) hudStride=buffers[index]->BytesPerRow;
         else if(buffers[index]->BytesPerRow!=hudStride) return FALSE;
-        composeCpu(index,PLAYER_MAX_HEALTH,GAME_START_LIVES,0,0);
+        /* Both unpublished buffers must match the restored run before the
+           first Copper list can point at either of them. */
+        composeCpu(index,health,state->lives,state->diamonds,state->score);
     }
     blankPlane=(UBYTE *)AllocMem((LONG)hudStride*HUD_H,
                                  MEMF_CHIP|MEMF_CLEAR);
@@ -201,7 +207,8 @@ void hudSetState(UBYTE health,UBYTE lives,UBYTE diamonds,ULONG score)
     UBYTE next=(UBYTE)(current^1);
     UBYTE position,oldDigits[SCORE_DIGITS],newDigits[SCORE_DIGITS];
     if(health>PLAYER_MAX_HEALTH) health=PLAYER_MAX_HEALTH;
-    if(lives<1||lives>GAME_MAX_LIVES) lives=GAME_START_LIVES;
+    if(!lives) lives=1; /* Final water splash retains the last-attempt icon. */
+    if(lives>GAME_MAX_LIVES) lives=GAME_START_LIVES;
     if(diamonds>=DIAMOND_STATES) diamonds=DIAMOND_STATES-1;
     score=visibleScore(score);
     if(bufferHealth[current]==health&&bufferLives[current]==lives&&

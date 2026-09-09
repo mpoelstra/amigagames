@@ -1,5 +1,108 @@
 # Sparkpaw: The Stormstone Quest
 
+## Current release — 0.7.0-alpha.7, 10 September 2026
+
+Phase 7A.3 now includes audio OPTIONS, five-track/16-effect Soundtest in HD
+and WHDLoad, P pause, terminal game over with full AGA art and Storm Light,
+centered score/prompt, and HUD carry from Stormrail boarding onward. Normal
+fresh/direct starts use three lives; replay restores section-entry vitals.
+Two ordinary ADFs retain full image/audio quality using lossless disk packing
+and Shrinkler startup compression. Both exceed the 16-KiB free-space reserve.
+
+Build, release packaging, full host suite and independent checkpoint checks
+pass. No automatic emulator run. Earlier HD black-after-Fire remains a known
+unresolved issue; new ADF/WHDLoad, HUD/audio and real-hardware acceptance are
+pending. Do not equate packaging verification with runtime acceptance.
+
+Release set: six alpha.7 HD/ADF/WHDLoad files plus the HD review drawer in dist.
+Alpha.5 is archived intact after alpha.7 verification. Current HD/ADF test
+variants remain alongside the release per explicit user request. User-authored
+itch text, dated development statistics and alpha.5 release-header art have
+been preserved. Alpha.7 itch page copy and new release documents are updated.
+Public itch still serves alpha.68 (checked live 10 September); no itch upload.
+
+Authoritative details: sparkpaw/docs/RELEASE_0_7_0_ALPHA_7.md,
+sparkpaw/docs/RELEASE_NOTES_0_7_0_ALPHA_7.md and
+sparkpaw/docs/ALPHA7_ARTIFACT_SHA256.json. The alpha.6 file is a preserved
+working draft used as the basis for this new release, not a published package.
+
+## Earlier working notes (historical; current release statement above wins)
+
+
+## Current HD + ADF comparison — 10 September 2026
+
+Explicit user request: retain both media variants of the latest test state in
+dist. Active set: GameOver-Current-030-HD (launch Sparkpaw) and
+GameOver-2Disk-030-ADF. Both start with normal three lives; HD retains its
+intro/Soundtest. This is one current test generation, an explicit exception to
+only one test drawer. Preserve alpha.5 and archive only superseded generations.
+
+User reports a suspected black screen after Fire on game over, after waiting
+on that screen for a long time. User confirms the earlier HD game-over test, before ADF compression. Do not
+attribute it to the one-second input gate or claim a fix. HD is rebuilt from
+the current source for reproduction/comparison. Native transition acceptance
+is still pending. No runtime change was made on the basis of this report.
+
+
+## Two-disk compression candidate — 10 September 2026
+
+Two standard ADFs now fit the complete centered game-over scene and unchanged
+Storm Light music. Shrinkler reduces the native executable 224,388 -> 89,760
+bytes; lossless SPD1 delta+LZ stores Storm Light's sample bank in 72,031 bytes
+and Neon Sky's in 70,892. Native data reader: 85 host cases pass, including
+full banks and corruption; disk marker/DF0/DF1 source checks pass. Shrinkler
+hunk/relocation verification and complete ADF readback pass. Free blocks:
+Disk1 73 (36.5 KiB), Disk2 185 (92.5 KiB), both above the 32-block reserve.
+New markers SP07G1/SP07G2 prevent mixing with alpha.5 disks.
+
+Active test set: **GameOver-Current-030-HD + GameOver-2Disk-030-ADF**, with normal **three lives**.
+GameOver-Centered-030-HD is now archived under dist/older-builds.
+Latest alpha.5 release remains byte-identical. Native boot, unpack duration,
+audio, single-drive swaps and final hardware acceptance are pending. No auto
+FS-UAE run, release, version change, commit or push. Three disks are no longer
+needed for the measured current content; old three-disk recommendations below
+are superseded. Experimental SPARKPAW_THREE_ADF code is unused.
+Research, sources, comparison and reproduction: docs/ADF_COMPRESSION_RESEARCH.md
+(relative to sparkpaw). Release packaging integration is a later accepted
+checkpoint; the current candidate uses tools/crunch_adf_executable.py followed
+by package_multidisk_probe.py --crunched-executable with its proof JSON.
+
+
+## Standing dist policy — user instruction, 10 September 2026
+
+Keep `sparkpaw/dist/` limited to the **latest alpha release artifact set**
+(all its HD/ADF/WHDLoad packages and extracted release drawers),
+**only the latest test version**, and `older-builds/`. Preserve existing
+fixed user storage such as `my-files/` if present. After staging and verifying
+a newer test, immediately move every superseded test version intact into
+`dist/older-builds/`, including logs, assets and associated `.uaem`/`.info`
+metadata. Never delete or overwrite archived evidence; use a unique archive
+name on collisions. Do not archive the latest alpha release when adding a
+test. Older alpha releases move to older-builds only after a newer release
+is complete and verified. No additional permission is needed for this
+standing housekeeping instruction. An explicit user-requested A/B comparison
+may retain its variants together as the latest test set.
+
+Current release: **0.7.0-alpha.7**.
+Active test set: **GameOver-Current-030-HD + GameOver-2Disk-030-ADF**.
+GameOver-StormLight-030-HD, Soundtest-Resume-HD and StormLight-Soundtest-HD
+are archived under older-builds. Historical test paths below describe prior
+work and must not be interpreted as additional active test versions.
+
+
+READY/Soundtest repair candidate (9 September):
+`sparkpaw/dist/Soundtest-Resume-HD/Sparkpaw-Audio` retains the offline 020 menu
+cache repair and now resumes the still-visible menu after music loading without
+restarting Copper or disabling display DMA. The user reports occasional brief
+glitches when starting another module; source identifies an unsynchronized
+full takeover at that point. Repaired native glitch acceptance remains pending;
+no general 020-cache acceptance is inferred from this report. Mandatory future
+menu rules: `sparkpaw/docs/READY_UI_PERFORMANCE_CONTRACT.md`. Audio options,
+soundtest, local P-pause and layout are retained; alpha.5 release files and
+local itch/statistics/artwork are preserved. No release/commit/push or automatic
+emulator run. The preceding Fast-HD candidate is archived intact.
+
+
 Current checkpoint: **0.7.0-alpha.5 / Phase 7A.3**, released 9 September 2026.
 The sole current release is the six HD/ADF/WHDLoad packages plus HD review
 drawer in `sparkpaw/dist`. The public itch download baseline, checked live,

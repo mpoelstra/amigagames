@@ -19,6 +19,7 @@ void lsp_init(__reg("a0") void *, __reg("a1") void *);
 void lsp_stop(void);
 void lsp_set_once(__reg("d0") UBYTE);
 void lsp_frame(void);
+UBYTE lsp_active(void);
 void lsp_enable(__reg("d0") UBYTE);
 void lsp_set_rate(__reg("d0") UWORD);
 void lsp_vblank_interrupt(void);
@@ -28,7 +29,11 @@ static struct IOAudio *request;
 static UBYTE channels = 0x0f;
 static UBYTE *scoreData, *bankData;
 static ULONG scoreSize, bankSize;
-static BOOL ready, playing, installed;
+#ifdef SPARKPAW_THREE_ADF
+static UBYTE *gameOverScoreCache,*gameOverBankCache;
+static ULONG gameOverScoreSize,gameOverBankSize;
+#endif
+static BOOL ready, playing, installed, titleData;
 static struct Interrupt interrupt;
 static char interruptName[] = "Sparkpaw title LSP";
 
@@ -43,6 +48,16 @@ static void releaseData(void)
 static UBYTE *load(const char *name, ULONG flags, ULONG *size)
 {
 #ifdef SPARKPAW_MULTI_ADF
+#ifdef SPARKPAW_THREE_ADF
+    if(gameOverScoreCache&&gameOverBankCache&&strstr(name,"storm-light.")) {
+        BOOL bank=strstr(name,".lsbank")!=NULL;
+        UBYTE *copy; ULONG bytes=bank?gameOverBankSize:gameOverScoreSize;
+        *size=0; copy=AllocMem(bytes,flags);
+        if(!copy) return NULL;
+        CopyMem(bank?gameOverBankCache:gameOverScoreCache,copy,bytes);
+        *size=bytes; return copy;
+    }
+#endif
     return assetsLoadDiskData(name,flags,size);
 #else
     BPTR f;
@@ -108,21 +123,39 @@ static BOOL musicPlay(const char *score, const char *bank, BOOL once)
         releaseData(); return FALSE;
     }
     Disable(); lsp_init(scoreData, bankData); lsp_set_once((UBYTE)once);
-    playing = TRUE;
+    playing = TRUE; titleData=!once;
     lsp_enable(1); Enable();
     return TRUE;
 }
 
-void musicStop(void)
+void musicSuspend(void)
 {
     Disable(); lsp_enable(0);
     if (playing) { lsp_stop(); playing = FALSE; }
-    Enable(); releaseData();
+    Enable();
+}
+
+void musicStop(void) { musicSuspend(); releaseData(); }
+BOOL musicAudible(void) { return playing&&lsp_active(); }
+/* Resident title restart only; safe with READY's nested Disable. */
+BOOL musicRestartTitle(void)
+{
+    if(!titleData||!scoreData||!bankData) return FALSE;
+    musicSuspend();
+    Disable(); lsp_init(scoreData,bankData); lsp_set_once(0);
+    playing=TRUE; lsp_enable(1); Enable();
+    return TRUE;
 }
 
 void musicShutdown(void)
 {
     musicStop();
+#ifdef SPARKPAW_THREE_ADF
+    if(gameOverScoreCache) FreeMem(gameOverScoreCache,gameOverScoreSize);
+    if(gameOverBankCache) FreeMem(gameOverBankCache,gameOverBankSize);
+    gameOverScoreCache=gameOverBankCache=NULL;
+    gameOverScoreSize=gameOverBankSize=0;
+#endif
     if (ready) {
         if (installed) RemIntServer(INTB_VERTB, &interrupt);
         CloseDevice((struct IORequest *)request);
@@ -155,3 +188,21 @@ BOOL musicPlayIntro(void)
     return FALSE;
 #endif
 }
+
+BOOL musicPlayGameOver(void)
+{
+    BOOL ok=musicPlay("PROGDIR:assets/runtime/storm-light.lsmusic",
+                      "PROGDIR:assets/runtime/storm-light.lsbank",FALSE);
+    titleData=FALSE; /* This bank must never serve a resident Neon restart. */
+    return ok;
+}
+
+#ifdef SPARKPAW_THREE_ADF
+BOOL musicPreloadGameOver(void)
+{
+    if(gameOverScoreCache&&gameOverBankCache) return TRUE;
+    gameOverScoreCache=assetsLoadDiskData("PROGDIR:assets/runtime/storm-light.lsmusic",MEMF_FAST,&gameOverScoreSize);
+    gameOverBankCache=assetsLoadDiskData("PROGDIR:assets/runtime/storm-light.lsbank",MEMF_FAST,&gameOverBankSize);
+    return gameOverScoreCache&&gameOverBankCache;
+}
+#endif

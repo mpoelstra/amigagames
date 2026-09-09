@@ -57,6 +57,7 @@ void lsp_enable(UBYTE n){enabled=n;}
 void lsp_set_rate(UWORD n){assert(n==50);}
 void lsp_vblank_interrupt(void){}
 void lsp_frame(void){if(enabled)framecount++;}
+UBYTE lsp_active(void){return enabled;}
 BOOL musicInitialize(UWORD);BOOL musicPlayTitle(void);void musicStop(void);void musicShutdown(void);
 '''
 main=r'''
@@ -71,6 +72,13 @@ int main(void){
   Disable();musicStop();assert(lockdepth==1&&!enabled&&!memcount);Enable();
   musicOwnedFrame();assert(framecount==i+1);
  }
+ assert(musicPlayTitle());assert(musicAudible());
+ { int opensBefore=alloccall; musicSuspend();assert(!musicAudible()&&memcount==2);
+   Disable();assert(musicRestartTitle());assert(lockdepth==1);Enable();
+   assert(musicAudible()&&memcount==2&&alloccall==opensBefore);
+   enabled=0;assert(!musicAudible());musicStop();assert(!musicRestartTitle());
+ }
+ assert(musicPlayIntro());musicSuspend();assert(!musicRestartTitle());musicStop();
  for(j=1;j<=2;j++){
   alloccall=0;failalloc=j;assert(!musicPlayTitle());assert(!memcount&&!enabled);
  }

@@ -122,3 +122,11 @@ void rendererWriteDiagnosticLog(void)
     else rendererLevel1WriteDiagnosticLog();
 }
 #endif
+
+void rendererLevel1FadeOut(void);
+void rendererStormrailFadeOut(void);
+void rendererFadeOut(void)
+{
+    if(activeRenderer==RENDERER_SECTION_STORMRAIL) rendererStormrailFadeOut();
+    else rendererLevel1FadeOut();
+}

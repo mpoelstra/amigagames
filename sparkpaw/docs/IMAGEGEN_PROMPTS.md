@@ -1301,3 +1301,21 @@ assets/concept/sparkpaw-insert-disk-type-v1.png. generate_disk_status.py convert
 the two bands to 216x24 in the unchanged loading palette inside the 224x40 patch.
 Native and 2x preview inspected. Shared floppy artwork is byte-exact. User
 visual/native acceptance pending; no release change.
+
+
+## Game over — approved V2 (9–10 September 2026)
+
+Built-in imagegen produced `assets/concept/sparkpaw-game-over-v1.png`,
+then `sparkpaw-game-over-v2.png`, using the existing Sparkpaw cover source
+as character reference. Prompt intent: full-screen AGA-style ruined landscape,
+Sparkpaw on a stone ruin, quiet defeat, dark sky and open space above for
+GAME OVER / total score / BACK TO TITLE. V1 looked too rested. The user
+requested “Sparkpaw duidelijker verslagen tonen”; V2 used a bowed head and
+slumped, exhausted pose, alive and without blood. The user explicitly approved:
+“Ja, werk V2 uit”. This is a prompt-intent record, not a verbatim transcript.
+
+`tools/generate_game_over.py` converts V2 to 320x256, six planes, 64 colours,
+black pen 0 and reserved score ink 63. Static labels are baked offline; only
+the total digits are written once into a hidden bitmap before display. Native
+preview: `assets/concept/sparkpaw-game-over-aga64-preview.png`. Same artwork
+for HD, WHDLoad and ADF. Native user acceptance remains pending.

@@ -39,14 +39,21 @@ static void resetLevelRuntime(void)
     game.lastFieldCounter=platformFieldCounter();
 }
 
+/* One attempt includes the currently active life. Zero is terminal. */
+static BOOL loseLife(void)
+{
+    if(game.lives) game.lives--;
+    return game.lives!=0;
+}
+
+BOOL gameOver(void) { return !game.lives&&!game.waterSplashTimer; }
+
 static BOOL applyEnemyDamage(WORD sourceCenterX)
 {
     if(!playerTakeEnemyHit(sourceCenterX)) return FALSE;
     audioPlayPlayerHurt();
     if(playerState()->health) return FALSE;
-    if(game.lives>1) game.lives--;
-    else game.lives=GAME_START_LIVES;
-    resetLevelRuntime();
+    if(loseLife()) resetLevelRuntime();
     audioUpdate();
     return TRUE;
 }
@@ -666,8 +673,7 @@ static void stormrailUpdateEncounters(void)
     }
     if(game.stormrailInvuln) game.stormrailInvuln--;
     if(!game.stormrailHealth) {
-        if(game.lives>1) game.lives--;
-        else game.lives=GAME_START_LIVES;
+        if(!loseLife()) return;
         game.stormrailHealth=PLAYER_MAX_HEALTH;
         game.stormrailInvuln=STORMRAIL_HIT_INVULN;
         game.stormrailDistance=0; game.cameraX=0;
@@ -883,8 +889,7 @@ static void stormrailUpdateFinale(void)
             }
         if(game.stormrailInvuln) game.stormrailInvuln--;
         if(!game.stormrailHealth) {
-            if(game.lives>1) game.lives--;
-            else game.lives=GAME_START_LIVES;
+            if(!loseLife()) return;
             game.stormrailHealth=PLAYER_MAX_HEALTH;
             game.stormrailInvuln=STORMRAIL_HIT_INVULN;
             game.stormrailX=STORMRAIL_FINALE_RESPAWN_X;
@@ -952,6 +957,9 @@ void gameInit(ULONG enemySeed)
     UBYTE stormShot;
     game.cameraX=0; game.frameCounter=0;
     game.lives=GAME_START_LIVES;
+#ifdef SPARKPAW_GAME_OVER_TEST
+    game.lives=1;
+#endif
     game.diamonds=0;
     game.score=0; game.elapsedFields=0;
     game.enemiesDefeated=0; game.diamondsCollected=0;
@@ -1076,6 +1084,7 @@ void gameUpdate(void)
     BOOL left,right,down,jump,fire,wasGrounded;
     WORD playerLeft,playerTop,playerRight,playerBottom,enemyCenterX;
     const struct PlayerState *player=playerState();
+    if(gameOver()) return;
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game.stormrailActive) {
     /* One monotone clock covers departure, boarding, the complete route and
@@ -1245,6 +1254,7 @@ void gameUpdate(void)
 #endif
         if(game.stormrailDistance<STORMRAIL_SLICE_END_DISTANCE) {
             stormrailUpdateEncounters();
+            if(!game.lives) return;
             stormrailUpdateObstacles();
         } else {
             if(stormrailFinaleShouldBegin(game.stormrailDistance,
@@ -1310,7 +1320,7 @@ void gameUpdate(void)
         audioUpdate();
 #endif
         game.frameCounter++;
-        if(!--game.waterSplashTimer) resetLevelRuntime();
+        if(!--game.waterSplashTimer&&game.lives) resetLevelRuntime();
         return;
     }
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -1348,17 +1358,14 @@ void gameUpdate(void)
         audioPlayExtraLife();
     }
     if(levelPlayerTouchesWater(playerLeft,playerRight,playerBottom)) {
-        if(game.lives>1) game.lives--;
-        else game.lives=GAME_START_LIVES;
+        loseLife();
         game.waterSplashX=(WORD)((playerLeft+playerRight)>>1);
         game.waterSplashTimer=16;
         audioPlayWaterSplash();
         return;
     }
     if(levelPlayerFallsInDryGap(playerLeft,playerRight,playerBottom)) {
-        if(game.lives>1) game.lives--;
-        else game.lives=GAME_START_LIVES;
-        resetLevelRuntime();
+        if(loseLife()) resetLevelRuntime();
         audioUpdate();
         return;
     }

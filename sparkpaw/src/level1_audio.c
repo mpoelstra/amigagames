@@ -33,7 +33,11 @@ static UBYTE *fxData[FX_COUNT],*score,*bank,*buffers;
 static ULONG scoreSize,bankSize;
 static UWORD nextBuffer=1;
 static volatile BOOL running;
-static BOOL installed,vectorInstalled;
+static BOOL installed,vectorInstalled,mixing;
+#ifndef SPARKPAW_MULTI_ADF
+static UBYTE *previewScore,*previewBank;
+static ULONG previewScoreSize,previewBankSize;
+#endif
 static struct Interrupt audioInt,*oldAudio;
 static UBYTE oldFilter;
 static struct Library *ciaResource;
@@ -84,12 +88,12 @@ fail:
 void level1AudioIRQ(void)
 {
  hw->intreq=INTF_AUD3;hw->intreq=INTF_AUD3;
- if(!running)return;
+ if(!running||!mixing)return;
  mixRender(&mixer,(int8_t *)(buffers+nextBuffer*MIX_BYTES),MIX_BYTES);
  hw->aud[3].ac_ptr=(UWORD *)(buffers+nextBuffer*MIX_BYTES);
  hw->aud[3].ac_len=MIX_BYTES/2;nextBuffer^=1;
 }
-BOOL level1AudioStart(void)
+static BOOL startAudio(BOOL withEffects)
 {
  UWORD mask;
  if(!installed||running)return FALSE;
@@ -99,10 +103,17 @@ BOOL level1AudioStart(void)
  mt_pause_timer_b();
  memset(&mixer,0,sizeof(mixer));memset(buffers,0,2*MIX_BYTES);nextBuffer=1;
  mask=hw->intenar;
- mt_init((void *)hw,score,bank,0);mt_channelmask((void *)hw,7);
+#ifndef SPARKPAW_MULTI_ADF
+ mt_init((void *)hw,previewScore?previewScore:score,previewBank?previewBank:bank,0);
+#else
+ mt_init((void *)hw,score,bank,0);
+#endif
+ mt_channelmask((void *)hw,7);
  mt_mastervol((void *)hw,48);
  /* Preserve the platform mask across player initialization. */
  hw->intena=0x7fff;hw->intena=0x8000|mask;
+ mixing=withEffects;
+ if(mixing) {
  memset(&audioInt,0,sizeof(audioInt));
  audioInt.is_Node.ln_Type=NT_INTERRUPT;
  audioInt.is_Node.ln_Name="Sparkpaw game mixer";
@@ -112,11 +123,15 @@ BOOL level1AudioStart(void)
  hw->aud[3].ac_ptr=(UWORD *)buffers;hw->aud[3].ac_len=MIX_BYTES/2;
  hw->aud[3].ac_per=322;hw->aud[3].ac_vol=64;
  hw->intreq=INTF_AUD3;hw->intreq=INTF_AUD3;
+ }
  running=TRUE;mt_Enable=1;
  SetICR(ciaResource,3);AbleICR(ciaResource,0x83);
- hw->dmacon=0x8208;
+ if(mixing) hw->dmacon=0x8208;
  return TRUE;
 }
+BOOL level1AudioStart(void) { return startAudio(TRUE); }
+BOOL level1AudioStartMusic(void) { return startAudio(FALSE); }
+
 void level1AudioStop(void)
 {
  UWORD mask;
@@ -134,16 +149,39 @@ void level1AudioStop(void)
 BOOL level1AudioRunning(void){return running;}
 void level1AudioRequest(unsigned id)
 {
- if(!running)return;
+ if(!running||!mixing)return;
  /* Serialize only the two-voice state; level-6 music stays live. */
  hw->intena=INTF_AUD3;mixRequest(&mixer,effects,id);
  hw->intena=INTF_SETCLR|INTF_AUD3;
 }
 void level1AudioUpdate(void)
 {
- if(!running)return;
+ if(!running||!mixing)return;
  hw->intena=INTF_AUD3;mixField(&mixer);hw->intena=INTF_SETCLR|INTF_AUD3;
 }
+#ifndef SPARKPAW_MULTI_ADF
+void level1AudioPreviewClear(void)
+{
+ if(running) return;
+ if(previewScore) FreeMem(previewScore,previewScoreSize);
+ if(previewBank) FreeMem(previewBank,previewBankSize);
+ previewScore=previewBank=NULL;
+}
+/* OS-live only, exclusive audio stopped; keep prepared gameplay data intact. */
+BOOL level1AudioPreviewPrepare(BOOL stormrail)
+{
+ if(running||!installed) return FALSE;
+ level1AudioPreviewClear();
+ if(!stormrail) return TRUE;
+ previewScore=load("PROGDIR:assets/runtime/rail-score.bin",MEMF_FAST,&previewScoreSize);
+ previewBank=load("PROGDIR:assets/runtime/rail-bank.bin",MEMF_CHIP,&previewBankSize);
+ if(!previewScore||!previewBank||previewScoreSize!=17468UL||previewBankSize!=11552UL||
+    memcmp(previewScore+1080,"M.K.",4)) {
+  level1AudioPreviewClear(); return FALSE;
+ }
+ return TRUE;
+}
+#endif
 void level1AudioUnload(void)
 {
  UWORD i;
@@ -152,6 +190,9 @@ void level1AudioUnload(void)
   AbleICR(ciaResource,3);SetICR(ciaResource,3);
   mt_remove();installed=FALSE;Enable();
  }
+#ifndef SPARKPAW_MULTI_ADF
+ level1AudioPreviewClear();
+#endif
  if(buffers){FreeMem(buffers,2*MIX_BYTES);buffers=NULL;}
  for(i=0;i<FX_COUNT;i++)if(fxData[i]){FreeMem(fxData[i],effects[i].length);fxData[i]=NULL;}
  if(score){FreeMem(score,scoreSize);score=NULL;}

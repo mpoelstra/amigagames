@@ -56,6 +56,6 @@ int main(void){
 '''
 with tempfile.TemporaryDirectory() as d:
  p=Path(d);(p/'disk.c').write_text(shim+s+main)
- subprocess.run(['cc','-std=c99','-fsanitize=address,undefined','-I'+str(ROOT/'src'),'-DreadyDustDraw=referenceDraw','-DreadyDustRestore=referenceRestore','-c',str(ROOT/'src/ready_dust.c'),'-o',str(p/'reference.o')],check=True)
+ subprocess.run(['cc','-std=c99','-fsanitize=address,undefined','-I'+str(ROOT/'src'),'-DreadyDustDraw=referenceDraw','-DreadyDustSetMenuMask=referenceSetMenuMask','-DreadyDustRestore=referenceRestore','-c',str(ROOT/'src/ready_dust.c'),'-o',str(p/'reference.o')],check=True)
  subprocess.run(['cc','-std=c99','-fsanitize=address,undefined','-I'+str(ROOT/'src'),str(p/'disk.c'),str(p/'reference.o'),'-o',str(p/'test')],check=True)
  subprocess.run([str(p/'test')],check=True)

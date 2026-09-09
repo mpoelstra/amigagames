@@ -1,0 +1,12 @@
+{
+  "title": "Storm Light",
+  "module_title": "STORM LIGHT SKETCH",
+  "source": "/Users/mpoelstra/Downloads/AMIGAMUSIC/StormLight.mod",
+  "module_bytes": 241534,
+  "module_sha256": "d84d5728feedc51e8c12315056ac448127f400b79f1298e2632254b47c23613b",
+  "status": "User-selected replacement, 10 September 2026; unchanged master shared by HD, WHDLoad and ADF; native playback pending",
+  "lsp_bank_bytes": 202432,
+  "lsp_score_bytes": 5487,
+  "bpm": 125,
+  "frames_50hz": 3077
+}

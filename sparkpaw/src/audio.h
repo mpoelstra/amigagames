@@ -6,6 +6,14 @@
 #include <dos/dos.h>
 #endif
 
+enum AudioMode { AUDIO_FX_ONLY, AUDIO_MUSIC_ONLY, AUDIO_FX_MUSIC };
+void audioSetMode(enum AudioMode mode);
+enum AudioMode audioGetMode(void);
+void audioBeginGameplay(void);
+#ifndef SPARKPAW_MULTI_ADF
+void audioPreviewEffect(unsigned id);
+BOOL audioPreviewEffectPlaying(void);
+#endif
 BOOL audioLoad(void);
 void audioUnload(void);
 void audioSetHardwareActive(BOOL active);

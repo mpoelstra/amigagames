@@ -133,6 +133,7 @@ BOOL gameStormrailActive(void);
 void gameRestoreCampaignVitals(UBYTE lives,UBYTE health,UBYTE diamonds);
 #endif
 void gameUpdate(void);
+BOOL gameOver(void);
 BOOL gameLevelComplete(void);
 const struct GameState *gameState(void);
 

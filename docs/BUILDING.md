@@ -100,3 +100,14 @@ Build with make PYTHON=../.venv/bin/python3 and make release from sparkpaw,
 then run tools/verify_checkpoint_release.py with the same Python environment.
 The ADF pair retains lossless SPL1/SPR1 and explicitly allows a smaller free
 reserve (alpha.3 Disk1: 9 blocks). All-file readback remains mandatory.
+
+## Sparkpaw alpha.7 ADF packing
+
+`make release` builds the ordinary HD/WHDLoad campaign and native ADF variant.
+The ADF executable is compressed by `sparkpaw/tools/crunch_adf_executable.py`
+using vendored Shrinkler source (upstream 17cff110fcded387fe90e632805258d9c8359e94).
+Its host binary is built under ignored `sparkpaw/build/shrinkler`; no host
+binary is committed. Hash-bound input/output verification and a 32-block reserve
+per disk are mandatory. SPD1 sample banks decode byte-exactly via the existing
+streaming LZ reader plus a delta accumulator. Native startup timing remains
+a user test gate. See `sparkpaw/docs/ADF_COMPRESSION_RESEARCH.md`.

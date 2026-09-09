@@ -34,6 +34,7 @@ void assetsUnloadLevelReady(void);
 BOOL assetsLoadLevelReadyMenu(void);
 void assetsUnloadLevelReadyMenu(void);
 BOOL assetsLoadLevelComplete(void);
+BOOL assetsLoadGameOver(void);
 void assetsUnloadLevelComplete(void);
 BOOL assetsLoadScoreGlyphs(void);
 void assetsUnloadScoreGlyphs(void);

@@ -18,7 +18,11 @@ static BOOL findDisk(UBYTE disk)
     APTR window=process->pr_WindowPtr;
     UBYTE drive; BOOL found=FALSE;
     char path[]="DF0:Sparkpaw.disk",marker[8];
-#ifdef SPARKPAW_LEVEL1_MUSIC
+#ifdef SPARKPAW_THREE_ADF
+    const char *wanted=disk==1?"SP08G1\n":disk==2?"SP08G2\n":"SP08G3\n";
+#elif defined(SPARKPAW_GAME_OVER_ADF)
+    const char *wanted=disk==1?"SP07G1\n":"SP07G2\n";
+#elif defined(SPARKPAW_LEVEL1_MUSIC)
     const char *wanted=disk==1?"SP07M1\n":"SP07M2\n";
 #else
     const char *wanted=disk==1?"SP07D1\n":"SP07D2\n";
@@ -41,7 +45,11 @@ static BOOL findDisk(UBYTE disk)
 BOOL diskMediaRequire(UBYTE disk)
 {
     UBYTE frame;
+#ifdef SPARKPAW_THREE_ADF
+    if(disk<1||disk>3) return FALSE;
+#else
     if(disk<1||disk>2) return FALSE;
+#endif
     if(findDisk(disk)) return TRUE;
     if(!titleShowInsertDisk(disk)) return FALSE;
     for(;;) {

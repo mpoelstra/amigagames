@@ -53,7 +53,7 @@ assert "SCORE_MENU_BACK_ROW" in title
 assert "SCORE_MENU_ARROW_X" in title
 assert "selection=(menuMode!=1)?1:0" in title
 assert "BOOL directionHeld=TRUE;" in title
-show_results = main.split("if(!titleShowLevelComplete())", 1)[1].split(
+show_results = main.split("result->score):titleShowLevelComplete()))", 1)[1].split(
     "platformFinishTakeover(titleCopperList())", 1)[0]
 assert "platformResetGameInput();" in show_results
 assert "playerState()->health,result->diamonds" in main
@@ -67,7 +67,7 @@ assert "case 0x45: flag=GAMEKEY_ESCAPE;" in (
     ROOT / "src/platform_amiga.c").read_text()
 assert "if(platformGameEscapeRequested())" in main
 escape_return = main.split("if(state==APP_RETURN_READY)", 1)[1].split(
-    "if(state==APP_LEVEL_COMPLETE)", 1)[0]
+    "if(state==APP_LEVEL_COMPLETE||state==APP_GAME_OVER)", 1)[0]
 assert "campaignReset(&campaign);" in escape_return
 assert "startSection=CAMPAIGN_START_STORM_RUINS;" in escape_return
 assert "titleShowMain()" in escape_return
@@ -88,7 +88,7 @@ assert handoff.index("installCopper(next)") < handoff.index(
 assert "titleShowMainFromResults()" in main
 back = main.split("if(decision==RESULT_DECISION_BACK_TO_TITLE)", 1)[1]
 assert back.index("rendererCleanup()") < back.index("titleShowMainFromResults()")
-results_branch = main.split("if(state==APP_LEVEL_COMPLETE)", 1)[1]
+results_branch = main.split("if(state==APP_LEVEL_COMPLETE||state==APP_GAME_OVER)", 1)[1]
 fade_transition = results_branch.split("titleFadeOut();", 1)[1]
 assert "platformReleaseForLoading(TRUE);" in fade_transition[:700]
 print("PASS: campaign decisions, section loads and Level-1 isolation are wired")

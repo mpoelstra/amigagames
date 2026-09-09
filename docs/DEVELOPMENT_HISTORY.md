@@ -1,5 +1,56 @@
 # Sparkpaw and Amiga prototypes: development history
 
+## 10 September 2026 — alpha.7 release
+
+## Current release — 0.7.0-alpha.7, 10 September 2026
+
+Phase 7A.3 now includes audio OPTIONS, five-track/16-effect Soundtest in HD
+and WHDLoad, P pause, terminal game over with full AGA art and Storm Light,
+centered score/prompt, and HUD carry from Stormrail boarding onward. Normal
+fresh/direct starts use three lives; replay restores section-entry vitals.
+Two ordinary ADFs retain full image/audio quality using lossless disk packing
+and Shrinkler startup compression. Both exceed the 16-KiB free-space reserve.
+
+Build, release packaging, full host suite and independent checkpoint checks
+pass. No automatic emulator run. Earlier HD black-after-Fire remains a known
+unresolved issue; new ADF/WHDLoad, HUD/audio and real-hardware acceptance are
+pending. Do not equate packaging verification with runtime acceptance.
+
+Release set: six alpha.7 HD/ADF/WHDLoad files plus the HD review drawer in dist.
+Alpha.5 is archived intact after alpha.7 verification. Current HD/ADF test
+variants remain alongside the release per explicit user request. User-authored
+itch text, dated development statistics and alpha.5 release-header art have
+been preserved. Alpha.7 itch page copy and new release documents are updated.
+Public itch still serves alpha.68 (checked live 10 September); no itch upload.
+
+Authoritative details: sparkpaw/docs/RELEASE_0_7_0_ALPHA_7.md,
+sparkpaw/docs/RELEASE_NOTES_0_7_0_ALPHA_7.md and
+sparkpaw/docs/ALPHA7_ARTIFACT_SHA256.json. The alpha.6 file is a preserved
+working draft used as the basis for this new release, not a published package.
+
+
+## 9 September 2026 — audio OPTIONS / HD soundtest candidate
+
+User approved implementation after research. Added session gameplay audio mode,
+HD/WHDLoad effect/track previews with explicit player handoff, and consistent
+right-aligned labels beside left-aligned values in both menus. Stacked layout
+rejected by user and replaced. HD candidate: Audio-Options-030-HD. Layout revision 2 responds to user native
+screenshots: centred column block, reduced gaps, consistent 16px row pitch,
+standalone main-menu-style SOUNDTEST/BACK actions and preview instructions.
+Host checks and native compilation are evidence only for their tested scope;
+user FS-UAE 68030, 68020 and hardware acceptance are pending. No automatic
+emulator run, new release, commit or push. Existing alpha.5 packages preserved.
+
+The same pending HD candidate later adds gameplay pause on raw key P. A keydown
+edge toggles pause; release is required before another toggle, so Amiga keyboard
+repeat cannot oscillate the state. While paused, the main loop polls keyboard
+once per PAL field but skips game update, elapsed time, renderer preparation,
+Bob drawing and publication. The last complete frame stays displayed. CIA music
+and active Paula effects continue, avoiding a new interrupt/DMA handoff in this
+first bounded implementation. Escape and WHDLoad F10 remain live. Host coverage
+checks the actual raw-key handler and loop ordering; native acceptance is open.
+
+
 ## 2026-09-04 - Campaign loop candidate
 
 - Accepted the isolated complete-Stormrail results baseline.
@@ -7442,3 +7493,66 @@ Superseded releases and test drawers are preserved intact in `dist/older-builds`
   change regenerated ADF hashes even with identical verified file payloads.
 - Report mixer service fractions as measured service time, not guaranteed game
   FPS. Keep hardware limits and remaining shared-effect priority contention clear.
+
+Audio menu layout revision 3: user native screenshots exposed shifting columns
+from current-value width calculation. Fixed maximum widths per page now keep
+labels stationary; shortened modes to SFX ONLY / MUSIC ONLY / SFX + MUSIC.
+SOUNDTEST/BACK use value-size grey-white type, cyan with lines on selection.
+Host UI/control checks and rebuilt HD candidate; native acceptance pending.
+
+Layout revision 4 follows the user's marked-up native screenshots: OPTIONS and
+SOUNDTEST now use the same screen-centred 16px label/value gutter, independent
+of value width and selection arrows. Action lines are 12px wide, sit 8px from
+their own text, and the lower actions use tighter deliberate vertical spacing.
+The preview hint is centred between MUSIC TEST and BACK and disappears when
+BACK is selected. Both menu return actions were subsequently renamed from
+CANCEL to BACK for clearer navigation wording.
+
+Soundtest SFX Fire behaviour changed from a play/stop toggle to immediate
+edge-triggered retriggering. Every fresh press starts the effect, while held
+Fire remains latched to one trigger. Music retains its play/stop toggle.
+
+## 2026-09-09 — READY audio-options 020 cache repair candidate
+
+User reports selection-time music/dust stalls returning after audio-options
+expansion. Source confirms campaign code bypassed alpha.3 ready_patch and
+rasterized all text/masks plus scanned each hidden history on every edit.
+Moved layout rasterization/difference discovery offline; 77 deduplicated bands
+represent all 878 HD/ADF states. Runtime decodes during live CHARGING, selects
+five IDs and CPU-copies precomputed rectangles into the hidden target after
+dust restore. Exact per-state dust masks and both target identities retained.
+
+Actual C parity against frozen layout covers 878 states and 4656 selections,
+all band pairs, stale targets, idempotence and real dust restoration. The full
+host suite passes. Native HD/WHD compilation and 68020 assembly inspection
+support code correctness/shape, not native cadence. Fast UI allocation grows
+72800 -> 278111 bytes; no Chip bitmap added. Disk stream is 65403 bytes plus
+mapping/bounds; no new ADF capacity claim or packaging. Frame hot path contains
+no rasterizer, decompression, full-image scan or pixel-history writes.
+
+Mandatory contract: sparkpaw/docs/READY_UI_PERFORMANCE_CONTRACT.md, linked in
+handoff/README/status and source. Normal make test checks generation freshness,
+frame preparation order, campaign cache call sites and runtime scan exclusions.
+Candidate dist/Audio-Options-Fast-HD/Sparkpaw-Audio awaits user 020 navigation,
+page transition and music/dust acceptance. Previous complete audio-options
+drawer archived intact. Alpha.5 files and local itch/stats/artwork preserved.
+No new layout/audio policy/gameplay change, emulator, release, commit or push.
+
+## 2026-09-09 — Soundtest retained-display resume candidate
+
+User reports occasional short visual glitches on selecting/starting another
+music module, with correct music/display afterward, and requests the fix.
+Both preview load and Neon reload on return called platformFinishTakeover:
+display DMA disable and immediate COPJMP1 at an uncontrolled raster position.
+This is a source-grounded cause, not a captured-frame diagnosis.
+
+Added platformResumeMenuAfterLoading for the paired release(TRUE) READY path.
+It reacquires the same locks/interrupt ownership, disables disk/sprite/inactive
+audio DMA and enables Blitter without touching Copper, master or raster DMA.
+Active LSP channels stay running; normal first/gameplay takeover is unchanged.
+Actual-function MMIO tests check every write across 32 audio masks/states and
+both title call sites; all-track/failure/F10 menu lifecycle coverage retained.
+No layout/cache/audio-policy/gameplay or memory-allocation change. Native glitch
+acceptance remains pending in dist/Soundtest-Resume-HD/Sparkpaw-Audio; cache-only
+Fast-HD drawer preserved intact. Alpha.5 release inventory preserved; no emulator,
+release, commit or push. Full host suite/build evidence: build/audio-options/.

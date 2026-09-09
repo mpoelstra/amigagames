@@ -35,7 +35,7 @@ def pack(raw):
 def decode(data):
  if len(data)<16:raise ValueError('header')
  magic,size,crc,n=HEADER.unpack_from(data)
- if magic!=b'SPL1' or n!=len(data)-16:raise ValueError('format')
+ if magic not in (b'SPL1',b'SPD1') or n!=len(data)-16:raise ValueError('format')
  out=bytearray();at=16
  while len(out)<size:
   if at>=len(data):raise ValueError('flags')
@@ -50,5 +50,19 @@ def decode(data):
    else:
     if at>=len(data):raise ValueError('literal')
     out.append(data[at]);at+=1
+ if magic==b'SPD1':
+  previous=0
+  for i,v in enumerate(out):previous=(previous+v)&255;out[i]=previous
  if at!=len(data) or zlib.crc32(out)&0xffffffff!=crc:raise ValueError('integrity')
  return bytes(out)
+
+
+def pack_delta(raw):
+ """Exact 8-bit modular differences, then existing LZSS; CRC is original PCM."""
+ differences=bytes((v-(raw[i-1] if i else 0))&255 for i,v in enumerate(raw))
+ encoded=pack(differences)
+ return HEADER.pack(b'SPD1',len(raw),zlib.crc32(raw)&0xffffffff,len(encoded)-16)+encoded[16:]
+
+def decode_delta(data):
+ if data[:4]!=b'SPD1':raise ValueError('magic')
+ return decode(data)

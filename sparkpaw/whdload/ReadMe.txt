@@ -45,7 +45,8 @@ menu choices. Full story, title, loading/charging and ready/options are included
 Play Storm Ruins, recover the Lightning Core, and CONTINUE into Stormrail.
 Board the Skimmer, fly through formations/debris, then complete the Harrier
 finale and results. Both sections support resident replay. Esc returns to the
-ready screen; BACK TO TITLE clears the campaign. OPTIONS can start Stormrail.
+ready screen; BACK TO TITLE clears the campaign. OPTIONS can start Stormrail,
+choose gameplay audio, and open SOUNDTEST. P pauses/resumes gameplay.
 
 This package now builds the full campaign with the existing WHDLoad F10 hooks,
 not the old single-level executable. All 56 assets are included on the HD data
@@ -54,7 +55,7 @@ volume; no physical disk swaps are needed. Kickstart memory setup is unchanged:
 
 Direct OPTIONS Stormrail starts now show loading. Intro image memory is freed
 only after display DMA stops; LMB skip is latched through fades. Joystick-Fire
-text controls remain unchanged. These retained corrections and the new audio need alpha.5 hardware review.
+text controls remain unchanged. These retained corrections and the new audio/options need alpha.7 hardware review.
 
 Hero Drive plays during the story; Neon Sky accompanies title through READY.
 Copper Sprint plays in Level 1; Iron Horizon plays in Stormrail, alongside
@@ -72,3 +73,8 @@ The Sparkpaw project icon contains an 86x93, 34-colour NewIcons image and an
 86x93 fallback using the eight standard OS 2.x/3.x Workbench pens.
 
 No Kickstart ROM and no WHDLoad executable are redistributed in this package.
+
+GAME OVER: final-life defeat shows total campaign score and Storm Light.
+Fire returns to title. Storm Light is also in Soundtest.
+Known issue: black after Fire was reported in an earlier HD game-over test;
+not yet resolved. Carried health/lives now show from Stormrail boarding.
