@@ -89,7 +89,7 @@ void readyUiCompose(struct ReadyUI *u,unsigned char **atlas,
     memcpy(u->mask,readyUiBaseMask,READY_UI_PLANE);
     if(s->page==READY_PAGE_OPTIONS) {
         medium(u,"OPTIONS",124,READY_UI_CYAN);
-        row(u,"SECOND BUTTON",s->secondary?"FIRE":"JUMP",146,s->row==0,READY_VALUE_X);
+        row(u,"CONTROL",s->secondary?"JOYPAD":"JOYSTICK",146,s->row==0,READY_VALUE_X);
         row(u,"START AT",s->section==2?"DROWNED TURBINES":s->section?"STORMRAIL":"STORM RUINS",162,s->row==1,READY_VALUE_X);
         row(u,"AUDIO MODE",modes[s->mode],178,s->row==2,READY_VALUE_X);
         if(soundtest) action(u,"SOUNDTEST",198,s->row==3);

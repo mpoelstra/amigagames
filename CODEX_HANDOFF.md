@@ -1,5 +1,25 @@
 # Codex handoff: Amiga game workspace
 
+## 2026-09-23 — CONTROL options candidate (unreleased)
+
+The new OPTIONS row is CONTROL with JOYSTICK and JOYPAD. JOYSTICK uses Up
+for jump and ignores port-2 button 2; JOYPAD uses button 2 for jump and ignores
+Up. Primary Fire shoots in both modes; button 2 can no longer shoot. Keyboard
+W/Space remain enabled in both modes with independent press edges, so a held
+controller source does not suppress a fresh keyboard press. Stormrail flight
+uses the selected controller jump/up source for vertical movement. The alpha.9
+port-2 pin-9 pull-up and keyboard ACK corrections remain intact. MrDig reports
+that the focused candidate "lijkt goed"; no exact route, controller, machine
+or emulator configuration was supplied. This is a preliminary positive verdict,
+not real-A1200 or affected-user verification. No new release build was made.
+The integrated HD, ADF and packed-WHDLoad native builds and full host suite pass;
+ADF/WHDLoad were compiled only, not packaged or played. The focused HD drawer is
+`sparkpaw/dist/Controls-Mode-HD/Sparkpaw-Test`, staged with 74 referenced
+assets; all 163 alpha.9 release files remained byte-identical. Its sole
+runtime-asset difference from alpha.9 is `readymenu.spbm`. The approved
+alpha.9 READY base and two main-menu patches are pinned byte-identically.
+The earlier unplayed staging attempt is preserved in `dist/older-builds`.
+
 ## 2026-09-23 — alpha.9 release checkpoint
 
 Final user smoke results: corrected WHDLoad and ordinary HD work in FS-UAE;

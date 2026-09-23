@@ -1,5 +1,15 @@
 # Sparkpaw: The Stormstone Quest
 
+## Unreleased CONTROL options candidate — 23 September 2026
+
+OPTIONS now selects JOYSTICK (Up jumps; button 2 is inactive) or JOYPAD
+(button 2 jumps; Up is inactive). The primary button shoots in either mode.
+W and Space remain active in both modes. Keyboard presses have independent
+edges from controller presses, preserving the alpha.9 pull-up and keyboard ACK
+corrections. MrDig says the focused candidate "lijkt goed"; the route and
+configuration were not supplied. This is not a new release or real-hardware
+verification.
+
 ## 0.7.0-alpha.9 / Phase 7B.1 local release — 23 September 2026
 
 This alpha integrates the accepted three-section campaign in HD,
@@ -1053,10 +1063,10 @@ stock 68020 configuration with the full 2 MB Chip plus 8 MB Fast minimum.
 
 ## Controls
 
-- Ready menu: up/down selects, Fire/Space confirms; Options left/right assigns
-  the secondary button to Jump or Fire for the current run
-- Joystick port 2: left/right to run, up to jump and primary fire to shoot;
-  the secondary button follows the selected option and defaults to jump
+- Ready menu: up/down selects, Fire/Space confirms; Options left/right selects
+  CONTROL: JOYSTICK or JOYPAD for the current run
+- Joystick port 2: left/right to run and primary Fire to shoot. JOYSTICK uses
+  Up to jump and ignores button 2; JOYPAD uses button 2 to jump and ignores Up
 - Hold down to crouch; down plus left/right performs a slower crouch-walk
 - Press fire while crouching or crouch-walking to shoot from a dedicated low pose
 - Keyboard: `A`/`D` move, `W` jumps, `S` crouches and space shoots

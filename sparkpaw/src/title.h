@@ -30,7 +30,7 @@ enum ResultDecision titleRunLevelCompleteMenu(UWORD enemies,UWORD diamonds,
     ULONG elapsedFields,ULONG liveScore,BOOL stormrail);
 enum ResultDecision titleRunLevelCompleteWithBonusMenu(UWORD enemies,
     UWORD diamonds,UWORD timeBonusSeconds,ULONG liveScore,BOOL stormrail);
-void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
+void titleRunLevelReadyMenu(enum ControlMode *controlMode,
     enum CampaignStartSection *startSection);
 UWORD *titleCopperList(void);
 void titleWaitLevelCharging(UWORD frames);

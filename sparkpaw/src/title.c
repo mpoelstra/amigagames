@@ -1220,13 +1220,13 @@ static void leaveReadySoundtest(void)
     readyPreviewUsed=FALSE; readySelection.status=READY_PREVIEW_IDLE;
 }
 #endif
-void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
+void titleRunLevelReadyMenu(enum ControlMode *controlMode,
                            enum CampaignStartSection *startSection)
 {
     BOOL up,down,left,right,fire,oldUp,oldDown,oldLeft,oldRight,oldFire;
     BOOL reseed=TRUE;
     readySelection.page=READY_PAGE_MAIN;readySelection.row=0;
-    readySelection.secondary=(UBYTE)*secondaryAction;
+    readySelection.secondary=(UBYTE)*controlMode;
     readySelection.section=(UBYTE)*startSection;
     readySelection.mode=(UBYTE)audioGetMode();
     readySelection.status=READY_PREVIEW_IDLE;
@@ -1280,8 +1280,8 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
             delta=(left&&!oldLeft)?-1:1;
             if(readySelection.page==READY_PAGE_OPTIONS) {
                 if(readySelection.row==0) {
-                    *secondaryAction=(enum SecondaryButtonAction)(readySelection.secondary^1);
-                    readySelection.secondary=(UBYTE)*secondaryAction;
+                    *controlMode=(enum ControlMode)(readySelection.secondary^1);
+                    readySelection.secondary=(UBYTE)*controlMode;
                 } else if(readySelection.row==1) {
 
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
@@ -1349,15 +1349,15 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
 #else
 #ifdef SPARKPAW_CAMPAIGN
 static UBYTE readyCampaignOptionsState(
-    enum SecondaryButtonAction secondaryAction,
+    enum ControlMode controlMode,
     enum CampaignStartSection startSection,UBYTE optionRow)
 {
     return (UBYTE)(READY_MENU_STATE_CAMPAIGN_BASE+
-        campaignOptionsVariant(secondaryAction,startSection,optionRow));
+        campaignOptionsVariant(controlMode,startSection,optionRow));
 }
 #endif
 
-void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
+void titleRunLevelReadyMenu(enum ControlMode *controlMode,
     enum CampaignStartSection *startSection)
 {
     UBYTE state=READY_MENU_STATE_START;
@@ -1391,10 +1391,10 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
             if(fire&&!oldFire) {
                 if(state==READY_MENU_STATE_START) return;
 #ifdef SPARKPAW_CAMPAIGN
-                state=readyCampaignOptionsState(*secondaryAction,
+                state=readyCampaignOptionsState(*controlMode,
                                                  *startSection,optionRow);
 #else
-                state=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
+                state=(*controlMode==CONTROL_JOYSTICK)?
                       READY_MENU_STATE_JUMP:READY_MENU_STATE_FIRE;
 #endif
                 showReadyMenuState(state);
@@ -1403,7 +1403,7 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
 #ifdef SPARKPAW_CAMPAIGN
             if((up&&!oldUp)||(down&&!oldDown)) {
                 optionRow^=1;
-                state=readyCampaignOptionsState(*secondaryAction,
+                state=readyCampaignOptionsState(*controlMode,
                                                  *startSection,optionRow);
                 showReadyMenuState(state);
             }
@@ -1416,14 +1416,14 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
                 } else
 #endif
                 {
-                    *secondaryAction=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
-                                     SECONDARY_BUTTON_FIRE:SECONDARY_BUTTON_JUMP;
+                    *controlMode=(*controlMode==CONTROL_JOYSTICK)?
+                                     CONTROL_JOYPAD:CONTROL_JOYSTICK;
                 }
 #ifdef SPARKPAW_CAMPAIGN
-                state=readyCampaignOptionsState(*secondaryAction,
+                state=readyCampaignOptionsState(*controlMode,
                                                  *startSection,optionRow);
 #else
-                state=(*secondaryAction==SECONDARY_BUTTON_JUMP)?
+                state=(*controlMode==CONTROL_JOYSTICK)?
                       READY_MENU_STATE_JUMP:READY_MENU_STATE_FIRE;
 #endif
                 showReadyMenuState(state);

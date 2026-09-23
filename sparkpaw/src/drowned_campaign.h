@@ -3,7 +3,7 @@
 /* Cold ABI only: never pass pointers into either engine's private GameState. */
 struct DrownedCampaignEntry {
     unsigned long bankedScore,seed;
-    unsigned char lives,health,diamonds,secondaryAction,audioMode;
+    unsigned char lives,health,diamonds,controlMode,audioMode;
 };
 enum DrownedCampaignReturn {
     DROWNED_CAMPAIGN_ERROR=-1,

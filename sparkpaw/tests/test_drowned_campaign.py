@@ -11,7 +11,7 @@ shim=r'''
 typedef int BOOL;
 #define TRUE 1
 #define FALSE 0
-enum SecondaryButtonAction { JUMP,FIRE };
+enum ControlMode { JUMP,FIRE };
 enum AudioMode { FX,MUSIC,BOTH };
 struct GameState {unsigned long score,elapsedFields; unsigned enemiesDefeated,diamondsCollected;};
 static struct GameState game;
@@ -29,7 +29,7 @@ static void platformClose(void){assert(!locked&&!display);open=0;}
 static void audioSetMode(enum AudioMode m){mode=m;}
 static void gameInit(unsigned long seed){assert(seed==123);game=(struct GameState){0};updates=0;rounds++;}
 static void gameRestoreDrownedVitals(unsigned char l,unsigned char h,unsigned char d){life=l;health=h;diamonds=d;}
-static void playerSetSecondaryButtonAction(enum SecondaryButtonAction s){secondary=s;}
+static void playerSetControlMode(enum ControlMode s){secondary=s;}
 static BOOL titleShowSectionLoading(void){int ok=step();if(ok)display=2;return ok;}
 static BOOL rendererLoadGameplay(void){loads++;return step();}
 static BOOL collisionLoad(void){return step();}

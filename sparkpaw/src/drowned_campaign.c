@@ -62,7 +62,7 @@ static void resetSection(const struct DrownedCampaignEntry *entry)
 {
     gameInit(entry->seed);
     gameRestoreDrownedVitals(entry->lives,entry->health,entry->diamonds);
-    playerSetSecondaryButtonAction((enum SecondaryButtonAction)entry->secondaryAction);
+    playerSetControlMode((enum ControlMode)entry->controlMode);
 }
 static void startSection(void)
 {

@@ -19,7 +19,7 @@ typedef unsigned char UBYTE;typedef unsigned short UWORD;typedef int BOOL;
 #define FALSE 0
 #define READY_HAS_SOUNDTEST 1
 #define SPARKPAW_WHDLOAD
-enum SecondaryButtonAction { SECONDARY_BUTTON_JUMP,SECONDARY_BUTTON_FIRE };
+enum ControlMode { CONTROL_JOYSTICK,CONTROL_JOYPAD };
 enum CampaignStartSection { CAMPAIGN_START_STORM_RUINS,CAMPAIGN_START_STORMRAIL };
 enum AudioMode { AUDIO_FX_ONLY,AUDIO_MUSIC_ONLY,AUDIO_FX_MUSIC };
 static struct ReadyUI storage,*readyUI=&storage;
@@ -77,7 +77,7 @@ static void hold(int bits){int i;for(i=0;i<12;i++)input[length++]=bits;input[len
 static void enter(void){input[length++]=0;edge(2);hold(16);edge(2);edge(2);edge(2);hold(16);}
 static void leave(void){edge(2);edge(16);edge(2);edge(16);edge(16);}
 int main(void){
- enum SecondaryButtonAction second=SECONDARY_BUTTON_JUMP;
+ enum ControlMode second=CONTROL_JOYSTICK;
  enum CampaignStartSection section=CAMPAIGN_START_STORM_RUINS;
  struct {unsigned char *Planes[6];} bitmap;
  int i;
@@ -99,7 +99,7 @@ int main(void){
  assert(fxStarts==3&&heroLoads==2&&neonLoads==2&&restarts==0&&stormLoads==3);
  assert(copperLoads==1&&railLoads==1&&mode==AUDIO_MUSIC_ONLY);
  assert(!cia&&!tempTrack&&owned&&lsp&&!quit);
- assert(second==SECONDARY_BUTTON_JUMP&&section==CAMPAIGN_START_STORM_RUINS);
+ assert(second==CONTROL_JOYSTICK&&section==CAMPAIGN_START_STORM_RUINS);
  /* Failure paths still permit joystick return and clean gameplay entry. */
  for(i=0;i<5;i++){
   length=cursor=0;readySelection.track=i;failLoad=1;title=0;lsp=0;

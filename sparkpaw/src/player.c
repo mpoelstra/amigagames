@@ -36,8 +36,8 @@
 #define CONTACT_KNOCKBACK_Y -500
 
 static struct PlayerState player;
-static BOOL jumpInputHeld,joystickFireHeld,crouchInputHeld;
-static enum SecondaryButtonAction secondaryButtonAction=SECONDARY_BUTTON_JUMP;
+static BOOL controlJumpInputHeld,keyJumpInputHeld,joystickFireHeld,keyFireHeld,crouchInputHeld;
+static enum ControlMode controlMode=CONTROL_JOYSTICK;
 
 static UBYTE groundSupportCount(WORD x,WORD y,UBYTE *leftCount)
 {
@@ -68,8 +68,10 @@ static BOOL ledgeSideClear(WORD x,WORD y,BOOL missingLeft)
 void playerInit(void)
 {
     memset(&player,0,sizeof(player));
-    jumpInputHeld=FALSE;
+    controlJumpInputHeld=FALSE;
+    keyJumpInputHeld=FALSE;
     joystickFireHeld=FALSE;
+    keyFireHeld=FALSE;
     crouchInputHeld=FALSE;
     player.x=36L<<8;
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -89,9 +91,9 @@ void playerRespawnAt(WORD x,WORD y)
 }
 #endif
 
-void playerSetSecondaryButtonAction(enum SecondaryButtonAction action)
+void playerSetControlMode(enum ControlMode mode)
 {
-    secondaryButtonAction=action;
+    controlMode=mode;
 }
 
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
@@ -104,11 +106,12 @@ void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire)
     *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
     up=((value^(value>>1))&0x0100)!=0;
     secondary=platformSecondaryButtonHeld();
-    up=up||keyJump||secondaryButtonAddsJump(secondaryButtonAction,secondary);
-    *jump=up&&!jumpInputHeld; jumpInputHeld=up;
-    held=((*(volatile UBYTE *)0xbfe001&0x80)==0)||keyFire||
-         secondaryButtonAddsFire(secondaryButtonAction,secondary);
-    *fire=held&&!joystickFireHeld; joystickFireHeld=held;
+    up=controlJumpHeld(controlMode,up,secondary);
+    *jump=(up&&!controlJumpInputHeld)||(keyJump&&!keyJumpInputHeld);
+    controlJumpInputHeld=up; keyJumpInputHeld=keyJump;
+    held=((*(volatile UBYTE *)0xbfe001&0x80)==0);
+    *fire=(held&&!joystickFireHeld)||(keyFire&&!keyFireHeld);
+    joystickFireHeld=held; keyFireHeld=keyFire;
 }
 
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -121,10 +124,10 @@ void playerReadFlightInput(BOOL *left,BOOL *right,BOOL *up,BOOL *down,
     *left=((value&0x0200)!=0)||keyLeft;
     *right=((value&0x0002)!=0)||keyRight;
     *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
-    *up=(((value^(value>>1))&0x0100)!=0)||keyUp;
     secondary=platformSecondaryButtonHeld();
-    *fire=((*(volatile UBYTE *)0xbfe001&0x80)==0)||keyFire||
-          secondaryButtonAddsFire(secondaryButtonAction,secondary);
+    *up=controlJumpHeld(controlMode,((value^(value>>1))&0x0100)!=0,
+                        secondary)||keyUp;
+    *fire=((*(volatile UBYTE *)0xbfe001&0x80)==0)||keyFire;
 }
 #endif
 

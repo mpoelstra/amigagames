@@ -1,5 +1,22 @@
 # Sparkpaw and Amiga prototypes: development history
 
+## 2026-09-23 — Sparkpaw CONTROL options candidate
+
+Changed OPTIONS from SECOND BUTTON JUMP/FIRE to CONTROL JOYSTICK/JOYPAD.
+Joystick Up or button 2 is the exclusive controller jump source by mode;
+button 2 no longer shoots. W/Space work in both modes with independent input
+edges, including while a controller input remains held. Stormrail flight uses
+the selected upward controller source. Retained the alpha.9 port-2 pull-up
+and keyboard ACK fixes. Local alpha.9 remains the release. MrDig reports
+"lijkt goed" for the focused candidate, without a specified route or
+configuration. Real-hardware verification is pending; no new release build.
+The integrated HD, ADF and packed-WHDLoad native builds and full host suite
+pass; only HD was staged for play. `Controls-Mode-HD` is
+the active focused HD drawer with 74 staged runtime assets and 74 executable
+references. The 163 alpha.9 release files stayed byte-identical. Only
+`readymenu.spbm` changes among runtime assets; the accepted READY background
+and main-menu states remain byte-identical through pinned alpha.9 source art.
+
 ## 2026-09-23 — alpha.9 campaign release checkpoint
 
 Final local alpha.9 packages: HD ZIP/LHA, WHDLoad ZIP/LHA and three ADFs.

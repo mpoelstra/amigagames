@@ -29,7 +29,7 @@ void playerRestoreDrownedHealth(UBYTE health);
 #ifdef SPARKPAW_DROWNED_JOINED
 void playerRespawnAt(WORD x,WORD y);
 #endif
-void playerSetSecondaryButtonAction(enum SecondaryButtonAction action);
+void playerSetControlMode(enum ControlMode action);
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire);
 #ifdef SPARKPAW_STORMRAIL_PROOF
 void playerReadFlightInput(BOOL *left,BOOL *right,BOOL *up,BOOL *down,

@@ -1,5 +1,26 @@
 # Sparkpaw current status and next work
 
+## 2026-09-23 — CONTROL options candidate; preliminary user verdict
+
+OPTIONS now offers CONTROL: JOYSTICK or JOYPAD. JOYSTICK jumps with Up and
+ignores button 2; JOYPAD jumps with button 2 and ignores Up. Primary Fire alone
+handles controller shooting. W and Space remain available in both modes, with
+separate edge tracking from controller inputs so a held controller input does
+not block a fresh keyboard press. Stormrail flight applies the same selected
+controller source to upward movement. The alpha.9 pin-9 pull-up and keyboard
+ACK fixes are retained. This is unnumbered work against local alpha.9; no
+FS-UAE, affected-user or real-hardware acceptance is claimed yet. MrDig says
+the focused candidate "lijkt goed", without a route, controller or machine
+configuration. This is a preliminary positive verdict, not a complete control
+matrix or hardware confirmation.
+Native integrated HD, ADF and packed-WHDLoad builds and full `make test` pass.
+ADF/WHDLoad were compiled only; no candidate packages or runtime results. A focused HD
+candidate is staged at `dist/Controls-Mode-HD/Sparkpaw-Test` with all 74
+runtime references and assets; the alpha.9 release inventory is byte-identical.
+Only `readymenu.spbm` differs from alpha.9 among runtime assets. The READY
+background and main-menu patches retain alpha.9 bytes. An earlier unplayed
+drawer was archived intact under `dist/older-builds` during restaging.
+
 ## 2026-09-23 — alpha.9 release checkpoint and controls regression result
 
 Current local release is `0.7.0-alpha.9`: HD, WHDLoad and three ADFs.

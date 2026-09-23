@@ -155,7 +155,7 @@ int main(void)
     ULONG phase6BeforeFree,phase6BeforeLargest;
 #endif
     BOOL loadingShown;
-    enum SecondaryButtonAction secondaryButtonAction=SECONDARY_BUTTON_JUMP;
+    enum ControlMode controlMode=CONTROL_JOYSTICK;
     enum CampaignStartSection startSection=CAMPAIGN_START_STORM_RUINS;
     BOOL paused=FALSE;
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
@@ -212,7 +212,7 @@ int main(void)
     if(!titleShowLevelReady()) { cleanup(); return 10; }
     writeBackTitleStage("ready_visible",FALSE);
     platformFinishTakeover(titleCopperList());
-    titleRunLevelReadyMenu(&secondaryButtonAction,&startSection);
+    titleRunLevelReadyMenu(&controlMode,&startSection);
     platformReleaseForLoading(TRUE);
     writeBackTitleStage("start_game_pressed",TRUE);
     for(;;) { }
@@ -346,14 +346,14 @@ int main(void)
     platformFinishTakeover(titleCopperList());
 #if !defined(SPARKPAW_EXTRA_LIFE_VISUAL_PROOF)&&!defined(SPARKPAW_REPLAY_PROOF)&&\
     (!defined(SPARKPAW_STORMRAIL_PROOF)||defined(SPARKPAW_CAMPAIGN))
-    titleRunLevelReadyMenu(&secondaryButtonAction,&startSection);
+    titleRunLevelReadyMenu(&controlMode,&startSection);
 #endif
 #ifdef SPARKPAW_WHDLOAD
     if(platformWHDLoadQuitRequested()) {
         platformRestore(); cleanup(); return 0;
     }
 #endif
-    playerSetSecondaryButtonAction(secondaryButtonAction);
+    playerSetControlMode(controlMode);
     titleFadeOut();
 #ifdef SPARKPAW_CAMPAIGN
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
@@ -651,7 +651,7 @@ campaignLoop:
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
     if(state==APP_DROWNED_ENTRY) {
         int outcome;
-        drownedEntry.secondaryAction=(UBYTE)secondaryButtonAction;
+        drownedEntry.controlMode=(UBYTE)controlMode;
         drownedEntry.audioMode=(UBYTE)audioGetMode();
 #if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_DROWNED_THREE_ADF)
         /* Publish a DOS-live loading image before asking for Drowned media.
@@ -728,8 +728,8 @@ campaignLoop:
         }
         platformResetGameInput();
         platformFinishTakeover(titleCopperList());
-        titleRunLevelReadyMenu(&secondaryButtonAction,&startSection);
-        playerSetSecondaryButtonAction(secondaryButtonAction);
+        titleRunLevelReadyMenu(&controlMode,&startSection);
+        playerSetControlMode(controlMode);
         titleFadeOut();
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
         if(startSection==CAMPAIGN_START_DROWNED) {
@@ -959,8 +959,8 @@ campaignLoop:
 #endif
             platformFinishTakeover(titleCopperList());
             startSection=CAMPAIGN_START_STORM_RUINS;
-            titleRunLevelReadyMenu(&secondaryButtonAction,&startSection);
-            playerSetSecondaryButtonAction(secondaryButtonAction);
+            titleRunLevelReadyMenu(&controlMode,&startSection);
+            playerSetControlMode(controlMode);
             titleFadeOut();
     #ifdef SPARKPAW_CAMPAIGN_DROWNED
         if(startSection==CAMPAIGN_START_DROWNED) {

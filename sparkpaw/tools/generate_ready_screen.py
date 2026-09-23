@@ -5,8 +5,7 @@ import struct
 
 from PIL import Image, ImageDraw, ImageOps
 
-from generate_intro_proof import (GLYPHS, medium_text, planar_bytes,
-                                  reserve_black_pen_zero)
+from generate_intro_proof import GLYPHS,medium_text,planar_bytes
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +17,17 @@ OPTIONS_PREVIEW = CONCEPT / "sparkpaw-options-screen-aga64-preview.png"
 CAMPAIGN_OPTIONS_PREVIEW = CONCEPT / "sparkpaw-campaign-options-aga64-preview.png"
 RUNTIME = ROOT / "assets/runtime/sparkpaw-ready-screen.spbm"
 MENU_PATCHES = ROOT / "assets/runtime/readymenu.spbm"
+PINNED = ROOT / "assets/concept/ready-alpha9-pinned"
+# Alpha.9's approved READY palette. Changing option text must not requantize
+# the unchanged title/READY art or alter its colours on any media.
+READY_PALETTE = bytes.fromhex(
+    "000000fda912fe9e02b1d1cd97aba61ed3ed15b1d0fc9302f88001d68118"
+    "467f94e66801cb670da84f08515e6a514a4347362720597625476325374b"
+    "2b292a1728404714081f181c161b3315101d0d15410d13240b0c240c0a0b"
+    "06102b050d2604091904051203040f04050b010c1c010717020711010711"
+    "01070d02051201050f02040f01040f02040d04030d02031002030f02030e"
+    "02030b01030f01030e00030e01030a07010402020c01020f01020e01010e"
+    "01010800000c000004f7d593")
 
 PATCH_Y = 118
 PATCH_H = 104
@@ -71,24 +81,24 @@ def menu_screen(image, state):
         small_text(draw, "2026 MRDIG PRODUCTIONS", 201, (180, 190, 183))
         small_text(draw, "100% MADE WITH AI", 213, (71, 175, 198))
     elif state < 4:
-        value = "JUMP" if state == 2 else "FIRE"
+        value = "JOYSTICK" if state == 2 else "JOYPAD"
         medium_text(draw, "OPTIONS", (320 - len("OPTIONS") * 9) // 2,
                     128, (31, 201, 224))
-        small_text(draw, "SECOND BUTTON", 157, (241, 221, 170), 132)
+        small_text(draw, "CONTROL", 157, (241, 221, 170), 132)
         small_text(draw, value, 157, (31, 201, 224), 207)
-        draw.polygon(((183, 160), (190, 154), (190, 166)),
+        draw.polygon(((171, 160), (178, 154), (178, 166)),
                      fill=(31, 201, 224))
-        draw.polygon(((224, 154), (231, 160), (224, 166)),
+        draw.polygon(((240, 154), (247, 160), (240, 166)),
                      fill=(31, 201, 224))
         small_text(draw, "FIRE: RETURN", 177, (180, 190, 183))
     else:
         option = state - 4
         selected = option // 4
-        secondary = "FIRE" if option % 4 >= 2 else "JUMP"
+        secondary = "JOYPAD" if option % 4 >= 2 else "JOYSTICK"
         start_at = "STORMRAIL" if option % 2 else "STORM RUINS"
         medium_text(draw, "OPTIONS", (320 - len("OPTIONS") * 9) // 2,
                     124, (31, 201, 224))
-        rows = (("SECOND BUTTON", secondary), ("START AT", start_at))
+        rows = (("CONTROL", secondary), ("START AT", start_at))
         for row, (label, value) in enumerate(rows):
             y = 149 + row * 20
             colour = (31, 201, 224) if row == selected else (180, 190, 183)
@@ -116,6 +126,20 @@ def spbm_payload(indexed, width, height, depth=6):
     if len(payload) != expected:
         raise ValueError(f"SPBM is {len(payload)} bytes; expected {expected}")
     return payload
+
+
+def pinned_ready_preview():
+    raw=(PINNED / "sparkpaw-ready-screen.spbm").read_bytes()
+    image=Image.new("P",(320,256))
+    image.putpalette(raw[12:204])
+    plane_size=40*256
+    pixels=[]
+    for y in range(256):
+        for x in range(320):
+            pixels.append(sum((((raw[204+p*plane_size+y*40+x//8] >>
+                                 (7-x%8))&1)<<p) for p in range(6)))
+    image.putdata(pixels)
+    return image
 
 
 def ready_background():
@@ -167,31 +191,20 @@ def build_ready_screen():
         if screens[state].crop((PATCH_X, 195, PATCH_X + PATCH_W, 215)).tobytes() \
                 != image.crop((PATCH_X, 195, PATCH_X + PATCH_W, 215)).tobytes():
             raise ValueError("Options credits field must remain empty")
-    # Quantize the four accepted alpha.68 states exactly as before. New
-    # campaign-only patches are then mapped into that fixed palette so adding
-    # the shortcut cannot recolour the established ready/options screens.
-    combined = Image.new("RGB", (320, 256 * 4))
-    for state, screen in enumerate(screens[:4]):
-        combined.paste(screen, (0, state * 256))
-    indexed = combined.quantize(colors=64, method=Image.Quantize.MEDIANCUT,
-                                dither=Image.Dither.NONE)
-    raw_palette = indexed.getpalette()[:192]
-    palette = [tuple(raw_palette[index:index + 3])
-               for index in range(0, 192, 3)]
-    indexed, palette = reserve_black_pen_zero(indexed, palette)
-    palette_data = [value for rgb in palette for value in rgb]
-    if palette_data[:3] != [0, 0, 0]:
+    # Keep alpha.9's palette fixed while changing only option glyphs.
+    indexed = Image.new("P", (1, 1))
+    indexed.putpalette(READY_PALETTE)
+    if READY_PALETTE[:3] != b"\0\0\0":
         raise ValueError("ready screen fullscreen COLOR00 must be black")
-    indexed.putpalette(palette_data)
-    indexed_screens = [indexed.crop((0, state * 256, 320,
-                                     (state + 1) * 256))
-                       for state in range(4)]
-    indexed_screens.extend(screen.quantize(
-        palette=indexed, dither=Image.Dither.NONE) for screen in screens[4:])
-    indexed_screens[0].save(PREVIEW)
+    indexed_screens = [screen.quantize(palette=indexed,dither=Image.Dither.NONE)
+                       for screen in screens]
+    palette_data = list(READY_PALETTE)
+    pinned_ready_preview().save(PREVIEW)
     indexed_screens[2].save(OPTIONS_PREVIEW)
     indexed_screens[4].save(CAMPAIGN_OPTIONS_PREVIEW)
-    RUNTIME.write_bytes(spbm_payload(indexed_screens[0], 320, 256))
+    # The READY background and both main-menu states are byte-identical to
+    # alpha.9. Only the option states are new in this candidate.
+    RUNTIME.write_bytes((PINNED / "sparkpaw-ready-screen.spbm").read_bytes())
 
     patches = Image.new("P", (PATCH_W, PATCH_H * len(indexed_screens)))
     patches.putpalette(palette_data)
@@ -199,8 +212,13 @@ def build_ready_screen():
         patches.paste(screen.crop((PATCH_X, PATCH_Y,
                                    PATCH_X + PATCH_W, PATCH_Y + PATCH_H)),
                       (0, state * PATCH_H))
-    MENU_PATCHES.write_bytes(spbm_payload(
-        patches, PATCH_W, PATCH_H * len(indexed_screens)))
+    packed = bytearray(spbm_payload(patches,PATCH_W,PATCH_H*len(indexed_screens)))
+    old = (PINNED / "readymenu.spbm").read_bytes()
+    plane_size = 24*PATCH_H*len(indexed_screens)
+    for plane in range(6):
+        offset=204+plane*plane_size
+        packed[offset:offset+24*PATCH_H*2]=old[offset:offset+24*PATCH_H*2]
+    MENU_PATCHES.write_bytes(packed)
 
 
 if __name__ == "__main__":

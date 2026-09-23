@@ -49,8 +49,8 @@ static UBYTE primary=0x80, cra;
 #define CIACRAF_SPMODE 0x40
 static UBYTE gameKeys;
 static BOOL pauseToggleRequested,whdloadQuitRequested;
-static BOOL jumpInputHeld,joystickFireHeld;
-static enum SecondaryButtonAction secondaryButtonAction;
+static BOOL controlJumpInputHeld,keyJumpInputHeld,joystickFireHeld,keyFireHeld;
+static enum ControlMode controlMode;
 static int tick,lineTicks,readTicks;
 static UWORD platformRasterLine(void) {
     assert(CIAA_CRA&CIACRAF_SPMODE);
@@ -80,7 +80,7 @@ static void sample(int *j,int *f) {
 }
 static void reset(void) {
     gameKeys=0; joy=0; primary=0x80;
-    hardware->potinp=0x4000; jumpInputHeld=joystickFireHeld=0;
+    hardware->potinp=0x4000; controlJumpInputHeld=keyJumpInputHeld=joystickFireHeld=keyFireHeld=0;
 }
 /* Passive switch + retained capacitor model, after >=300us settling.
    No external pull-up: input-only mode cannot guarantee release goes high. */
@@ -91,45 +91,39 @@ static void pin(int setup,int pressed) {
 int main(void) {
     int action,j,f,i,phase,speed,standard,start;
     assert((PORT2_BUTTONS_PULLUP&0xc000)==0xc000);
-    assert((PORT2_BUTTONS_PULLUP&0x3000)==0x3000); /* CD32 reset retained */
-    assert(!(PORT2_BUTTONS_PULLUP&0x0fff)); /* port 1 and START untouched */
+    assert((PORT2_BUTTONS_PULLUP&0x3000)==0x3000);
+    assert(!(PORT2_BUTTONS_PULLUP&0x0fff));
     for(action=0;action<2;action++) {
-        secondaryButtonAction=(enum SecondaryButtonAction)action;
-        /* Reproduce old post-button lockout, including W/Space. */
-        reset(); pin(0x3000,1); sample(&j,&f);
-        pin(0x3000,0); sample(&j,&f);
-        handleGameRawKey(0x11); handleGameRawKey(0x40); sample(&j,&f);
-        assert(action==SECONDARY_BUTTON_JUMP ? (!j&&f) : (j&&!f));
-        /* Fixed switch releases and repeated simultaneous inputs work. */
+        controlMode=(enum ControlMode)action;
         reset();
         for(i=0;i<100;i++) {
             pin(PORT2_BUTTONS_PULLUP,1); sample(&j,&f);
-            assert(action==SECONDARY_BUTTON_JUMP ? (j&&!f) : (!j&&f));
-            sample(&j,&f); assert(!j&&!f); /* held is not autorepeat */
+            assert((action==CONTROL_JOYPAD)==!!j && !f);
+            sample(&j,&f); assert(!j&&!f);
             pin(PORT2_BUTTONS_PULLUP,0); sample(&j,&f); assert(!j&&!f);
-            joy=0x100; primary=0; sample(&j,&f); assert(j&&f);
+            joy=0x100; primary=0; sample(&j,&f);
+            assert((action==CONTROL_JOYSTICK)==!!j && f);
             sample(&j,&f); assert(!j&&!f);
             joy=0; primary=0x80; sample(&j,&f);
             handleGameRawKey(0x11); handleGameRawKey(0x40);
             sample(&j,&f); assert(j&&f);
             handleGameRawKey(0x91); handleGameRawKey(0xc0);
             sample(&j,&f); assert(!j&&!f);
-            /* B2 + complementary action, both in the same sample. */
-            pin(PORT2_BUTTONS_PULLUP,1);
-            if(action==SECONDARY_BUTTON_JUMP) primary=0; else joy=0x100;
-            sample(&j,&f); assert(j&&f);
-            pin(PORT2_BUTTONS_PULLUP,0); primary=0x80; joy=0;
-            sample(&j,&f); assert(!j&&!f);
         }
-        /* Shoot during a held jump, then jump during held primary fire. */
-        reset(); joy=0x100; sample(&j,&f); assert(j&&!f);
-        primary=0; sample(&j,&f); assert(!j&&f);
-        reset(); primary=0; sample(&j,&f); assert(!j&&f);
-        joy=0x100; sample(&j,&f); assert(j&&!f);
-        /* Flight retains level-triggered fire and independent directions. */
+        /* Keyboard edges survive a held controller input, including a
+           falsely held second button in the inactive joystick mode. */
+        reset(); pin(PORT2_BUTTONS_PULLUP,1); sample(&j,&f);
+        handleGameRawKey(0x11); handleGameRawKey(0x40);
+        sample(&j,&f); assert(j&&f);
+        reset(); joy=0x100; primary=0; sample(&j,&f);
+        handleGameRawKey(0x11); handleGameRawKey(0x40);
+        sample(&j,&f); assert(j&&f);
         reset(); {BOOL l,r,u,d; joy=0x100; primary=0;
-          playerReadFlightInput(&l,&r,&u,&d,&f); assert(u&&f);
-          playerReadFlightInput(&l,&r,&u,&d,&f); assert(u&&f);
+          playerReadFlightInput(&l,&r,&u,&d,&f);
+          assert(u==(action==CONTROL_JOYSTICK) && f);
+          pin(PORT2_BUTTONS_PULLUP,1);
+          playerReadFlightInput(&l,&r,&u,&d,&f);
+          assert(u&&f);
         }
     }
     /* 0.1us model ticks, PAL and NTSC, every starting phase, including wrap.
@@ -147,7 +141,7 @@ int main(void) {
     }
     handleGameRawKey(0x59); assert(whdloadQuitRequested);
     handleGameRawKey(0x19); assert(pauseToggleRequested);
-    puts("PASS: old latch reproduced; pull-up release, both mappings, simultaneous/held input, keyboard, flight, PAL/NTSC ACK phases, F10/P");
+    puts("PASS: control modes, independent keyboard edges, pull-up, flight, PAL/NTSC ACK phases, F10/P");
     return 0;
 }
 '''
