@@ -1,0 +1,22 @@
+{
+  "pump-walker": {
+    "changed_slots": [
+      24,
+      25,
+      26,
+      27
+    ],
+    "bytes": 163900,
+    "same_size_palette_mask_geometry": true
+  },
+  "turbine-crab": {
+    "changed_slots": [
+      10,
+      11,
+      12,
+      13
+    ],
+    "bytes": 21180,
+    "same_size_palette_mask_geometry": true
+  }
+}

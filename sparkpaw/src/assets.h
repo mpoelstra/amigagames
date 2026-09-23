@@ -23,7 +23,11 @@ const char *assetsLoadFailureReason(void);
 BOOL assetsLoadLevelLoading(void);
 #ifdef SPARKPAW_MULTI_ADF
 void assetsRetireOldLoading(void);
+#endif
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 UBYTE *assetsLoadDiskData(const char *name,ULONG flags,ULONG *size);
+#endif
+#ifdef SPARKPAW_MULTI_ADF
 BOOL assetsLoadDiskPatch(UBYTE disk);
 #endif
 void assetsUnloadLevelLoading(void);
@@ -39,6 +43,12 @@ void assetsUnloadLevelComplete(void);
 BOOL assetsLoadScoreGlyphs(void);
 void assetsUnloadScoreGlyphs(void);
 BOOL assetsLoadGameplay(void);
+#ifdef SPARKPAW_DROWNED_SLICE
+const struct PlanarAsset *assetsDrownedPatches(void);
+#ifdef SPARKPAW_DROWNED_JOINED
+const struct PlanarAsset *assetsCheckpointPatches(void);
+#endif
+#endif
 #ifdef SPARKPAW_CAMPAIGN
 void assetsSetStormrailGameplay(BOOL active);
 #endif
@@ -60,6 +70,9 @@ const struct PlanarAsset *assetsStormrailFlightRear(void);
 const struct PlanarAsset *assetsPlayerSprites(void);
 const struct PlanarAsset *assetsEnemySprites(void);
 const struct PlanarAsset *assetsStriderSprites(void);
+#ifdef SPARKPAW_DROWNED_JOINED
+const struct PlanarAsset *assetsSpillwingSprites(void);
+#endif
 const struct PlanarAsset *assetsHudBase(void);
 const struct PlanarAsset *assetsHudHealth(void);
 const struct PlanarAsset *assetsHudLives(void);

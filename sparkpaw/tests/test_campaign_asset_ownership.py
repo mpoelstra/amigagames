@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from campaign_asset_manifest import HD_ALL as ALL, HD_GROUPS as GROUPS, LEVEL1, STORMRAIL  # noqa: E402
 from runtime_asset_refs import executable_runtime_files  # noqa: E402
+from campaign_runtime_sources import source as runtime_source  # noqa: E402
 
 seen = set()
 for group, names in GROUPS.items():
@@ -15,9 +16,9 @@ for group, names in GROUPS.items():
     seen |= names
 for name in ALL:
     assert len(name) <= 30, f"Amiga-unsafe asset name: {name}"
-    assert (ROOT / "assets/runtime" / name).is_file(), f"missing owned asset: {name}"
+    assert runtime_source(name).is_file(), f"missing owned asset: {name}"
 
-campaign = ROOT / "sparkpaw"
+campaign = ROOT / "build/campaign-drowned/Sparkpaw-Campaign"
 # Verify the normal production binary; archived diagnostic builds may predate
 # newly integrated presentation assets.
 if campaign.is_file():

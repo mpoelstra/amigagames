@@ -1,4 +1,11 @@
+#include "drowned_busy.h"
 #include "game.h"
+#ifdef SPARKPAW_DROWNED_JOINED
+#include "drowned_checkpoint.h"
+#endif
+#ifdef SPARKPAW_DROWNED_SLICE
+#include "drowned_slice.h"
+#endif
 
 #include "audio.h"
 #include "camera_contract.h"
@@ -25,6 +32,11 @@ static void accountElapsedFields(void)
 
 static void resetLevelRuntime(void)
 {
+#ifdef SPARKPAW_DROWNED_JOINED
+    drownedRespawn(drownedCheckpointActive());
+#elif defined(SPARKPAW_DROWNED_SLICE)
+    drownedReset();
+#endif
     /* Assets and packed caches stay resident. Preserve only prior Bob restore
        rectangles so the next line-300 pass erases the old runtime state. */
     game.enemySeed=game.enemySeed*1664525UL+
@@ -34,6 +46,15 @@ static void resetLevelRuntime(void)
     projectilesResetPreservingDrawn();
     playerInit();
     game.cameraX=0; game.frameCounter=0;
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(drownedCheckpointActive()) {
+        playerRespawnAt(DROWNED_CHECKPOINT_RESPAWN_X,DROWNED_CHECKPOINT_RESPAWN_Y);
+        game.cameraX=cameraCenteredTarget(DROWNED_CHECKPOINT_RESPAWN_X);
+        if(game.cameraX<0) game.cameraX=0;
+        if(game.cameraX>WORLD_W-SCREEN_W) game.cameraX=WORLD_W-SCREEN_W;
+        drownedCheckpointAfterRespawn();
+    }
+#endif
     game.waterSplashTimer=0;
     game.coreCollectTimer=0;
     game.lastFieldCounter=platformFieldCounter();
@@ -73,8 +94,14 @@ static void updateCamera(void)
 #else
     const struct PlayerState *player=playerState();
     LONG playerX=player->x>>8,wanted=game.cameraX;
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+    if(playerX>=1376+DROWNED_FINALE_OFFSET||game.coreCollectTimer) wanted=1552+DROWNED_FINALE_OFFSET;
+    else
+#elif !defined(SPARKPAW_DROWNED_JOINED)
     if(playerX>=3072||game.coreCollectTimer) wanted=WORLD_W-SCREEN_W;
-    else {
+    else
+#endif
+    {
 #ifdef SPARKPAW_CAMERA_DEADZONE_REFERENCE
         if(playerX-game.cameraX>202) wanted=playerX-202;
         if(playerX-game.cameraX<105) wanted=playerX-105;
@@ -82,6 +109,11 @@ static void updateCamera(void)
         wanted=cameraCenteredTarget(playerX);
 #endif
     }
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+    if(wanted>1552+DROWNED_FINALE_OFFSET) wanted=1552+DROWNED_FINALE_OFFSET;
+    /* Reveal ahead without leaving a stationary/backtracking player behind. */
+    if(wanted>playerX-40) wanted=playerX-40;
+#endif
     if(wanted<0) wanted=0;
     if(wanted>WORLD_W-SCREEN_W) wanted=WORLD_W-SCREEN_W;
     if(wanted>game.cameraX+5) game.cameraX+=5;
@@ -954,6 +986,12 @@ static void stormrailUpdateFinale(void)
 
 void gameInit(ULONG enemySeed)
 {
+#ifdef SPARKPAW_DROWNED_SLICE
+    drownedReset();
+#ifdef SPARKPAW_DROWNED_JOINED
+    drownedCheckpointNewAttempt();
+#endif
+#endif
     UBYTE stormShot;
     game.cameraX=0; game.frameCounter=0;
     game.lives=GAME_START_LIVES;
@@ -1330,6 +1368,13 @@ void gameUpdate(void)
 #else
     playerReadInput(&left,&right,&down,&jump,&fire);
 #endif
+#ifdef SPARKPAW_DROWNED_SLICE
+    drownedSetView((WORD)game.cameraX);
+    drownedTick();
+#ifdef SPARKPAW_DROWNED_JOINED
+    drownedCheckpointTick();
+#endif
+#endif
     wasGrounded=player->grounded;
     playerStartShot(fire,audioPlayShot);
     profileStart=performanceProfileBegin();
@@ -1337,6 +1382,11 @@ void gameUpdate(void)
     performanceProfileEnd(PERF_PLAYER,profileStart);
     playerUpdateShot();
     playerContactBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(drownedCheckpointTouch(playerLeft,playerRight,playerBottom,player->grounded))
+        audioPlayCheckpoint();
+#endif
+#ifndef SPARKPAW_DROWNED_SLICE
     /* Reaching the chamber beyond the Core reveals the secret. Crouching is
        merely how the level geometry admits Sparkpaw, not the trigger itself. */
     if(extraLifeShouldReveal(game.extraLifeState,playerLeft,playerRight)) {
@@ -1357,6 +1407,7 @@ void gameUpdate(void)
         game.extraLifeState=EXTRA_LIFE_COLLECTED;
         audioPlayExtraLife();
     }
+#endif
     if(levelPlayerTouchesWater(playerLeft,playerRight,playerBottom)) {
         loseLife();
         game.waterSplashX=(WORD)((playerLeft+playerRight)>>1);
@@ -1369,6 +1420,10 @@ void gameUpdate(void)
         audioUpdate();
         return;
     }
+#ifdef SPARKPAW_DROWNED_SLICE
+    if(drownedJetTouches(playerLeft,playerTop,playerRight,playerBottom)&&
+       applyEnemyDamage(464)) return;
+#endif
     /* Latch a short readable Core response before the resident replay path.
        A later checkpoint can replace this timer with LEVEL_COMPLETE. */
     if(levelPlayerTouchesStormstoneCore(playerLeft,playerTop,
@@ -1379,11 +1434,22 @@ void gameUpdate(void)
         return;
     }
     profileStart=performanceProfileBegin();
+    BUSY_MARK(DB_AI_BEGIN);
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+    DROWNED_MEASURE(PERF_ENEMIES,{
     enemiesUpdate((WORD)game.cameraX,collisionSolidAt,
                   (WORD)((playerLeft+playerRight)>>1),
                   (WORD)((playerTop+playerBottom)>>1),
                   spawnEnemyProjectile);
+    });
+#else
+    enemiesUpdate((WORD)game.cameraX,collisionSolidAt,
+                  (WORD)((playerLeft+playerRight)>>1),
+                  (WORD)((playerTop+playerBottom)>>1),
+                  spawnEnemyProjectile);
+#endif
     performanceProfileEnd(PERF_ENEMIES,profileStart);
+    BUSY_MARK(DB_AI_END);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     detailProfileStart=performanceProfileBegin();
     left=enemiesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
@@ -1417,8 +1483,14 @@ void gameUpdate(void)
     }
     profileStart=performanceProfileBegin();
     projectilesUpdate((WORD)game.cameraX,collisionSolidAt,
-                      collisionFirstSolidOnSweep,enemiesHitProjectile,
-                      enemiesFirstProjectileHitOnSweep,
+                      collisionFirstSolidOnSweep,
+#ifdef SPARKPAW_DROWNED_ENCOUNTER
+                      drownedEncounterHit,drownedEncounterSweep,
+#elif defined(SPARKPAW_DROWNED_SLICE)
+                      drownedPanelHit,drownedPanelSweep,
+#else
+                      enemiesHitProjectile,enemiesFirstProjectileHitOnSweep,
+#endif
                       audioPlayEnemyHit,audioPlayEnemyDeath);
     {
         UWORD award=enemiesConsumeScoreAward();
@@ -1427,6 +1499,9 @@ void gameUpdate(void)
             game.enemiesDefeated+=(UWORD)(award/20);
         }
     }
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+    playerProjectileBounds(&playerLeft,&playerTop,&playerRight,&playerBottom);
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     detailProfileStart=performanceProfileBegin();
     left=projectilesContactPlayer(playerLeft,playerTop,playerRight,playerBottom,
@@ -1493,5 +1568,14 @@ void gameRestoreCampaignVitals(UBYTE lives,UBYTE health,UBYTE diamonds)
     game.diamonds=diamonds<GAME_DIAMONDS_PER_LIFE?diamonds:0;
     game.stormrailHealth=health>=1&&health<=PLAYER_MAX_HEALTH?
                          health:PLAYER_MAX_HEALTH;
+}
+#endif
+
+#ifdef SPARKPAW_DROWNED_CAMPAIGN_MODULE
+void gameRestoreDrownedVitals(UBYTE lives,UBYTE health,UBYTE diamonds)
+{
+    game.lives=lives>=1&&lives<=GAME_MAX_LIVES?lives:GAME_START_LIVES;
+    game.diamonds=diamonds<GAME_DIAMONDS_PER_LIFE?diamonds:0;
+    playerRestoreDrownedHealth(health);
 }
 #endif

@@ -23,6 +23,12 @@ struct PlayerState {
 typedef void (*PlayerPlayShot)(void);
 
 void playerInit(void);
+#ifdef SPARKPAW_DROWNED_CAMPAIGN_MODULE
+void playerRestoreDrownedHealth(UBYTE health);
+#endif
+#ifdef SPARKPAW_DROWNED_JOINED
+void playerRespawnAt(WORD x,WORD y);
+#endif
 void playerSetSecondaryButtonAction(enum SecondaryButtonAction action);
 void playerReadInput(BOOL *left,BOOL *right,BOOL *down,BOOL *jump,BOOL *fire);
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -34,7 +40,13 @@ BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump);
 void playerUpdateShot(void);
 void playerAnimate(BOOL landed,LONG frameCounter);
 void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom);
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+void playerProjectileBounds(WORD *left,WORD *top,WORD *right,WORD *bottom);
+#endif
 BOOL playerTakeEnemyHit(WORD enemyCenterX);
 const struct PlayerState *playerState(void);
 
+#ifdef SPARKPAW_DROWNED_PONTOON
+void playerCarryHorizontal(LONG delta);
+#endif
 #endif

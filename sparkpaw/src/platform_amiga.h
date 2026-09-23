@@ -33,6 +33,9 @@ void platformPrepareDebugFlush(void);
 void platformProfileTimerStart(void);
 ULONG platformProfileTimerTicks(void);
 #endif
+#if defined(SPARKPAW_DROWNED_FPS) && !defined(SPARKPAW_RENDER_DIAGNOSTIC)
+void platformPrepareDebugFlush(void);
+#endif
 void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
                           BOOL *jump,BOOL *fire);
 

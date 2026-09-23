@@ -1,6 +1,56 @@
 # Sparkpaw: The Stormstone Quest
 
-## Current release — 0.7.0-alpha.7, 10 September 2026
+## 0.7.0-alpha.9 / Phase 7B.1 local release — 23 September 2026
+
+This alpha integrates the accepted three-section campaign in HD,
+WHDLoad and three-disk ADF media. The Drowned music remains the approved v5
+track; rejected alternative music studies are excluded from the runtime.
+The second-button pull-up and keyboard ACK timing corrections are included in
+the current source for all three media. MrDig played the separate HD controls
+candidate successfully on an unspecified configuration and noticed no
+regression. Affected users have not yet confirmed their original bug fixed;
+the reported OPTIONS trigger and possible 68060 relationship remain unproven.
+Native build, full host suite and independent archive/ADF readback checks
+pass. MrDig reported that the corrected WHDLoad and HD work in FS-UAE and
+that the rebuilt ADF finds Disk 3 in DF2/DF3. Exact test configuration was
+not supplied. Public itch downloads remain alpha.8; upload is outside this
+task. See
+[release notes](docs/RELEASE_NOTES_0_7_0_ALPHA_9.md).
+
+The played controls-only candidate is archived at
+`dist/older-builds/Controls-Pullup-HD-approved-regression`; its executable is
+byte-identical to the new alpha.9 HD executable. See
+[controls investigation](docs/CONTROL_HARDWARE_INVESTIGATION.md) for the
+evidence boundary. Alpha.8 and the accepted campaign baselines are preserved
+hash-identically in `dist/older-builds` after the new packages passed their
+targeted playtests.
+
+## Prior campaign test state — 23 September 2026
+
+Official release: **0.7.0-alpha.8**, unchanged. MrDig approved the integrated
+HD campaign, the WHDLoad loading/presentation, F10 and tested transitions,
+and the three-disk ADF full campaign, START AT, disk swaps and INSERT DISK 3
+art in FS-UAE. This does not establish real A1200 or physical-floppy behavior.
+The ADF deliberately omits intro and Soundtest, as agreed. New separate
+`dist/Campaign-HD-Soundtest-SFX` and `dist/Campaign-WHD-Soundtest-SFX`
+add Drowned PUMP SHOT and CHECKPOINT after HEALTH PICKUP; native and host
+checks pass, and MrDig has now approved both latest HD/WHDLoad candidates.
+All three campaign media candidates in root `dist` are user-approved; this
+does not establish real A1200 behavior. The earlier HD/WHDLoad drawers are
+archived under `dist/older-builds/` after the user confirmed FS-UAE stopped;
+the active `dist` root contains alpha.8 and the three approved campaign
+candidates. The older
+release and working notes below are historical where they differ from this
+state. No commit, push, version bump or release was made for this campaign.
+
+For every future ADF `INSERT DISK N` screen, follow
+[`docs/ADF_INSERT_DISK_ART_CONTRACT.md`](docs/ADF_INSERT_DISK_ART_CONTRACT.md):
+create a complete text line from the approved typography source and convert it
+through the shared status-strip generator. Never paste a separate digit or draw
+one in code. Run the art contract test and review the 1/2/N comparison before
+packaging a test ADF. This note does not change the official release status.
+
+## Historical release notes — 0.7.0-alpha.7, 10 September 2026
 
 Phase 7A.3 now includes audio OPTIONS, five-track/16-effect Soundtest in HD
 and WHDLoad, P pause, terminal game over with full AGA art and Storm Light,

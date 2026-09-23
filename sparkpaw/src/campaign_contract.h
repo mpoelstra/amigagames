@@ -4,6 +4,7 @@
 enum CampaignSection {
     CAMPAIGN_SECTION_LEVEL1,
     CAMPAIGN_SECTION_STORMRAIL,
+    CAMPAIGN_SECTION_DROWNED,
     CAMPAIGN_SECTION_TITLE
 };
 
@@ -18,6 +19,9 @@ struct CampaignState {
     enum CampaignSection section;
     unsigned long bankedScore;
     unsigned long postLevel1Score;
+    unsigned long postStormrailScore;
+    unsigned char postStormrailLives,postStormrailHealth,postStormrailDiamonds;
+    unsigned char postStormrailSnapshotValid;
     unsigned char postLevel1Lives;
     unsigned char postLevel1Health;
     unsigned char postLevel1Diamonds;
@@ -31,6 +35,9 @@ static void campaignReset(struct CampaignState *state)
     state->section=CAMPAIGN_SECTION_LEVEL1;
     state->bankedScore=0;
     state->postLevel1Score=0;
+    state->postStormrailScore=0;
+    state->postStormrailLives=state->postStormrailHealth=state->postStormrailDiamonds=0;
+    state->postStormrailSnapshotValid=0;
     state->postLevel1Lives=0;
     state->postLevel1Health=0;
     state->postLevel1Diamonds=0;
@@ -82,6 +89,15 @@ static enum ResultDecision campaignAcceptDecision(
             if(!state->postLevel1SnapshotValid) return RESULT_DECISION_NONE;
             state->bankedScore=state->postLevel1Score;
             state->decisionLatched=1;
+        } else if(decision==RESULT_DECISION_CONTINUE) {
+            state->postStormrailScore=state->bankedScore+completedSectionScore;
+            state->bankedScore=state->postStormrailScore;
+            state->postStormrailLives=remainingLives;
+            state->postStormrailHealth=remainingHealth;
+            state->postStormrailDiamonds=heldDiamonds;
+            state->postStormrailSnapshotValid=1;
+            state->section=CAMPAIGN_SECTION_DROWNED;
+            state->decisionLatched=1;
         } else if(decision==RESULT_DECISION_BACK_TO_TITLE) {
             state->section=CAMPAIGN_SECTION_TITLE;
             state->bankedScore=0;
@@ -91,6 +107,14 @@ static enum ResultDecision campaignAcceptDecision(
             state->postLevel1Diamonds=0;
             state->lightningCoreRecovered=0;
             state->postLevel1SnapshotValid=0;
+            state->decisionLatched=1;
+        } else return RESULT_DECISION_NONE;
+    } else if(state->section==CAMPAIGN_SECTION_DROWNED) {
+        if(decision==RESULT_DECISION_REPLAY_CURRENT&&state->postStormrailSnapshotValid) {
+            state->bankedScore=state->postStormrailScore;
+            state->decisionLatched=1;
+        } else if(decision==RESULT_DECISION_BACK_TO_TITLE) {
+            campaignReset(state); state->section=CAMPAIGN_SECTION_TITLE;
             state->decisionLatched=1;
         } else return RESULT_DECISION_NONE;
     } else return RESULT_DECISION_NONE;

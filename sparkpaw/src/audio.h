@@ -30,6 +30,9 @@ void audioPlayJump(void);
 void audioPlayCollect(void);
 void audioPlayHealthCollect(void);
 void audioPlayExtraLife(void);
+#ifdef SPARKPAW_DROWNED_JOINED
+void audioPlayCheckpoint(void);
+#endif
 void audioPlayWaterSplash(void);
 void audioPlayStormstoneCore(void);
 void audioPlayTallyTick(void);

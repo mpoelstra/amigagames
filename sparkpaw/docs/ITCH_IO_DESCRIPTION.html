@@ -27,6 +27,7 @@
 <p>Gameplay music shares Paula&#39;s four hardware channels with plasma shots, jumps, pickups, splashes, debris impacts and boss attack cues. Three channels carry the music while a small software mixer combines two effect voices on the fourth. The intro and title themes use all four channels.</p>
 <p>The ready-screen <strong>OPTIONS</strong> menu can set gameplay audio to SFX only, music only, or both. HD and WHDLoad editions also include a <strong>SOUNDTEST</strong> for all 16 sound effects and all five themes. These choices only affect Storm Ruins and Stormrail gameplay; the title and results retain their normal audio.</p>
 <h3>Built for the Amiga</h3>
+<p>Sparkpaw is written primarily in <strong>C</strong>, with <strong>Motorola 68000-family assembly</strong> for selected low-level routines. It uses a custom game engine built around the Amiga hardware and is cross-compiled on macOS with <strong>VBCC, VASM and VLink</strong>. A Make-based build and Python tools prepare graphics and audio assets, run automated checks and package the HD, WHDLoad and floppy editions.</p>
 <p>Sparkpaw runs natively on the Amiga 1200, using AGA bitplanes, Copper colour changes, the Blitter, hardware sprites and Paula audio. Its presentation includes a 64-colour five-panel story introduction in the HD and WHDLoad editions, dedicated title and loading artwork, and an animated ready screen with drifting wind particles.</p>
 <p>This is an <strong>in-development alpha</strong>. Storm Ruins and Stormrail are playable through their respective endings; later worlds and the rest of the planned adventure are still in development. Feedback is welcome, especially with your machine, accelerator, RAM and package type.</p>
 <h3>Requirements</h3>
@@ -73,6 +74,3 @@
 </ul>
 <p>These are archive counts, not a count of unique bugs, independent tests or distinct game versions. Build drawers include variants and preserved copies; a day without a commit may still contain hours of playtesting. The earlier publication snapshot estimated 80–120 combined development and testing hours. Considerable work has followed, but there is no timesheet to support an honest updated total.</p>
 <p>The project grows through playable experiments, recorded evidence and plenty of time spent with an actual Amiga. For the development story, release details and occasional dives into the custom chips, see the <a href="https://mrdig.itch.io/sparkpaw/devlog">devlog</a>.</p>
-
-<h3>Alpha.7 test status</h3>
-<p>This is a work-in-progress alpha. A black screen after pressing Fire on game over was reported in an earlier HD test and remains unresolved. The latest ADF loading times, WHDLoad behaviour and real-hardware compatibility still need further playtesting.</p>

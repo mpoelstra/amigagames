@@ -1,6 +1,24 @@
 # Phase 7 — campaign releases and hardware validation
 
-## Current release — 0.7.0-alpha.7, 10 September 2026
+## Phase 7B.1 — three-section campaign, alpha.9 preparation
+
+The approved HD, WHDLoad and three-disk ADF campaign candidates add Drowned
+Turbines after Stormrail, with carried vitals/score, replay, direct section
+start, accepted Undertow Circuit v5 music and new Drowned effects. HD/WHDLoad
+include the intro and expanded SOUNDTEST; ADF keeps its agreed title start and
+no SOUNDTEST. The second-button pull-up and keyboard ACK timing corrections
+are compiled into all three new media. Alternative Drowned music studies are
+rejected and excluded from runtime. MrDig's controls-only HD regression test
+passed on an unspecified configuration; affected hardware has not confirmed
+the original bug fixed. OPTIONS causality and 68060 involvement remain open.
+
+`make`, `make release`, full `make test`, independent archive extraction,
+74-asset parity, icon checks and all-file three-ADF readback pass. New WHDLoad
+and ADF smoke playtests are pending before alpha.9 becomes official. Preserve
+alpha.8 and the three approved candidates until then. Real A1200, physical
+floppy and the intermittent HUD boundary observation remain open.
+
+## Historical release — 0.7.0-alpha.7, 10 September 2026
 
 Phase 7A.3 now includes audio OPTIONS, five-track/16-effect Soundtest in HD
 and WHDLoad, P pause, terminal game over with full AGA art and Storm Light,

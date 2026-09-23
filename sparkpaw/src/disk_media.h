@@ -4,6 +4,7 @@
 #include <exec/types.h>
 #include <dos/dos.h>
 BOOL diskMediaRequire(UBYTE disk);
+BOOL diskMediaSelectIfPresent(UBYTE disk);
 BPTR diskMediaOpen(const char *name,LONG mode);
 #endif
 #endif

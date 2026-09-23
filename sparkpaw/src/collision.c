@@ -1,4 +1,10 @@
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+#include "drowned_governor.h"
+#endif
 #include "collision.h"
+#ifdef SPARKPAW_DROWNED_SLICE
+#include "drowned_slice.h"
+#endif
 #ifndef SPARKPAW_COLLISION_HAZARD_SCAN_REFERENCE
 #define SPARKPAW_COLLISION_HAZARD_CACHE
 #endif
@@ -40,7 +46,13 @@ static int collisionHazardPredicate(short x)
 
 BOOL collisionLoad(void)
 {
+#ifdef SPARKPAW_DROWNED_ROUTE
+    BPTR file=Open("PROGDIR:assets/runtime/drowned-route.bin",MODE_OLDFILE);
+#elif defined(SPARKPAW_DROWNED_SLICE)
+    BPTR file=Open("PROGDIR:assets/runtime/drowned-collision.bin",MODE_OLDFILE);
+#else
     BPTR file=Open("PROGDIR:assets/runtime/storm-collision.bin",MODE_OLDFILE);
+#endif
     if(!file) return FALSE;
     if(Read(file,collision,sizeof(collision))!=sizeof(collision)) {
         Close(file); return FALSE;
@@ -57,6 +69,13 @@ BOOL collisionLoad(void)
 
 BOOL collisionSolidAt(WORD x,WORD y)
 {
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+#ifdef SPARKPAW_DROWNED_FULL
+ if(x>=DROWNED_FINALE_OFFSET) return governorSolid(x,y);
+#else
+ return governorSolid(x,y);
+#endif
+#endif
     WORD tileX,tileY;
 #ifdef SPARKPAW_STORMRAIL_PROOF
     /* One raised visible cliff is the entire on-foot route. Beyond its broken
@@ -65,6 +84,9 @@ BOOL collisionSolidAt(WORD x,WORD y)
         if(x>=0&&x<176) return y>=168;
         if(x>=176&&x<430) return FALSE;
     }
+#endif
+#ifdef SPARKPAW_DROWNED_SLICE
+    if(drownedGateSolid(x,y)) return TRUE;
 #endif
     if(x<0||x>=WORLD_W||y<0) return TRUE;
     /* Phase 6B.3A moves the continuous floor top to the visible cap while the
@@ -124,6 +146,10 @@ BOOL collisionSolidHorizontal(WORD left,WORD right,WORD y)
 BOOL collisionSolidVertical(WORD x,WORD top,WORD bottom)
 {
     WORD y;
+#ifdef SPARKPAW_DROWNED_SLICE
+    /* The housing starts at y120, inside a tile. Do not skip its upper edge. */
+    if(drownedHeaderOverlaps(x,top,x,bottom)) return TRUE;
+#endif
 #ifndef SPARKPAW_COLLISION_PIXEL_SPAN_REFERENCE
     for(y=top;y<=bottom;) {
         WORD next;

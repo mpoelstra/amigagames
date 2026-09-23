@@ -1,0 +1,109 @@
+{
+  "status": "native-size indexed static art review; NOT runtime accepted",
+  "source": "assets/concept/drowned-polish-parts-source-v1.png",
+  "front_palette": [
+    [
+      0,
+      0,
+      17
+    ],
+    [
+      17,
+      17,
+      17
+    ],
+    [
+      221,
+      68,
+      17
+    ],
+    [
+      255,
+      153,
+      34
+    ],
+    [
+      255,
+      238,
+      170
+    ],
+    [
+      34,
+      102,
+      204
+    ],
+    [
+      51,
+      204,
+      238
+    ],
+    [
+      153,
+      68,
+      204
+    ],
+    [
+      34,
+      43,
+      51
+    ],
+    [
+      68,
+      82,
+      91
+    ],
+    [
+      119,
+      136,
+      145
+    ],
+    [
+      221,
+      225,
+      221
+    ],
+    [
+      68,
+      43,
+      26
+    ],
+    [
+      119,
+      77,
+      43
+    ],
+    [
+      187,
+      128,
+      68
+    ],
+    [
+      238,
+      187,
+      119
+    ]
+  ],
+  "front_planes": 4,
+  "rear_planes": 3,
+  "playfield": [
+    320,
+    208
+  ],
+  "hud_y": 208,
+  "floor_y": 200,
+  "player_cell": [
+    48,
+    48
+  ],
+  "raw_planar_bytes": {
+    "front": 33280,
+    "rear": 24960
+  },
+  "limitations": [
+    "rear unchanged cropped full-level master",
+    "component adaptation, not final map/collision",
+    "new foreground pens 8..15 require shared Bob/effect audit",
+    "no animation/timing/RAM allocation claim"
+  ],
+  "protected_files": 19021
+}

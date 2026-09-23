@@ -1,0 +1,11 @@
+{
+  "status": "audition only; not in runtime",
+  "period": 322,
+  "rate": 11015.201863354037,
+  "bytes": 5286,
+  "seconds": 0.4798822632189563,
+  "peak": 104,
+  "voice": false,
+  "design": "metal latch,147Hz electrical hum,one880Hz confirmation; no melodic sequence",
+  "supersedes": "checkpoint-v1 rising three-note concept"
+}

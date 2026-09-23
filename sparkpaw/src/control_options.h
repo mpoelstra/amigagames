@@ -8,7 +8,8 @@ enum SecondaryButtonAction {
 
 enum CampaignStartSection {
     CAMPAIGN_START_STORM_RUINS,
-    CAMPAIGN_START_STORMRAIL
+    CAMPAIGN_START_STORMRAIL,
+    CAMPAIGN_START_DROWNED
 };
 
 static int campaignOptionsVariant(enum SecondaryButtonAction secondaryAction,

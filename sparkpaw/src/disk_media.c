@@ -10,7 +10,7 @@
 #include "platform_amiga.h"
 
 static UBYTE activeDrive;
-/* Scan both drives without DOS requesters. Markers are bounded, versioned and
+/* Scan all four floppy drives without DOS requesters. Markers are bounded, versioned and
    read-only. Never retain a file or directory lock across a disk change. */
 static BOOL findDisk(UBYTE disk)
 {
@@ -18,7 +18,13 @@ static BOOL findDisk(UBYTE disk)
     APTR window=process->pr_WindowPtr;
     UBYTE drive; BOOL found=FALSE;
     char path[]="DF0:Sparkpaw.disk",marker[8];
-#ifdef SPARKPAW_THREE_ADF
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+    const char *wanted=disk==1?"SP09D1\n":disk==2?"SP09D2\n":"SP09D3\n";
+#elif defined(SPARKPAW_FIVE_ADF)
+    const char *wanted=disk==1?"SP09D1\n":disk==2?"SP09D2\n":disk==3?"SP09D3\n":disk==4?"SP09D4\n":"SP09D5\n";
+#elif defined(SPARKPAW_FOUR_ADF)
+    const char *wanted=disk==1?"SP09D1\n":disk==2?"SP09D2\n":disk==3?"SP09D3\n":"SP09D4\n";
+#elif defined(SPARKPAW_THREE_ADF)
     const char *wanted=disk==1?"SP08G1\n":disk==2?"SP08G2\n":"SP08G3\n";
 #elif defined(SPARKPAW_GAME_OVER_ADF)
     const char *wanted=disk==1?"SP07G1\n":"SP07G2\n";
@@ -28,7 +34,7 @@ static BOOL findDisk(UBYTE disk)
     const char *wanted=disk==1?"SP07D1\n":"SP07D2\n";
 #endif
     process->pr_WindowPtr=(APTR)-1;
-    for(drive=0;drive<2;drive++) {
+    for(drive=0;drive<4;drive++) {
         BPTR file; LONG count;
         path[2]=(char)('0'+drive);
         file=Open(path,MODE_OLDFILE);
@@ -45,7 +51,13 @@ static BOOL findDisk(UBYTE disk)
 BOOL diskMediaRequire(UBYTE disk)
 {
     UBYTE frame;
-#ifdef SPARKPAW_THREE_ADF
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+    if(disk<1||disk>3) return FALSE;
+#elif defined(SPARKPAW_FIVE_ADF)
+    if(disk<1||disk>5) return FALSE;
+#elif defined(SPARKPAW_FOUR_ADF)
+    if(disk<1||disk>4) return FALSE;
+#elif defined(SPARKPAW_THREE_ADF)
     if(disk<1||disk>3) return FALSE;
 #else
     if(disk<1||disk>2) return FALSE;
@@ -56,6 +68,20 @@ BOOL diskMediaRequire(UBYTE disk)
         if(findDisk(disk)) return titleShowReplayLoading();
         for(frame=0;frame<25;frame++) WaitTOF();
     }
+}
+
+BOOL diskMediaSelectIfPresent(UBYTE disk)
+{
+    if(disk<1||
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+       disk>3
+#elif defined(SPARKPAW_FIVE_ADF)
+       disk>5
+#else
+       disk>2
+#endif
+       ) return FALSE;
+    return findDisk(disk);
 }
 
 BPTR diskMediaOpen(const char *name,LONG mode)

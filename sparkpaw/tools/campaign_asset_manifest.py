@@ -37,11 +37,20 @@ STORMRAIL = frozenset({
     "harrier-hunter-fire.raw",
 })
 
+DROWNED = frozenset({
+    "checkpoint.raw", "checkpoint.spbm", "drowned-amb.bin",
+    "drowned-patches.spbm", "drowned-rear.spbm", "drowned-route.bin",
+    "drowned-route.spbm", "pontoon-clip.bin", "pump-shot.raw",
+    "pump-walker.spbm", "rain-bank.bin", "rain-core.spbm",
+    "rain-score.bin", "spillwing.spbm", "turbine-crab.spbm",
+})
+
 GROUPS = {
     "shared_presentation": SHARED_PRESENTATION,
     "shared_gameplay": SHARED_GAMEPLAY,
     "level1": LEVEL1,
     "stormrail": STORMRAIL,
+    "drowned": DROWNED,
 }
 ALL = frozenset().union(*GROUPS.values())
 

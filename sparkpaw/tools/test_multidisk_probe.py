@@ -11,7 +11,7 @@ def compile_run(name,source,args=()):
  subprocess.run([str(OUT/name),*map(str,args)],check=True)
 
 def main():
- s=(ROOT/'src/assets.c').read_text();a=s.index('struct PackedReader {');b=s.index('\n#endif\n\n#ifdef SPARKPAW_MULTI_ADF\n/* Reuse',a)
+ s=(ROOT/'src/assets.c').read_text();a=s.index('struct PackedReader {');b=s.index('\n#endif\n\n#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)\n/* Reuse',a)
  body=s[a:b]
  start=s.index("UBYTE *assetsLoadDiskData(")
  body+=s[start:s.index("\n#endif",start)]
@@ -42,7 +42,7 @@ if(!packedRead(&r,bytes,n)){ok=FALSE;break;}if(memcmp(bytes,expected,n)){ok=FALS
 ok=packedClose(&r,ok);assert(ok==atoi(argv[3]));
 {ULONG size;UBYTE *data=assetsLoadDiskData(argv[1],0,&size);long length;
 fseek(raw,0,SEEK_END);length=ftell(raw);rewind(raw);
-if(ok&&length>0){long at;assert(data&&size==(ULONG)length);for(at=0;at<length;at++)assert(data[at]==fgetc(raw));free(data);}
+if(ok&&length>0&&length<=512L*1024L){long at;assert(data&&size==(ULONG)length);for(at=0;at<length;at++)assert(data[at]==fgetc(raw));free(data);}
 else assert(!data&&size==0);}
 fclose(raw);return 0;}
 '''

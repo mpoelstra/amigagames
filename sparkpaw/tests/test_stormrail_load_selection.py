@@ -38,6 +38,7 @@ static struct {int stormrailActive;} state,*game=&state;
 static int enemyCaches[2];
 #define ENEMY_TYPE_CLOCKWORK_BEETLE 0
 #define ENEMY_TYPE_CLOCKWORK_STORM_STRIDER 1
+#define STRIDER_FAST_MASTER TRUE
 static int calls[12],jobs,failJob;
 static int job(int id) {calls[id]++;jobs++;return id!=failJob;}
 static int buildEnemyPatterns(int *cache,int fast) {
@@ -59,6 +60,7 @@ static int prepare(void) {
 source += prepare + '}\n'
 source += r'''
 int main(void) {
+    (void)spillwingSprites;
     int mode,repeat,i,j,count;
     for(repeat=0;repeat<3;repeat++) for(mode=0;mode<2;mode++) {
         loadStormrailGameplay=mode;

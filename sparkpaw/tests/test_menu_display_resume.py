@@ -27,7 +27,7 @@ shim=r'''
 #include <stdio.h>
 typedef unsigned short UWORD;typedef int BOOL;
 #define TRUE 1
-#define PORT2_CD32_RESET_HIGH 0x3000
+#define PORT2_BUTTONS_PULLUP 0xf000
 #define DMAF_AUDIO 15
 #define DMAF_DISK 16
 #define DMAF_SPRITE 32
@@ -63,7 +63,7 @@ int main(void){int music,mask;
   hardware->dmaconr=dma;retainedMusic=music?mask:0;
   platformResumeMenuAfterLoading();
   assert(systemLocked&&interruptsDisabled&&active&&writes==2);
-  assert(hardware->potgo==PORT2_CD32_RESET_HIGH&&hardware->intena==32767);
+  assert(hardware->potgo==PORT2_BUTTONS_PULLUP&&hardware->intena==32767);
   assert(dma==(DMAF_MASTER|DMAF_COPPER|DMAF_RASTER|DMAF_BLITTER|retainedMusic));
  }
  puts("PASS: retained display DMA/Copper, 32 LSP DMA cases, reacquired ownership and both soundtest reload call sites");

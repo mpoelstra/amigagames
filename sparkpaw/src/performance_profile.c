@@ -30,7 +30,33 @@ static const char *const names[PERF_SLOT_COUNT]={
     "bob_enemy_draw","bob_projectile_draw","bob_final_wait",
     "enemy_parked","enemy_active","enemy_respawn","enemy_activate",
     "blitter_wait","stormrail_restore","stormrail_draw"
+#if defined(SPARKPAW_DROWNED_TARGETED_PROFILE) || defined(SPARKPAW_DROWNED_FERRY_PROFILE)
+    ,"drowned_patch_build","drowned_patch_sync"
+#endif
 };
+
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+static WORD ferrySelected=-1;
+static ULONG ferryFrames,ferryUpperFrames;
+static UBYTE ferryPhase;
+void performanceFerryFrame(WORD playerX,WORD playerY)
+{
+    static const UBYTE slots[8]={PERF_GAME_UPDATE,PERF_BOB_PASS,
+        PERF_BOB_COMPACT_TARGET,PERF_BOB_WATER,PERF_RING_ROLL,
+        PERF_RING_DYNAMIC,PERF_BLITTER_WAIT,PERF_BOB_ENEMY_DRAW};
+    ferrySelected=-1;
+    if(playerX>=2800&&playerX<3200) {
+        /* Prime-length sampling cycle avoids always sampling one water or
+           sprite animation phase (their periods are powers of two). */
+        ferrySelected=slots[ferryPhase<8?ferryPhase:ferryPhase<16?ferryPhase-8:0];
+        if(++ferryPhase==17) ferryPhase=0;
+        ferryFrames++;
+        if(playerY<140) ferryUpperFrames++;
+    }
+}
+BOOL performanceFerrySelected(enum PerformanceProfileSlot slot)
+{ return ferrySelected==(WORD)slot; }
+#endif
 
 ULONG performanceProfileBegin(void)
 {
@@ -68,6 +94,9 @@ static void sortSamples(ULONG *values,WORD left,WORD right)
 void performanceProfileWrite(BPTR file)
 {
     UWORD slot;
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+    FPrintf(file,"ferry_profile=1 buffer_split=1 range=2800..3199 rotating_scopes=8 sampling_cycle=17 timer_pairs_per_frame=1 frames=%ld upper_y_lt140=%ld observer_cost=nonzero\n",ferryFrames,ferryUpperFrames);
+#endif
     FPrintf(file,"cia_profile clock=ciab_timer_b_eclock pal_ticks_per_frame_approx=14188\n");
     for(slot=0;slot<PERF_SLOT_COUNT;slot++) {
         const struct ProfileTotal *total=&totals[slot];

@@ -42,6 +42,10 @@ enum PerformanceProfileSlot {
     PERF_BLITTER_WAIT,
     PERF_STORMRAIL_RESTORE,
     PERF_STORMRAIL_DRAW,
+#if defined(SPARKPAW_DROWNED_TARGETED_PROFILE) || defined(SPARKPAW_DROWNED_FERRY_PROFILE)
+    PERF_DROWNED_PATCH_BUILD,
+    PERF_DROWNED_PATCH_SYNC,
+#endif
     PERF_SLOT_COUNT
 };
 
@@ -62,6 +66,34 @@ void performanceProfileWrite(BPTR file);
 #else
 #define performanceProfileBegin() 0UL
 #define performanceProfileEnd(slot,start) do { } while(0)
+#endif
+
+/* Explicit, disjoint scopes only; broad and nested profiling stays disabled.
+   Parenthesized declarations/calls bypass the minimal function-like macros. */
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+ULONG (performanceProfileBegin)(void);
+void (performanceProfileEnd)(enum PerformanceProfileSlot slot,ULONG start);
+void performanceFerryFrame(WORD playerX,WORD playerY);
+BOOL performanceFerrySelected(enum PerformanceProfileSlot slot);
+#define DROWNED_MEASURE(slot,call) do { \
+    if(performanceFerrySelected(slot)) { \
+        ULONG ferryStart=(performanceProfileBegin)(); \
+        call; (performanceProfileEnd)(slot,ferryStart); \
+    } else { call; } \
+} while(0)
+#elif defined(SPARKPAW_DROWNED_TARGETED_PROFILE)
+#if !defined(SPARKPAW_DROWNED_SLICE) || !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
+#error Drowned targeted profiling requires the isolated minimal diagnostic
+#endif
+ULONG (performanceProfileBegin)(void);
+void (performanceProfileEnd)(enum PerformanceProfileSlot slot,ULONG start);
+#define DROWNED_MEASURE(slot,call) do { \
+    ULONG drownedMeasureStart=(performanceProfileBegin)(); \
+    call; \
+    (performanceProfileEnd)(slot,drownedMeasureStart); \
+} while(0)
+#else
+#define DROWNED_MEASURE(slot,call) do { call; } while(0)
 #endif
 
 #endif

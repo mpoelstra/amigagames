@@ -35,17 +35,20 @@ def require(path: Path, description: str) -> None:
         raise SystemExit(f"missing {description}: {path}")
 
 
-def assemble() -> None:
+def assemble(*, packed: bool = False) -> None:
     require(VASM, "vasm assembler")
     require(DEV / "Include" / "whdload.i", "WHDLoad include files")
     require(NDK_INCLUDE / "exec" / "execbase.i", "NDK assembler includes")
     require(DEV / "Src" / "sources" / "whdload" / "kick31.s", "WHDLoad kick31 source")
-    subprocess.run([
+    args = [
         str(VASM), "-m68000", "-Fhunkexe", "-nosym", "-quiet", "-nowarn=62",
         f"-I{ROOT / 'whdload' / 'include'}", f"-I{DEV / 'Include'}",
         f"-I{NDK_INCLUDE}", f"-I{DEV / 'Src' / 'sources'}",
         str(SLAVE_SOURCE), "-o", str(SLAVE),
-    ], cwd=ROOT, check=True)
+    ]
+    if packed:
+        args.insert(-3, "-DPACKED_WHDLOAD")
+    subprocess.run(args, cwd=ROOT, check=True)
 
 
 def make_icons() -> None:

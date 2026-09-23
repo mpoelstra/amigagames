@@ -11,7 +11,7 @@
 #include "music.h"
 #include <hardware/custom.h>
 #include "platform_amiga.h"
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 #include "assets.h"
 #endif
 
@@ -47,7 +47,7 @@ static void releaseData(void)
 
 static UBYTE *load(const char *name, ULONG flags, ULONG *size)
 {
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 #ifdef SPARKPAW_THREE_ADF
     if(gameOverScoreCache&&gameOverBankCache&&strstr(name,"storm-light.")) {
         BOOL bank=strstr(name,".lsbank")!=NULL;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create campaign HD, two-disk ADF and WHDLoad alpha packages.
+"""Release identity and archive helpers for the three-section campaign.
 
 The legacy one-level ADF function is retained only as historical tooling.
 """
@@ -19,8 +19,8 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.7.0-alpha.7"
-ROADMAP_CHECKPOINT = "7A.3"
+RELEASE_VERSION = "0.7.0-alpha.9"
+ROADMAP_CHECKPOINT = "7B.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
 ADF_EXECUTABLE = ROOT / "build" / "sparkpaw-adf"
@@ -130,7 +130,7 @@ the title. Carried lives/health now appear from the first Stormrail boarding
 frame; OPTIONS -> Stormrail still starts with 3 lives and full health.
 Known issue: an earlier HD test was reported to stay black after Fire on the
 game-over screen. The cause and a fix are not yet verified.
-Use both alpha.7 disks together; older disk pairs have different media markers.
+Use both {RELEASE_VERSION} disks together; older disk pairs have different media markers.
 
 User emulator testing reports working HD and two-ADF music/campaign builds.
 This alpha is ready for real-hardware testing, not a claim of completed native
@@ -412,4 +412,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    from make_campaign_release import main as campaign_main
+    campaign_main()

@@ -5,7 +5,13 @@
 
 #define ENEMY_TYPE_CLOCKWORK_BEETLE 0
 #define ENEMY_TYPE_CLOCKWORK_STORM_STRIDER 1
+#ifdef SPARKPAW_DROWNED_JOINED
+#define ENEMY_TYPE_SPILLWING 2
+#define ENEMY_TYPE_COUNT 3
+#else
+#define ENEMY_TYPE_SPILLWING 0
 #define ENEMY_TYPE_COUNT 2
+#endif
 
 #define ENEMY_POLICY_PERMANENT 0
 #define ENEMY_POLICY_RESPAWN 1
@@ -59,7 +65,13 @@ struct EnemyTraversalLink {
 
 #define MAX_LEVEL_ENEMY_SPAWNS 24
 
+#ifdef SPARKPAW_DROWNED_JOINED
+#define LEVEL_WATER_COUNT 20
+#elif defined(SPARKPAW_DROWNED_ROUTE)
+#define LEVEL_WATER_COUNT 10
+#else
 #define LEVEL_WATER_COUNT 2
+#endif
 #define LEVEL_WATER_W 80
 #define LEVEL_WATER0_LEFT 1584
 #define LEVEL_WATER1_LEFT 2432
@@ -73,7 +85,11 @@ struct EnemyTraversalLink {
 
 /* Phase 6C.2 quiet reward field. The animated Core Bob is centred in
    the final 320px camera composition. */
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+#define LEVEL_STORMSTONE_CORE_CENTER_X (1640+DROWNED_FINALE_OFFSET)
+#else
 #define LEVEL_STORMSTONE_CORE_CENTER_X 3232
+#endif
 #define LEVEL_STORMSTONE_CORE_LEFT 3198
 #define LEVEL_STORMSTONE_CORE_TOP 112
 #define LEVEL_STORMSTONE_CORE_RIGHT 3208

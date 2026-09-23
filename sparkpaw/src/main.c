@@ -1,3 +1,4 @@
+#include "drowned_busy.h"
 #include <dos/dos.h>
 #include <exec/memory.h>
 #include <proto/dos.h>
@@ -18,6 +19,10 @@
 #include "title.h"
 #include "world_config.h"
 #include "disk_media.h"
+#include "drowned_fps.h"
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+#include "drowned_campaign.h"
+#endif
 
 enum AppState {
     APP_BOOT,
@@ -27,7 +32,8 @@ enum AppState {
     APP_PLAYING,
     APP_LEVEL_COMPLETE,
     APP_GAME_OVER,
-    APP_RETURN_READY
+    APP_RETURN_READY,
+    APP_DROWNED_ENTRY
 };
 
 static void cleanup(void)
@@ -41,7 +47,11 @@ static void cleanup(void)
 static BOOL loadLevelFiles(void)
 {
 #ifdef SPARKPAW_MULTI_ADF
-#ifdef SPARKPAW_THREE_ADF
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+    if(!diskMediaRequire(gameStormrailActive()?2:1)) return FALSE;
+#elif defined(SPARKPAW_FOUR_ADF)
+    if(!diskMediaRequire(gameStormrailActive()?3:2)) return FALSE;
+#elif defined(SPARKPAW_THREE_ADF)
     if(!diskMediaRequire(gameStormrailActive()?3:2)) return FALSE;
 #else
     if(!diskMediaRequire(gameStormrailActive()?2:1)) return FALSE;
@@ -91,7 +101,7 @@ static void writeBackTitleStage(const char *stage,BOOL final)
 }
 #endif
 
-#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+#if defined(SPARKPAW_STARTUP_DIAGNOSTIC)||defined(SPARKPAW_DROWNED_PONTOON)
 static void writeStartupStage(const char *stage)
 {
     BPTR file=Open("PROGDIR:startupdiag.log",MODE_READWRITE);
@@ -148,6 +158,13 @@ int main(void)
     enum SecondaryButtonAction secondaryButtonAction=SECONDARY_BUTTON_JUMP;
     enum CampaignStartSection startSection=CAMPAIGN_START_STORM_RUINS;
     BOOL paused=FALSE;
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+    BOOL drownedBackToTitle=FALSE;
+#if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_DROWNED_THREE_ADF)
+    BOOL drownedNeedsDisk1=FALSE;
+#endif
+    struct DrownedCampaignEntry drownedEntry;
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     BOOL prototypePublished;
 #endif
@@ -200,7 +217,7 @@ int main(void)
     writeBackTitleStage("start_game_pressed",TRUE);
     for(;;) { }
 #endif
-#if defined(SPARKPAW_STORMRAIL_FINALE_PROOF)&&!defined(SPARKPAW_CAMPAIGN)
+#if (defined(SPARKPAW_STORMRAIL_FINALE_PROOF)&&!defined(SPARKPAW_CAMPAIGN)) || defined(SPARKPAW_DROWNED_SLICE) || defined(SPARKPAW_LEVEL1_RING_TEST)
     if(!platformReady) {
         PutStr("Sparkpaw: platform unavailable.\n");
         cleanup(); return 10;
@@ -208,11 +225,29 @@ int main(void)
     DateStamp(&levelTime);
     enemySeed=(ULONG)levelTime.ds_Days*86400UL+
               (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
+#ifdef SPARKPAW_DROWNED_FPS
+    enemySeed=0; /* Matched manual A/B starts; normal builds keep their seed. */
+#endif
     gameInit(enemySeed^0x53504157UL);
+#ifdef SPARKPAW_DROWNED_PONTOON
+    writeStartupStage("pontoon_loading_files");
+    if(!loadLevelFiles()){writeStartupStage("failed_pontoon_files");cleanup();return 10;}
+    writeStartupStage("pontoon_preparing_renderer");
+    if(!rendererPrepareGameplay()) {
+        writeStartupStage("failed_pontoon_renderer");
+#else
     if(!loadLevelFiles()||!rendererPrepareGameplay()) {
+#endif
         PutStr("Sparkpaw: Gate-6 runtime unavailable.\n");
         cleanup(); return 10;
     }
+#ifdef SPARKPAW_DROWNED_PONTOON
+    writeStartupStage("pontoon_renderer_ready");
+#endif
+    /* Snapshot after all direct-start assets/caches, before takeover. */
+#ifdef SPARKPAW_DROWNED_FPS
+    drownedFpsMemory();
+#endif
     platformFinishTakeover(rendererCopperList());
     rendererUpdateGameplay();
     platformSwitchCopper(rendererCopperList());
@@ -321,6 +356,15 @@ int main(void)
     playerSetSecondaryButtonAction(secondaryButtonAction);
     titleFadeOut();
 #ifdef SPARKPAW_CAMPAIGN
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+    if(startSection==CAMPAIGN_START_DROWNED) {
+        drownedEntry.bankedScore=0; drownedEntry.seed=0x53504157UL;
+        drownedEntry.lives=GAME_START_LIVES; drownedEntry.health=PLAYER_MAX_HEALTH;
+        drownedEntry.diamonds=0;
+        state=APP_DROWNED_ENTRY;
+        goto campaignLoop;
+    }
+#endif
     if(startSection==CAMPAIGN_START_STORMRAIL) {
         platformReleaseForLoading(TRUE);
         DateStamp(&levelTime);
@@ -344,6 +388,9 @@ int main(void)
     platformStartGameplayAudio();
     state=APP_PLAYING;
 #endif
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+campaignLoop:
+#endif
     for(;;) {
     while(state==APP_PLAYING) {
         ULONG profileStart;
@@ -365,7 +412,13 @@ int main(void)
             break;
         }
 #endif
+#ifdef SPARKPAW_DROWNED_SLICE
+        if(platformGameEscapeRequested()) { state=APP_BOOT; break; }
+#endif
         if(paused) {
+#ifdef SPARKPAW_DROWNED_FPS
+            drownedFpsPause();
+#endif
             /* Keep the last complete frame resident. Music and a currently
                playing effect continue; simulation and elapsed time stop. */
             while(platformRasterLine()<300) { }
@@ -427,7 +480,9 @@ int main(void)
         rendererDiagnosticUpdateEntry(platformRasterLine());
 #endif
         profileStart=performanceProfileBegin();
-        gameUpdate();
+        BUSY_BEGIN();
+        DROWNED_MEASURE(PERF_GAME_UPDATE,{ gameUpdate(); });
+        BUSY_MARK(DB_GAME_END);
         performanceProfileEnd(PERF_GAME_UPDATE,profileStart);
         if(gameOver()) { state=APP_GAME_OVER; break; }
 #ifdef SPARKPAW_CAMPAIGN
@@ -441,7 +496,7 @@ int main(void)
            sample below. Production campaign builds still enter results. */
         if(gameLevelComplete()&&gameStormrailActive()) {
         } else
-#elif defined(SPARKPAW_LEVEL1_CADENCE_TEST)
+#elif defined(SPARKPAW_LEVEL1_CADENCE_TEST) || defined(SPARKPAW_LEVEL1_RING_TEST)
         /* Keep the completed Level-1 frame resident until LMB ends the
            bounded sample. Production campaign builds still enter results. */
         if(gameLevelComplete()) {
@@ -462,8 +517,13 @@ int main(void)
         rendererDiagnosticPublicationEntry(platformRasterLine());
 #endif
         profileStart=performanceProfileBegin();
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+        DROWNED_MEASURE(PERF_COPPER_PATCH,{ rendererUpdateGameplay(); });
+#else
         rendererUpdateGameplay();
+#endif
         performanceProfileEnd(PERF_COPPER_PATCH,profileStart);
+        BUSY_MARK(DB_COPPER_END);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         rendererDiagnosticPublicationExit(platformRasterLine());
 #endif
@@ -474,8 +534,13 @@ int main(void)
         rendererDiagnosticBobEntry(platformRasterLine());
 #endif
         profileStart=performanceProfileBegin();
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+        DROWNED_MEASURE(PERF_BOB_PASS,{ rendererDrawGameplayBobs(); });
+#else
         rendererDrawGameplayBobs();
+#endif
         performanceProfileEnd(PERF_BOB_PASS,profileStart);
+        BUSY_MARK(DB_BOB_END);
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
         rendererDiagnosticBobExit(platformRasterLine());
 #endif
@@ -504,7 +569,7 @@ int main(void)
         rendererDiagnosticBoundary(platformRasterLine(),TRUE);
 #endif
 #endif
-#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) || defined(SPARKPAW_DROWNED_FPS)
         if(platformLeftMouse()) state=APP_BOOT;
 #endif
 #ifdef SPARKPAW_EXTRA_LIFE_VISUAL_PROOF
@@ -566,6 +631,62 @@ int main(void)
 #endif
 #endif
     }
+#if defined(SPARKPAW_DROWNED_SLICE) || defined(SPARKPAW_LEVEL1_RING_TEST)
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) || defined(SPARKPAW_DROWNED_FPS)
+    /* Direct-start slices bypass the campaign's common diagnostic exit.
+       Save before releasing display/assets, then retain the final image. */
+    while(platformLeftMouse()) { }
+    platformPrepareDebugFlush();
+#ifdef SPARKPAW_DROWNED_FPS
+    drownedFpsWrite();
+#else
+    rendererWriteDiagnosticLog();
+#endif
+    for(;;) { }
+#endif
+    /* The focused route has no campaign/result claim. Terminal loss exits. */
+    platformReleaseForLoading(FALSE);
+    cleanup(); return 0;
+#endif
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+    if(state==APP_DROWNED_ENTRY) {
+        int outcome;
+        drownedEntry.secondaryAction=(UBYTE)secondaryButtonAction;
+        drownedEntry.audioMode=(UBYTE)audioGetMode();
+#if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_DROWNED_THREE_ADF)
+        /* Publish a DOS-live loading image before asking for Drowned media.
+           The module has its own resolver and revalidates disk 4 on entry. */
+        /* Direct OPTIONS entry still owns READY's interrupts/Blitter. Continue
+           has already released them; this idempotent call makes both routes
+           DOS-live before the loading image or disk requester reads media. */
+        platformReleaseForLoading(TRUE);
+        if(!titleShowReplayLoading()||!diskMediaRequire(
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+            3
+#else
+            4
+#endif
+            )) {
+            cleanup(); return 10;
+        }
+#endif
+        platformReleaseForLoading(FALSE); platformBeginTakeover(); WaitTOF();
+        rendererCleanup(); audioUnload(); titleRelease(); musicShutdown();
+        outcome=drownedCampaignRun(&drownedEntry);
+        if(outcome==DROWNED_CAMPAIGN_QUIT) {
+            platformRestore(); cleanup(); return 0;
+        }
+        if(outcome==DROWNED_CAMPAIGN_ERROR) {
+            PutStr("Sparkpaw: Drowned campaign load failed.\n");
+            platformRestore(); cleanup(); return 10;
+        }
+        drownedBackToTitle=outcome==DROWNED_CAMPAIGN_TITLE;
+#if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_DROWNED_THREE_ADF)
+        drownedNeedsDisk1=TRUE;
+#endif
+        state=APP_RETURN_READY;
+    }
+#endif
     paused=FALSE;
     if(state==APP_RETURN_READY) {
 #ifdef SPARKPAW_CAMPAIGN
@@ -577,11 +698,20 @@ int main(void)
         gameSetStormrailActive(FALSE);
         assetsSetStormrailGameplay(FALSE);
         campaignReset(&campaign);
+#if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_DROWNED_THREE_ADF)
+        if(drownedNeedsDisk1&&!diskMediaRequire(1)) {
+            cleanup(); return 10;
+        }
+        drownedNeedsDisk1=FALSE;
+#endif
         startSection=CAMPAIGN_START_STORM_RUINS;
         if(!titleShowMain()||!titlePrepareLevelLoading()) {
             PutStr("Sparkpaw: Escape ready restart unavailable.\n");
             cleanup(); return 10;
         }
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+        if(drownedBackToTitle) { titleWaitFrames(225); drownedBackToTitle=FALSE; }
+#endif
         DateStamp(&levelTime);
         enemySeed=(ULONG)levelTime.ds_Days*86400UL+
                   (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
@@ -601,6 +731,13 @@ int main(void)
         titleRunLevelReadyMenu(&secondaryButtonAction,&startSection);
         playerSetSecondaryButtonAction(secondaryButtonAction);
         titleFadeOut();
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+        if(startSection==CAMPAIGN_START_DROWNED) {
+            drownedEntry.bankedScore=0; drownedEntry.seed=0x53504157UL;
+            drownedEntry.lives=GAME_START_LIVES; drownedEntry.health=PLAYER_MAX_HEALTH;
+            drownedEntry.diamonds=0; state=APP_DROWNED_ENTRY; continue;
+        }
+#endif
         if(startSection==CAMPAIGN_START_STORMRAIL) {
             platformReleaseForLoading(TRUE);
             DateStamp(&levelTime);
@@ -615,7 +752,11 @@ int main(void)
             platformResetGameInput();
             platformFinishTakeover(rendererCopperList());
         }
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+        DROWNED_MEASURE(PERF_COPPER_PATCH,{ rendererUpdateGameplay(); });
+#else
         rendererUpdateGameplay();
+#endif
         platformSwitchCopper(rendererCopperList());
         titleRelease();
         platformStartGameplayAudio();
@@ -679,7 +820,11 @@ int main(void)
             decision=titleRunLevelCompleteWithBonusMenu(
                 stormResult->enemies,stormResult->diamonds,
                 stormResult->timeBonusSeconds,stormResult->liveSectionScore,
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+                FALSE);
+#else
                 TRUE);
+#endif
             decision=campaignAcceptDecision(&campaign,decision,
                 stormResult->totalScore,result->lives,
                 result->stormrailHealth,result->diamonds);
@@ -712,6 +857,16 @@ int main(void)
         platformResetGameInput();
 #ifdef SPARKPAW_CAMPAIGN
         if(decision==RESULT_DECISION_CONTINUE) {
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+            if(stormrail) {
+                drownedEntry.bankedScore=campaign.postStormrailScore;
+                drownedEntry.lives=campaign.postStormrailLives;
+                drownedEntry.health=campaign.postStormrailHealth;
+                drownedEntry.diamonds=campaign.postStormrailDiamonds;
+                drownedEntry.seed=0x53504157UL;
+                state=APP_DROWNED_ENTRY; continue;
+            }
+#endif
             if(!titleShowReplayLoading()) {
                 PutStr("Sparkpaw: Stormrail loading screen unavailable.\n");
                 cleanup(); return 10;
@@ -736,7 +891,11 @@ int main(void)
             titleFadeOut(); titleRelease();
             platformResetGameInput();
             platformFinishTakeover(rendererCopperList());
-            rendererUpdateGameplay();
+    #ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+        DROWNED_MEASURE(PERF_COPPER_PATCH,{ rendererUpdateGameplay(); });
+#else
+        rendererUpdateGameplay();
+#endif
             while(platformRasterLine()<300) { }
             while(platformRasterLine()>=300) { }
             platformSwitchCopper(rendererCopperList());
@@ -803,7 +962,14 @@ int main(void)
             titleRunLevelReadyMenu(&secondaryButtonAction,&startSection);
             playerSetSecondaryButtonAction(secondaryButtonAction);
             titleFadeOut();
-            if(startSection==CAMPAIGN_START_STORMRAIL) {
+    #ifdef SPARKPAW_CAMPAIGN_DROWNED
+        if(startSection==CAMPAIGN_START_DROWNED) {
+            drownedEntry.bankedScore=0; drownedEntry.seed=0x53504157UL;
+            drownedEntry.lives=GAME_START_LIVES; drownedEntry.health=PLAYER_MAX_HEALTH;
+            drownedEntry.diamonds=0; state=APP_DROWNED_ENTRY; continue;
+        }
+#endif
+        if(startSection==CAMPAIGN_START_STORMRAIL) {
                 platformReleaseForLoading(TRUE);
                 DateStamp(&levelTime);
                 enemySeed=(ULONG)levelTime.ds_Days*86400UL+
@@ -817,7 +983,11 @@ int main(void)
                 platformResetGameInput();
                 platformFinishTakeover(rendererCopperList());
             }
-            rendererUpdateGameplay();
+    #ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+        DROWNED_MEASURE(PERF_COPPER_PATCH,{ rendererUpdateGameplay(); });
+#else
+        rendererUpdateGameplay();
+#endif
             platformSwitchCopper(rendererCopperList());
             titleRelease();
             platformStartGameplayAudio();
@@ -839,7 +1009,11 @@ int main(void)
            machine. playerInit() separately clears joystick/action edges. */
         platformResetGameInput();
         platformFinishTakeover(rendererCopperList());
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+        DROWNED_MEASURE(PERF_COPPER_PATCH,{ rendererUpdateGameplay(); });
+#else
         rendererUpdateGameplay();
+#endif
         /* COPJMP1 restarts a complete gameplay list. Arm it immediately after
            PAL wrap so no lower-screen wait from a partial list can briefly
            affect the outgoing score frame. */

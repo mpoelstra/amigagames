@@ -11,7 +11,7 @@ CFLAGS ?= +aos68k -O2 -cpu=68020 -notmpfile -I$(NDK_INCLUDE)
 STAGE5L_RENDERER_FLAGS = -DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
 	-DSPARKPAW_AGA32_FETCH_CANDIDATE -DSPARKPAW_AGA32_ORIGIN_CORRECTED \
 	-DSPARKPAW_AGA32_LEFT_GUARD -DSPARKPAW_AGA64_PLAYER_SPRITE
-RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) \
+RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_LEVEL1_TWO_COPY_RING \
 	-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
 	-DSPARKPAW_STORY_INTRO
 TARGET = sparkpaw
@@ -136,7 +136,7 @@ SPLIT_RENDERER_SOURCES = $(filter-out src/renderer.c,$(SOURCES)) \
 HEADERS = src/game_over_art.h src/ready_ui_cache_adf_data.h src/ready_ui_cache_adf_size.h src/ready_ui_cache_data.h src/ready_ui_cache_size.h src/ready_ui.h src/ready_ui_data.h src/ready_patch.h src/ready_dust.h src/ready_dust_mask.h src/music.h src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
-HEADERS += src/level1_audio.h src/audio_mix.h src/audio_catalog.h
+HEADERS += src/level1_audio.h src/audio_mix.h src/audio_catalog.h src/drowned_ring_layout.h
 HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
 	src/stormrail_results_contract.h
 RUNTIME_ASSETS = assets/runtime/game-over.spbm assets/runtime/storm-light.lsmusic assets/runtime/storm-light.lsbank assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank \
@@ -207,10 +207,51 @@ RUNTIME_ASSETS = assets/runtime/game-over.spbm assets/runtime/storm-light.lsmusi
 all: assets $(TARGET)
 
 test:
+	$(PYTHON) tests/test_drowned_fps.py
+	$(PYTHON) tests/test_drowned_busy.py
+	$(PYTHON) tests/test_drowned_reset_copy.py
+	$(PYTHON) tests/test_drowned_slice.py
+	$(PYTHON) tests/test_drowned_patch_stage.py
+	$(PYTHON) tests/test_drowned_patch_pixels.py
+	$(PYTHON) tests/test_drowned_patch_copy.py
+	$(PYTHON) tests/test_drowned_water_sync.py
+	$(PYTHON) tests/test_drowned_pontoon_offsets.py
+	$(PYTHON) tests/test_drowned_joined.py
+	$(PYTHON) tests/test_drowned_checkpoint_preproduction.py
+	$(PYTHON) tests/test_drowned_cadence_entry.py
+	$(PYTHON) tests/test_drowned_enemy_frames.py
+	$(PYTHON) tests/test_drowned_enemy_bounds.py
+	$(PYTHON) tests/test_drowned_two_copy.py
+	$(PYTHON) tests/test_level1_two_copy.py
+	$(PYTHON) tests/test_drowned_water_batch.py
+	$(PYTHON) tests/test_drowned_core_visibility.py
+	$(PYTHON) tests/test_drowned_column_blit.py
+	$(PYTHON) tests/test_drowned_column_tops.py
+	$(PYTHON) tests/test_governor.py
+	$(PYTHON) tests/test_drowned_encounter.py
+	$(PYTHON) tests/test_drowned_projectile_damage.py
+	$(PYTHON) tests/test_drowned_route.py
+	$(PYTHON) tests/test_drowned_collectible_restore.py
+	$(PYTHON) tests/test_drowned_resident_walker.py
+	$(PYTHON) tests/test_spillwing.py
+	$(PYTHON) tests/test_spillwing_cache.py
+	$(PYTHON) tests/test_spillwing_pair.py
+	$(PYTHON) tests/test_drowned_visible_shots.py
+	$(PYTHON) tests/test_spillwing_clearance.py
+	$(PYTHON) tests/test_drowned_upper_route.py
+	$(PYTHON) tests/test_drowned_ferry_platform.py
+	$(PYTHON) tests/test_drowned_ferry.py
+	$(PYTHON) tests/test_drowned_pontoon.py
+	$(PYTHON) tests/test_drowned_pontoon_mask.py
+	$(PYTHON) tests/test_drowned_sprite_occlusion.py
 	$(PYTHON) tests/test_campaign_hud_carry.py
+	$(PYTHON) tests/test_drowned_campaign.py
+	$(PYTHON) tests/test_hunk_namespace.py
 	$(PYTHON) tests/test_game_over.py
 	$(PYTHON) tests/test_game_pause.py
 	$(PYTHON) tests/test_menu_display_resume.py
+	$(PYTHON) tests/test_control_hardware.py
+	$(PYTHON) tests/test_adf_presentation_sprites.py
 	$(PYTHON) tests/test_ready_audio_controls.py
 	$(PYTHON) tests/test_ready_audio_ui.py
 	$(PYTHON) tests/test_ready_audio_ui.py --adf
@@ -943,7 +984,7 @@ build/adf-assets/level-complete.spr1: assets/runtime/sparkpaw-level-complete.spb
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 
-release: all $(WHDLOAD_TARGET)
+release: campaign-drowned
 	$(PYTHON) tools/make_release.py
 
 whdload: all $(WHDLOAD_TARGET)
@@ -1813,3 +1854,379 @@ assets/runtime/game-over.spbm src/game_over_art.h: tools/generate_game_over.py a
 
 assets/runtime/storm-light.lsmusic assets/runtime/storm-light.lsbank: music/game-over/StormLight.mod $(LSP_CONVERT)
 	$(LSP_CONVERT) $< -shrink -fixed50hz -lsmusic assets/runtime/storm-light.lsmusic -lsbank assets/runtime/storm-light.lsbank
+
+# Drowned section inputs; focused diagnostic targets remain available.
+DROWNED_SLICE_SOURCES = $(filter-out src/level_data.c,$(SOURCES)) src/drowned_slice.c
+.PHONY: drowned-slice
+drowned-slice: build/sparkpaw-drowned-slice
+.PHONY: drowned-cadence
+drowned-cadence: build/sparkpaw-drowned-cadence
+build/sparkpaw-drowned-cadence: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+.PHONY: drowned-column
+drowned-column: build/sparkpaw-drowned-column
+build/sparkpaw-drowned-column: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h src/drowned_column_blit.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+.PHONY: drowned-events
+drowned-events: build/sparkpaw-drowned-events
+build/sparkpaw-drowned-events: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_EVENT_DIAGNOSTIC \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+.PHONY: drowned-profile
+drowned-profile: build/sparkpaw-drowned-profile
+build/sparkpaw-drowned-profile: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_TARGETED_PROFILE \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+assets/concept/drowned-geyser-native-v2/geyser.spbm assets/concept/drowned-geyser-native-v2/lip.spbm: tools/prepare_drowned_geyser.py tools/preview_drowned_polish.py tools/preview_drowned_jet.py assets/concept/drowned-geyser-animation-source-v2.png assets/concept/drowned-geyser-source-v2.png
+	$(PYTHON) tools/prepare_drowned_geyser.py
+build/drowned-slice/assets/drowned-front.spbm: tools/build_drowned_slice_assets.py tools/preview_drowned_polish.py src/drowned_slice.h assets/concept/drowned-solid-gate-source-v1.png assets/concept/drowned-polish-native-v1/front-indexed.png assets/concept/drowned-geyser-native-v2/geyser.spbm assets/concept/drowned-geyser-native-v2/lip.spbm assets/concept/drowned-panorama-v1/drowned-rear.spbm
+	$(PYTHON) tools/build_drowned_slice_assets.py
+build/sparkpaw-drowned-slice: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+.PHONY: drowned-opt5-play
+drowned-opt5-play: build/sparkpaw-drowned-opt5-play
+build/sparkpaw-drowned-opt5-play: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h src/drowned_column_blit.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT  \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+.PHONY: drowned-encounter
+drowned-encounter: build/sparkpaw-drowned-encounter
+build/sparkpaw-drowned-encounter: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h src/drowned_column_blit.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT -DSPARKPAW_DROWNED_ENCOUNTER \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+.PHONY: drowned-encounter-play
+drowned-encounter-play: build/sparkpaw-drowned-encounter-play
+build/sparkpaw-drowned-encounter-play: Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) src/drowned_slice.h src/drowned_sprite_occlusion.h src/drowned_patch_copy.h src/drowned_column_blit.h $(RUNTIME_ASSETS) build/drowned-slice/assets/drowned-front.spbm
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT -DSPARKPAW_DROWNED_ENCOUNTER \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+# Isolated native Drowned enemy art/function/cadence candidate.
+.PHONY: drowned-enemy-art
+drowned-enemy-art: build/sparkpaw-drowned-enemy-art
+build/sparkpaw-drowned-enemy-art: tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+.PHONY: drowned-jump
+drowned-jump: build/sparkpaw-drowned-jump
+build/sparkpaw-drowned-jump: tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=960 \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+.PHONY: drowned-route
+drowned-route: build/sparkpaw-drowned-route
+build/sparkpaw-drowned-route: tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -Ibuild/drowned-route \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+.PHONY: drowned-resident
+drowned-resident: build/sparkpaw-drowned-resident
+build/sparkpaw-drowned-resident: tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -Ibuild/drowned-route \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+
+.PHONY: drowned-patchdma
+drowned-patchdma: build/sparkpaw-drowned-patchdma
+build/sparkpaw-drowned-patchdma: tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -Ibuild/drowned-route \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES)
+
+
+.PHONY: drowned-pontoon
+drowned-pontoon: build/sparkpaw-drowned-pontoon
+build/sparkpaw-drowned-pontoon: tools/build_drowned_pontoon.py src/drowned_pontoon.c assets/concept/drowned-pontoon-native-v1/pontoon-indexed.png tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_drowned_pontoon.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_PONTOON -Ibuild/drowned-pontoon \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/drowned_pontoon.c
+
+
+.PHONY: drowned-spillwing
+drowned-spillwing: build/sparkpaw-drowned-spillwing
+build/sparkpaw-drowned-spillwing: tools/build_spillwing.py src/spillwing.c src/spillwing.h $(wildcard assets/enemies/spillwing-actions-review-v1/*.png) tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -Ibuild/drowned-spillwing \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c
+
+.PHONY: drowned-spillpair
+drowned-spillpair: build/sparkpaw-drowned-spillpair
+build/sparkpaw-drowned-spillpair: tools/build_spillwing.py src/spillwing.c src/spillwing.h $(wildcard assets/enemies/spillwing-actions-review-v1/*.png) tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -Ibuild/drowned-spillwing \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c
+
+.PHONY: drowned-ferry
+drowned-ferry: build/sparkpaw-drowned-ferry
+build/sparkpaw-drowned-ferry: src/drowned_pontoon_offsets.h src/drowned_pontoon_render.h src/drowned_water_sync.h tools/build_spillwing_clearance.py tools/build_drowned_ferry.py tools/build_drowned_pontoon.py src/drowned_pontoon.c assets/concept/drowned-pontoon-native-v1/pontoon-indexed.png tools/build_spillwing.py src/spillwing.c src/spillwing.h $(wildcard assets/enemies/spillwing-actions-review-v1/*.png) tools/build_drowned_route.py assets/levels/drowned-route-v1.json tools/build_pump_shot.py Makefile $(DROWNED_SLICE_SOURCES) $(HEADERS) build/drowned-slice/assets/drowned-front.spbm tools/build_drowned_enemy_assets.py tools/preview_drowned_enemy_actions.py tools/preview_drowned_enemy_walk.py assets/enemies/drowned-native-idle-v1/walker-rgba.png assets/enemies/drowned-native-idle-v1/crab-rgba.png assets/enemies/drowned-native-idle-v1/manifest.json
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	$(PYTHON) tools/build_drowned_pontoon.py
+	$(PYTHON) tools/build_drowned_ferry.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=2400 -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -DSPARKPAW_DROWNED_PONTOON -DSPARKPAW_DROWNED_FERRY -Ibuild/drowned-ferry \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c src/drowned_pontoon.c
+
+.PHONY: drowned-joined
+drowned-joined: build/sparkpaw-drowned-joined
+build/sparkpaw-drowned-joined: src/drowned_column_blit.h src/drowned_water_batch.h src/drowned_enemy_frames.h src/drowned_patch_copy.h src/drowned_checkpoint.c tools/build_drowned_checkpoint.py assets/concept/drowned-checkpoint-parts-v1.png assets/audio/checkpoint-v2/checkpoint.raw src/drowned_cadence_regions.h tools/build_drowned_route.py tools/build_drowned_ferry.py tools/build_drowned_pontoon.py tools/build_spillwing.py assets/levels/drowned-route-v1.json build/drowned-slice/assets/drowned-front.spbm src/drowned_pontoon.h tools/build_drowned_joined.py tools/build_spillwing_clearance.py src/drowned_pontoon_offsets.h src/drowned_pontoon_render.h src/drowned_water_sync.h $(DROWNED_SLICE_SOURCES) $(HEADERS) src/spillwing.c src/drowned_pontoon.c Makefile
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	$(PYTHON) tools/build_drowned_pontoon.py
+	$(PYTHON) tools/build_drowned_ferry.py
+	$(PYTHON) tools/build_drowned_joined.py
+	$(PYTHON) tools/build_drowned_checkpoint.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=3520 -DSPARKPAW_DROWNED_JOINED -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -DSPARKPAW_DROWNED_PONTOON -DSPARKPAW_DROWNED_FERRY -Ibuild/drowned-joined \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c src/drowned_pontoon.c src/drowned_checkpoint.c
+
+.PHONY: drowned-joined-profile
+drowned-joined-profile: build/sparkpaw-drowned-joined-profile
+build/sparkpaw-drowned-joined-profile: src/drowned_column_blit.h src/drowned_water_batch.h src/drowned_enemy_frames.h src/drowned_patch_copy.h src/drowned_checkpoint.c tools/build_drowned_checkpoint.py assets/concept/drowned-checkpoint-parts-v1.png assets/audio/checkpoint-v2/checkpoint.raw src/drowned_cadence_regions.h tools/build_drowned_route.py tools/build_drowned_ferry.py tools/build_drowned_pontoon.py tools/build_spillwing.py assets/levels/drowned-route-v1.json build/drowned-slice/assets/drowned-front.spbm src/drowned_pontoon.h tools/build_drowned_joined.py tools/build_spillwing_clearance.py src/drowned_pontoon_offsets.h src/drowned_pontoon_render.h src/drowned_water_sync.h $(DROWNED_SLICE_SOURCES) $(HEADERS) src/spillwing.c src/drowned_pontoon.c Makefile
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	$(PYTHON) tools/build_drowned_pontoon.py
+	$(PYTHON) tools/build_drowned_ferry.py
+	$(PYTHON) tools/build_drowned_joined.py
+	$(PYTHON) tools/build_drowned_checkpoint.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=3520 -DSPARKPAW_DROWNED_JOINED -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -DSPARKPAW_DROWNED_PONTOON -DSPARKPAW_DROWNED_FERRY -Ibuild/drowned-joined \
+		-DSPARKPAW_RENDER_DIAGNOSTIC -DSPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC -DSPARKPAW_DROWNED_FERRY_PROFILE \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c src/drowned_pontoon.c src/drowned_checkpoint.c
+
+.PHONY: drowned-music
+drowned-music: build/sparkpaw-drowned-music
+build/sparkpaw-drowned-music: $(GAME_AUDIO_SOURCES) $(GAME_AUDIO_ASSETS) music/drowned-v5/rain-score.bin music/drowned-v5/rain-bank.bin src/drowned_column_blit.h src/drowned_water_batch.h src/drowned_enemy_frames.h src/drowned_patch_copy.h src/drowned_checkpoint.c tools/build_drowned_checkpoint.py assets/concept/drowned-checkpoint-parts-v1.png assets/audio/checkpoint-v2/checkpoint.raw src/drowned_cadence_regions.h tools/build_drowned_route.py tools/build_drowned_ferry.py tools/build_drowned_pontoon.py tools/build_spillwing.py assets/levels/drowned-route-v1.json build/drowned-slice/assets/drowned-front.spbm src/drowned_pontoon.h tools/build_drowned_joined.py tools/build_spillwing_clearance.py src/drowned_pontoon_offsets.h src/drowned_pontoon_render.h src/drowned_water_sync.h $(DROWNED_SLICE_SOURCES) $(HEADERS) src/spillwing.c src/drowned_pontoon.c Makefile
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	$(PYTHON) tools/build_drowned_pontoon.py
+	$(PYTHON) tools/build_drowned_ferry.py
+	$(PYTHON) tools/build_drowned_joined.py
+	$(PYTHON) tools/build_drowned_checkpoint.py
+	cp music/drowned-v5/rain-score.bin music/drowned-v5/rain-bank.bin build/drowned-joined/assets/
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=3520 -DSPARKPAW_DROWNED_JOINED -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -DSPARKPAW_DROWNED_PONTOON -DSPARKPAW_DROWNED_FERRY -Ibuild/drowned-joined \
+		-DSPARKPAW_LEVEL1_MUSIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c src/drowned_pontoon.c src/drowned_checkpoint.c $(GAME_AUDIO_SOURCES)
+
+.PHONY: drowned-governor
+drowned-governor: build/sparkpaw-drowned-governor
+build/sparkpaw-drowned-governor: src/drowned_governor.c src/drowned_governor.h tools/build_governor_proof.py tools/build_governor_native.py tools/build_drowned_vegetation.py assets/concept/drowned-vegetation-v1.png tools/build_governor_platforms.py assets/concept/drowned-platform-kit-v2.png tools/build_rain_station.py assets/concept/drowned-rain-station-source-v3.png assets/concept/drowned-governor-native-v1/tower-indexed.png $(GAME_AUDIO_SOURCES) $(GAME_AUDIO_ASSETS) music/drowned-v5/rain-score.bin music/drowned-v5/rain-bank.bin src/drowned_column_blit.h src/drowned_water_batch.h src/drowned_enemy_frames.h src/drowned_patch_copy.h src/drowned_checkpoint.c tools/build_drowned_checkpoint.py assets/concept/drowned-checkpoint-parts-v1.png assets/audio/checkpoint-v2/checkpoint.raw src/drowned_cadence_regions.h tools/build_drowned_route.py tools/build_drowned_ferry.py tools/build_drowned_pontoon.py tools/build_spillwing.py assets/levels/drowned-route-v1.json build/drowned-slice/assets/drowned-front.spbm src/drowned_pontoon.h tools/build_drowned_joined.py tools/build_spillwing_clearance.py src/drowned_pontoon_offsets.h src/drowned_pontoon_render.h src/drowned_water_sync.h $(DROWNED_SLICE_SOURCES) $(HEADERS) src/spillwing.c src/drowned_pontoon.c Makefile
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	$(PYTHON) tools/build_drowned_pontoon.py
+	$(PYTHON) tools/build_drowned_ferry.py
+	$(PYTHON) tools/build_drowned_joined.py
+	$(PYTHON) tools/build_drowned_checkpoint.py
+	cp music/drowned-v5/rain-score.bin music/drowned-v5/rain-bank.bin build/drowned-joined/assets/
+	$(PYTHON) tools/build_governor_proof.py
+	$(PYTHON) tools/build_governor_native.py
+	$(PYTHON) tools/build_rain_station.py
+	$(PYTHON) tools/build_governor_platforms.py
+	$(PYTHON) tools/build_drowned_vegetation.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=3520 -DSPARKPAW_DROWNED_JOINED -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -DSPARKPAW_DROWNED_PONTOON -DSPARKPAW_DROWNED_FERRY -DSPARKPAW_DROWNED_GOVERNOR -DDROWNED_FINALE_OFFSET=0 -Ibuild/drowned-governor \
+		-DSPARKPAW_LEVEL1_MUSIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c src/drowned_pontoon.c src/drowned_checkpoint.c src/drowned_governor.c $(GAME_AUDIO_SOURCES)
+
+.PHONY: drowned-fps
+drowned-fps:
+	$(PYTHON) tools/build_drowned_fps.py
+
+.PHONY: drowned-fps-reset
+drowned-fps-reset:
+	$(PYTHON) tools/build_drowned_fps.py --reset-copy
+
+drowned-full: build/sparkpaw-drowned-full
+build/sparkpaw-drowned-full: tools/build_drowned_rear_ambience.py src/drowned_rear_ambience.h assets/concept/drowned-water-animation-v1/manifest.json assets/concept/drowned-waterfall-preview-v1/frame-0.png assets/concept/drowned-panorama-v2/drowned-rear.spbm assets/concept/drowned-flowers-v1.png tools/build_drowned_full.py src/drowned_governor.c src/drowned_governor.h tools/build_governor_proof.py tools/build_governor_native.py tools/build_drowned_vegetation.py assets/concept/drowned-vegetation-v1.png tools/build_governor_platforms.py assets/concept/drowned-platform-kit-v2.png tools/build_rain_station.py assets/concept/drowned-rain-station-source-v3.png assets/concept/drowned-governor-native-v1/tower-indexed.png $(GAME_AUDIO_SOURCES) $(GAME_AUDIO_ASSETS) music/drowned-v5/rain-score.bin music/drowned-v5/rain-bank.bin src/drowned_column_blit.h src/drowned_water_batch.h src/drowned_enemy_frames.h src/drowned_patch_copy.h src/drowned_checkpoint.c tools/build_drowned_checkpoint.py assets/concept/drowned-checkpoint-parts-v1.png assets/audio/checkpoint-v2/checkpoint.raw src/drowned_cadence_regions.h tools/build_drowned_route.py tools/build_drowned_ferry.py tools/build_drowned_pontoon.py tools/build_spillwing.py assets/levels/drowned-route-v1.json build/drowned-slice/assets/drowned-front.spbm src/drowned_pontoon.h tools/build_drowned_joined.py tools/build_spillwing_clearance.py src/drowned_pontoon_offsets.h src/drowned_pontoon_render.h src/drowned_water_sync.h $(DROWNED_SLICE_SOURCES) $(HEADERS) src/spillwing.c src/drowned_pontoon.c Makefile
+	$(PYTHON) tools/build_drowned_enemy_assets.py > build/drowned-slice/enemy-art-build.json
+	$(PYTHON) tools/build_pump_shot.py
+	$(PYTHON) tools/build_drowned_route.py
+	$(PYTHON) tools/build_spillwing.py --pair
+	$(PYTHON) tools/build_drowned_pontoon.py
+	$(PYTHON) tools/build_drowned_ferry.py
+	$(PYTHON) tools/build_drowned_joined.py
+	$(PYTHON) tools/build_drowned_checkpoint.py
+	cp music/drowned-v5/rain-score.bin music/drowned-v5/rain-bank.bin build/drowned-joined/assets/
+	$(PYTHON) tools/build_governor_proof.py
+	$(PYTHON) tools/build_governor_native.py
+	$(PYTHON) tools/build_rain_station.py
+	$(PYTHON) tools/build_governor_platforms.py
+	$(PYTHON) tools/build_drowned_vegetation.py
+	$(PYTHON) tools/build_drowned_full.py
+	$(PYTHON) tools/build_drowned_rear_ambience.py
+	@mkdir -p "$(TMPDIR)"
+	$(CC) $(CFLAGS) -DSPARKPAW_ROLLING_PROTOTYPE $(STAGE5L_RENDERER_FLAGS) \
+		-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
+		-DSPARKPAW_DROWNED_SLICE -DSPARKPAW_WORLD_W=5120 -DSPARKPAW_DROWNED_JOINED -DSPARKPAW_DROWNED_ROUTE -DSPARKPAW_DROWNED_RESIDENT_WALKER -DSPARKPAW_DROWNED_PATCH_BLIT -DSPARKPAW_DROWNED_SPILLWING -DSPARKPAW_SPILLWING_PAIR -DSPARKPAW_DROWNED_PONTOON -DSPARKPAW_DROWNED_FERRY -DSPARKPAW_DROWNED_GOVERNOR -DSPARKPAW_DROWNED_FULL -DSPARKPAW_DROWNED_REAR_DIRECT_WATER -DSPARKPAW_DROWNED_ENEMY_BOUNDS -DSPARKPAW_DROWNED_TWO_COPY_RING -DDROWNED_FINALE_OFFSET=3248 -Ibuild/drowned-full \
+		-DSPARKPAW_LEVEL1_MUSIC \
+		-DSPARKPAW_DISABLE_WAIT_PROFILE -DSPARKPAW_DROWNED_COLUMN_BLIT \
+		-DSPARKPAW_DROWNED_ENCOUNTER -DSPARKPAW_DROWNED_ENEMY_ART -DSPARKPAW_DROWNED_JUMP_PROOF \
+		-o $@ $(DROWNED_SLICE_SOURCES) src/spillwing.c src/drowned_pontoon.c src/drowned_checkpoint.c src/drowned_governor.c $(GAME_AUDIO_SOURCES)
+
+.PHONY: drowned-busy
+drowned-busy:
+	$(PYTHON) tools/build_drowned_busy.py
+
+.PHONY: drowned-rear-direct
+drowned-rear-direct:
+	$(PYTHON) tools/build_drowned_fps.py --direct-water
+
+.PHONY: drowned-enemy-bounds
+drowned-enemy-bounds:
+	$(PYTHON) tools/build_drowned_fps.py --enemy-bounds
+
+.PHONY: drowned-two-copy
+drowned-two-copy:
+	$(PYTHON) tools/build_drowned_fps.py --two-copy-ring
+
+.PHONY: level1-two-copy
+level1-two-copy:
+	$(PYTHON) tools/build_level1_two_copy.py
+
+# Integrated HD candidate only; official artifacts remain untouched.
+.PHONY: campaign-drowned
+campaign-drowned: build/sparkpaw-drowned-full $(CAMPAIGN_PLAY_TARGET)
+	$(PYTHON) tools/build_campaign_drowned.py

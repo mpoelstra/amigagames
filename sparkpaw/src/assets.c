@@ -13,6 +13,8 @@
 #undef Open
 #define Open diskMediaOpen
 static struct PlanarAsset retiredLoading;
+#endif
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 static UBYTE diskDecodeWindow[4096];
 #endif
 
@@ -20,6 +22,9 @@ static struct PlanarAsset title,introProof,levelLoading,levelCharging,levelReady
 static struct PlanarAsset levelReadyMenu,frontClean,rearWorld;
 static struct PlanarAsset levelComplete,scoreGlyphs;
 static struct PlanarAsset playerSprites,enemySprites,striderSprites;
+#ifdef SPARKPAW_DROWNED_JOINED
+static struct PlanarAsset spillwingSprites;
+#endif
 static struct PlanarAsset hudBase,hudHealth,hudLives,hudDiamonds,hudScore;
 static struct PlanarAsset collectibleDiamond;
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -27,6 +32,14 @@ static struct PlanarAsset stormrailHeart;
 #endif
 static struct PlanarAsset stormstoneCore;
 static struct PlanarAsset extraLife;
+#ifdef SPARKPAW_DROWNED_SLICE
+static struct PlanarAsset drownedPatches;
+#ifdef SPARKPAW_DROWNED_JOINED
+static struct PlanarAsset checkpointPatches;
+const struct PlanarAsset *assetsCheckpointPatches(void) { return &checkpointPatches; }
+#endif
+const struct PlanarAsset *assetsDrownedPatches(void) { return &drownedPatches; }
+#endif
 #ifdef SPARKPAW_STORMRAIL_PROOF
 static struct PlanarAsset stormrailFamily,stormrailFlightRear;
 static struct PlanarAsset stormrailObstacles;
@@ -73,7 +86,7 @@ struct PackedReader {
     UWORD inputAt,inputCount,tokenRemaining;
     ULONG packedRemaining,expectedSize,produced,expectedCRC,crc;
     BOOL run;
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
     BOOL lz,delta;
     UBYTE deltaPrevious;
     UBYTE flags,flagMask;
@@ -110,14 +123,14 @@ static BOOL packedOpen(const char *name,struct PackedReader *reader)
     if(!reader->file) return FALSE;
     if(Read(reader->file,header,sizeof(header))!=sizeof(header)||
        (memcmp(header,"SPR1",4)!=0
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
         &&memcmp(header,"SPL1",4)!=0
         &&memcmp(header,"SPD1",4)!=0
 #endif
         )) {
         Close(reader->file); reader->file=0; return FALSE;
     }
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
     reader->delta=memcmp(header,"SPD1",4)==0;
     reader->lz=memcmp(header,"SPL1",4)==0||reader->delta;
 #endif
@@ -132,7 +145,7 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
 {
     UBYTE token,value;
     while(size--) {
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
         if(reader->lz) {
             if(!reader->tokenRemaining) {
                 if(!reader->flagMask) {
@@ -172,7 +185,7 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
         if(reader->run) value=reader->value;
         else if(!packedByte(reader,&value)) return FALSE;
         if(reader->produced>=reader->expectedSize) return FALSE;
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
         }
 #endif
         *target++=value;
@@ -194,7 +207,7 @@ static BOOL packedClose(struct PackedReader *reader,BOOL complete)
 }
 #endif
 
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 /* Reuse the disk reader for losslessly packed presentation music. No extra
    decoded copy: samples go directly into Chip, score directly into Fast. */
 UBYTE *assetsLoadDiskData(const char *name,ULONG flags,ULONG *size)
@@ -272,14 +285,14 @@ static BOOL readRows(BPTR file,PLANEPTR plane,UWORD fileRow,UWORD memoryRow,
     return TRUE;
 }
 
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 static BOOL loadPackedAsset(const char *name,struct PlanarAsset *asset,
                             UBYTE wantedDepth,BOOL dmaSource);
 #endif
 static BOOL loadAsset(const char *name,struct PlanarAsset *asset,
                       UBYTE wantedDepth,BOOL dmaSource)
 {
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
     return loadPackedAsset(name,asset,wantedDepth,dmaSource);
 #else
     BPTR file; UBYTE header[12],plane; LONG size;
@@ -366,6 +379,20 @@ done:
 }
 #endif
 
+#ifdef SPARKPAW_DROWNED_SLICE
+static BOOL loadDrownedPatches(void)
+{
+    return loadAsset("PROGDIR:assets/runtime/drowned-patches.spbm",
+                     &drownedPatches,4,FALSE)&&
+           drownedPatches.width==16&&drownedPatches.height==5422
+#ifdef SPARKPAW_DROWNED_JOINED
+           &&loadAsset("PROGDIR:assets/runtime/checkpoint.spbm",&checkpointPatches,4,FALSE)
+           &&checkpointPatches.width==48&&checkpointPatches.height==384
+#endif
+           ;
+}
+#endif
+
 BOOL assetsLoadGameplay(void)
 {
 #ifdef SPARKPAW_CAMPAIGN
@@ -397,7 +424,12 @@ BOOL assetsLoadGameplay(void)
                   &hudScore,3,TRUE)||
        !loadAsset("PROGDIR:assets/runtime/sparkpaw-diamond.spbm",
                   &collectibleDiamond,4,FALSE)||
-       (!loadStormrailGameplay&&!loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
+       (!loadStormrailGameplay&&!loadAsset(
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+                  "PROGDIR:assets/runtime/rain-core.spbm",
+#else
+                  "PROGDIR:assets/runtime/stormstone-core.spbm",
+#endif
                   &stormstoneCore,4,FALSE))||
        (!loadStormrailGameplay&&!loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
                   &extraLife,4,FALSE))) return FALSE;
@@ -411,7 +443,7 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/stormrail-obstacles.spbm",
                      &stormrailObstacles,4,FALSE);
 #else
-#ifdef ADF_PACKED_ASSETS
+#if defined(ADF_PACKED_ASSETS) && !defined(SPARKPAW_DROWNED_SLICE) && !defined(SPARKPAW_WHD_PACKED)
     return loadPackedAsset("PROGDIR:assets/runtime/storm-front.spr1",
                            &frontClean,4,TRUE)&&
            loadPackedAsset("PROGDIR:assets/runtime/storm-rear.spr1",
@@ -444,15 +476,40 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/stormrail-flight-rear.spbm",
                      &stormrailFlightRear,3,TRUE)&&
 #else
+#ifdef SPARKPAW_DROWNED_SLICE
+    return loadDrownedPatches()&&
+#ifdef SPARKPAW_DROWNED_ROUTE
+           loadAsset("PROGDIR:assets/runtime/drowned-route.spbm",&frontClean,4,TRUE)&&
+#else
+           loadAsset("PROGDIR:assets/runtime/drowned-front.spbm",&frontClean,4,TRUE)&&
+#endif
+           loadAsset("PROGDIR:assets/runtime/drowned-rear.spbm",&rearWorld,3,TRUE)&&
+#else
     return loadAsset("PROGDIR:assets/runtime/storm-front.spbm",&frontClean,4,TRUE)&&
            loadAsset("PROGDIR:assets/runtime/storm-rear.spbm",&rearWorld,3,TRUE)&&
 #endif
+#endif
            loadAsset("PROGDIR:assets/runtime/sparkpaw-sprites4.spbm",
                      &playerSprites,4,FALSE)&&
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+#ifdef SPARKPAW_DROWNED_JOINED
+           loadAsset("PROGDIR:assets/runtime/spillwing.spbm",&spillwingSprites,4,FALSE)&&
+           loadAsset("PROGDIR:assets/runtime/turbine-crab.spbm",&enemySprites,4,FALSE)&&
+#elif defined(SPARKPAW_DROWNED_SPILLWING)
+           loadAsset("PROGDIR:assets/runtime/spillwing.spbm",
+                     &enemySprites,4,FALSE)&&
+#else
+           loadAsset("PROGDIR:assets/runtime/turbine-crab.spbm",
+                     &enemySprites,4,FALSE)&&
+#endif
+           loadAsset("PROGDIR:assets/runtime/pump-walker.spbm",
+                     &striderSprites,4,FALSE)&&
+#else
            loadAsset("PROGDIR:assets/runtime/clockwork-beetle.spbm",
                      &enemySprites,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/clockwork-storm-strider.spbm",
                      &striderSprites,4,FALSE)&&
+#endif
 #endif
            loadAsset("PROGDIR:assets/runtime/sparkpaw-hud-base.spbm",
                      &hudBase,3,TRUE)&&
@@ -470,7 +527,12 @@ BOOL assetsLoadGameplay(void)
            loadAsset("PROGDIR:assets/runtime/stormrail-heart.spbm",
                      &stormrailHeart,4,FALSE)&&
 #endif
-           loadAsset("PROGDIR:assets/runtime/stormstone-core.spbm",
+           loadAsset(
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+                  "PROGDIR:assets/runtime/rain-core.spbm",
+#else
+                  "PROGDIR:assets/runtime/stormstone-core.spbm",
+#endif
                      &stormstoneCore,4,FALSE)&&
            loadAsset("PROGDIR:assets/runtime/sparkpaw-extra-life.spbm",
                      &extraLife,4,FALSE)
@@ -536,6 +598,9 @@ void assetsUnloadGameplayConversionSources(void)
 #endif
     freeAsset(&stormstoneCore);
     freeAsset(&extraLife);
+ #ifdef SPARKPAW_DROWNED_JOINED
+    freeAsset(&spillwingSprites);
+ #endif
     freeAsset(&striderSprites);
     freeAsset(&enemySprites);
     freeAsset(&playerSprites);
@@ -590,7 +655,16 @@ BOOL assetsLoadDiskPatch(UBYTE disk)
 {
     freeAsset(&levelCharging);
     return loadPackedAsset(disk==1?"PROGDIR:assets/runtime/disk1-patch.spr1":
-                                  "PROGDIR:assets/runtime/disk2-patch.spr1",
+#if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_FIVE_ADF)||defined(SPARKPAW_DROWNED_THREE_ADF)
+                           disk==3?"PROGDIR:assets/runtime/disk3-patch.spr1":
+#endif
+#if defined(SPARKPAW_FOUR_ADF)||defined(SPARKPAW_FIVE_ADF)
+                           disk==4?"PROGDIR:assets/runtime/disk4-patch.spr1":
+#endif
+#ifdef SPARKPAW_FIVE_ADF
+                           disk==5?"PROGDIR:assets/runtime/disk5-patch.spr1":
+#endif
+                                   "PROGDIR:assets/runtime/disk2-patch.spr1",
                            &levelCharging,6,FALSE);
 }
 #endif
@@ -689,9 +763,18 @@ void assetsUnloadScoreGlyphs(void) { freeAsset(&scoreGlyphs); }
 
 void assetsUnloadGameplay(void)
 {
+#ifdef SPARKPAW_DROWNED_SLICE
+    freeAsset(&drownedPatches);
+#ifdef SPARKPAW_DROWNED_JOINED
+    freeAsset(&checkpointPatches);
+#endif
+#endif
     assetsUnloadGameplayConversionSources(); freeAsset(&hudScore);
     freeAsset(&hudDiamonds);
     freeAsset(&hudLives); freeAsset(&hudHealth); freeAsset(&hudBase);
+ #ifdef SPARKPAW_DROWNED_JOINED
+    freeAsset(&spillwingSprites);
+ #endif
     freeAsset(&striderSprites); freeAsset(&enemySprites);
     freeAsset(&playerSprites);
     freeAsset(&rearWorld); freeAsset(&frontClean);
@@ -742,4 +825,8 @@ const struct PlanarAsset *assetsStormrailObstacles(void)
 {
     return &stormrailObstacles;
 }
+#endif
+
+#ifdef SPARKPAW_DROWNED_JOINED
+const struct PlanarAsset *assetsSpillwingSprites(void) { return &spillwingSprites; }
 #endif

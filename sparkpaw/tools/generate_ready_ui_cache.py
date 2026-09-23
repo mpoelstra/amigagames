@@ -13,21 +13,23 @@ class Layout(c.Structure):
 class Selection(c.Structure):
     _fields_=[(n,U8) for n in ('page','row','secondary','section','mode','sfx','track','status')]
 BANDS=[(0,26),(26,16),(42,16),(58,20),(78,26)]
-def selections():
+def selections(adf=False,sfx_count=18):
     yield from [(Selection(0,r,0,0,0,0,0,0),1) for r in range(2)]
     for hd in (1,0):
         for second in range(2):
-            for section in range(2):
+            for section in range(3 if hd or adf else 2):
                 for mode in range(3):
                     for row in range(5 if hd else 4):
                         yield Selection(1,row,second,section,mode,0,0,0),hd
-    for sfx in range(16):
-        for track in range(5):
+    # The campaign host exposes Drowned's pump and checkpoint samples too.
+    # Other executables keep their 16-entry selector and never address them.
+    for sfx in range(sfx_count):
+        for track in range(6):
             for status in range(4):
                 for row in range(3):
                     yield Selection(2,row,0,0,0,sfx,track,status),1
 
-def rasterize(source,include):
+def rasterize(source,include,adf=False,sfx_count=18):
     with tempfile.TemporaryDirectory() as td:
         lib=Path(td)/'layout.so'
         subprocess.run(['cc','-shared','-fPIC','-O2','-I'+str(include),str(source),'-o',str(lib)],check=True)
@@ -36,7 +38,7 @@ def rasterize(source,include):
         planes=[(U8*29952).from_buffer_copy(raw[p*29952:(p+1)*29952]) for p in range(6)]
         atlas=(PTR*6)(*[c.cast(p,PTR) for p in planes])
         dll.readyUiInit(c.byref(ui),atlas)
-        for s,hd in selections():
+        for s,hd in selections(adf,sfx_count):
             dll.readyUiCompose(c.byref(ui),atlas,c.byref(s),hd)
             # Main-page mask is supplied by legacy ready_dust, not this cache.
             yield s,hd,bytes(ui.patch),bytes(ui.mask) if s.page else bytes(2912)
@@ -46,7 +48,7 @@ def array(name,ctype,values,columns=24):
 
 def generate(adf=False):
     variants=[[] for _ in BANDS]; mapping=[]
-    for s,hd,pixels,mask in rasterize(ROOT/'tools/ready_ui_layout.c',ROOT/'src'):
+    for s,hd,pixels,mask in rasterize(ROOT/'tools/ready_ui_layout.c',ROOT/'src',adf):
         if adf and s.page and hd: continue
         for b,(y,h) in enumerate(BANDS):
             data=b''.join(pixels[p*2912+y*28:p*2912+(y+h)*28] for p in range(6))+mask[y*28:(y+h)*28]

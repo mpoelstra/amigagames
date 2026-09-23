@@ -1,0 +1,28 @@
+{
+  "status": "offline animation review; no runtime/AI changes",
+  "source_sha256": "401ceb43e51e89765c5a27b0dce5cb1104a99cd27960d959d91ba094ecbfa8de",
+  "cell": [
+    24,
+    24
+  ],
+  "families": {
+    "fly": 4,
+    "warn": 2,
+    "dive": 2,
+    "recover": 2,
+    "hit": 2,
+    "death": 4
+  },
+  "body_pivot": [
+    11,
+    7
+  ],
+  "rotor_hub": [
+    11,
+    5
+  ],
+  "warning_preview_ms": 240,
+  "native_pixel_scale_fixed": true,
+  "damage_proposal": "one hit kills; hit preview is optional electrical transition, not multiple HP",
+  "notes": "nearest-neighbour offline part rotation; no runtime transforms; schematic attack path only; native020 not tested"
+}

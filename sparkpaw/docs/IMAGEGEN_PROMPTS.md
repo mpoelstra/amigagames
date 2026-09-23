@@ -1,5 +1,64 @@
 # Built-in ImageGen prompts
 
+## 2026-09-21 — Ground cleanup staged; vegetation concept v1
+
+User rejects v10 irregular ground/endcap pattern and orphan copperpost, prefers
+large trees behind player and small trees/shrubs infront rooted toground. V11
+removes extra post art and entire additional masking path/buffer; original gate
+clipping remains. Floor uses one complete32px panel with regular joins and
+continuous rail, not partial endcaps. Nativebuild and sprite-clipping hosttests
+pass. Staged73assets/55refs,68officialreleasefiles unchanged, previousdrawer
+archived byteexact. Ground/post screenshots catalogued Drowned-v10-ground-and-post-rejected-a/b.
+
+First imagegen request hitusage limit; following user continuation succeeded.
+Saved assets/concept/drowned-vegetation-v1.png and exactpromptTXT. Four distinct
+spruce/fir/sapling/lowfern-heather silhouettes, rooted lowmoss bases. Review pending.
+Source has soft backing/halo despite transparency request: remove before native
+conversion, simplify fine detail into nativeclusters/currentpalette. No vegetation
+runtime yet. No additionalanimation requested. Next native grounded preview then
+safe foreground plant clipping only lowerlegs; avoid hazards/landings. Wholelevel
+art/joining still follows finalslice acceptance. No release/commit/FPSclaim.
+
+
+## 2026-09-21 — Consistent platform kit concept v2
+
+User accepts camera and station/boiler quality, rejects cheap repeated platform
+fragments. Authorizes whole-level material consistency and occasional conifer
+accents, with focused final-section art proof FIRST, then full-route application
+and joining. Built-in imagegen material reference station-v3 creates concept
+assets/concept/drowned-platform-kit-v2.png + exactpromptTXT. Broad steel walkway,
+substantial copper-bearing posts, three narrow pier heights, ground ends/middle,
+conifer. Concept pending approval, no runtime or dist changes. Preserve geometry;
+raised end caps must flatten to collision top; ground source needs adaptation to
+8px floor strip, not new tall ground. Native16pen conversion/masks and scale review
+next, then short user020 proof before spreading kit across whole level.
+
+
+## 2026-09-21 — Rain station companion conifer review
+
+User approves unique v2 station and requests a characteristic tree behind right
+side, matching background conifers; each station should have its own tree/identity.
+Built-in imagegen edit saved as assets/concept/drowned-rain-station-source-v3.png
+with exact prompt TXT. Dark blue-green irregular mountain conifer behind tank/roof,
+canopy above roof, warm windows and left instruments remain readable. V2 retained.
+Concept review pending, no runtime/dist changes. Native conversion should preserve
+building scale (roughly200x145) and allow tree to extend its envelope rather than
+shrink building to fit the previous total bounds. Continue camera/Core/results
+work after native art review.
+
+## 2026-09-21 — Unique Rain weatherstation source v2
+
+User rejects recoloured Level1 building; requests own Drowned station matching
+original concept, same size and contrasting colours. Built-in imagegen uses lower
+panel of drowned-finale-station-v1.png. Saved source and prompt at
+assets/concept/drowned-rain-station-source-v2.png/.txt. Industrial steel hut,
+copper rain tank/gutters, mast/rain gauge, amber windows, separate empty Core
+pedestal. Source inspected; not native16pen reduction or runtime yet. Review
+pending. Earlier station-v1 review explicitly rejected, retained. Existing
+Governor v6 remains in dist. Next: native200x145 envelope conversion/composition,
+then camera/reveal/Corepickup/results integration after visual approval.
+
+
 ## Stormrail Gate 6 — Level 2 Storm Ruins threshold concept v1
 
 Built-in ImageGen concept workflow, 2026-09-04. The accepted Stormrail
@@ -1293,6 +1352,27 @@ again during any native 48x40/32x24/16x16 hand translation.
 
 ## INSERT DISK typography candidate
 
+23 September 2026 follow-up: the oversized pasted numeral 3 and two native
+code-drawn revisions were rejected by the user. Built-in imagegen edit used
+`assets/concept/sparkpaw-insert-disk-type-v1.png` as the style/edit reference
+and produced `assets/concept/sparkpaw-insert-disk-type-v2-disk3.png` (1918x820).
+Prompt: "Edit the attached Sparkpaw INSERT DISK typography reference. Produce
+one new, isolated horizontal text line that reads exactly 'INSERT DISK 3' on a
+pure black background. Match the existing 'INSERT DISK 1' and 'INSERT DISK 2'
+lines precisely in font construction, glyph width and height, baseline,
+spacing, chunky angular pixel-art letter geometry, cyan/turquoise bevel, pale
+top highlights, dark navy stepped outline, and small gold corner accents
+around the numeral. The numeral 3 must read unmistakably as a single elegant
+3, with a curved upper and lower bowl, open left side, distinct central waist,
+and the same height and weight as the existing numeral 2. Do not create a
+second 2 or stack shapes. No floppy illustration, no window, no extra text,
+no different font. Wide 16:7 composition with generous pure black margins;
+the line should occupy approximately the same fraction of width and height as
+one reference line." Generator crops the full line and uses the same 216x24
+native conversion as 1/2. Status: user visually approved the native 1/2/3
+preview on 23 September 2026; ADF runtime/full-campaign acceptance remains
+separate.
+
 User screenshots reference plain INSERT and styled LOADING. Built-in imagegen
 prompt: text-only INSERT DISK 1 and INSERT DISK 2, one line each, chunky angular
 cyan/turquoise bevelled pixel letters, pale top bevel, navy stepped outline,
@@ -1319,3 +1399,265 @@ black pen 0 and reserved score ink 63. Static labels are baked offline; only
 the total digits are written once into a hidden bitmap before display. Native
 preview: `assets/concept/sparkpaw-game-over-aga64-preview.png`. Same artwork
 for HD, WHDLoad and ADF. Native user acceptance remains pending.
+# Drowned Turbines conceptboard V1 — 13 September 2026
+
+Status: pending user concept review; no native conversion or runtime integration.
+Generated with built-in imagegen. Saved: `assets/concept/drowned-turbines-board-v1.png`.
+References: `assets/concept/sparkpaw-visual-slice-concept-v2.png` (environment style)
+and `assets/concept/sparkpaw-stormkeeper-waystation-source-v2.png` (station identity).
+The machine-finale panel is an undecided study. Small/large mobile enemies and
+the separate Rain Core weather station follow the user's approved direction.
+
+Exact prompt:
+
+> Use case: stylized-concept. Create one polished pixel-art concept review board for Sparkpaw Level 2 DROWNED TURBINES. Reference image 1 establishes the existing world's premium pixel art, side-on platform readability and low ground strip; reference 2 establishes the friendly little Stormkeeper waystation architectural identity. These are supporting references, not edit targets. New setting: flooded rain machinery, broad round turbine housings, wet petrol steel, light ceramic walkable lips, restrained aged copper, turquoise water and cool rainlit depth. Four clearly separated panels in a landscape board: top left large representative gameplay side elevation with dry low foreground platforms, one modest water gap, raised route, distant turbine silhouette and a small telegraphing pressure outlet; top right quiet end-level weather-station cottage with ceramic pitched roof, copper rain gauges, warm doorway and a distinct floating droplet-shaped Rain Core in front, calm water and safe dry approach, echo reference cottage proportions but make a new rain station; bottom left smaller enemy design study, a low steel cleaning beetle with copper brushes, plus a larger articulated bipedal pump warden with long spring-jointed legs and integrated arm nozzle, both facing sideways, charcoal steel dominant, restrained violet/cyan accents, small warm attack indicator, deliberate material depth, coherent scale with larger about twice smaller height; bottom right an optional machine-finale side elevation study: three fixed reachable platform tiers, small locks on piping, large static turbine behind, clear safe standing spaces and one vertical pressure jet, exit leads toward weather station. Labels only DROWNED TURBINES, BYPASS, RAIN STATION, ENEMIES, MACHINE STUDY. No hero character, HUD, fake screenshot UI, collectible diamonds or text paragraphs. This is concept art, not native runtime output. Restrained colours, carefully clustered pixel art, broad light planes, dark recesses, irregular rich silhouettes, no uniform black outlines, no isometric perspective, no realistic rendering, no excessive neon. Keep large calm readable space above platforms and distinguish dark non-colliding background machinery from light walkable foreground. The machine study is an option, not a boss creature.
+# Drowned native-resolution source V1 — 13 September 2026
+
+Built-in imagegen; reference `assets/concept/drowned-turbines-board-v1.png`,
+whose overall direction the user approved. New source saved as
+`assets/concept/drowned-turbines-slice-source-v1.png`; native conversion and
+review outputs under `assets/concept/drowned-native-v1/`. Native review pending.
+No runtime integration. Exact source-generation prompt:
+
+> Create a single environment-only side-view pixel-art source for the approved Sparkpaw Drowned Turbines concept (reference). Expand only the upper-left BYPASS scene into one full 1536x1024 image, no borders, no labels, no text, no characters, no enemies, no HUD. Preserve large misty circular turbines, dark petrol steel, aged copper pipes and layered wet mountain depth. Crucial composition for subsequent 320x208 native palette conversion: a low dry continuous foreground ledge across bottom ~6% of image except one water gap from x=40% to x=65%. Walkable ground perfectly horizontal at 94% image height. One raised platform on the right from x=70% to the right edge at 65% image height, thick visible pale ceramic lip and dark steel face; one narrow supporting pillar below it at x=85%. The rest is distant noncolliding parallax scenery, subdued, with a giant recognizable turbine occupying middle-left background and distant waterfalls. No waterfall or pressure jet in front of walkable surfaces for this static material proof. Broad connected light and shadow planes, beautiful deliberate pixel clusters, controlled detail, no tiny glitter, no mossy ruin wall replacing metalwork, no isometric perspective. This is an art source, not a screenshot. Keep the upper and central play area spacious and calm. Pixel-art lighting and depth consistent with reference.
+# Drowned clean rear V1 — 13 September 2026
+
+Built-in imagegen edit of approved `drowned-turbines-slice-source-v1.png`.
+Saved as `assets/concept/drowned-rear-clean-source-v1.png`. Foreground removed
+for independent parallax, not a new art direction. Inspected: platforms, bank
+edges and near-field pipes removed. Native palette and layer study is under
+`assets/concept/drowned-layers-v1/`; native motion/hardware acceptance pending.
+
+Exact prompt:
+
+> Edit the supplied approved Drowned Turbines source into a CLEAN BACKGROUND-ONLY parallax layer for a side-scrolling Amiga platform game. Preserve the large turbines, mountain valley, atmospheric depth, dark petrol/blue tones and waterfalls, retaining their composition and premium clustered pixel-art treatment. REMOVE ALL foreground: the entire low floor ledge along the bottom, both bank edges, the raised platform at right with all its supports and nearby foreground rock mound, and the tall near-field wall and foreground pipes at far left. Inpaint these removed areas with continuous distant misty forest, rock and basin scenery matching the existing depth; absolutely no floating islands, platforms, walkable bright rims or front-facing near walls. At the bottom the distant water basin recedes quietly in muted blue, no bright foamy foreground water strip. No new objects, text, HUD, characters, enemies or frame. Important: this must be usable as the independently scrolling rear layer: there must be no remaining duplicate foreground platforms anywhere. Keep original image size and identity of background landmarks.
+# Drowned full-level rear panorama — 13 September 2026
+
+User requests full-level background composition alongside the bounded slice.
+Built-in imagegen, reference `assets/concept/drowned-rear-clean-source-v1.png`.
+V1: `assets/concept/drowned-full-rear-source-v1.png`, preserved but not used for
+native conversion: generated aspect too tall; squeezing would deform turbines.
+Exact V1 prompt:
+
+> Use case: stylized-concept. Create ONE continuous ultra-wide BACKGROUND-ONLY parallax panorama for the entire Sparkpaw Drowned Turbines platform level, in the exact clustered premium pixel-art atmosphere of the reference. Request very wide canvas about 3360x624, aspect 5.38:1, full image used by landscape, no panels. This is the background behind gameplay, no walkable foreground, platforms, ground strips, characters, enemies, HUD, text, borders, floating Core or foreground cottage. Compose the actual picture in this left-to-right order with smooth natural transitions and one connected distant landscape: left 0-25% open rainlit maintenance inlet, mountain silhouettes, distant slender intake pipes and a single circular turbine landmark; 25-50% denser flooded turbine courtyard with two large distinct round housings, broad connecting pipes and falling water; 50-75% imposing main pressure-control hall across the basin, heavy tall ribbed architecture and one enormous enclosed turbine, darkest and most enclosed but still side-on distant; final 75-100% gradually opens into a quiet sheltered rain-garden valley with receding machinery, calm mist, a few tiny distant copper rain-gauge towers and light breaking through clouds, calm dark empty lower space where a separately drawn foreground weather-station cottage will later sit. Keep all landmarks distant and non-colliding; no boss or finale action, because finale gameplay is undecided. All four regions must share horizon, materials, lighting direction and continuous water-basin/forest depth; no visible vertical joins, partitions or abrupt colour changes. Petrol/navy shadows, steel blue mist, pale blue rainlight, extremely restrained muted copper. Strong readable turbine silhouettes, broad connected value planes; details must survive reduction to a 1120x208 eight-colour image. Avoid excessive tiny noise, mirrored/repeated scenery, neon, purple storm ruins, isometric perspective, photographic realism. Do not copy one repeating turbine composition across the panorama. Upper portion contains atmosphere/architecture, lower portion is calm distant basin/forest with no bright foreground edges. One coherent panoramic painting, not a contact sheet.
+
+V2: `assets/concept/drowned-full-rear-source-v2.png`, letterboxed composition,
+reference V1. Inspected crop `(0,190,2057,572)` preserves proportions to within
+0.2% at 1120x208. Native indexed output, manifest, full camera review and six
+example views: `assets/concept/drowned-panorama-v1/`. User review pending;
+no runtime integration. The station is separate foreground art; Core a Bob.
+Exact V2 prompt:
+
+> Create a letterboxed ultra-wide parallax panorama using the provided Drowned Turbines panorama as style/content reference. IMPORTANT LAYOUT: output a regular landscape image with a PERFECT SOLID BLACK LETTERBOX covering the top 25% and bottom 25%. ALL SCENERY MUST BE INSIDE the middle 50% horizontal strip from edge to edge. The central strip must have approximately 5.38:1 aspect ratio, like a very wide film shot, with complete round turbine silhouettes that fit within that narrow strip, NOT squashed or cropped. The black bars are intentional technical crop guides. No text, no frames within the strip. Compose a continuous distant background from LEFT: open maintenance inlet with a small round turbine and slender pipe towers; then two distinct medium round turbines and flowing water; then one imposing tall pressure-control building with a larger enclosed ROUND turbine; then RIGHT: gradually quieter sheltered valley and receding rain-gauge towers, with calm space for a separately rendered foreground weather station. No house in this image. No foreground floor, platforms, bank lips, player, HUD, enemies, Core or boss. Background-only atmospheric mountain/forest/industrial valley. Same restrained steel-blue, petrol and navy pixel art, broad light/shadow planes, connected mist, sparse distant waterfalls. Preserve circle proportions, fit all landmarks to narrow central band by composing a distant wide-angle landscape. No repeated panels or vertical seams; one continuous strip. Exact clean black letterbox top and bottom is crucial.
+# Drowned polish direction — 13 September 2026
+
+Built-in imagegen. New material/form study saved as
+`assets/concept/drowned-polish-direction-v1.png`. User review pending.
+Previous playable foreground and mechanism blockouts rejected visually.
+This is not indexed native art or an approved collision layout: generated
+platform height, floor depth and detail density require redesign at real scale.
+No runtime integration or new test build in this step.
+
+Exact prompt:
+
+> Use case: stylized-concept.
+> Create a new premium pixel-art art-direction concept for DROWNED TURBINES, a side-view Amiga AGA platform game set in a flooded weather power station. One coherent environment scene, landscape aspect about 320:208, no panels, no typography, no HUD, no characters or enemies. This is an art review, not a screenshot.
+> Art objective: exceptionally deliberate, crisp low-resolution pixel clusters, clean controlled contours, readable material planes, restrained highlights, no automatic photo pixelation, no stippled noise or dirty dithering. Design as if drawn on a 320 by 208 pixel grid and enlarged with nearest-neighbor; do not rely on subpixel detail, smooth gradients, bloom or high-resolution painted texture.
+> Composition: fixed side-on platform gameplay. Main walkable thin steel deck at 96 percent image height, one small water opening toward the left; a raised maintenance platform on the left at about 77 percent height with a bright steel cap and sturdy beautifully designed supporting bracket. Keep the middle lower space open for a 48px-tall player. At right a compact functional sluice shutter within a substantial bolted industrial frame, guided metal slats, visible upper roller housing and pipes anchoring it to the plant. A small amber pressure gauge/control panel is physically attached to this assembly, facing the approaching player, no floating button or floating bar. Shutter belongs to the foreground and occupies lower right roughly 72 native pixels tall and 48 pixels wide. Near middle-left a small pressure nozzle mounted flush into the deck with a narrow cyan water jet, shaped by connected curling water clusters and a few meaningful droplets, not a straight laser.
+> Background: beautiful distant monumental ROUND turbine housing integrated into a hydroelectric weather station across a deep basin. Simplify and strengthen its architectural silhouette, larger calm shadow masses, a restrained distant waterfall, layered mountain shapes and sparse grouped conifers instead of endless granular tree texture. Distinct depth separation: muted navy/petrol/steel-blue background, dark warm charcoal foreground with cool clean steel edging, selective aged copper plumbing and tiny amber controls. Background detail quieter than interactive machinery; beautiful intentional use of negative space. Suggest a restrained 8-colour background ramp and a 16-colour foreground ramp, not a rainbow. No purple ruins, lava, generic floating stone blocks, excessive rust, overly ornate greebling, particle fog or full-screen rain. Crisp attractive pixel-art craft and readable playability are paramount. No claims or labels about actual memory/performance.
+# Drowned foreground native review — 13 September 2026
+
+User approved polish-direction-v1 as art direction. Built-in imagegen edit
+reference: `assets/concept/drowned-polish-direction-v1.png`.
+Output: `assets/concept/drowned-polish-parts-source-v1.png`.
+Source did not obey exact layout; components were separately scaled into
+native review geometry. Palette/index conversion, source-key masks and
+unchanged player/HUD composition: `tools/preview_drowned_polish.py`.
+Result `assets/concept/drowned-polish-native-v1/preview-4x.png` remains a
+static art review, not accepted runtime graphics. Rear master unchanged.
+
+Exact prompt:
+
+> Edit the reference into a FOREGROUND-ONLY production art study for the same Amiga pixel-art game. Preserve the approved beautifully designed dark steel, cool silver edges, bolted brackets, copper pipework and functional shutter identity. Remove ALL distant scenery and background water, sky, mountains, buildings and trees; use perfectly solid RGB black for all empty space. No text, HUD, player, labels or decorative borders.
+> Critical layout: image aspect 320:208. Design the art on a coarse logical 320x208 grid, enlarged uniformly about 4x; deliberate low-resolution connected pixel clusters and clean silhouettes, not high-resolution speckling. Exact intended coordinates on this logical grid: floor walking surface at y200, deck occupies ONLY y200..207; break the deck at x80..159 (leave solid black there for separately animated water). Left raised platform is x0..63, top y160, cap 8 pixels deep, one sturdy triangular steel bracket beneath it extending to y199. No tall platform or overhead wall. The playable central area x160..223 above the floor must remain black and empty for the separately composited existing player. At right, the closed shutter door occupies x256..287, y128..199; bolt-on side guides and upper roller housing extend to x248..295, y112..199. A pressure control unit is physically attached on its LEFT, x228..247,y157..184, with an amber gauge and copper feedpipe joining the door casing. Make it clearly one integrated machine, not a floating rectangle. Door bottom meets floor at y200. Keep x296..319 clear apart from floor. No pressure jet in this first foreground review.
+> Materials: broad 3-4 tone charcoal/steel shading, one-pixel rim highlights, sparse purposeful bolts and seams. Copper is a limited accent, not orange outlining everywhere. Maximum visual palette about 15 opaque colours plus black transparent key, tonal cohesion with the reference. No glow, blur, gradients, excessive tiny texture, painterly noise, random stippling or repeated rough stone. Flat SIDE VIEW appropriate for side-scrolling platform collision, not isometric. Frame and support art must read instantly after reduction to 320x208. This is a precise layout adaptation of the reference, not a concept poster.
+# Drowned pressure jet animation — 13 September 2026
+
+Native foreground review accepted by user. Built-in imagegen generated a
+4x2 water-only animation sheet: `assets/concept/drowned-jet-source-v1.png`.
+Native conversion uses one uniform whole-sheet scale and fixed cell crops;
+no per-frame fit or baseline correction. Frames mapped to pens 0/5/6/11 of
+the approved-review foreground palette. Fixed nozzle cropped from approved
+`drowned-polish-direction-v1.png`; player/HUD source unchanged.
+Review outputs: `assets/concept/drowned-jet-native-v1/`, generated by
+`tools/preview_drowned_jet.py`. Frame sheet inspected. Animated GIF is an
+offline art review, not native timing evidence. User animation review pending.
+
+Exact prompt:
+
+> Create one precise 4-column by 2-row sprite animation contact sheet, on perfectly solid black background, all 8 cells identical size, no labels, no gutters, no outlines around cells. Each cell represents exactly 32x64 logical pixels enlarged by the same integer scale. Overall image aspect 2:1. Crisp low-resolution pixel clusters for a beautiful Amiga AGA side-view game, no antialiasing, photographic texture or blur.
+> Subject: the SAME slender vertical industrial WATER pressure jet in every cell, cyan water with a few white highlights, darker blue inner shadow. Not electricity, not a laser, not smoke. Source point fixed at bottom centre of every cell, ground at logical y60. No nozzle or machinery drawn: only water on black; nozzle will be a separate fixed foreground asset.
+> Read cells left to right then next row: cell1 small pressure bubbling at bottom (height8px); cell2 rising short water plume(height24px); cell3 full-height water jet(height48px) with slight left-curving top and two detached droplets; cell4 full-height jet with different flowing connected clusters and slightly right-curving top; cell5 full-height jet another flow phase, top curling left; cell6 full-height jet another flow phase top slightly right, designed to loop back to cell3; cell7 collapsing plume(height28px) and falling droplets; cell8 last low splashes(height10px).
+> Keep active jet's main shaft narrow, about6 native pixels across, smoothly connected from logical y58 to y16, most of width reserved for sparse droplets, total effect contained within x6..25 and y8..60. The active four frames must look like a coherent flowing water column, not four unrelated explosions. Only 4 opaque colours: medium blue, cyan, pale cyan and white; empty space pure black. Every cell same baseline, same scale, same centre. Strong clean silhouettes readable at actual 32x64. No text, numbers, characters, ground, equipment, gradients, glow or mist.
+
+
+## Drowned geyser v2 — 13 September 2026 — concept pending
+
+Built-in imagegen. Existing jet/nozzle rejected after MOV review.
+New source: `assets/concept/drowned-geyser-source-v2.png`.
+Exact prompt and generation constraints: `assets/concept/drowned-geyser-source-v2.txt`.
+Four-stage recessed boiling-water direction, not native palette or integrated art.
+
+
+## Drowned geyser v2 — approved and expanded, 13 September 2026
+
+User: “ok oogt ok ga verder”. Approved recessed-water direction; built-in
+imagegen expanded the family to eight water-only frames using the approved
+source as reference. Saved `assets/concept/drowned-geyser-animation-source-v2.png`;
+exact prompt in its matching TXT. Native output under `drowned-geyser-native-v2/`
+uses existing water pens, fixed family scale and shared row registration.
+Integrated in isolated Slice3, native playtest acceptance still pending.
+
+
+## Solid sluice housing — 13 September 2026 — concept pending
+
+User accepts gate passage but rejects airy upper machinery and jumping through
+it. Built-in imagegen produced `assets/concept/drowned-solid-gate-source-v1.png`
+from supplied closed-gate screenshot. Exact prompt in matching TXT.
+Closed/open concept pair; one canonical frame required for native integration.
+Solid roller housing, opaque lower beam, same industrial identity. No runtime
+integration before review. See DROWNED_GATE_SOLIDITY_REVIEW.md for physics plan.
+
+Solid gate concept accepted (“ok ja mooi ga verder”). Slice4 integrates one
+opaque housing crop into the existing native frame; no independent closed/open
+whole-image conversions. Native gameplay acceptance remains pending.
+
+## Drowned enemy concept v1 —15 September2026
+
+Built-in ImageGen; pending user design review, not runtime integration.
+Source: `assets/enemies/drowned-enemies-concept-v1.png`.
+Exact prompt archived in `assets/enemies/drowned-enemies-concept-v1-prompt.txt`.
+The model produced a shaded dark background instead of flat magenta and
+incorrect relative native scale; see DROWNED_ENEMY_ART_PLAN.md. The poses are
+concept directions only; production must use a locked native master and rig.
+
+### Exact prompt
+
+Use case: stylized-concept. Create a premium Amiga AGA side-view platform-game ENEMY CONCEPT SHEET for Sparkpaw's Drowned Turbines, an abandoned rain-powered pumping station. References show the existing 64x64 biped enemy, 32x24 small enemy, and industrial environment. They are scale/material/legibility references, NOT designs to copy. This is design review, not a runtime-ready sheet.
+
+Exactly TWO new mechanical enemy designs, four poses each, in a spacious strict 4-column by 2-row layout. Uniform flat magenta #ff00ff background throughout, no text, labels, dividers, ground shadows, scenery or loose projectiles. Facing right in every pose. Crisp hand-crafted pixel-art clusters, deliberate stepped edges, strong silhouette, consistent top-left highlights, no smooth gradients, noisy dithering, blur, miniature rivet noise or 3D rendering.
+
+TOP ROW: small TURBINE CRAB, designed for a 32x24 native cell: low squat storm-grey turbine shell with a visible recessed three-bladed rotor in its SIDE panel, FOUR articulated walking legs total, two nearer legs clearly distinct and two darker far legs correctly occluded. Compact folded gripping claw integrated at front; no fifth/sixth walking limb. Rear exhaust slot, turquoise sensor slit. Strong coherent plates. It must NOT resemble a recoloured beetle. Same chassis dimensions throughout.
+Four poses: 1 confident idle with planted feet; 2 compressed attack anticipation with claw tucked and rotor shutter opening, feet still logical; 3 short hit recoil, same intact anatomy; 4 destruction endpoint with the SAME chassis collapsed close to ground, rotor stopped, bent legs still attached and front plate split, tiny localized pale-cyan sparks contained in envelope. No generic explosion replacing the animal.
+
+BOTTOM ROW: larger PUMP WALKER designed for a 64x64 native cell, drawn at approximately twice crab width and more than twice crab height, SAME magnification as crab. Permanently BIPEDAL, two sturdy hydraulic legs with clear hip/knee/ankle pivots and broad industrial feet; not quadrupedal, no canine head or tail, not knight/humanoid. Compact pressure-vessel torso, protected round pressure gauge high on shoulder, one heavy short forward-directed pump nozzle mounted to torso (not an extra limb), one small counterbalance service arm. U-shaped protected hose with clear fixed attachment points, no sprawling cables. Rounded boiler mass contrasted with rectangular boot shapes. A cyan inspection slit conveys intent. Dominant cool slate and dark steel; restrained weathered copper only at pipe connectors and gauge rim, NOT a mostly orange robot. Designed so later walking, recoil, jump compression and knees-folding death maintain the identical anatomical rig.
+Four poses: 1 tall idle; 2 unmistakable pressure-charge telegraph, knees bend slightly, body leans back, nozzle points right, small cyan gauge brightening but NO muzzle flash or projectile; 3 weighty impact recoil with same body mass, feet still connected; 4 believable collapsed disabled machine: knees folded, pressure vessel lowered, nozzle tilted down, small escaped steam puff inside same 64x64 envelope. No growing limbs, detached replacement robot, massive debris or scale change.
+
+Use a restrained game-compatible palette: deep navy outlines, slate shadows, grey-steel midtones, cool off-white specular accents, muted copper connectors, saturated cyan reserved for water pressure/sensors. Make the crab and walker immediately distinct at tiny game size, with recognizable material masses instead of microtexture. Each family uses one scale for ALL poses including death; do not resize a pose to fit. Leave abundant clean margins. Preserve exact number and attachment of limbs across poses; read as animateable machinery.
+
+## Drowned enemy colour variant v2 —15 September2026
+
+Built-in ImageGen edit of approved design direction v1. Colour review pending;
+source `assets/enemies/drowned-enemies-concept-v2.png`, v1 retained.
+No runtime integration or exact pixel-preservation claim.
+
+undefined
+
+## Drowned native idle source v1 —15 September2026
+
+Built-in ImageGen, approved v2 colour direction as reference. Isolated idle
+source saved assets/enemies/drowned-enemies-idle-source-v1.png. Real alpha
+verified; subsequent deterministic native palette/cell conversion is offline
+review only. Native approval pending, no runtime change.
+
+Create a production-oriented isolated idle-master source from the approved reference enemies. Exactly TWO figures, both right-facing, no other poses. LEFT: the copper turbine crab from top-left reference, four connected walking legs and compact claw, dark rotor, cyan slit. RIGHT: the cool-grey biped pumpwalker from bottom-left reference with exactly two hydraulic legs, same pressure tank, gauge, nozzle, hose and service arm. Preserve the approved mechanical anatomy and material colors. True TRANSPARENT alpha background, no background gradient, no floor, no shadows, no glows outside silhouettes, no text or borders. Widely separate the figures with ample transparent margin. Both feet planted on same baseline. Crab roughly HALF the pumpwalker's width and around one third its height: intended final cells32x24 and64x64. Crisp deliberate pixel-art clusters, simplified durable shapes suitable for native Amiga pixels: leg connections must remain readable, avoid surface speckle and micro-rivets. Keep pumpwalker idle tall rather than squat, leave room for its pose within64x64. Copper-brown shell for crab, dark steel legs/rotor; cool slate steel for walker with copper confined to small fittings. Cyan reserved for tiny sensor and pressure accents. No redesign, extra limbs or extra objects. This is one stable idle silhouette per creature for subsequent exact palette conversion and fixed-part animation; do not make an animation sheet.
+
+
+## Drowned pontoon concept v1 — 16 September 2026
+
+Built-in ImageGen. Concept pending user review; not runtime art. Source: assets/concept/drowned-pontoon-concept-v1.png. Exact prompt: assets/concept/drowned-pontoon-concept-v1.txt. Steel/copper low deck with foreground water overlap. Generated enlarged concept has more detail and slight top-face perspective than target native96px art; native simplification and exact palette/water matching still required.
+
+## 2026-09-16 — Spillwing compact concept review
+
+User requested smaller flying enemy and approved24x24 cell direction, body
+approximately18x12. Generated spillwing-concept-v1.png with built-in ImageGen,
+existing enemy material sheet as reference; exact prompt in same-name TXT.
+Compact steel pod, short connected top rotor, copper fittings and forward sensor.
+Provisional24x24 exact foreground-palette size audition produced by
+ tools/preview_spillwing_idle.py in assets/enemies/spillwing-idle-review-v1/.
+Scale strip uses existing player and approved96px pontoon unchanged. Source
+concept and provisional native clusters await user review; no animation,
+AI, cache, runtime or test-drawer changes. Next refine native sensor/silhouette,
+rotor poses, anticipation/swoop, hit and electric death only after review.
+No per-frame autoscaling or new actor anatomy. Full level/upper route remains
+planned; native flight envelope must stay compact for its clearance.
+
+## 2026-09-19 — Drowned checkpoint beacon concept v1 (pending review)
+
+Generated concept: assets/concept/drowned-checkpoint-beacon-v1.png.
+Prompt requested one industrial steel/copper checkpoint marker in three aligned
+side-view states STANDBY / ACTIVATING / SAVED, targeting32x48 native pixels,
+dark navy background, hinged metal pennant and amber-to-mint/cyan indicator,
+AGA pixel clusters, no cloth/holograms/character. Concept review only, not a
+runtime sheet. Result has excessive presentation glow and an inconsistent
+intermediate hinge location; neither may carry into native animation.
+Full prompt retained in accompanying concept TXT. No approval or integration yet.
+
+## 2026-09-19 — Drowned checkpoint production components v1
+
+Reference: assets/concept/drowned-checkpoint-beacon-v1.png (user approved).
+Generated source: assets/concept/drowned-checkpoint-parts-v1.png, copied intact
+from exec-60718085-c23b-4927-b015-6d45f73fccc3.png; original preserved.
+Prompt intent (reconstructed after context compaction, not a verbatim transcript):
+three separate pixel-art components on magenta: identical upright static bodies,
+amber/cyan medallion and no pennant; detached horizontal pennant with left hinge;
+24x48 body,18x7 arm intent, large nearest-neighbour presentation. No scenery,
+labels or glow, keep approved steel/copper identity and fixed hinge.
+Output instead used a dark halo backdrop, so it is NOT used as transparent art.
+Explicit silhouette excludes that backdrop; same body for every frame, only
+lamp pens change. Native fit28x48body/26x9arm in48x48 cell; fixedpivot21,11;
+offline rigid rotation90,80,65,45,25,10,0,0deg, owned16pen foreground palette.
+Native frames/animation reviewed from exact indexed data in
+assets/concept/drowned-checkpoint-native-v1; generator tools/build_drowned_checkpoint.py.
+Integrated under the user's explicit approval of beacon and soundv2. Native
+in-game animation/readability still awaits user020 test, no runtime claim.
+
+## 2026-09-20 — Drowned finale/station concept v1, review pending
+
+Concept review v1, 2026-09-20. Not approved or native runtime art.
+Reference: drowned-pontoon-native-v1/scene-4x.png (palette/material only).
+Prompt:
+Create a polished PIXEL ART concept review board for the final section of the Amiga AGA game Sparkpaw: Drowned Turbines. Use attached screenshot as material and palette reference only, not its raft layout. Two wide horizontal side-view panels stacked, with NO text, NO HUD, NO logos. True readable pixel clusters, limited palette, dark blue steel, muted copper pipes, cyan water and amber indicators; avoid grain and overbusy microtexture. TOP PANEL: an outdoor hydroelectric Pressure Governor machine encounter. A solid dark-steel turbine regulator spans three connected buttresses with thick copper pipework; exactly THREE clearly readable small circular shootable shutter targets at low, middle, low heights. The middle one above a sturdy raised platform; two low ones accessible from dry ground. No faces or monster anatomy. Machine occupies lower half of playable height, rainy blue mountains and distant turbines behind. Clear dry waiting ledge at left, shallow water channels with ONE narrow pressure vent, exit sluice at right. Mechanical shutters and tiny gauges could animate, main machine solid static construction, not a giant animated boss. BOTTOM PANEL: quiet reward area farther beyond the machine: a small separate rain weather-station cabin of steel/copper with sloping rain collector roof, weather vane and round blue lens; a single luminous cyan drop-shaped Rain Core on a little pedestal beside the cabin. Dry accessible path. Cozy functional weather house, NOT another combat machine. Clear foreground/background separation. One small orange fox adventurer (matching reference, same relative sprite scale about40px high in a208px playfield) in each panel only for scale. Concept illustration not claiming final runtime fidelity. Keep everything orthographic side-on, not isometric, no photoreal shading, no bloom, no smooth gradients. Intent: attractive feasible small static foreground assets with restrained tiny animated details.
+
+Review notes: generated fox is scale reference, never replacement player art.
+Top machine targets suggest low/middle/low, but platforms and accessible dry
+approach require real-physics layout before integration. Bottom path gap is
+illustrative only, not approved collision geometry. Background/HUD unchanged
+in actual runtime. Rain Core silhouette/color require native palette review.
+Mostly static machine; animated parts limited to shutters, indicators, one jet.
+
+## 2026-09-20 — Governor native-art source v1, review pending
+
+2026-09-20: source for native Pressure Governor art. Review pending.
+Tool produced RGBA transparency rather than requested magenta; preserved.
+Reference: drowned-finale-station-v1.png.
+Exact prompt:
+Create ONE isolated pixel-art industrial pressure regulator tower asset for Sparkpaw Drowned Turbines, based on the dark steel/copper machine in the TOP panel of the reference. Asset extraction source on a perfectly flat pure magenta #ff00ff background, no scenery, no text, no numbers, no character, no ground shadow. Strict orthographic FRONT/SIDE game elevation with no isometric perspective. Tall sturdy narrow tower silhouette, width to height about 5:8 (intended native80x128 pixels), entirely visible with generous magenta margins. Dark navy-steel riveted casing, thick restrained copper pipes running vertically down both sides, a capped pressure cylinder on top, a small analog gauge in the upper third, broad grounded metal feet at bottom. In the LOWER HALF, a prominent circular recessed pressure port with bright cyan inner glass, framed by a heavy dark steel ring; this lower target port is the gameplay focus. Three tiny amber indicator lamps immediately below port, visibly part of the machine. Make the port large enough to read at native24x32 pixels; no spikes, no gun barrel, no monster face. Professional hand-crafted Amiga AGA pixel art, crisp coherent pixel clusters and restrained highlights, strong material planes, low-noise shading, limited16color appearance using black/navy/slate gray/copper/cream/cyan. Avoid excessive stippling, fuzzy antialiasing, smooth gradients, bloom and neon edging. Enlarge coarse pixels cleanly so the asset remains readable when reduced to80x128. Keep machinery solid with clear silhouette and weight. Only one tower. The reference is identity/material guidance, not an instruction to reproduce the whole environment.
+
+
+## 2026-09-22 Drowned flowers v1 — concept only
+
+Source: assets/concept/drowned-flowers-v1.png; exact prompt in matching TXT.
+Coral/amber low flower clumps; user review pending. Not in runtime.
+
+22September: user explicitly approved integration of both flower species. Native16pen conversion uses violet A and cream B,12sparse placements; A behind player/B foreground feet. No new generated image.
+
+## 2026-09-22 — Drowned panorama seam continuation
+
+Reference: `assets/concept/drowned-panorama-v1/panorama-2x.png`; then its last320x208px enlarged3x as `drowned-panorama-v2/end-reference.png`.
+
+Two whole-panorama studies requested a rightward extension with unchanged scale, waterline, blue8color palette and no foreground objects. Rejected: composition/scale was changed too much; retained as study-1.png and study-2.png.
+
+Final extension prompt: Outpaint this game background to the RIGHT. Widen canvas to approximately2304x624 (3.69:1 wide image). Keep reference unchanged on LEFT960x624. Add1344px to RIGHT with continuous blue mountain lake, dark pine trees on craggy waterfalls, quiet forest grove and distant thin ruined bridges. Same pixel density, exact8-color restricted palette, no smoothing. Waterline y543/624 remains level. Clouds continue naturally. No vertical join, repeat, horizontal stretching, foreground objects, text, HUD or letterbox.
+
+Result: `assets/concept/drowned-panorama-v2/extension-source.png` (actual2172x724). Review conversion crops excess bottom lake, indexes to original palette, joins via offline connected overlap. Native review at1552x208. Status: visual review pending, no runtime/dist integration.

@@ -10,9 +10,14 @@
 	INCLUDE	whdmacros.i
 
 CHIPMEMSIZE	= $1ff000
-; kick31.s adds its $80000 ROM area to this value. Together they consume the
-; complete 8 MB expansion allocation while leaving 7.5 MB as emulated Fast RAM.
-FASTMEMSIZE	= $780000
+; kick31.s adds its $80000 ROM area to this value. The packed preload build
+; reserves only the measured game Fast budget so WHDLoad can retain the full
+; packed file set in host RAM on the 8 MB Fast target.
+	IFD PACKED_WHDLOAD
+FASTMEMSIZE	= $300000
+	ELSE
+FASTMEMSIZE	= $500000
+	ENDC
 NUMDRIVES	= 1
 WPDRIVES	= %0001
 
@@ -36,7 +41,7 @@ slv_name	dc.b	"Sparkpaw: The Stormstone Quest",0
 slv_copy	dc.b	"2026 MrDig Productions",0
 slv_info	dc.b	"Installed and adapted for WHDLoad",10
 		dc.b	"by MrDig Productions / 100% AI",10
-		dc.b	"Version 0.7.0-alpha.7 (10-Sep-2026)",0
+		dc.b	"Version 0.7.0-alpha.9 (23-Sep-2026)",0
 slv_config	= slv_base
 	EVEN
 

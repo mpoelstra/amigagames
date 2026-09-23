@@ -15,9 +15,11 @@
 #include <proto/dos.h>
 #ifdef SPARKPAW_MULTI_ADF
 #include "disk_media.h"
-#include "assets.h"
 #undef Open
 #define Open diskMediaOpen
+#endif
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
+#include "assets.h"
 #endif
 #include <proto/exec.h>
 
@@ -32,6 +34,10 @@ static UBYTE *enemyDeathSample;
 static LONG enemyDeathSampleBytes;
 static UBYTE *striderShotSample;
 static LONG striderShotSampleBytes;
+#if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
+static UBYTE *previewPumpSample,*previewCheckpointSample;
+static LONG previewPumpSampleBytes,previewCheckpointSampleBytes;
+#endif
 static UBYTE *harrierFanChargeSample,*harrierFanFireSample;
 static UBYTE *harrierHunterChargeSample,*harrierHunterFireSample;
 static LONG harrierFanChargeSampleBytes,harrierFanFireSampleBytes;
@@ -46,6 +52,11 @@ static UBYTE *stormstoneCoreSample;
 static LONG stormstoneCoreSampleBytes;
 static UBYTE *tallyTickSample;
 static LONG tallyTickSampleBytes;
+#ifdef SPARKPAW_DROWNED_JOINED
+static UBYTE *checkpointSample;
+static LONG checkpointSampleBytes;
+static UBYTE checkpointCooldown;
+#endif
 static UBYTE *extraLifeSample;
 static LONG extraLifeSampleBytes;
 static UWORD *silenceSample;
@@ -87,6 +98,9 @@ enum AudioDiagnosticEvent {
     AUDIO_DIAG_STORMSTONE_CORE,
     AUDIO_DIAG_TALLY_TICK,
     AUDIO_DIAG_EXTRA_LIFE,
+#ifdef SPARKPAW_DROWNED_JOINED
+    AUDIO_DIAG_CHECKPOINT,
+#endif
     AUDIO_DIAG_COUNT
 };
 static ULONG diagnosticRequests[AUDIO_DIAG_COUNT];
@@ -155,7 +169,7 @@ static void startOneShot(UBYTE channel,UWORD dmaMask,UBYTE *sample,
 
 static BOOL loadSample(CONST_STRPTR name,UBYTE **sample,LONG *sampleBytes)
 {
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
     ULONG size;
     *sample=assetsLoadDiskData(name,MEMF_CHIP,&size);
     *sampleBytes=(LONG)size;
@@ -196,17 +210,29 @@ BOOL audioLoad(void)
                    &enemyDeathSample,&enemyDeathSampleBytes)) {
         audioUnload(); return FALSE;
     }
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+    if(!loadSample("PROGDIR:assets/runtime/pump-shot.raw",
+#else
     if(!loadSample("PROGDIR:assets/runtime/strider-shot.raw",
+#endif
                    &striderShotSample,&striderShotSampleBytes)) {
         audioUnload(); return FALSE;
     }
 #define LOAD_HARRIER_SAMPLE(name,field) \
     if(!loadSample("PROGDIR:assets/runtime/" name ".raw", \
                    &field##Sample,&field##SampleBytes)) { audioUnload(); return FALSE; }
+#if !defined(SPARKPAW_DROWNED_THREE_ADF)||!defined(SPARKPAW_DROWNED_JOINED)
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+    if(gameStormrailActive()) {
+#endif
     LOAD_HARRIER_SAMPLE("harrier-fan-charge",harrierFanCharge)
     LOAD_HARRIER_SAMPLE("harrier-fan-fire",harrierFanFire)
     LOAD_HARRIER_SAMPLE("harrier-hunter-charge",harrierHunterCharge)
     LOAD_HARRIER_SAMPLE("harrier-hunter-fire",harrierHunterFire)
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+    }
+#endif
+#endif
 #undef LOAD_HARRIER_SAMPLE
     if(!loadSample("PROGDIR:assets/runtime/jump.raw",
                    &jumpSample,&jumpSampleBytes)) {
@@ -228,12 +254,32 @@ BOOL audioLoad(void)
                    &tallyTickSample,&tallyTickSampleBytes)) {
         audioUnload(); return FALSE;
     }
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(!loadSample("PROGDIR:assets/runtime/checkpoint.raw",
+                   &checkpointSample,&checkpointSampleBytes)) {
+        audioUnload(); return FALSE;
+    }
+#endif
     if(!loadSample("PROGDIR:assets/runtime/extra-life.raw",
                    &extraLifeSample,&extraLifeSampleBytes)) {
         audioUnload(); return FALSE;
     }
+#if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
+    /* Only the HD/WHDLoad host has Soundtest. Keep Drowned's gameplay audio
+       allocation in its separate module and leave the three-disk ADF alone. */
+    if(!loadSample("PROGDIR:assets/runtime/pump-shot.raw",
+                   &previewPumpSample,&previewPumpSampleBytes) ||
+       !loadSample("PROGDIR:assets/runtime/checkpoint.raw",
+                   &previewCheckpointSample,&previewCheckpointSampleBytes)) {
+        audioUnload(); return FALSE;
+    }
+#endif
 #ifdef SPARKPAW_LEVEL1_MUSIC
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(!level1AudioLoad(FALSE)) {
+#else
     if(!level1AudioLoad(gameStormrailActive())) {
+#endif
         audioUnload(); return FALSE;
     }
 #endif
@@ -297,10 +343,26 @@ void audioUnload(void)
         FreeMem(tallyTickSample,tallyTickSampleBytes);
         tallyTickSample=NULL; tallyTickSampleBytes=0;
     }
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(checkpointSample) {
+        FreeMem(checkpointSample,checkpointSampleBytes);
+        checkpointSample=NULL; checkpointSampleBytes=0;
+    }
+#endif
     if(extraLifeSample) {
         FreeMem(extraLifeSample,extraLifeSampleBytes);
         extraLifeSample=NULL; extraLifeSampleBytes=0;
     }
+#if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
+    if(previewPumpSample) {
+        FreeMem(previewPumpSample,previewPumpSampleBytes);
+        previewPumpSample=NULL; previewPumpSampleBytes=0;
+    }
+    if(previewCheckpointSample) {
+        FreeMem(previewCheckpointSample,previewCheckpointSampleBytes);
+        previewCheckpointSample=NULL; previewCheckpointSampleBytes=0;
+    }
+#endif
 }
 
 void audioSetHardwareActive(BOOL active)
@@ -322,6 +384,9 @@ void audioSetHardwareActive(BOOL active)
         stormstoneCoreCooldown=0;
         tallyTickCooldown=0;
         extraLifeCooldown=0;
+#ifdef SPARKPAW_DROWNED_JOINED
+        checkpointCooldown=0;
+#endif
     }
 }
 
@@ -518,6 +583,20 @@ void audioPlayExtraLife(void)
                        );
 }
 
+#ifdef SPARKPAW_DROWNED_JOINED
+void audioPlayCheckpoint(void)
+{
+    AUDIO_MIX(16);
+    AUDIO_REQUEST(AUDIO_DIAG_CHECKPOINT);
+    playGameplaySample(checkpointSample,checkpointSampleBytes,10,
+                       &checkpointCooldown,32,58
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                       ,AUDIO_DIAG_CHECKPOINT
+#endif
+                       );
+}
+#endif
+
 void audioUpdate(void)
 {
 #ifdef SPARKPAW_LEVEL1_MUSIC
@@ -543,6 +622,9 @@ void audioUpdate(void)
     if(stormstoneCoreCooldown) stormstoneCoreCooldown--;
     if(tallyTickCooldown) tallyTickCooldown--;
     if(extraLifeCooldown) extraLifeCooldown--;
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(checkpointCooldown) checkpointCooldown--;
+#endif
 }
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -550,10 +632,17 @@ void audioDiagnosticWrite(BPTR file)
 {
     static const char *const names[AUDIO_DIAG_COUNT]={
         "shot","hurt","enemy_hit","enemy_death",
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+        "pump_walker_shot","harrier_fan_charge","harrier_fan_fire",
+#else
         "strider_shot","harrier_fan_charge","harrier_fan_fire",
+#endif
         "harrier_hunter_charge","harrier_hunter_fire",
         "jump","collect","water","stormstone_core",
         "tally_tick","extra_life"
+#ifdef SPARKPAW_DROWNED_JOINED
+        ,"checkpoint"
+#endif
     };
     UWORD event;
     for(event=0;event<AUDIO_DIAG_COUNT;event++)
@@ -563,7 +652,7 @@ void audioDiagnosticWrite(BPTR file)
 }
 #endif
 
-#ifndef SPARKPAW_MULTI_ADF
+#if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
 /* Solo preview uses the original samples and gains, not mixed-game panning.
    Caller has stopped LSP/CIA/mixer before granting direct-effect ownership. */
 void audioPreviewEffect(unsigned id)
@@ -574,8 +663,26 @@ void audioPreviewEffect(unsigned id)
         audioPlayTallyTick,audioPlayExtraLife,audioPlayHarrierFanCharge,
         audioPlayHarrierFanFire,audioPlayHarrierHunterCharge,
         audioPlayHarrierHunterFire,audioPlayHealthCollect};
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+    if(id>=18) return;
+#else
     if(id>=16) return;
+#endif
     audioSetHardwareActive(FALSE); audioSetHardwareActive(TRUE);
+#if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
+    if(id>=16) {
+        UBYTE cooldown=0;
+        playGameplaySample(id==16?previewPumpSample:previewCheckpointSample,
+                           id==16?previewPumpSampleBytes:previewCheckpointSampleBytes,
+                           id==16?STRIDER_SHOT_PRIORITY:10,&cooldown,0,
+                           id==16?64:58
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
+                           ,id==16?AUDIO_DIAG_STRIDER_SHOT:AUDIO_DIAG_EXTRA_LIFE
+#endif
+                           );
+        return;
+    }
+#endif
     play[id]();
 }
 BOOL audioPreviewEffectPlaying(void) { return shotDmaTicks||gameplayDmaTicks; }

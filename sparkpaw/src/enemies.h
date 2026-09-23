@@ -4,13 +4,28 @@
 #include <exec/types.h>
 #include "projectiles.h"
 
+#if defined(SPARKPAW_DROWNED_SPILLWING) && !defined(SPARKPAW_DROWNED_JOINED)
+/* Isolated audition aliases only the small-enemy cache; campaign unchanged. */
+#define ENEMY_W 24
+#else
 #define ENEMY_W 32
+#endif
 #define ENEMY_H 24
+#if defined(SPARKPAW_DROWNED_SPILLWING) && !defined(SPARKPAW_DROWNED_JOINED)
+#define ENEMY_FRAMES 16
+#elif defined(SPARKPAW_DROWNED_ENEMY_ART)
+#define ENEMY_FRAMES 22
+#else
 #define ENEMY_FRAMES 9
+#endif
 #define ENEMY_SOURCE_WORDS 3
 #define STRIDER_W 64
 #define STRIDER_H 64
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+#define STRIDER_FRAMES 32
+#else
 #define STRIDER_FRAMES 28
+#endif
 #define STRIDER_SOURCE_WORDS 5
 #define MAX_ENEMIES 4
 

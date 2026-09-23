@@ -6,8 +6,11 @@ void level1AudioUnload(void);
 /* Start/stop require the platform's disabled interrupt ownership. */
 BOOL level1AudioStart(void);
 BOOL level1AudioStartMusic(void);
-#ifndef SPARKPAW_MULTI_ADF
+#if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
 BOOL level1AudioPreviewPrepare(BOOL stormrail);
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+BOOL level1AudioPreviewPrepareDrowned(void);
+#endif
 void level1AudioPreviewClear(void);
 #endif
 void level1AudioStop(void);

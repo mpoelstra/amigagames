@@ -51,4 +51,6 @@ def main():
  paths=[DIST/(RELEASE_NAME+s) for s in ('.zip','.lha','-Disk1.adf','-Disk2.adf','-WHDLoad.zip','-WHDLoad.lha')]
  report={'version':RELEASE_VERSION,'HD_game_sha256':digest(ROOT/'sparkpaw'),'WHDLoad_game_sha256':digest(STAGE/'data/Sparkpaw'),'WHDLoad_slave_sha256':digest(STAGE/'Sparkpaw.Slave'),'artifacts':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p)} for p in paths},'native_evidence':'Earlier campaign/audio reports and game-over screenshots exist. Alpha.7 startup/audio/ADF/WHDLoad/hardware acceptance pending; black-after-Fire remains open. No automatic emulator run.'}
  (ROOT/'build/checkpoint-release-verification.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
-if __name__=='__main__':main()
+if __name__=='__main__':
+ from verify_campaign_release import main as verify_campaign
+ verify_campaign()

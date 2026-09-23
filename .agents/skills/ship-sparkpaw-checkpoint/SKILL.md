@@ -157,6 +157,15 @@ Run tools/verify_checkpoint_release.py after packaging: require per-volume
 ADF dependencies, all-file readback, independent ZIP/LHA extraction and icons.
 WHDLoad must compile campaign plus quit hooks; verify slave version and actual
 shortened extraction drawer in ReadMe. Native acceptance is medium-specific.
+For a packed/preloaded campaign WHDLoad release, compare the new slave header
+against the last user-accepted packed candidate: require `ExpMem` at byte 28
+after `WHDLOADS` to be `$380000` (3.5 MB), and require the icon's `PRELOAD`.
+The generic slave build uses `$580000` and can cause title/loading flicker
+and slow loading by leaving too little host memory for PRELOAD. Compare packed
+asset hashes and executable behavior claims separately; a passing archive
+check does not prove startup behavior. Preserve a rejected test package in
+`dist/older-builds` before replacing its versioned candidate, and request a
+focused user startup/loading retest before acceptance.
 Document classic LHa's 496-byte tally-tick.raw lh0 incompressible fallback if
 used; reject other silent storage. Prefer fresh itch download HTML/detector
 and current devlog over stale web-search caches when they disagree.

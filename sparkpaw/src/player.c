@@ -1,7 +1,16 @@
 #include "player.h"
+#ifdef SPARKPAW_DROWNED_PONTOON
+#include "drowned_pontoon.h"
+#endif
 #include "game.h"
 
 #include "collision.h"
+#ifdef SPARKPAW_DROWNED_SLICE
+#include "drowned_slice.h"
+/* Keep the visible 48px actor head below this local structural ceiling.
+   The ordinary body/damage hitbox and all production physics remain intact. */
+#define DROWNED_HEAD_BLOCKED(x,y) drownedHeaderOverlaps((x)+4,(y)-8,(x)+27,(y)+4)
+#endif
 #include "platform_amiga.h"
 #include "projectiles.h"
 
@@ -34,7 +43,11 @@ static UBYTE groundSupportCount(WORD x,WORD y,UBYTE *leftCount)
 {
     WORD probe; UBYTE total=0,left=0;
     for(probe=HIT_LEFT;probe<=HIT_RIGHT;probe++)
-        if(collisionSolidAt(x+probe,y)) {
+        if(collisionSolidAt(x+probe,y)
+#ifdef SPARKPAW_DROWNED_PONTOON
+           ||(y==drownedPontoonDeck()&&x+probe>=drownedPontoonX()+3&&x+probe<drownedPontoonX()+93)
+#endif
+          ) {
             total++;
             if(probe<(HIT_LEFT+HIT_RIGHT+1)/2) left++;
         }
@@ -66,6 +79,15 @@ void playerInit(void)
 #endif
     player.health=PLAYER_MAX_HEALTH;
 }
+
+#ifdef SPARKPAW_DROWNED_JOINED
+void playerRespawnAt(WORD x,WORD y)
+{
+    playerInit();
+    player.x=(LONG)x<<8; player.y=(LONG)y<<8;
+    player.grounded=TRUE; player.invulnTimer=75;
+}
+#endif
 
 void playerSetSecondaryButtonAction(enum SecondaryButtonAction action)
 {
@@ -240,6 +262,9 @@ static WORD playerHitTop(void)
 static BOOL canStand(WORD x,WORD y)
 {
     WORD positionY;
+#ifdef SPARKPAW_DROWNED_SLICE
+    if(DROWNED_HEAD_BLOCKED(x,y)) return FALSE;
+#endif
     /* Standing art reaches five pixels above its deliberately forgiving
        gameplay hitbox. Clearance must cover that visible silhouette too. */
     for(positionY=y+STAND_VISUAL_TOP;
@@ -261,6 +286,11 @@ static void moveX(LONG delta)
     while(x!=end) {
         WORD next=x+direction;
         WORD side=next+(direction<0?HIT_LEFT:HIT_RIGHT);
+#ifdef SPARKPAW_DROWNED_SLICE
+        if(!player.crouching&&DROWNED_HEAD_BLOCKED(next,y)) {
+            player.wallBlocked=TRUE; player.vx=0; player.x=(LONG)x<<8; return;
+        }
+#endif
         if(collisionSolidVertical(side,y+playerHitTop(),y+HIT_BOTTOM)) {
             player.wallBlocked=TRUE; player.vx=0; player.x=(LONG)x<<8; return;
         }
@@ -268,6 +298,10 @@ static void moveX(LONG delta)
     }
     player.x=target;
 }
+
+#ifdef SPARKPAW_DROWNED_PONTOON
+void playerCarryHorizontal(LONG delta) { moveX(delta); }
+#endif
 
 static void moveY(LONG delta)
 {
@@ -278,7 +312,16 @@ static void moveY(LONG delta)
     while(y!=end) {
         WORD next=y+direction;
         WORD edge=next+(direction<0?playerHitTop():HIT_BOTTOM);
-        if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,edge)) {
+#ifdef SPARKPAW_DROWNED_SLICE
+        if(direction<0&&!player.crouching&&DROWNED_HEAD_BLOCKED(x,next)) {
+            player.vy=0; player.y=(LONG)y<<8; return;
+        }
+#endif
+        if(collisionSolidHorizontal(x+HIT_LEFT,x+HIT_RIGHT,edge)
+#ifdef SPARKPAW_DROWNED_PONTOON
+           ||(direction>0&&drownedPontoonSupport(x+HIT_LEFT,x+HIT_RIGHT,edge))
+#endif
+          ) {
             UBYTE leftSupport=0;
             UBYTE totalSupport=direction>0?
                 groundSupportCount(x,edge,&leftSupport):MIN_GROUND_SUPPORT;
@@ -305,7 +348,11 @@ static void moveY(LONG delta)
 
 BOOL playerUpdatePhysics(BOOL left,BOOL right,BOOL down,BOOL jump)
 {
-    WORD playerX=(WORD)(player.x>>FIX_SHIFT),playerY=(WORD)(player.y>>FIX_SHIFT);
+    WORD playerX,playerY;
+#ifdef SPARKPAW_DROWNED_PONTOON
+    drownedPontoonStep(&player);
+#endif
+    playerX=(WORD)(player.x>>FIX_SHIFT);playerY=(WORD)(player.y>>FIX_SHIFT);
     LONG acceleration,maxSpeed;
     BOOL jumped=FALSE;
     /* Preserve current crouch intent even when hurt physics returns before
@@ -400,6 +447,16 @@ void playerContactBounds(WORD *left,WORD *top,WORD *right,WORD *bottom)
     *top=y+(player.crouching?20:7); *bottom=y+38;
 }
 
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+void playerProjectileBounds(WORD *left,WORD *top,WORD *right,WORD *bottom)
+{
+    playerContactBounds(left,top,right,bottom);
+    /* High pressure shots can visibly hit the head above the torso-only
+       contact box. Keep crouched clearance and enemy-body contact unchanged. */
+    if(!player.crouching) *top=(WORD)(player.y>>FIX_SHIFT)-4;
+}
+#endif
+
 static BOOL playerShowsLowPose(void)
 {
     UBYTE frame=player.animFrame;
@@ -438,3 +495,8 @@ const struct PlayerState *playerState(void)
 {
     return &player;
 }
+
+#ifdef SPARKPAW_DROWNED_CAMPAIGN_MODULE
+void playerRestoreDrownedHealth(UBYTE health)
+{ player.health=health>=1&&health<=PLAYER_MAX_HEALTH?health:PLAYER_MAX_HEALTH; }
+#endif

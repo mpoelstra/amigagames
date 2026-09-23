@@ -40,7 +40,7 @@ static ULONG filePos,fileLength;static struct Library resource;
 static void *OpenResource(const char *s){(void)s;return &resource;}
 static int musicInitialize(int hz){assert(hz==50);return 1;}
 static int musicIsPlaying(void){return titlePlaying;}
-static BPTR Open(STRPTR n,int mode){(void)mode;fileLength=strstr(n,"score")?(strstr(n,"rail-score")?17468:9276):strstr(n,"bank")?11552:128;return ++opens==failOpen?0:1;}
+static BPTR Open(STRPTR n,int mode){(void)mode;fileLength=strstr(n,"score")?((strstr(n,"rail-score")||strstr(n,"rain-score"))?17468:9276):strstr(n,"bank")?(strstr(n,"rain-bank")?21622:11552):128;return ++opens==failOpen?0:1;}
 static LONG Seek(BPTR f,int n,int mode){ULONG old=filePos;(void)f;(void)n;filePos=mode==OFFSET_END?fileLength:0;return old;}
 static LONG Read(BPTR f,void *p,LONG n){(void)f;memset(p,32,n);if(n==9276||n==17468)memcpy((char *)p+1080,"M.K.",4);return n;}
 static void Close(BPTR f){(void)f;}
@@ -65,7 +65,7 @@ void mt_mastervol(void *h,UWORD x){(void)h;assert(x==48);}
 checks=r'''
 int main(void){
  unsigned i;int cycle;
- for(i=1;i<=19;i++){
+ for(i=1;i<=FX_COUNT+3;i++){
   allocCalls=0;failAlloc=i;assert(!level1AudioLoad(FALSE));
   assert(!allocations&&!resourcesOwned&&!vector&&!locks);
  }
@@ -81,6 +81,11 @@ int main(void){
   for(i=0;i<3;i++){
    Disable();assert(level1AudioStart());Enable();assert(running&&mt_Enable&&vector);
    level1AudioRequest(0);level1AudioRequest(1);assert(mixer.voice[0].remaining&&mixer.voice[1].remaining);
+#ifdef SPARKPAW_DROWNED_JOINED
+   assert(strstr(paths[4],"pump-shot.raw")&&strstr(paths[16],"checkpoint.raw"));
+   level1AudioRequest(16);assert(mixer.voice[1].data==effects[16].data);
+   assert(mixer.voice[1].priority==10&&mixer.cooldown[16]==32);
+#endif
    level1AudioIRQ();level1AudioUpdate();assert(nextBuffer==0);
    Disable();level1AudioStop();Enable();assert(!running&&!mt_Enable&&quiesced&&!vector&&filter==2);
    level1AudioIRQ();assert(nextBuffer==0);
@@ -122,10 +127,18 @@ int main(void){
  puts("PASS: preload with title live, every allocation failure, install failure, 24 starts/stops, IRQ quiesce and balanced cleanup");return 0;
 }
 '''
-with tempfile.TemporaryDirectory() as d:
- p=Path(d);(p/'test.c').write_text(shim+'\n#include "audio_mix.h"\n#include "audio_catalog.h"\n'+s+checks)
- subprocess.run(['cc','-std=c99','-Wall','-Wextra','-Werror','-Wno-misleading-indentation','-fsanitize=address,undefined','-I'+str(ROOT/'src'),str(p/'test.c'),str(ROOT/'src/audio_mix.c'),'-o',str(p/'test')],check=True)
- subprocess.run([str(p/'test')],check=True)
+for drowned in (False,True,"preview"):
+
+ flags=['-DSPARKPAW_DROWNED_JOINED'] if drowned is True else ['-DSPARKPAW_CAMPAIGN_DROWNED'] if drowned=='preview' else []
+ selected_checks=checks
+ if drowned is True:
+  selected_checks=checks.replace('scoreSize==(cycle%2?17468UL:9276UL)', 'scoreSize==17468UL&&bankSize==21622UL')
+ if drowned=='preview':
+  selected_checks=checks.replace('level1AudioPreviewPrepare(TRUE)','level1AudioPreviewPrepareDrowned()').replace('assert(allocations==resident+2);','assert(allocations==resident+2&&previewScoreSize==17468&&previewBankSize==21622);')
+ with tempfile.TemporaryDirectory() as d:
+  p=Path(d);(p/'test.c').write_text(shim+'\n#include "audio_mix.h"\n#include "audio_catalog.h"\n'+s+selected_checks)
+  subprocess.run(['cc',*flags,'-std=c99','-Wall','-Wextra','-Werror','-Wno-misleading-indentation','-fsanitize=address,undefined','-I'+str(ROOT/'src'),str(p/'test.c'),str(ROOT/'src/audio_mix.c'),'-o',str(p/'test')],check=True)
+  subprocess.run([str(p/'test')],check=True)
 # Inspect the actual generated OS-compatible install/remove boundaries.
 a=player_source();install=a.split('_mt_install:',1)[1].split('mt_ioport:',1)[0]
 remove=a.split('_mt_remove:',1)[1].split('mt_cia_timer_a_code:',1)[0]

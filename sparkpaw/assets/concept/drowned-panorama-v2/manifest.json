@@ -1,0 +1,67 @@
+{
+  "status": "approved for ingame trial; native acceptance pending",
+  "dimensions": [
+    1552,
+    208
+  ],
+  "palette": [
+    [
+      0,
+      0,
+      17
+    ],
+    [
+      17,
+      34,
+      51
+    ],
+    [
+      34,
+      51,
+      68
+    ],
+    [
+      34,
+      68,
+      85
+    ],
+    [
+      34,
+      68,
+      119
+    ],
+    [
+      51,
+      85,
+      119
+    ],
+    [
+      51,
+      102,
+      136
+    ],
+    [
+      102,
+      136,
+      170
+    ]
+  ],
+  "unchanged_prefix": 832,
+  "join_range": [
+    916,
+    940
+  ],
+  "world_width": 5120,
+  "maximum_camera": 4800,
+  "conservative_fetch_pixels": 352,
+  "extra_planar_bytes_vs_current": 2496,
+  "checks": [
+    "exact SPBM roundtrip",
+    "same eight pens",
+    "all camera fetch windows fit",
+    "first832 columns unchanged"
+  ],
+  "limitations": [
+    "offline composition, no native FPS measurement"
+  ]
+}

@@ -1,5 +1,1068 @@
 # Sparkpaw and Amiga prototypes: development history
 
+## 2026-09-23 — alpha.9 campaign release checkpoint
+
+Final local alpha.9 packages: HD ZIP/LHA, WHDLoad ZIP/LHA and three ADFs.
+The corrected WHDLoad and ordinary HD work in MrDig's FS-UAE smoke tests;
+the rebuilt ADF also recognizes Disk 3 in DF2/DF3. No exact emulator
+configuration or real-A1200 claim. Full native build, host suite and
+independent archive/ADF checks pass. Alpha.8's 68 files and the three
+approved campaign drawers' 159 files were archived hash-identically in
+`dist/older-builds`; root dist now contains the alpha.9 release set.
+
+MrDig tested Disk 3 in FS-UAE DF2 and found it was not discovered until
+placed in DF0/DF1. The shipped candidate's resolver scanned only two drives.
+At his request, `disk_media.c` now scans DF0–DF3 and retains the detected
+drive for asset reads. The native-code host harness covers Disk 3 markers
+and `.spbm` to `.spr1` asset paths in DF2 and DF3, along with existing DF0
+swaps/DF1 cases. The first alpha.9 Disk 1 ADF is preserved in older-builds
+with SHA-256. MrDig agreed to check both DF2 and DF3 with the rebuilt Disk 1
+in FS-UAE and reported "ja werkt". This confirms the observed emulator
+discovery/start path, not physical hardware; configuration unspecified.
+
+During manual review, the first alpha.9 WHDLoad package regressed: MrDig saw
+flickering title/loading screens and long loading compared with the accepted
+`Campaign-WHD-Soundtest-SFX`. The release packager had assembled the generic
+slave (`$580000` ExpMem) instead of the packed candidate slave (`$380000`).
+The full rejected WHDLoad drawer and both archives were moved byte-identically
+to `dist/older-builds/Sparkpaw-0.7.0-alpha.9-WHDLoad-flicker-rejected`, with a
+hash inventory. The packager now selects `PACKED_WHDLOAD`, and independent
+verification asserts the resulting header value. The corrected slave differs
+from the accepted packed slave only in version text; its 74 packed assets are
+byte-identical. The game executable remains byte-identical to the first
+alpha.9 candidate, retaining the controls corrections. ZIP/LHA and ADF
+verification pass again. The corrected WHDLoad works in the user's FS-UAE
+retest; the ExpMem mismatch explains that observed emulator regression,
+without a real-hardware diagnosis.
+
+The user approved the three current campaign media and authorized a unified
+alpha after official alpha.8. Drowned Turbines, the accepted Soundtest effects,
+the three-disk ADF flow and the controls corrections belong to this checkpoint.
+The Drowned v5 music in the approved candidates remains; alternative music
+studies were rejected and are excluded from runtime media. MrDig played the
+separate HD controls candidate and found it working with no perceived change,
+on an unspecified configuration. The affected users have not tested the fix;
+OPTIONS causality and a 68060 relationship are unproven. The patch-stage
+host test extraction was repaired; release/media checks are in progress.
+The follow-up full `make test` now passes. Native `make` and `make release`
+pass, as do independent HD/WHDLoad archive extraction and three-ADF per-file
+readback (42/180/76 blocks free). Two test harnesses needed updates for the
+expanded renderer and campaign asset inventory; neither changed production
+behavior. The later WHDLoad/ADF smoke-play results are recorded above.
+
+Latest 2026-09-23 verdict: MrDig also approved the newest `Campaign-HD-Soundtest-SFX` and `Campaign-WHD-Soundtest-SFX` candidates. Their Drowned Pump Shot and Checkpoint Soundtest addition is therefore in the user-approved HD/WHDLoad test set, alongside the previously accepted three-disk ADF. No additional route-by-route or real-A1200 report accompanied this verdict. The older HD/WHDLoad drawers remain archived intact; alpha.8 is still official, without commit/push/release. Earlier pending wording below is historical.
+
+Dist cleanup after user confirmation that FS-UAE stopped: played HD and WHDLoad baseline drawers and the WHDLoad launcher moved intact to `sparkpaw/dist/older-builds/`. All 157 moved and 68 official alpha.8 file hashes verified unchanged; manifest `sparkpaw/build/campaign-drowned/dist-cleanup-20260923-sfx.json`. Root dist retains alpha.8 and three now-approved campaign candidates. Package scripts use the archived earlier HD asset source.
+
+2026-09-23 — MrDig played the three-disk `Campaign-ADF-Disk3-Type` in FS-UAE and accepts the full campaign, START AT, disk swapping and INSERT DISK 3 art. Real A1200/physical floppy remains untested. Follow-up Soundtest work exposes Drowned's pump shot and checkpoint in separate HD/WHDLoad test candidates; native builds and host menu/cache plus WHDLoad media readback pass, user playback pending. The ADF keeps its agreed no-Soundtest presentation. Official alpha.8 remains unchanged; no commit/push/release.
+
+Session handoff: next user bug is unspecified. The three current HD/WHDLoad/ADF candidates are user-approved; earlier HD/WHDLoad drawers remain available for comparison. Do not infer a real-hardware result before the user supplies evidence. Older entries below retain their historical pending states.
+
+MrDig visually approves the full-line `INSERT DISK 3` preview ("het is nu
+mooi"). This does not yet accept the new ADF runtime or the full campaign.
+FS-UAE was confirmed stopped and the rejected code-glyph drawer was archived
+intact with all four hashes unchanged. The active three-disk test remains
+`sparkpaw/dist/Campaign-ADF-Disk3-Type`; alpha.8 remains official.
+
+## 2026-09-23 — Disk 3 typography returned to the original source process
+
+MrDig rejected the code-drawn numeral 3. The established INSERT DISK 1/2
+lettering is not a runtime font: two complete lines from an imagegen raster
+sheet are cropped and converted to native indexed patches. Built-in imagegen
+created a matching full `INSERT DISK 3` line from that sheet as reference.
+The common generator now converts all three lines identically. New
+`sparkpaw/dist/Campaign-ADF-Disk3-Type` passes complete readback and source
+parity checks; user visual/play acceptance is pending. The rejected code-glyph candidate was subsequently archived intact after
+FS-UAE stopped. Alpha.8 unchanged.
+
+MrDig rejected the first corrected Disk 3 preview because the glyph read as
+two overlapping 2s. The native-indexed glyph was redrawn with an open left
+waist, one middle bar and a right lower stroke. The guard now checks those
+shape features. New `sparkpaw/dist/Campaign-ADF-Disk3-Glyph` is technically
+read back and awaits user review. The rejected art candidate was archived
+intact after FS-UAE stopped; alpha.8 remains untouched.
+
+## 2026-09-23 — ADF Disk 3 requester works; typography corrected
+
+MrDig confirmed in FS-UAE that the direct Drowned ADF path now asks for Disk 3
+and loads gameplay after insertion. He rejected the oversized numeral in its
+INSERT DISK 3 strip. The packager had pasted a separate high-resolution digit;
+it now derives the native-sized 3 from the approved Disk 2 glyph and keeps all
+other status pixels unchanged. `sparkpaw/docs/ADF_INSERT_DISK_ART_CONTRACT.md`
+records the source hashes, geometry and mandatory regression test. Three ADFs
+were read back fully; only `disk3-patch.spr1` differs from the played candidate
+on each disk. New `sparkpaw/dist/Campaign-ADF-Disk3-Art` awaits visual review.
+The previous test drawer was archived hash-identically after FS-UAE stopped.
+No real-hardware or alpha.8 release claim follows.
+
+## 2026-09-23 — ADF direct Drowned black screen after menu fix
+
+MrDig tested `sparkpaw/dist/Campaign-ADF-Menu-Disk3`: Drowned is selectable
+from OPTIONS, but START GAME produces a black screen before a visible disk
+request. Source review found the ADF direct-entry path did not release the
+READY interrupt/Blitter owner before reading LOADING art and probing disk 3.
+The shared Drowned entry now releases for DOS loading first, covering direct
+start and Stormrail Continue. New unnumbered `Campaign-ADF-Disk3-Flow` passes
+native build, full three-disk readback and host media/lifecycle tests; user
+playtest is pending. The rejected candidate was archived intact after FS-UAE
+stopped, with all four SHA-256 hashes equal before/after. Alpha.8 untouched.
+
+After the user confirmed FS-UAE stopped, the rejected ADF menu drawer was
+archived intact at `sparkpaw/dist/older-builds/Campaign-Drowned-ADF-rejected-menu`.
+Four file SHA-256 hashes matched before/after; cleanup manifest is under
+`sparkpaw/build/campaign-drowned/adf/`. The new ADF candidate remains in dist.
+
+## 2026-09-23 — WHDLoad transition/F10 accepted; ADF menu corrected for retest
+
+MrDig reports F10 works in Drowned Turbines and the tested WHDLoad campaign
+transitions work in `sparkpaw/dist/Campaign-WHD-Cache-020`. Earlier he reported
+stable title/loading screens and fast loads. These are FS-UAE observations, not
+real-hardware proof. His ADF menu recording was cataloged as
+`sparkpaw/testresults/Unassigned-rejected-ADF-start-options-crossfield.mov`:
+changing START AT unexpectedly changes SECOND BUTTON and Drowned is absent.
+The ADF READY cache encoded two sections; the campaign menu cycles three.
+Regenerated the cache for three ADF sections and corrected its index, retaining
+the established no-intro/no-Soundtest ADF presentation. New unnumbered
+`sparkpaw/dist/Campaign-ADF-Menu-Disk3` passes native build and complete ADF
+readback with 42/180/76 free blocks. MrDig also reported a possible black
+screen after Stormrail Continue without a Disk 3 prompt; this remains open
+pending a new ADF playtest. The old ADF candidate was subsequently archived intact after FS-UAE stopped. Official alpha.8 remains unchanged.
+
+## 2026-09-23 — current WHDLoad packed PRELOAD presentation accepted in FS-UAE
+
+MrDig reports `sparkpaw/dist/Campaign-WHD-Cache-020` runs well: TITLE and
+LOADING no longer flicker and loading is fast again. The candidate uses 49
+SPL1, 17 SPR1, 6 SPD1 and two raw asset files, totaling 1,778,401 stored
+bytes versus 5,040,578 raw bytes, plus a 131,072-byte Shrinkler executable.
+PRELOAD caches stored files when memory permits. This is a user report for
+FS-UAE presentation/loading, not yet a F10/full-campaign, ADF or real-A1200
+acceptance. Official alpha.8 remains byte-identical and current.
+
+## 2026-09-23 — Level1 B accepted; integrated three-section HD candidate staged
+
+User played Level1 A/B, reports it works and explicitly retains B. Saved complete
+logs `testresults/Level1-ring-{A,B}-020-run1.log` with provenance sidecars and
+`build/level1-two-copy/run1-analysis.json`. Whole-run A48.73/B49.02 FPS; unequal
+routes/reset exposure, no causal speedup claim. LEVEL1_TWO_COPY_RING now belongs
+to RELEASE_RENDERER_FLAGS, still effective only inside renderer_level1_unit.
+Official alpha.8 files/version remain untouched; this supersedes opt-in status.
+
+User then requested complete integration. New HD target `make campaign-drowned
+PYTHON=../.venv/bin/python3` produces a single three-section executable:
+Storm Ruins -> Continue -> Stormrail -> Continue -> Drowned -> Replay/Back.
+Ready Options adds direct Drowned; Soundtest adds UNDERTOW CIRCUIT (v5).
+Lives, health, diamond remainder and banked score pass through an immutable
+section entry; replay restores entry vitals/fresh local tally without double
+banking. Drowned uses existing stats art/tally, own enemies/diamonds/elapsed/score
+and existing120s par policy. Direct start gives3lives/6health/0diamonds/0bank.
+
+See `sparkpaw/docs/DROWNED_CAMPAIGN_INTEGRATION.md` (root-relative) for architecture
+and acceptance boundaries. Drowned is a separate namespaced in-process engine,
+no subprocess/per-frame section branch. Parent relinquishes renderer/audio/DMA
+before module entry; module closes before title/Ready return. Static code grows;
+this is a migration seam, not the final shared-primitives architecture for disks.
+
+Checks passed: actual driver ASan/UBSan lifecycle including replay, Escape,
+gameover, pause and seven injected loader/result failure boundaries; campaign
+snapshots/HUD carry; real vasm/vlink namespace fixture, unchanged object payloads,
+288 isolated definitions; menu controls including third section/sixth music track;
+preview start/stop/failure/IRQ ownership; old1070menu states unchanged, new1292
+states/5478transitions and ADF50states/328transitions; new labels visually checked
+from host rasterization. Actual native Level1/Stormrail renderers, dispatcher,
+game, mixer and platform assembly exactly match played B. Audio gameplay prefix
+unchanged, new helper only in menu path. Nine Drowned units audited against
+ordinary full flags: unchanged code except appended game/player carry helpers.
+New main driver and final link placement still require runtime acceptance.
+
+Active `dist/Campaign-Drowned-020-HD/Sparkpaw-Test`,606528bytes,
+SHA256 de11d25a9e4334d70a5d0ab4961e62c9af055471bce51950e9261094bb6401e3.
+74assets/74compiled references; all74assets match prior Drowned drawer; all68
+alpha.8 release files byte-identical. Loader allocation table totals693244bytes
+(including BSS, before runtime assets); requested8MB Fast supports code growth.
+No new gameplay Chip buffers; actual integrated free-memory/fragmentation and
+transition audio still need manual evidence. Ordinary music build, no diagnostics,
+no mouse-save freeze, no measured integrated FPS claim.
+
+User confirmed FS-UAE stopped. Three superseded drawers with logs and launchers
+moved intact/hash-verified to `dist/older-builds/20260923-campaign-inputs`.
+Only integrated candidate plus official alpha.8 set remain active. No emulator,
+release, commit or push. HD manual acceptance pending: direct Drowned/Escape,
+Soundtest return, Stormrail Continue and HUD carry, Drowned finish/replay/back,
+then full campaign inclLevel1. ADF/WHDLoad/hardware not integrated or accepted.
+
+## 2026-09-22 — Water retained; enemy mask bounds A/B pending
+
+User explicitly requested retaining the rear-water optimization despite no
+convincing measured/subjective FPS win. It is now enabled in `drowned-full`;
+this supersedes the earlier opt-in/off decision below. No release changes.
+Legacy experiment builders strip that default when reproducing old controls.
+
+Next candidate `SPARKPAW_DROWNED_ENEMY_BOUNDS` is opt-in only, targeting
+recurring enemy draw AND restore work. Load-time scan of resident masks stores
+packed top/height for each pose and offsets existing frame pointers. Original
+plane stride remains intact. A separate 2x4 target-local bounds history keeps
+restores tied to the previously drawn pose, not current animation or slot type.
+Logical drawnY, sorting, collision, culling, source assets, enemies and animation
+cadence are unchanged. Walker restore unions require equal cropped heights;
+otherwise individual restores. Transparent poses retain full-height fallback.
+All foreground ring copies and post-publication rear/DMA contracts retained.
+
+Real source pose mean row reduction: crab28.60%, Walker12.11%, Spillwing31.25%.
+These are unweighted asset averages for drawing, NOT FPS gains or measured
+restore totals. Union opportunities can change; added lookup/branch cost may
+erase part of the saving. Discovery enemy draws were only ~1..1.5ms in the
+busy ferry samples, so a large whole-frame gain is not promised. Ring/dynamic
+sync and game/update remain substantial and are not solved by this candidate.
+
+Actual C host ASan/UBSan:4096two-buffer scenes, real140poses,16pixel shifts,
+overlap, slot/type reuse, despawn/culling and history clears vs full-cell pixel
+oracle pass. Actual selection/restore/history and masked blit setup exercised;
+DMA and canonical rectangle copy are host models, not a raster timing proof.
+Existing frame-table, resident-Walker, rear water/falls, FPS/save tests pass.
+Native plain/cadence builds pass. Eight non-renderer plain translation units
+are byte-identical A/B. Native table indexing uses shifts/adds; mask scanning
+is load-only. Separate immediate BLTAFWM/BLTALWM writes verified in all4outputs.
+B adds400bytes ordinary/Fast BSS, no Chip allocation; plain executable+560B.
+A plain exactly matches the played water-B plain SHA256
+65279e6a6eab455955aeee9e25abae47559c22f442ce90449f1af0616f7b7332.
+
+ACTIVE: `dist/Drowned-Enemy-A-020-HD/Drowned-Test` and B sibling.
+IDs fps_faa04f00df1c82503aa6_A/B. Cadence SHA256 A
+5e4edf521f94ea290eceb7cc929ea883881497be98c7eca3c2f2f40f844d1cf7;
+B86df68ad2bce6db301d00f8222f77877f72ff6ca18fc028b4d0edd645e3641a0.
+Both retain water optimization/music and minimal TOD cadence (no busy profiler,
+no reset experiment). Observer overhead unmeasured, no ownership counters.
+User's explicit020-only task is the gate; no030 acceptance claimed.
+
+After user confirmed FS-UAE stopped, old water pair/logs/.uaem archived intact
+under `dist/older-builds/20260922-water-direct-run1`. Raw logs match preserved
+run1 testresults copies. Staged only with stage_hd_test.py:74identicalassets,
+56embedded references, all68alpha.8release files unchanged. Proofs/builds and
+ReadMes under `build/drowned-enemy-bounds`; rebuild `make drowned-enemy-bounds`.
+
+User route A thenB: inspect enemies/background; checkpoint;20seconds second
+ferry/upper route jumping/shooting; die once; repeat20seconds after checkpoint.
+LMBrelease once, frozen screen expected, wait15seconds before reset. Compare
+regional logs plus subjective hitches and image/music. Candidate pending; no
+FPS acceptance, automatic emulator, commit, push or release. Alpha.8 official.
+
+## 2026-09-22 — Tail diamonds and both flower species staged
+
+User played full5120 route: broadly accepts it, requests diamonds after ferry
+and integration of both flower concepts, A behind player/B in front, sparse.
+Added12 tail diamonds (3264..4816),45total in existing48-slot pool; maximum4
+tail diamonds per320px viewport. Includes three on Walker deck, one on Governor
+deck, rest across dry approach/inter-machine spaces/quiet station approach.
+Generated collectible header AND conservative column-top bounds include them.
+
+Integrated12 small flower clumps:6purple/violet A behind player,6cream B in
+front of feet. Native16pen palette unchanged. Approved coral concept maps to
+violet; preserve blossom highlights during reduction instead of averaging away.
+Clumps16..18px wide/11..13px high, rooted at201, near existing trees/shrubs.
+No animation, no new Chip buffers. Six small foreground silhouettes reuse
+inactive player stage;81-byte64px lookup skips distant occluders. Original
+trees/shrubs/station group preserved; foreground source bitmap dimensions same.
+
+Native executable288432bytes. ASAN/UBSAN actual collectible init/collect/
+repeat/respawn tests pass;45active/12new and dry roots checked. Full-world sprite
+staging/cache/blink tests and all-pixel mask oracle pass with bucket lookup,
+both gates/reset/hazards, collision-byte and station-pixel parity pass.
+Native flower preview reviewed at build/drowned-full/flowers-native.png.
+No measured FPS claim. Musicv5 enabled, no renderdiag.
+
+Current dist/Drowned-Level-020-HD/Drowned-Test staged73assets/55refs;
+68official alpha.8 files unchanged. Previous full route preserved byte-exact
+at dist/older-builds/Drowned-Level-020-H-old-004012. Proof in
+build/drowned-full/proof.json; previous proof saved as proof-before-flowers.json.
+Next: user's020 visual/gameplay review. No release/version/commit.
+
+## 2026-09-22 — Full5120 route with varied vegetation staged
+
+User accepted v12 vegetation/materials and authorized whole-level integration;
+requested variety between both tree types and varied shrubs. Current manual
+candidate dist/Drowned-Level-020-HD/Drowned-Test now starts the full route.
+5120px total; prior route retained to3248, accepted1872px finale shifted+3248.
+Core4888, station4872, endcamera4800 with40px player margin; final gate4528.
+19spawn sites/20surfaces; original four active enemy slots unchanged.
+New art across ground/platforms,14 extra trees (7spruce/7fir), variable sizes
+and reflection,10 varied lower-leg shrubs. Existing station group exactpixels
+preserved. Precision piers/ferry water kept clear; no vegetation animation.
+Flowers concept v1 remains unapproved/unintegrated.
+
+Full guard combines both gate interactions, jet hazards, checkpoint and Governor.
+Ten canonical patches reuse610-byte Chip stage. Multiple static silhouettes
+mask inactive attached player stages, preserving cache/master ownership.
+Joined Spillwing clearance table retained byte-identical before finale; actual
+geometry reference used in finale. No blanket loss of prior ferry precompute.
+Longer foreground adds166400Chip bitmap bytes, rear extension31200:197600 total
+(~193KiB) compared with3520px joined art. No additional animation/Chip staging.
+No measured FPS/memory-headroom claim; manual020 boot/play remains pending.
+
+Native build286004bytes. Host ASAN/UBSAN tests: actual full/isolated camera/Core,
+Governor states, both gates and saved/unsaved reset, both original jet hazards,
+checkpoint cases, whole-world sprite staging/cache/blink, per-pixel foreground
+mask oracle. Collision bytes through3247 unchanged; station-group pixel parity;
+dry tree placement and rear coverage checked. git diff --check clean.
+Staged73assets/55literalrefs;68official alpha.8 files byte-identical. v12 archived
+intact at dist/older-builds/Drowned-Level-020-H-old-002512. Proof:
+build/drowned-full/proof.json. Musicv5 on; renderdiag off. No autoemulator,
+campaign integration/release/version/commit. Next user full020 review; flowers
+separate concept review and FPS investigation if needed.
+
+## 2026-09-21 — Governor v12 vegetation integrated, user test pending
+
+User played v11: ground approximately accepted, FPS investigation deferred.
+Approved vegetation v1 now integrated into the quiet gate-to-station corridor:
+64x136 spruce at1416 and48x96 fir at1552 behind player,32x20 shrub at1504
+in front of lower legs. All rooted at201, overlapping the ground top by1px.
+Static16pen foreground art; no extra Chip stage or animation.80byte immutable
+shrub silhouette clips only the inactive player sprite stage during overlap.
+Original gate clipping preserved; source sprites remain immutable.
+
+Native Governor build passed. Actual sprite staging tested against a pixel
+oracle under ASAN/UBSAN: both directions, cache reuse, blinking, inactive-stage
+ownership and restoring after leaving shrub. Camera, Governor and Core visibility
+host tests passed. No measured FPS claim; manual020 visual acceptance pending.
+Current dist/Drowned-Level-020-HD/Drowned-Test is v12. Prior drawer archived
+byte-exact at dist/older-builds/Drowned-Level-020-H-old-232853;68 official release
+files unchanged. Music v5 on, renderdiag off. Whole-level distribution/joining
+still follows acceptance of this focused art pass.
+
+## 2026-09-21 — Governor v10 approved platform kit native proof
+
+User approves platform-kit-v2 and authorizes static art first, one foreground
+passage; later whole-level consistency/joining. build_governor_platforms.py crops
+approved source, flood-removes edge-connected blue backing, nativepalette maps,
+composes broad192x16 and144x16decks and footed32px supports at existing144/152tops.
+Floor stays200..207, new quiet64x8 material tile. Reviewed native host views
+platform-kit-native.png and foreground-passage-native.png in build/drowned-governor.
+One18x56 static copper-bearing post1456,144 in quiet postgate corridor. Existing
+gate sprite mask reused via translated coordinates for secondpost; mask352normal
+bytes, no additional Chip buffer or animation. Extra sprite copying/clipping only
+near posts or on leaving clipped cached poses. No measured FPS claim.
+
+Expanded actual sprite-stage sanitizer test covers both configurations, second
+post pixel oracle, movement/directions/cache/blink/inactive-stage and unchanged
+masters. Existing camera/Governor tests pass. Native compile passes existing
+warnings.73assets/55refs staged,68release files unchanged; previousdrawer archived
+byteexact. User020 art/passage/smoothness pending. Narrowpier art and extra trees
+not yet integrated; wholelevel application follows focused acceptance. Geometry,
+mechanics, music unchanged. Current drawer Drowned-Level-020-HD/Drowned-Test.
+
+
+## 2026-09-21 — Governor v9 camera keeps player visible
+
+User v8 screenshot shows station but Sparkpaw offscreen. Confirmed source fault:
+unconditional wanted1552 atplayer1376 outran stopped player. Existing v8test even
+asserted that wrong outcome. Added desired-camera upper bound playerX-40 in
+Governor only, retains5px ease and1552end cap. Player can stop or reverse without
+camera leaving them behind. Test now holds300frames at trigger, pauses at every
+3px approach step, reverses through trigger, and tests uninterrupted3px approach;
+requires40px player margin and complete station framing before earliestpickup.
+Sanitized actual-function test passes, native build passes existingwarnings.
+73assets/55refs,68officialreleasefiles unchanged; prior drawer byteexact archive
+recorded in proof-checkpoint.json. Screenshot/TXT preserved as
+Drowned-Governor-v8-camera-outruns-player. User020 stop/reverse/pickup pending.
+Other v8 platform/nozzle fixes not independently user-accepted yet. No FPSclaim.
+
+
+## 2026-09-21 — Governor v8 end composition/nozzles/platform fixes
+
+User supplied5screenshots, catalogued Drowned-Governor-v7-*.png/TXT. Confirmed
+station too close to gate and Core delayed by camera>=1200visibility threshold;
+geyser static lips omitted; user reports partial first-platform stance, exact
+motion/root cause not established from stills. Station/Core moved+192 (1624/1640),
+end bounds1872, camera endpoint1552 triggeredplayer1376. Same5px ease. Actual camera
+simulation3px/frame reaches final composition before earliest pickup overlap.
+Core visibility now normal viewport clipping pluscompletedGovernor, no camera
+threshold. Pickup x1624..1656; jumpheightunchanged. Restored both approved static
+lip assets x832/1088,y194 under animated patches. First platform top136->144,
+16pxsolid cap/art/upperWalker surface aligned; samejump links/horizontal geometry.
+This is a platform correction candidate, not proven cause from supplied stills.
+
+Native build, actual camera/pickup and visibility/governor host tests pass;
+73assets/55refs staged,68officialrelease files unchanged. Previous evidence and
+build archived byteexact; proof-checkpoint.json recordsinventory. No emulatorrun,
+FPSclaim,release or newart. User020 landing/sideapproach/nozzles/endcamera pending.
+
+
+## 2026-09-21 — Rain Core packaging correction verified
+
+First v7 staging accidentally selected production stormstone-core.spbm: stager's
+additional-runtime-dir intentionally never overrides production assets. External
+parity check caught mismatch. Fixed source to dedicated compile-guarded
+PROGDIR:assets/runtime/rain-core.spbm (both load paths), generator emits own name.
+Never modify canonical Level1 Core. Rebuilt/restaged with73assets/55literal refs;
+all68release files unchanged. Incorrect staged drawer also archived intact.
+Correct finalCore header/dimensions and mask byte parity verified against original,
+colours differ deliberately; no new cache allocation. Full ending still pending
+user020 camera/visual/pickup/results/replay test. Current proof-checkpoint.json
+contains corrected inventory; previous entry's72asset/override statement superseded.
+
+
+## 2026-09-21 — Native Rain station ending integrated (v7)
+
+User approved sourcev3 station/tree and requested runtime integration. New
+build_rain_station.py crops alpha, preserves aspect in224x176 envelope, native
+Drowned16pens, thresholdedalpha128; grounds building at200 atx1432. Static art
+added to existing3520-wide foreground, no extra Chipbuffer. Tree extends above
+building. Blue/turquoise remap of original18 Core frames retains64x48 and original
+mask bytes, existing cache allocation. Candidate-only stormstone-core.spbm override.
+Host composition at build/drowned-governor/rain-end-scene.png, inspected.
+
+Focused playable bound now1680; camera eases max5px/update to1360 once playerx1380
+(beyond gatepost1364), clamped1360 otherwise. Core centred1448,hover112 aboveleft
+pedestal. Visible only after all locks and43tick gateopening complete, camera>=1200.
+Pickup gated by completion and box1432..1464,y120..159 (jump), existing50tick burst,
+worldflash, sound, generic results/replay path. No campaign CONTINUE in this target.
+No inherited secret1up. Station gauge/windows static in this pass; no separate
+lens activation animation yet. Full joined level/campaign mapping remains later.
+
+Actual-C camera/pickup tests, Governor completion/offset tests, renderer visibility
+across3521positions in Level1/unfinishedDrowned/Governor pass. Core mask preserved,
+SPBMforeground decode parity checked. Native020compile passes existing warnings.
+No emulator launched, no FPS numbers claimed; musicv5, diagnosticsOFF. Staged
+Drowned-Level-020-HD/Drowned-Test,72assets/55refs;68release files unchanged. Previous
+v6drawer/evidence archived byte-exact per proof-checkpoint.json. User camera,
+station/Core visuals, results/replay and020smoothness pending. No release/commit.
+
+
+## 2026-09-21 — Governor v6 compact aggressive Walker approach
+
+User approves placing two aggressive Pump Walkers BEFORE Governor rather than
+extending combat after reward gate. Prepended448px to focused prototype, arena
+translated intact; collision bounds now1408px, asset allocation stays3520px.
+Ground Walker surface96..416y200; upper192..384y136 with16px solid deck leaving
+48px underneath. Same approved platform materials. Governor entrance, art,
+patches, header, near-post mask, enemies and hazard/projectile coordinates shift448.
+Governor APIs translate world coordinates; tests explicitly wrap local arena
+assertions at new world offset. No production Level1/normal Drowned tuning change.
+
+Walker speeds256/224 fixedpoint versus ordinary48/96/192; initial shot delays65/95,
+subsequent90 versus150ticks. Existing shot telegraph/HP preserved. Four same-surface
+jump links reuse320,-900,60 ballistic motion; all20launch pixels reach landing
+windows in simulation. Two required Walker spawn sites added to four existing
+arena sites, same four-slot active pool. No wave gate or mandatory kills.
+Upper/lower platform transfers deferred; this first pass uses bounded patrol hops.
+Native build, actual-C Governor offset/phase/hit/exit tests, Spillwing tests pass.
+No native play or FPS claim. Musicv5, diagnosticsOFF.72assets/55refs staged;
+68official release files unchanged. Previous drawer/proof archived byte-exact.
+User020 aggression/smoothness pending. Station/RainCore and final camera scene
+remain next, then full-route/campaign integration; no release/commit/push.
+
+
+## 2026-09-21 — Governor v5 materials and enemy pressure
+
+User accepts reused gate, rejects plain elevated platform and requests more enemies,
+then explicitly2or3Spillwings. Reused approved precision-route deck/support pixels
+at unchanged432..576/y152..168 collision cap, with same support positions. No new
+palette or raster concept. Two Crabs now patrol112..336 and576..816; two Spillwings
+use low576..816 and high288..704 flights with existing alternating speed/pause AI.
+Existing four-slot enemy pool unchanged; all existing respawn policies retained.
+Governor bypasses full-route precomputed clearance (wrong geometry here) and uses
+existing actual-collision reference flight checks for deck/closedgate correctness.
+This increases flight-check CPU work; no FPS claim without user test. Musicv5 and
+machine cycles unchanged. Native build, Governor and Spillwing host tests pass.
+Staged Drowned-Level-020-HD/Drowned-Test:72assets/55refs;68release files unchanged.
+Previous drawer archived byte-exact, path in proof-checkpoint.json. Screenshot
+preserved at testresults/Drowned-Governor-v4-platform-style.png with sidecar.
+User020 difficulty/readability/performance pending; no diagnostics/log in musicbuild.
+
+
+## 2026-09-21 — Governor v4 reuses existing sluice exit
+
+User reports v3 reasonably smooth; screenshot rejects the placeholder arrow exit.
+Preserved PNG and sidecar in testresults/Drowned-Governor-v3-placeholder-exit.
+V4 copies accepted gate from slice x768 to832, reuses original14 gate atlas states
+and80x61 transfer (same610-byte Chip stage). Last machine completion starts43tick
+lift. Solid header x864..896 y120..136 remains after opening; leaf collision follows
+original lift table. Near-post sprite mask moved from834 to898 only in Governor.
+Header overlap guard enabled with relocated bounds; original level constants stay
+first for offline asset generator parsing. No direct shot activation of finale gate.
+Musicv5/mechanics unchanged. Native build and actual-C completion/lift/header tests
+pass. Dist staged with72 assets/55 refs,68release files unchanged; prior drawer
+archived byte-exact (path in build/drowned-joined/proof-checkpoint.json).
+No FPS logging or measured FPS claim; user visual acceptance pending.
+
+
+## 2026-09-21 — Governor native art integrated (user test pending)
+
+User approved native tower preview. Isolated Governor v3 now stages the reviewed
+steel/copper towers as static foreground with animated 32x64 port patches.
+Port assembly lowered12px: visible low port y168..184 includes normal standing
+projectile centre177. Seven opening poses and seven closing poses per damage
+state; three hit lamps and disabled indication. Existing 100/75/55-tick exposure,
+45-warning/55-vent, raised platform and one Turbine Crab unchanged. Platform now
+uses steel/copper material. Exit is still a simple prototype shutter; pipe
+connections, final station/Rain Core and full-route integration remain future work.
+
+Native build and sanitized actual-C phase/hit/visibility/sweep/reset tests pass;
+art indices verified for all three locks/damage stages over200ticks each.
+40x1024 linked art bytes versus24x1024 before (+16KiB); same610-byte Chip staging
+buffer, no new Chip allocation. Static foreground SPBM decode parity passes.
+No emulator run or measured FPS claim. Musicv5 enabled, diagnostics/profiler OFF:
+no renderdiag.log or mouse-save expectation. User020 visual/performance pending.
+
+Current manual drawer: dist/Drowned-Level-020-HD/Drowned-Test. Stager verified
+72 assets,55 executable references, all68 official release files unchanged.
+Previous drawer/evidence preserved byte-exact at
+ dist/older-builds/Drowned-Level-020-H-old-091958.
+Proof: build/drowned-joined/proof-checkpoint.json; prior proof preserved as
+proof-before-governor-native.json. No release, commit or push.
+
+
+## 2026-09-19 — Remove inherited Core from unfinished Drowned shore
+
+User spotted a Core near the ferry exit. Source confirmed inherited Level1
+renderer Bob at3232; Drowned pickup predicate was already FALSE. Guarded
+coreRenderVisible for all Drowned slices; Level1 remains unchanged. No authored
+Drowned finale exists yet. Actual-function test passes3521camera positions in
+both modes; native020 build passes with existing warnings only.
+Restaged Drowned-Level-020-HD/Drowned-Test, user play pending. Previous checkpoint
+candidate and current log preserved byte-exact in /Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-182507.
+70assets/51literalrefs checked; all68official release files remain byte-identical.
+proof-checkpoint.json now identifies this follow-up; first proof preserved as
+proof-checkpoint-first.json. No FPS/gameplay changes or new performance claim.
+
+
+## 2026-09-19 — Approved beacon + sound v2 integrated; 020 test pending
+
+User approved sound v2 and requested integration with the approved beacon.
+Current active drawer: sparkpaw/dist/Drowned-Level-020-HD/Drowned-Test.
+Native3520px joined candidate includes checkpoint at2320,152, fixed-pivot
+8-frame48x48 marker, amber->cyan lamp and approved5286-byte period322 sound.
+Body/pennant derived from imagegen parts-v1; backdrop excluded by explicit
+silhouette, one rigid offline pivot, existing foreground16pens. No runtime
+rotation/alpha blending. Own9216-byte Fast planar atlas, no new Chip stage;
+existing610-byte stage reused; sound adds5286 Chip bytes plus allocator overhead.
+Actual prepared free memory/cadence and animation/audio feel await user log/play.
+
+Grounded touch triggers once without reward/refill. Life loss respawns2320,161,
+camera2176, full normal health,75ticks protection. Boat resets2400/waits;
+opened/opening gate retained, score/collected diamonds/enemy reward flags retained,
+old Bob restore histories retained. Fresh attempt clears checkpoint/gate.
+Crab approach patrol shortened2192..2288, spawn2240..2256 to reserve safe marker.
+Joined camera end-lock3072 fix and120-byte per-region cadence counters included;
+not a claimed FPS optimization. Existing water batching/pontoon lookup retained.
+
+Native68020 compile passes (only existing main/ready_ui warnings). Actual C
+host tests with sanitizers pass:19600activation cases in each mode, regional
+counts, joined/legacy camera, actual game reset plus real player/mechanism/
+enemy/projectile/collectible modules; boat-middle-boat, four upper jumps,
+11spawns/3families and bounded frames. Renderer/audio native feel not host-proven.
+Native frame sheet inspected; atlas decoder parity and approved raw byte parity.
+
+Staging verified70assets/51compiled literalrefs. All68official alpha.8 release
+files byte-identical. Previous played drawer including log archived byte-exact
+at dist/older-builds/Drowned-Level-020-H-old-181929. New authoritative candidate
+proof: build/drowned-joined/proof-checkpoint.json (proof-joined.json historical).
+No emulator launched; no release, commit or push. Ask user to activate, die on
+ferry, check saved lamp/respawn/boat/progress and save log once with left mouse;
+image intentionally freezes, wait15sec then reset. Regional FPS evidence pending.
+
+
+## 2026-09-16 — Pontoon water-only travel bounds
+
+User confirms faster startup and acceptable appearance; rejects hull over land.
+Evidence:Unassigned-Drowned-pontoon-bank-overlap.png/TXT and startup2-49-80fps.log/TXT.
+Latest isolated basin1570intervals/6two-field/0longer,49.80FPS; no enemy workload.
+Changed left-edge range128..928 to160..864 (=waterRight960 minus hull96).
+Reset starts wholly on water, reverses immediately at full-hull limits and
+continues repeating after initial boarding. Speed/bob/art/masks unchanged.
+Real-physics test proves both-bank jump exits, boarding,1200ticks full hull
+containment including both reversals, carry and reset. Native build passes.
+Updated Drowned-Pontoon-020-HD/Drowned-Test, previous drawer/log preserved by
+stager,67assets/48refs and68release hashes verified. Proof:build/drowned-pontoon/proof-banks-v3.json.
+No release; user visual gate pending.
+
+
+## 2026-09-16 — Pontoon startup revision, native boot pending
+
+User reports original pontoon executable leaves Workbench visible, no visible
+crash/gameplay. Packaged files verified against proof.json; no log present.
+Read-only source review found1,966,080 per-pixel water tests before display
+takeover. This is a credible long-startup cause, not confirmed sole diagnosis.
+Moved mask generation to host asset build: pontoon-clip.bin286720bytes in
+big-endian native words. Amiga allocates same RAM, reads precomputed bytes;
+no million-iteration initialization loop. Actual loader tested against water
+oracle over2293760 mask bits, same image/physics. Adds startupdiag.log stages
+loading_files/preparing_renderer/renderer_ready and explicit failure stages,
+only for pontoon proof. Native build passes; no emulator launch/boot claim.
+User retries updated Drowned-Pontoon-020-HD/Drowned-Test. Official stager
+preserves prior drawer;67assets/48refs verified,68release files unchanged.
+Proof:build/drowned-pontoon/proof-startup-v2.json. No release/version change.
+
+
+## 2026-09-16 — Playable pontoon proof ready
+
+User approved native pontoon preview and requested runtime proof. Isolated
+SPARKPAW_DROWNED_PONTOON candidate:800px water basin160..960,96px float starts128,
+ends928,2px/tick, starts when boarded, reverses at both ends. One-pixel bob
+carries grounded player before input. Downward-only support uses existing4px
+minimum overlap, jumping detaches, water death resets boat via drownedReset.
+No enemy spawns or active collectibles; gate/jet collision/animation disabled
+only in this proof. Flat shores, original2400px route assets preserved elsewhere.
+
+Native approved art embedded1120bytes including masked4planes and word guard.
+Per-target Bob history restores before background updates. Draw follows water
+synchronization. Immutable lower-mask lookup286720Fast bytes built from actual
+waterPatternPen;112-byte copy/frame into1120-byte Chip mask/art allocation.
+Two deck heights,16water phases,80x offsets; art bits immutable, old DMA retired
+before mutable mask reuse. Same HUD/sprite/display boundaries; no new wake/audio.
+
+Validation: native020 build passes; host actual player/collision tests cover
+boarding,1200ticks carry/bob/reversal,jump detach,far-bank landing,water miss/reset.
+2293760 lower-mask pixels checked against actual water predicate, including
+padding; ordinary route traversal tests still pass. These are not emulator or
+performance claims. User020 motion/water overlap/cadence pending.
+
+Current drawer dist/Drowned-Pontoon-020-HD/Drowned-Test (66assets/47refs).
+Previous full route and log preserved byte-identically under
+ dist/older-builds/20260916-before-pontoon/Drowned-PatchDMA-020-HD.
+68release files unchanged. Proof:build/drowned-pontoon/proof.json.
+No release/version change. Full level, Spillwing and checkpoint still pending.
+
+
+## 2026-09-16 — Patch DMA user run:49.88 FPS
+
+User reports Blitter patch candidate feels slightly better. Played drawer
+verified against proof-patchdma.json;68release hashes unchanged. Preserved
+Unassigned-Drowned-patchdma-020-49-88fps.log/TXT under testresults. Session-stated
+HD/FS-UAE68020/2MBChip/8MBFast; config not freshly inspected.
+5060 intervals:5048 one-field,12 two-field,0 longer,49.88FPS,ownership0.
+Two-field share0.24% versus3.85% in prior CPU run(48.14FPS). Chip free599176,
+largest597800. No framebuffer allocation added; free-memory difference is not
+attributed to new buffers. Workloads differ:98 shots/8 deaths versus193/16;
+therefore this is encouraging evidence with user-perceived improvement, not a
+controlled +1.74FPS causal result or locked50Hz guarantee. Worst composition
+camera753:2Walkers,1Crab,1projectile,2collectibles,no canonical water update.
+Retain patch DMA candidate as working Drowned baseline; original CPU path
+remains recoverable. Current drawer Drowned-PatchDMA-020-HD. No new build or
+runtime edits in this evidence cycle. Full campaign/ADF/WHDLoad and real
+hardware validation not implied. Future route expansions should retain
+resident Walker and patch DMA flags and remeasure memory/cadence.
+
+
+## 2026-09-16 — Geyser accepted; patch DMA performance candidate
+
+User accepts corrected platform nozzle. Latest verified HD run:48.14FPS,
+5304 intervals,5100 one-field/204 two-field/0 longer,ownership0. FreeChip599880.
+Preserved testresults/Unassigned-Drowned-precision-foot-020-48-14fps.log/TXT.
+Worst camera626,3collectibles,no enemies/no canonical water update; do not
+attribute remaining misses to the new geyser from this maximum alone.
+
+New isolated SPARKPAW_DROWNED_PATCH_BLIT switches canonical-to-inactive-ring
+mechanism rectangle transfers from CPU word loops to A-to-D Blitter copies.
+Same aligned clipping, four planes, three ring copies, modulo strides, source
+and target Chip buffers; waits retire DMA before reuse/return. No new buffers,
+art, animation timing, water changes or gameplay changes. CPU path retained.
+Native build and actual CPU/DMA register simulation vs pixel oracle passed
+27840 rectangles per mode, including clipping and wrapping. This establishes
+pixel transfer parity, not Amiga performance. Blitter contention remains a
+measurement question. All66 packaged assets identical;68release files intact.
+Current test:dist/Drowned-PatchDMA-020-HD/Drowned-Test. Prior drawer preserved
+under dist/older-builds/20260916-before-patchdma. Proof:build/drowned-route/proof-patchdma.json.
+User020 cadence/visual gate pending; no release/version change.
+
+
+## 2026-09-16 — Precision geyser housing correction
+
+User test:48.14FPS,218/5664 two-field intervals(3.85%),zero longer intervals.
+Worst composition camera656,one Crab/four pickups; no cause for all misses
+inferred. Evidence preserved under testresults/Unassigned-Drowned-precision-020-48-14fps
+and floating-nozzle-1/2 PNG/TXT. User reports floating nozzle and requests no
+diamond there. Cause: compact64px jet patch includes only top nozzle row;
+remaining five static rows were missing from the extended route foreground.
+Generator now places the complete approved32x6 housing at1792,170, directly
+meeting platform top176. Exact nontransparent pixel parity with original
+nozzle at448,194 checked. Animation and hazard coordinates unchanged. Removed
+coin1800,148;26diamonds remain. Native build and real player/AI route tests pass.
+Updated dist/Drowned-Precision-020-HD/Drowned-Test via official staging;
+previous drawer/log archived automatically.66assets/47refs,68release hashes
+preserved. Proof:build/drowned-route/proof-precision-foot.json. No new performance
+claim, no release; user visual confirmation pending.
+
+
+## 2026-09-16 — Extended precision route with timed geyser (test pending)
+
+User requests longer precision platforming, low/high/higher/low/high/low, and
+explicitly wants the geyser to occupy the whole narrow landing rather than a
+safe waiting half. Route now 2400px, ten 80px water strips, six precision
+supports at x1456/1568/1680/1792/1904/2016, tops176/144/112/176/144/176,
+all32px wide. Final bank starts2128. Final Crab moved to2256; earlier encounters
+and four Walker traversal links unchanged. 27 diamonds. Existing materials
+extended for tall supports; no new concept raster, palette or animation family.
+
+Third dynamic patch reuses the existing 32x64 geyser at1792,107, with translated
+hazard at1804..1811,y128..167. Shares the existing200-tick cycle and atlas/stage;
+o new effect cache. Wait on the preceding high support, descend during quiet
+phase and jump onward. Active135..184, warning100..129, recovery185..199.
+Real-physics host landing proofs:41/39/39/63/39/55/53 ticks. Releasing horizontal
+input brakes the long descent; held-right overshoots the geyser support.
+The inlet nozzle remains narrow, but the ordinary player body standing over
+this32px support intersects the erupting hazard. No artificial full-width hitbox.
+Timing/readability/difficulty and native FPS still require user evaluation.
+
+Resident Walker optimization and diamond restoration retained. Front allocation
+increases49920 Chip bytes for480px extra width; actual free memory pending log.
+Native build, sanitized route/AI/jet boundary tests, diamond restore and resident
+cache parity tests passed. Staged66 assets/47 references; only route art/map
+assets change, all68 alpha.8 release files preserved. Current drawer:
+dist/Drowned-Precision-020-HD/Drowned-Test. Previous tested resident drawer and
+log archived intact under dist/older-builds/20260916-before-precision-route.
+Proof:build/drowned-route/proof-precision.json. No release or version bump.
+
+
+## 2026-09-16 — Resident Walker user test: 49.49 FPS
+
+User played the resident-cache HD candidate and reports it felt slightly better.
+Verified played drawer against proof-resident.json; release hashes unchanged.
+Preserved raw evidence: testresults/Unassigned-Drowned-resident-walker-020-49-49fps.log
+and matching TXT. Configuration is session-reported 68020 / 2 MB Chip / 8 MB Fast,
+not freshly read from the emulator. 2965 intervals: 2935 one-field, 30 two-field,
+zero three-plus; 49.49 effective FPS; zero ownership violations. Miss share
+1.01%, versus 4.86% in Route2 (47.68 FPS). These are different manual workloads:
+71 player shots versus 116, 11 enemy deaths in both, 2 Walker shots versus 1.
+Therefore the result supports retaining the resident candidate as the working
+Drowned baseline, but does not prove a controlled +1.81 FPS optimization gain
+or locked 50 FPS. Default non-candidate renderer remains unchanged.
+
+Measured prepared Chip free 652424 bytes, largest block 651176; Fast free
+5511600. Exactly 192000 fewer free Chip bytes than Route2, matching the planned
+tradeoff. Worst composition now camera 612, one Walker, three collectibles,
+one water update; this single maximum does not locate all remaining misses.
+No runtime changes or new test drawer in this evidence-only cycle. Current
+active drawer remains dist/Drowned-Resident-020-HD. Next performance work should
+focus on remaining draw/restore and scroll overlap with matched workloads;
+retain visual quality and measure memory again as the level grows. No ADF,
+WHDLoad, real-hardware or full-campaign acceptance inferred from this HD run.
+
+
+## 2026-09-16 — Resident Walker cache candidate (020 test pending)
+
+User confirms the route pickup/diamond restore correction. Remaining perceived
+FPS dips occur near Pump Walkers; the larger final water section feels smooth.
+Preserved Route2 evidence: `Unassigned-Drowned-route2-walker-load-47-68fps.log`
+and TXT under testresults: 2326 intervals, 113 two-field, no longer intervals,
+47.68 effective FPS, zero ownership violations. Worst composition: two Walkers,
+one Crab, three projectiles, camera 1052. This does not establish the cause of
+every missed interval; manual runs are not controlled benchmarks.
+
+New diagnostic `dist/Drowned-Resident-020-HD/Drowned-Test` keeps the same route,
+art, audio, poses and pickup fix. Compile-only `SPARKPAW_DROWNED_RESIDENT_WALKER`
+places the 204800-byte Walker frame cache in Chip instead of Fast and removes
+12800 bytes of mutable Chip stages: net +192000 Chip (187.5 KiB), -204800 Fast.
+Direct immutable frame pointers remove 3200-byte pose copies during gameplay.
+Actual memory availability and FPS gain remain unverified until user testing.
+Default staged path is retained. Native build and ASan/UBSan actual-selector
+parity tests passed (32 frames, both facings, four slots; resident zero copies).
+All 66 packaged assets match Route2; all 68 release files are unchanged.
+Previous drawer including logs and metadata preserved under
+`dist/older-builds/20260916-before-resident-walker`.
+Proof: `build/drowned-route/proof-resident.json`. No release or version change.
+
+## Route2 fixes partial pickup remnants — 16 September 2026
+
+User reports FPS dips and half pickups remaining after collection on narrow
+supports. Screenshot cataloged byte-identically with sidecar at testresults/
+Unassigned-Drowned-route1-partial-pickup-remnants.png. Original clipboard file
+retained. Shows right halves of cyan diamonds,not a second collectible state.
+Cause: route coins19/21 atx1464/1576 are8px off16px word boundaries. Active
+ring restore used16px except legacy hardcoded index28,leaving the right8px.
+Renderer now uses compiled drownedCollectibleRestoreWidth(x) under ROUTE in
+the default non-canonical-reference ring path:16px aligned,32px otherwise.
+Positions/art/collection/score unchanged. Same Blit count,no new cache/buffer;
+unaligned restores transfer one additional word per row. Legacy Level1 and
+its canonical-reference paths retain their existing contracts.
+New test_drowned_collectible_restore.py compiles the actual width helper and
+uses actual diamond mask against pixel truth for16 alignments,hover extremes,
+ring positions and two target histories:896 pass;old16px fails784 cases.
+Registered make test. Native build passes;66 staged assets identical to v1.
+
+V1 log preserved with sidecar:Unassigned-Drowned-route1-020-cadence-49-10fps.log.
+Candidate proof verified,complete footer.3309 intervals:3249 one/60 two/0
+three-plus,max2;49.10FPS,1.813% late20ms intervals,ownership0.56 compositor
+crossings not ring rolls. Worst compose542 camera628 (before new precision
+section) has1Walker/3collectibles/1water update; no hotspot causality proven.
+Prepared freeChip845128/largest843968,Fast5305800/largest5303336. User-stated
+FS-UAE HD68020/2MBChip/8MBFast,config not freshly inspected. FPS dips remain
+an open concern; no unrelated optimization or speedup claim in this fix.
+
+Active:Drowned-Route2-020-HD/Drowned-Test. Collect both platform diamonds,
+scroll away/back and save cadence with left mouse+15s frozen hold. New native
+visual/cadence acceptance pending. V1 drawer/log/metadata intact under
+older-builds/20260916-route1-pickup-remnants. Proof:build/drowned-route/proof-v2.json.
+68 alpha.8 release hashes unchanged. No release,commit or auto-emulator run.
+
+## Drowned 1920px route v1 staged — 16 September 2026
+
+User authorizes expansion and suggests precision platforms over repeated water,
+or later a raft crossing with flying enemies. Implemented first precision
+section now; raft/carry physics/flying family are explicitly deferred, not
+implemented. Active `sparkpaw/dist/Drowned-Route1-020-HD/Drowned-Test`.
+Current route supersedes the earlier proposed segment ordering: preserve the
+known first960px/gate/geyser composition, then extend behind the gate.
+864..1088: raised maintenance deck with a Walker jumping up/down40px.
+1088..1360: Walker crossing an80px water gap both ways.
+1376..1680: three80px water gaps with32px support islands; two authored tops
+at176 and160; dry landing from1680. Last Crab/recovery strip ends at1920.
+Six spawn sites total (three Walkers/three Crabs),26 diamonds. Usually sparse;
+actual host camera tests see peak3 active enemies. No final Core/level ending,
+new music or raft/flying enemies in this intermediate route.
+
+Single layout source assets/levels/drowned-route-v1.json generates geometry,
+collision and C route/coin tables via tools/build_drowned_route.py. Target
+`make drowned-route PYTHON=../.venv/bin/python3`, compile-only
+SPARKPAW_DROWNED_ROUTE and WORLD_W1920. Water count6; existing80px animation
+cache reused and existing viewport culling retained. Existing gate visibility,
+head-shot fix, copper projectile/audio, HUD, palette, mechanisms and enemy art
+retained. Foreground +99,840 Chip bytes; collision data +840 bytes; these are
+specific deltas, not a measured native free-memory total. Rear/mechanism/enemy/
+shot asset bytes identical to previous candidate. Ring targets remain fixed.
+Potential extra water/Bob load in busy views requires native020 measurement.
+
+Actual player physics tests prove both narrow ledge landings, far bank and
+raised deck. Actual enemies/collision tests cover all4 traversal links over8
+seeds with no failed landings, valid poses/height and supporting floor/body
+clearance probes; peak3 active. Full `make test` passes. Native build passes;
+final diagnostic-only route identity line added and native rebuilt afterwards.
+No automatic emulator or real-hardware claim. Layout still review image at
+build/drowned-route/route-layout.png omits dynamic water/enemies/HUD; not an
+emulator screenshot. Asset planar roundtrip and package hashes verified.
+
+66 packaged assets/47 literal references;68 alpha.8 files unchanged. Previous
+GateView drawer plus any log/launcher metadata archived byte-identically at
+older-builds/20260916-before-route1. Proof:build/drowned-route/proof.json.
+Test2–3min,especially BEYOND gate: Walker climb/water routes,precision section,
+combat and backtracking. Left mouse once,wait15s frozen save hold,stop/reset.
+Native reachability/feel/readability/FPS and full-route memory remain pending.
+No release/version/commit change. Next raft concept should add a separate
+moving-platform/carry proof and reviewed flying enemy before route integration.
+
+## Gate visibility fix and next route scope — 16 September 2026
+
+User: little jumps look okay; wants higher platforms/water traversal and asks
+whether it is time for a wider level/more platforms/enemies. Reports gate can
+be opened before visible. Current short hop remains an animation audition.
+Next proposed scope:1920px playable route (not the final whole level), roughly
+0..384 arrival,384..800 raised platforms,800..1184 authored water crossing,
+1184..1600 water/geyser encounter,1600..1920 gate/exit. Aim6 spawn locations,
+usually1–2 visible enemies; validate an intentional heavier overlap separately.
+Walker links must use actual landing/support geometry, both directions where
+appropriate, and pass host trajectory/blocked-destination/offscreen/respawn
+checks. Preserve artwork/HUD/020 budget; new art concept first if required.
+This expanded layout is proposed, NOT implemented in current960px build.
+
+Gate fix implemented: drownedSetView(cameraX) caches whether panel768..783
+fits viewport with8px reading margin; both direct-hit and sweep reject when
+invisible. Reset disables it until game publishes view. One update per game
+tick, no per-pixel camera lookup. Tests cover early/offscreen,partial and exact
+visibility boundary,both projectile directions,normal activation and reset.
+Actual slice physics/projectile test and6000tick enemy variants pass; native
+build passes. Current candidate Drowned-GateView-020-HD/Drowned-Test retains
+short hop, NOT expanded route.66 assets/47 refs,68 release files unchanged.
+Jump drawer/log/metadata archived intact:older-builds/20260916-before-gate-view.
+Proof:build/drowned-enemy-audit/proof-gate-view.json. New gate native test pending.
+
+Jump log complete,hash-verified and preserved with sidecar under testresults/
+Unassigned-Drowned-jump-020-cadence-49-64fps.log.1392 intervals:1382 one/10 two/
+0 three-plus,max2;49.64FPS,0.718% late,ownership0.11 compose raster crossings,
+not ring rolls. User-statedFS-UAE HD68020/2MBChip/8MBFast; no fresh config read.
+Short positive motion/cadence result, not proof of full-level enemy headroom.
+No release,commit or automatic emulator run.
+
+## Pump Walker dry jump audition — 16 September 2026
+
+User authorized a small jump route after confirming V4 projectile damage.
+Active: sparkpaw/dist/Drowned-Jump-020-HD/Drowned-Test (68020/2MBChip/8MBFast).
+New isolated SPARKPAW_DROWNED_JUMP_PROOF target drowned-jump adds two authored
+links on existing surface1, no engine physics change or extra enemies/geometry.
+Right launch x346..350 -> landing382..388; left386..390 ->349..354.
+Fixed-point VX +/-320,VY-900,gravity60: about36px travel,25px high,29ticks
+flight. Existing12tick compression,5tick landing,7tick recovery. Dry-ground
+animation audition, NOT water-gap traversal or full-level route acceptance.
+Existing spawn speeds, shot identity, damage and respawn retained.
+
+Host actual enemies.c/drowned_slice.c sanitizer test now runs6000ticks in
+legacy/art/jump variants, asserts both flight and landing directions,no route
+failure,valid poses/height/patrol limits, shots, deaths and respawn. Projectile
+head/crouch/iframes regression also passes. Native compile passes. All66 staged
+assets byte-identical to V4;47 executable refs;68 alpha.8 release hashes intact.
+No new animation cache/asset allocation. Native motion/feel/cadence pending;
+no automatic emulator or release. Leave Walker alive to watch both directions,
+then test combat/respawn and save with left mouse +15s frozen hold.
+V4 drawer/log/metadata archived intact at older-builds/20260916-before-drowned-jump.
+Proof:build/drowned-enemy-audit/proof-jump.json. Last accepted V4 cadence49.69FPS
+is not a measurement of this changed workload.
+
+## Drowned v4 user confirms projectile damage — 16 September 2026
+
+User played Drowned-Enemies4-020-HD and explicitly confirms Walker shots now
+cause damage. Keep head-hit correction. No new explicit muzzle-alignment,
+crouch or both-facing-direction acceptance inferred.
+Complete log preserved with sidecar at testresults/Unassigned-Drowned-enemies4-
+020-head-hit-confirmed-49-69fps.log; candidate proof-v4 and68 alpha.8 release
+hashes verified unchanged.2263 intervals:2249 one-field/14 two/0 three-plus,
+max2;49.69FPS,0.619% late20ms intervals,ownership0. Prepared Chip free942968,
+Fast5307552;post-run Fast5716040.12 compose raster crossings are not ring rolls.
+Stated FS-UAE HD68020/2MBChip/8MBFast; no fresh config read. Good current cadence,
+not controlled proof of improvement versus v3 or full-level headroom. Existing
+v2's two longer hitches remain historical evidence, not explained by this run.
+Active v4 drawer retained; no code/build/release changes this review.
+
+## Drowned head-shot collision correction v4 — 15 September 2026
+
+User accepts v3 sound/look; suspects low muzzle alignment and reports shots
+passing through Sparkpaw without damage. Source + actual-function host repro:
+standing floor200 gives player.y161; torso contact top168. High Walker shot
+v3 top160 had collision bottom167, missing by1px despite intersecting the head.
+New candidate-only playerProjectileBounds retains narrow contact X/bottom,
+includes standing head at player.y-4; crouching keeps original low bounds.
+Game calls it only for hostile-projectile damage after existing enemy contact.
+Body contact, physics, damage amount and invulnerability are unchanged.
+Muzzle line raised1px: projectile top enemy.y+23,center+27 matches fire-pose
+aperture near row26 plus1 Bob grounding. Visual fit in motion remains user gate.
+
+New tests/test_drowned_projectile_damage.py compiles actual extracted player
+bounds/damage functions and full projectiles.c with sanitizers. Reproduces old
+miss and verifies health loss from both sides, invulnerability, crouch evasion,
+airborne hit and below-feet miss. Registered in make test. Actual dual-mode
+enemy test and native build pass. No automatic emulator or release.
+
+V3 log preserved +sidecar:testresults/Unassigned-Drowned-enemies3-020-cadence-
+48-97fps.log. Candidate files hash-verified;complete footer.2488 intervals,
+2436 one-field/52 two/0 three-plus,max2;48.97FPS,2.09% late intervals,
+ownership0. Worst compose371 camera273 includes1 Crab/1 Walker; no causal
+attribution to sound/rendering.50 compositor raster crossings are not ring rolls.
+Prepared freeChip943672,Fast5306816;post-runChip943672,Fast5716808.
+User-stated FS-UAE HD68020/2MBChip/8MBFast; config not re-read. Slower than
+previous manual run, workloads differ; keep performance concern open.
+
+Active: sparkpaw/dist/Drowned-Enemies4-020-HD/Drowned-Test. Test standing
+head hit without blinking, crouch evasion and both facing directions. Left mouse
+once,wait15s in frozen save hold,stop/reset.66 assets/47 literal refs;68 alpha.8
+release files unchanged. V3 drawer/log/launchers intact under older-builds/
+20260915-native-enemies-v3. Proof:build/drowned-enemy-audit/proof-v4.json.
+New art/audio bytes unchanged from v3. V4 native gameplay/cadence pending.
+
+## Pump Walker shot identity v3 — 15 September 2026
+
+User accepts v2 visuals, requests heavier own Walker sound and optionally own
+shot shape/colour. Reports one or two hitches. Complete v2 log preserved with
+sidecar at testresults/Unassigned-Drowned-enemies2-020-cadence-49-66fps.log.
+Verified played files against proof-v2.4967 intervals:4937 one-field,28 two,
+2 three-plus,max4;49.66FPS,0 ownership errors.30/4967=0.604% late intervals,
+max80ms. Do NOT describe this as no long hitches. Sparse minimal cadence log
+cannot locate/attribute the2 long intervals. Worst compose frame939,camera436,
+no enemy/projectile/collectible draws. FreeChip944920,Fast5307624 prepared.
+Stated FS-UAE HD68020/2MBChip/8MBFast, no new config read or hardware claim.
+
+V3 isolated candidate loads pump-shot.raw in place of strider-shot.raw via
+SPARKPAW_DROWNED_ENEMY_ART; same priority,cooldown,period322,Paula channel and
+silence reload. Diagnostic label pump_walker_shot; existing API/slot retained
+in this two-enemy prototype. Future music/campaign integration must register
+its own sound event/mixer asset rather than assuming the legacy Strider slot
+is a campaign-wide identity. Other builds retain existing sound/path.
+Deterministic synth tools/build_pump_shot.py produces signed8-bit2864 bytes,
+0.260s,peak112,no clipping,zero first/last samples; +658 Chip bytes vs2206.
+Low mechanical impulse/harmonics with short filtered-air decay. Preview/source:
+assets/enemies/pump-shot-v1/ (WAV/raw/manifest/projectile GIF).
+Projectiles use compact warm copper shoulders,pale core,short segmented trail;
+exact existing16x9 dimensions,2 flying patterns,cache count/Blit count unchanged.
+Native C pixel function compiled for host preview and mirror check, not a
+separately approximated image. Synthesis is build-time only. Audio modes and
+actual platform helper tests, real enemy sanitizer test and native build pass.
+Listening quality and v3 cadence still require user play; no automatic emulator.
+
+Active: sparkpaw/dist/Drowned-Enemies3-020-HD/Drowned-Test,66 packaged assets,
+47 literal refs,68 alpha.8 release files unchanged. V2 drawer/log/metadata
+archived intact at dist/older-builds/20260915-native-enemies-v2.
+Proof:build/drowned-enemy-audit/proof-v3.json. No release/commit/version change.
+After play press/release left mouse,wait15s in frozen save hold,stop/reset.
+Keep the two longer v2 intervals as an open issue; do not ascribe them to SFX
+or the geyser without event/frame evidence.
+
+## Drowned enemy v1 cadence and v2 electrical polish — 15 September 2026
+
+User played the native-enemy candidate: FPS felt okay; collapse looks good,
+requests small electrical malfunction accents; suspects nozzle misalignment.
+Original complete log preserved byte-for-byte with matching sidecar at
+`testresults/Unassigned-Drowned-native-enemies-020-cadence-49-69fps.log`.
+Played candidate files verified against original proof. Legacy diagnostic
+alpha41 header is not the actual binary version. Stated FS-UAE HD68020,
+2MB Chip/8MB Fast; no fresh emulator-config verification this run.
+3292 intervals:3272 one-field/20 two-field/0 three-plus,max2;49.69fps,
+0.6075% missed20ms deadlines,ownership violations0. Compositor crossings22
+are not ring-roll counts.38 player shots,3 Walker shots,6 death events.
+Prepared freeChip944920/largest943672;Fast5307704/largest5306560.
+Post-run freeChip944920,Fast5717696. Minimal cadence, broad profiling disabled.
+Worst frame1331 camera437 has no enemy/projectile draw/restore counts: no
+specific culprit established.49.53fps previous encounter used different manual
+workload; do not claim a controlled improvement or full-level headroom proof.
+
+V2 adds sparse cyan/white arcs and sparks inside existing death frames;
+mechanical collapse retained. Exact indexed comparison confirms ONLY Walker
+24..27 and Crab10..13 differ; sizes, palettes, masks dimensions/cache allocation
+unchanged. New source/review files:assets/enemies/drowned-family-v2/.
+V1 generator snapshot retained in drowned-family-v1/generator-v1.py.
+Source fire-pose inspection: bore center near row27 plus1 Bob grounding,
+projectile center was24. Candidate-only projectile Y changed20->24 (center28).
+Visible shot alignment still needs user playback in both directions.
+
+Active test: `sparkpaw/dist/Drowned-Enemies2-020-HD/Drowned-Test`.
+Native build and dual-mode actual-enemy sanitizer test pass;65 assets,
+47 literal references;68 alpha.8 files unchanged. V1 drawer including log and
+launcher metadata archived intact at dist/older-builds/20260915-native-enemies-v1.
+Proof:build/drowned-enemy-audit/proof-v2.json. No release or auto-emulator run.
+V2 art/nozzle/cadence acceptance pending. Press/release left mouse,wait15s in
+frozen save hold,then stop/reset FS-UAE. User may assess offline death GIFs too.
+
+## Native Drowned enemies integrated candidate — 15 September 2026
+
+User accepted the refined Pump Walker recoil and explicitly authorized finishing
+poses/animations and placing both enemies in the isolated level test. New active
+manual test: `sparkpaw/dist/Drowned-Enemies-020-HD/Drowned-Test` (paths from root).
+68020 / 2 MB Chip / 8 MB Fast, minimal cadence instrumentation. User requested
+this 020 gate directly; no automatic emulator run or hardware acceptance.
+
+`tools/build_drowned_enemy_assets.py` compiles accepted native pixels into
+32 Pump Walker and 22 Turbine Crab slots with exact mirrors and pen-zero masks.
+Review sheets/turn GIFs/manifest: `assets/enemies/drowned-family-v1/`.
+Walker slots 0..27 keep legacy semantic roles; 28..31 add a planted front-pivot
+turn. Crab 0..7 walk/rotor, 8..9 reserved, 10..13 collapse, 14..17 turn,
+18..21 hit. Front-pivot parts are assembled at native size with retained material
+clusters. Compression/flight/descent/landing/recovery poses are included; current
+floor patrols have no traversal links, so jump animation is NOT exercised here.
+User-approved Walker hit/death and Crab hit/death pixel families retained.
+
+`SPARKPAW_DROWNED_ENEMY_ART` isolates paths/counts/selectors and grounding.
+Existing two-type Bob caches, AI speeds, health, score, offscreen respawn,
+collision cells, renderer order and staging dimensions retained. Pump Walker
+uses +1px visual grounding (legacy Strider +2), nozzle-aligned projectile Y,
+and 384 fixed-point walk phase distance to match its 1.5px stance step. This
+increases frame-change frequency versus old Strider: measure cadence, do not
+infer unchanged per-frame cost merely from unchanged cell dimensions.
+Crab's death selection is explicitly mapped to its four valid cached poses.
+
+Memory deltas against old encounter: +18,720 Chip bytes for Crab cache,
++25,600 Fast cache bytes and +32,960 Fast source bitmap/mask bytes. These are
+asset allocation deltas, not a measured total free-memory claim. Source assets
+remain Fast; Walker Chip staging size unchanged. Runtime CPU does no rigging,
+rotation or pixel generation. Candidate has 65 packaged assets / 47 executable
+literal references. Native build and full `make test` pass; real AI host test
+runs both legacy and candidate modes under sanitizers, checks frame bounds,
+nozzle Y, shots, death/score and offscreen respawn. Final gait change rechecked.
+Legacy enemies 68020 -O2 assembly is identical to HEAD excluding filename idnt.
+
+Proof: `sparkpaw/build/drowned-enemy-audit/proof.json`. All 68 alpha.8 release
+files verified unchanged. Previous Drowned drawers/logs and loose launcher
+metadata archived intact under `dist/older-builds/20260915-before-native-enemies`.
+Test 60–90s with both enemies, turns, hits/deaths, water/geyser, gate and respawn.
+Press/release left mouse once, wait at least 15s in deliberate frozen save hold,
+then stop/reset FS-UAE. No release/version/commit change. New in-game visuals,
+turn quality, nozzle alignment and 020 cadence remain pending user testing.
+
+
 ## 10 September 2026 — alpha.7 release
 
 ## Current release — 0.7.0-alpha.7, 10 September 2026
@@ -7556,3 +8619,1619 @@ No layout/cache/audio-policy/gameplay or memory-allocation change. Native glitch
 acceptance remains pending in dist/Soundtest-Resume-HD/Sparkpaw-Audio; cache-only
 Fast-HD drawer preserved intact. Alpha.5 release inventory preserved; no emulator,
 release, commit or push. Full host suite/build evidence: build/audio-options/.
+
+## 2026-09-16 — Playable Spillwing dry-floor audition
+
+User approved compact24x24 animation review and asked to continue. Added isolated
+SPARKPAW_DROWNED_SPILLWING target: one1HP flyer atx280 over flat dry floor,
+patrol160..576, hover120/121,12-tick warning, committed32-tick96px swoop reaching
+y164,70-tick re-arm. No homing during swoop. Existing off-camera respawn and
+once-only20score preserved. Death24ticks: two hit-flash poses then four electric
+collapse poses. Shot bounds mirror body; smaller contact box excludes rotor.
+
+Approved16frame art converted to48x384 left/right SPBM with decoder parity.
+24px cache requires byte-aligned source reads (right begins byte3), last
+half-word masked and guard zero. Existing32/64px fast path remains unchanged.
+Cache23040Chip bytes, no per-frame transformations or additional pool slots.
+Temporary compile-only small-enemy cache alias; Crab and Spillwing do NOT yet
+coexist. Full integration needs distinct third-family cache/type ownership.
+No water/collectibles/machinery in this safe-floor combat audition. Pontoon,
+upper route and mixed encounter remain subsequent gates. Existing HUD/audio.
+
+Host sanitized tests: actual flight, mirrored point/sweep/contact bounds,
+committed arc,1HP/death frame bounds/score/respawn; actual cache all16frames,
+both facings,4planes/mask/zero guards. Existing encounter and full route tests
+pass. Candidate and default campaign native builds pass with existing warnings.
+No emulator execution or FPS claim. User's established020 configuration remains
+the requested test target; native visual/function/cadence acceptance pending.
+
+Current dist/Drowned-Spillwing-020-HD/Drowned-Test:66runtime assets,47 literal
+references.68 alpha.8 release hashes unchanged. Previous pontoon drawer and
+.uaem preserved under dist/older-builds/20260916-before-spillwing, all files
+verified. Proof:build/drowned-spillwing/proof.json. No release/version/commit.
+
+## 2026-09-16 — Spillwing duo challenge candidate
+
+User accepts single flyer visuals/function and finds it easy to hit; requests
+multiple flyers with varied heights/speeds and apparently random attacks.
+No renderdiag.log exists in single-flyer drawer; no measured FPS acceptance.
+SPARKPAW_SPILLWING_PAIR candidate adds second required spawn at400 (first280),
+shared dry patrol160..672. Low/high hover120/96; patrol256/384 fixed-point;
+swoop768/1024 (3/4px per tick), high arc1.5x depth reaches162 vs low164.
+Both1HP, same16frames and23040Chip cache; one extra active Bob, no new cache.
+Initial pauses60/103ticks; each independently cycles irregular authored
+49..114tick re-arm pauses,12tick warning and32tick committed non-homing arc.
+This is deterministic variation, not runtime random targeting. Simultaneous
+attacks allowed; safe dry floor before pontoon/mixed-family integration.
+
+Native build and sanitized single/pair/cache tests pass:6000ticks two actors,
+height/frame/world bounds, varying attack intervals and nearest swept target.
+Current Drowned-Spillwing-020-HD/Drowned-Test replaced through official stager;
+previous single preserved byte-identically,66assets/47refs,68release hashes
+unchanged. Proof build/drowned-spillwing/proof-pair.json. User duo gameplay and
+020 cadence pending. No release or emulator execution.
+
+## 2026-09-16 — Single Spillwing log received:50.00FPS
+
+Log arrived during duo staging and is preserved with the original single
+executable in older-builds/Drowned-Spillwing-0-old-215840. Executable hash
+matches single proof.json. Copy: testresults/Unassigned-Drowned-spillwing-single-50fps.log/TXT.
+Complete stable post_run footer.11439intervals, all one-field,0two/three+,
+50.00FPS over228.78s,0ownership violations;6shots,3enemy deaths,21jumps,5hurt.
+608520Chip free,largest607504. This supersedes the earlier no-log observation.
+User accepts single visuals/function, says easy to hit. Single dry arena only;
+duo and pontoon performance still pending. Inherited diagnostic route header
+reports6sites/10water despite isolated setup; use executable proof and actual
+water_updates0, not that stale header, for provenance.
+
+## 2026-09-16 — Pontoon combat candidate + duo50FPS evidence
+
+User accepts dry duo, requests1/2 flyer variation during crossing. Duo log
+verified against proof-pair executable:1993intervals/all one-field,50.00FPS,
+0ownership violations over39.86s;23shots,2kills,14jumps,4hurt. Chip607816free.
+Stable complete copy testresults/Unassigned-Drowned-spillwing-pair-50fps.log/TXT.
+This is dry-floor acceptance, not water/boat performance.
+
+Added drowned-ferry target combining approved pontoon and Spillwing families.
+Same800px basin160..960,96px boat160..864 and carry/reversal/water masks.
+Three required1HP spatial encounters: lowx328 region200..432; highx584
+region448..736; lowx856 region704..960. Last low can overlap high; killing
+changes pressure. No scripted visible despawn or random mid-dive homing.
+Reuses one23040Chip enemy cache, existing pool; no new art or upper route.
+Small-family compile alias still excludes Crab coexistence until later type
+integration. Corrected macro interaction: water animation/collision enabled
+for combined ferry, pontoon no-enemy bypass disabled only for ferry. Gate
+remains disabled. Diagnostic header now identifies actual ferry3spawn layout.
+
+Native build and host tests pass: real player/pontoon1200ticks carry/bob/
+reversal, jump/exit/water-reset; all3 enemies activate and dive, max2 visible
+on tested ride, each crosses real deck shot lane. Existing duo tests and
+2293760water mask pixels pass. Native combat feel/cadence not yet measured.
+
+Current dist/Drowned-Ferry-020-HD/Drowned-Test,67assets/48compiled refs.
+68alpha.8release hashes unchanged. Previous duo including log archived and
+hash-verified in older-builds/20260916-before-ferry. Proof:build/drowned-ferry/proof.json.
+No release/version/commit or automatic emulator launch. Next user020 combined
+combat/water test; high alternate route and full-level family integration later.
+
+## 2026-09-16 — Five-flyer ferry candidate
+
+User played ferry v1 and asks for more enemies. Verified full log against v1
+executable:2883intervals/2865one/18two/0three+,49.68FPS over58.02s,
+0ownership violations.26shots,6kills,16jumps,6hurt,2water;604808Chip free.
+Preserved testresults/Unassigned-Drowned-ferry-three-49-68fps.log/TXT.
+
+Ferry v2 has5 required low/high/low/high/low flyers at328/520/704/848/952,
+patrol regions200..432/384..672/552..808/704..992/800..1056. More density
+in second half and bank exit. Same AI/art/HP/cache/boat/water; no new family
+allocation. Existing pool4 bounds actor count, but up to4 can be visible if
+not killed. This is a heavier cadence candidate, not a measured50FPS claim.
+Host real1200tick ride proves all5 activated/attacked/crossed deck shot line,
+peak4 visible, boarding/carry/reversal/jump/exit/reset preserved. Native build
+passes. New diagnostic header identifiesv2/5spawn.
+
+Updated dist/Drowned-Ferry-020-HD/Drowned-Test through official stager,
+67assets/48refs;68release hashes unchanged. Previous v1 drawer and log
+archived and byte-verified. Proof build/drowned-ferry/proof-five.json.
+User difficulty/020cadence pending. No release or emulator launch.
+
+## 2026-09-16 — Visible-only player shots, ferry v3 candidate
+
+User lost all lives, finds5flyers more fun but jump/fire spam and offscreen
+kills too easy; suggests overhead blocking structures. Log verified against
+v2 executable:1716intervals/1661one/55two/0three+,48.44FPS over35.42s,
+0ownership violations,48shots/8kills/17jump requests/3hurt/3water. Complete
+post_run footer despite game-over. Preserved testresults/Unassigned-Drowned-ferry-five-48-44fps.log/TXT.
+Cadence lower than prior3flyer49.68; different workload/deaths, not causal
+proof. Current candidate must remeasure; do not normalize the slowdown.
+
+Fixed shared Drowned projectile update, SPARKPAW_DROWNED_SLICE guard: clip
+enemy sweep to camera..camera+319, reject entirely unseen ranges, retire
+player bullets as leading edge exits. Last visible segment still hits; Bob
+drawn history retained for restoration. Pixel reference applies same gate.
+Hostile projectiles unchanged. Applies to all Drowned enemy types including
+Pump Walker/Crab when rebuilt; original Level1 and published releases unchanged.
+No enemy AI or art change. Fewer surviving offscreen bullets may lower work,
+but no FPS gain claimed. V3 diagnostic header identifies visible_player_shots.
+
+Native build, actual optimized/pixel projectile tests (both edges,scrolling,
+visible fragments,offscreen miss,restore history,hostile lifetime), real ferry
+physics/5enemy coverage and player damage tests pass. Updated same
+Drowned-Ferry-020-HD/Drowned-Test;67assets/48refs/68release hashes preserved.
+V2 and log archived intact, proof build/drowned-ferry/proof-visible.json.
+User visual/cadence gate pending. No release or emulator launch.
+
+Proposed next geometry: one low overhead maintenance platform with a solid
+underside, blocking repeated high jumps and shots through steel; then open
+water recovery space. Reuse accepted industrial materials, preview layout
+before integrating. First evaluate visible-only shots and cadence; avoid
+masking that change by simultaneously adding obstacles/enemy load.
+
+## 2026-09-16 — Ferry transfer platform + six diamonds
+
+User accepts visible-only shots and requests central platform: leave boat,
+collect1/2diamonds, boat travels beneath, jump back on; diamonds over water.
+Prior v3 log verified:1485intervals/1464one/21two/0three+,49.30FPS,
+0ownership violations,30.12s. Complete stable copy:
+testresults/Unassigned-Drowned-ferry-visible-49-30fps.log/TXT. Mixed workload,
+not controlled evidence of FPS gain from retiring offscreen bullets.
+
+Ferryv4 adds96x16 solid deck x528..624,y160..176 using accepted platform
+material (no new art family). Gap to deck189/190 permits boat, not crouched
+player. Six diamonds:280,140;408,132;544,130;592,130;744,132;856,140.
+Enables authored collectibles only in ferry, keeps other isolated proof
+sentinels inactive. Two deck diamonds pickup/reset persistence tested.
+
+Found carry bypassed wall collision. Pontoon horizontal carry now calls the
+existing player moveX through playerCarryHorizontal, retaining existing
+side/head/crouch collision. No pushing through the new obstacle. Same speed,
+bob/water masks. Flight checks proposed32tick arc against solid tiles once
+when arming; blocked attempts recheck after8ticks, no mid-dive homing. Prevents
+Spillwings flying through steel; performance cost needs native measurement.
+
+Host tests actual player/collision: shots block at both deck edges, standing
+and crouching cannot be carried through, complete boat/deck/boat route proven
+(launch atboat450,40ticks right, wait forboat610, jump/right lands53ticks later).
+3000enemy ticks show no cell/solid overlap. Existing flat-basin1200tick carry,
+all5enemy coverage and visible-shot/damage tests pass. Flat baseline test
+explicitly loads original pontoon map; new platform test loads ferry map.
+Native build passes. Static layout inspected; timing/art/cadence user gate pending.
+
+Updated Drowned-Ferry-020-HD/Drowned-Test,67assets/48refs/68release hashes
+preserved. V3 and its log archived byte-identically; proof-platform.json in
+build/drowned-ferry. No release/version/commit or emulator launch.
+
+## 2026-09-16 — Precision upper-route candidate
+
+User explicitly wants a hard tiny-platform route BEFORE and AFTER middle,
+while retaining middle-to-pontoon exit. Added9single16x16 solid ledges at
+(64,160),(160,128),(256,96),(352,112),(448,96),(560,96),(672,128),
+(768,96),(864,128). Starts on departure bank, upper minimumy96 preserves
+jump headroom. Same accepted platform materials, camera/HUD/palette. Middle
+528..624,y160 remains branch; upper can descend there and rejoin at672,128.
+Existing6diamonds plus3 at256,66;560,66;864,98. Five flyers unchanged count.
+
+Rejected early low over-water ledges: they blocked pontoon carry and original
+transfer. Repositioned initial ascent onto shore; upper ledge over middle
+raised to96 to leave its walking/afsprong space free. Trials at80 clipped
+jump into ceiling; final minimum96. Final host tests prove each real-physics
+upper link, descending to middle, joining upper from middle, and complete
+boat/middle/boat path (launchboat420,40ticks right, walk to middle x590,
+short right-input jump back; landing53ticks). Tests check collectibles,
+wall/shot/crouch carry,3000enemy ticks no solid overlap. Patrol now reverses
+before solid tiles, in addition to existing pre-checked committed swoops.
+No renderer/cache enlargement or new enemy family. Native build passes.
+
+Latest supplied middle-onlyv4 log matches proof-platform:1485intervals,
+1419one/66two/0three+,47.87FPS,0ownership violations;22shots,5kills.
+Preserved testresults/Unassigned-Drowned-ferry-middle-platform.log/TXT.
+This is below cadence target; do not normalize it. Upper route performance
+and feel pending; after route review prioritize targeted cost investigation,
+particularly new flight geometry tests alongside water/collectible workload.
+
+Current Drowned-Ferry-020-HD/Drowned-Test(v5):67assets/48refs,68release hashes
+unchanged. V4+log archived intact and verified. Proof:build/drowned-ferry/proof-upper.json.
+No release/version/commit or automatic emulator. User tests precision and
+middle-to-boat choice; full-level progression/third cache family still pending.
+
+## 2026-09-16 — Upper route restricted to second half (v6)
+
+User rejects full upper route and requests mandatory pontoon first half.
+Removed6ledges before/over middle and their2bonus diamonds. Keep three16px
+ledges at672,128 /768,96 /864,128, and7total diamonds. Start on pontoon,
+choose upper or boat at unchanged middle deck528..624,y160. All5flyers and
+art/physics/visible shots unchanged. Generated assets rebuilt from base so
+removed tiles leave no collision or painted residue.
+
+Host actual physics proves empty first-half air, middle-to-upper and all
+remaining links/final bank; boat/middle/boat still passes. Native build passes.
+Previous full-route log verified:2420intervals/2298one/122two/0three+,
+47.60FPS over50.84s,0ownership violations. Stable complete log preserved as
+testresults/Unassigned-Drowned-upper-full-47-60fps.log/TXT. FPS remains below
+target; no improvement claimed from layout reduction. Performance work still
+needed after this user-directed geometry gate.
+
+Current same Drowned-Ferry-020-HD/Drowned-Test(v6),67assets/48refs,
+68release hashes preserved. Rejectedv5+log archived byte-identically.
+Proof:build/drowned-ferry/proof-upper-short.json. User route/FPS pending;
+no release/version/commit or automatic emulator launch.
+
+## 2026-09-16 — Ferry flight clearance optimization candidate
+
+User approves v6 route and authorizes020 optimization. Verified latest log:
+914intervals/839one/75two/0three+,46.20FPS over19.78s,0ownership violations.
+Worst snapshot3flyers/3collectibles/6water updates; minimal diagnostics do not
+attribute exact CPU cost. Preserved Unassigned-Drowned-upper-short-46-20fps.log/TXT.
+
+Identified repeated static geometry work: clearSwoop up to96 horizontal scans
+per attempt plus3per patrol update. New generator builds2400-byte8flag-per-x
+lookup from final collision map and actual arc constant. Flags encode both
+profiles/directions and hover bob phases. Static normal/Fast program data,
+no Chip allocation or displayed-buffer changes. SPARKPAW_SPILLWING_CLEARANCE_REFERENCE
+retains original scanner for proof. Identical blocking, cooldown, attack and
+patrol decisions; table valid for current static ferry geometry only. Future
+moving gates/platforms require invalidation or separate dynamic checks.
+
+Exhaustive sanitized actual-C comparison:9600swoop predicates plus19200full
+updates, byte-identical Enemy state. Reference2399629horizontal probes across
+this exhaustive TEST (not a gameplay-run count), candidate0. Uses real loaded
+collision map. Existing middle/boat and upper-route physics pass. Nativebuild
+passes. VBCC-O2-cpu68020 assembly audit: reference7collision symbol refs,
+candidate0; source table embedded in normal program data. No measuredFPS gain
+yet. Same67runtime assets independently hash-identical to v6.
+
+Current Drowned-Ferry-020-HD/Drowned-Test(v7),67assets/48refs,68release hashes
+unchanged. Accepted geometryv6 and log archived and hash-verified.
+Proof build/drowned-ferry/proof-clearance.json. User matched combat/cadence
+pass pending; no release/version/commit/emulator launch. If drops remain,
+profile water+collectible drawing/restore work separately, without weakening
+visuals or accepted gameplay. Do not call this optimization accepted yet.
+
+## 2026-09-16 — Flight lookup candidate result: incomplete performance win
+
+User played v7; no explicit visual/glitch verdict. Exact executable verified
+against proof-clearance.json; stable full footer, evidence preserved in
+Unassigned-Drowned-clearance-47-64fps.log/TXT.1257intervals:1199one,56two,
+2three-plus,max4fields;47.64FPS,0ownership violations.29shots/4kills/12jump
+requests/5collects/1water. Prior v6 was46.20FPS with no three-plus intervals.
+Different manual workload: higher average alone does NOT prove overall win.
+Two longer hitches remain/newly observed; lookup retained only as candidate,
+not final native acceptance. Correctness parity and removed CPU scans stand.
+Worst snapshot1flyer/3shots/3diamonds/6water updates suggests inspect water,
+collectible/vlot restore/update/draw next; minimal log cannot attribute cause
+or the two long intervals. No runtime/build/release change this review.
+
+## 2026-09-16 — Adjacent water synchronization candidate
+
+User authorizes the water-copy optimization after the wider renderer audit.
+Ferry-only drowned_water_sync.h groups adjacent dirty80px strips, then uses
+the existing bounded DMA copier. Clean strips and gaps terminate groups;
+per-strip phase bookkeeping, clipping, all three physical copies and final
+waits preserved. No extra runtime allocation, visual/cadence/gameplay change.
+SPARKPAW_WATER_SYNC_REFERENCE retains the previous path.
+
+Actual C helper + actual copier tested against independent pixel oracle with
+ASan/UBSan:133120 cases across all dirty subsets, ring origins, adjacent/gapped
+layouts and different canonical phases. All pixels and phases match, second
+sync is a no-op, no extra blits. Example84->24 operations; not an FPS claim.
+Existing CPU/DMA copier tests also pass27840 rectangles per mode. Native ferry
+build passes. Full renderer reference assembly is byte-identical to the
+pre-change audit; candidate assembly confirms one copy per merged run.
+
+Current dist/Drowned-Ferry-020-HD/Drowned-Test is the water candidate;67assets
+byte-identical,48embedded refs,68release files preserved. Previous drawer
+and log archived and hash-verified; proof build/drowned-ferry/proof-waterbatch.json.
+ReadMe identifies candidate; log v7 continues to identify unchanged layout/AI,
+so use executable hash for this comparison. Last baseline47.64FPS with2long
+intervals; no new FPS measurement. User020 cadence/visual acceptance pending.
+No emulator launched, release, version, commit or push.
+
+## 2026-09-16 — Water batching playtest: positive result
+
+2026-09-16: user FS-UAE playthrough, established PAL50 68020/2MB Chip/8MB Fast configuration. User: "oogde iets beter volgens mij". No explicit exhaustive glitch verdict.
+Source: sparkpaw/dist/Drowned-Ferry-020-HD/renderdiag.log. Complete post_run footer. Executable SHA256 matches proof-waterbatch.json. Log v7 describes unchanged layout/AI; candidate identified by executable hash.
+1415 intervals:1384 one-field,31 two-field,0 three-plus,max2;48.92FPS. Missed interval share2.19%, previously4.61% (1257intervals,56two,2three-plus,max4;47.64FPS).
+New workload49shots/4kills/16jump requests(15starts)/5collects/1water/2hurt; prior29shots/4kills/12jump requests/5collects/1water. Manual workloads differ; positive evidence, not controlled causal measurement.
+0ownership violations. Chip607400free/largest606184; Fast5224936prepared. Worst snapshot is frame1/camera0/water_updates0, not proof that gameplay-water work is costless.
+Retain water batching as current working candidate. Full50FPS and broader/native hardware acceptance remain open. No runtime change in review.
+
+Evidence: testresults/Unassigned-Drowned-waterbatch-48-92fps.log and matching TXT.
+
+## 2026-09-16 — Pontoon mask offset candidate
+
+User authorizes one focused final optimization pass before content expansion.
+Retain water batching (last run48.92FPS,31two-field/1415intervals,0three-plus).
+Ferry-only prepared position/phase offsets replace the visible pontoon mask
+address division by80 and multiplications by80/56.1538bytes normal program
+BSS, no extra Chip allocation or asset bytes; preparation once at asset load.
+Position indexed directly from existing physics, so no new movement state.
+Reference switch SPARKPAW_PONTOON_OFFSET_REFERENCE retains original formula.
+
+ASan/UBSan actual lookup comparisons67680: every705legal integer x, both
+deck heights,16frames, three preparations; offsets identical and bounded.
+Actual mask test now exercises candidate lookup:2293760pixels match independent
+water-pattern oracle. Native build passes. Full renderer reference assembly
+byte-identical to previous waterbatch assembly. Compiler first emitted a
+three-argument call; lookup made an expression (each argument evaluated once)
+so final hot assembly has direct reads/add/shift, no division/multiplication
+or added helper call. Evidence build/drowned-ferry/offset-*-excerpt.asm.
+
+Broader copy review: projectiles/enemies restore only when their target history
+says drawn; inactive/dead state alone cannot safely skip old image removal.
+Diamonds restore a word-aligned footprint, including after collection, and
+water/other actor restoration can overlap it. Existing enemy union optimization
+applies to Striders; blindly extending to separated flyers may copy larger
+areas than saved. No such change included; a separate actual pixel/ownership
+proof plus measurement would be needed. Preserve final waits and draw order.
+
+Current dist/Drowned-Ferry-020-HD/Drowned-Test is offset candidate;67assets
+byte-identical,48runtime references,68release hashes preserved. Previous
+waterbatch build and full log archived and hash-verified. Proof:
+build/drowned-ferry/proof-pontoon-offset.json. User020 cadence/masking gate
+pending; small expected gain only, no FPS claim. No runtime gameplay changes,
+release/version/commit/push or emulator launch.
+
+## 2026-09-16 — Pontoon offsets playtest: similar measured cadence
+
+User FS-UAE playthrough, established PAL50 68020/2MB Chip/8MB Fast configuration. User reports "weer iets beter volgens mij"; no exhaustive visual acceptance inferred.
+Executable hash matches proof-pontoon-offset.json. Complete post_run footer; preserved original log bytes. Header v7 describes unchanged layout/AI, not unique optimization identity.
+1441 intervals:1407one-field,34two-field,0three-plus,max2;48.84FPS. Previous waterbatch run:1415intervals,31two-field,0three-plus;48.92FPS. Miss shares2.36% vs2.19%. Numerically essentially similar, no measured improvement established and no controlled regression established.
+Current71shots/5kills/17jumps/5collect requests/1water/1hurt vs prior49shots/4kills/16jump requests/5collects/1water/2hurt. More shooting is not sufficient workload normalization: early kills can also reduce rendering work.
+0ownership violations. Prepared Chip606696free/largest605576 vs prior607400/606184; Fast5225168free/largest5223976. Whole-system allocation snapshots differ; no extra explicit Chip allocation in candidate source, but do not claim identical measured Chip usage or infer cause of704-byte difference.
+Retain current candidate provisionally given correctness proof and positive user impression; do not label this lookup a demonstrated FPS win. Waterbatch improvement remains prior evidence. Full50FPS target remains open. No new build/runtime change during review.
+
+Evidence: testresults/Unassigned-Drowned-offset-48-84fps.log and matching TXT.
+
+## 2026-09-19 — Connected Drowned level candidate (3520px)
+
+User asks to connect all existing content, then explicitly continues. Built
+a single3520px route: accepted land0..2400, translated ferry basin2400..3200,
+landing shore3200..3520. Middle deck2768..2864,y160; upper tiny ledges2912,128 /
+3008,96 /3104,128, exclusively after middle.33diamonds,11spawn sites,20water
+strips. Same original four active enemy slots. Existing gate plus both geysers
+re-enabled; no loading boundary. Machine finale, extra gates, station/Rain Core,
+new music/checkpoint and campaign handoff remain future work, not claimed done.
+
+Joined-only appended enemy type2 and own24x24/16frame cache for Spillwing;
+Crab retains32x24/22frames/type0, Walker64x64/32frames/type1. Independent asset
+loading, cache lifetime, hit/contact/death dispatch. No Enemy struct/pool growth.
+Caught/removed accidental cache rebuilding in rendererResetGameplay before
+staging; cache built once and freed via existing type-count loop. Legacy
+isolated flyer alias retained when JOINED is absent.
+
+Keep water batching and mask offsets; move pontoon bounds2400..3104; offline
+clearance table now generated for actual map width3520. Existing rear1120px
+fits final camera with no extension. Exact native-pixel equality proven for
+land0..2399 and translated ferry source160..1279; original rear/patches/three
+enemy art/clip bytes unchanged. Known extra Chip allocation relative to ferry:
+116480bytes foreground +31680bytes separate Crab cache; transient allocation
+peaks/largest blocks and020 cadence still need native evidence.
+
+Actual-C ASan/UBSan tests: all11sites/3families activate over full forward/back
+camera sweep; cache frame bounds; static flyer collision; per-family hits/death;
+visible panel/open/reset; both jets; shifted boat/middle/boat route and allfour
+upper transitions; no first-half overhead bypass;33pickups and water boundary.
+Existing land test passes precision jumps and all4Walker traversal links over
+8seeds. Existing ferry clearance test passes9600predicates+19200updates;24px
+cache, visible shots, projectile damage, post occlusion tests pass. Mask offsets
+pass67680cases for each isolated/joined bounds. Native joined build succeeds,
+only pre-existing main/ready_ui warnings. No emulator auto-run.
+
+Current dist/Drowned-Level-020-HD/Drowned-Test;68assets/49embedded refs, all
+68release hashes preserved. Staged via stage_hd_test against old ferry drawer
+then renamed verified new drawer. Prior offset build+log archived byte-identical.
+Proof build/drowned-joined/proof-joined.json; generator build_drowned_joined.py,
+manifest and joined-layout.png in build/drowned-joined. User full-run/020 memory,
+FPS, combined gate/water/flyer visuals and life-reset acceptance pending.
+No release/version/commit/push.
+
+## 2026-09-19 — Checkpoint priority + regional FPS preparation
+
+User reports repeated deaths and late-ferry drops, requests checkpoint and FPS
+investigation. Played joined log verified/preserved:7100intervals/108two/0three+,
+49.25FPS,0ownership violations,Chip461864free/largest460512. Aggregate masks
+section-specific cost; do not dismiss user report. Evidence
+testresults/Unassigned-Drowned-joined-49-25fps.log/TXT.
+
+Prepared camera correction: joined build inherited fixed Level1 end-lock at
+playerX3072, inside ferry. Joined now retains centered/clamped follow there;
+legacy behavior unchanged. Actual-function host test passes. Not claimed FPS
+fix. Added minimal previous-player-X cadence counters for land/precision/
+approach/ferry_first/ferry_last/shore;120bytes, no new timer reads or frame I/O.
+Header stale pontoon basin corrected. Source native build succeeds, not staged.
+
+Checkpoint concept image assets/concept/drowned-checkpoint-beacon-v1.png,
+full prompt TXT; steel/copper mechanical marker, amber->mint lamp, hinged
+metal pennant. Pending user concept approval; native art must fix intermediate
+hinge and omit broad presentation glow. Sound audition
+assets/audio/checkpoint-v1/checkpoint.wav/raw:6828bytes,period322,~0.62sec,
+mechanical click+rising tones, no voice; not runtime integrated.
+
+Checkpoint state module prepared but NOT linked/wired: grounded one-shot
+activation at2320,32tick activation, persists life loss, clears fresh attempt.
+19600host contract cases pass in both test modes, plus regional boundaries/
+totals and joined/legacy camera. Integration/respawn/render/audio still pending.
+Plan safe Crab patrol adjustment and preserve score/diamonds/gate while boat
+resets to left bank. Read docs/DROWNED_CHECKPOINT_REVIEW.md before continuing.
+
+Current dist remains exactly the played joined build; all68release files
+hash-identical. No new user test requested until checkpoint concept approval
+and actual native art/animation/integration. Built build/sparkpaw-drowned-joined
+now contains prepared camera/regional changes and differs from staged proof;
+do not misidentify it as the played build. No release/commit/push/emulator run.
+
+## 2026-09-19 — Checkpoint beacon approved, sound revised
+
+User approves the beacon concept. User finds v1 sound too similar to1-up and
+agrees to latch+soft hum+one confirmation tone, no voice. Generated audition
+assets/audio/checkpoint-v2/checkpoint.wav/raw via build_checkpoint_sound_v2.py:
+~0.48sec,5286bytes,period322,peak104, WAV/raw byte parity verified. V1 preserved.
+Existing1-up generator uses four rising notes659/784/988/1319Hz plus high tail;
+v2 uses inharmonic click,147Hz hum,one fixed880Hz ping, no note sequence.
+Sound subjective review pending; no claim of listened verification.
+Beacon direction approved; native fixed-pivot poses/animation and actual
+checkpoint game/reset/render/audio integration remain to complete. Dist remains
+played joined build; prepared camera/regional changes not yet staged.
+
+## 2026-09-19 — Regional cadence attribution v2 staged
+
+User offers to wait for improved log; repaired prior-player-X capture BEFORE
+memset of diagnosticCurrent. Existing global cadence algorithm unchanged.
+Log joined header now has region_attribution=2. Full actual entry-function test
+(test_drowned_cadence_entry.py) covers all region boundaries both directions,
+first sample,1/2/3field intervals and ferry->checkpoint teleport; regional totals
+match global totals. Sanitizers pass; mutation restoring original fault is
+rejected. Native020 build passes with existing warnings only. No gameplay/art
+change; checkpoint and no-Core fixes retained. Runtime regional evidence pending.
+Restaged Drowned-Level-020-HD/Drowned-Test;70assets/51literalrefs verified,
+68release files unchanged. Previous no-Core drawer archived intact at
+/Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-182814. proof-checkpoint.json current; proof-checkpoint-nocore.json previous.
+User next run should save once with LMB, frozen image expected, wait15seconds.
+
+## 2026-09-19 — Late-ferry drops confirmed; precision Spillwing staged
+
+Same-build repeat preserved: testresults/Unassigned-Drowned-regions-v2-run2.log/TXT,
+plus precision request PNG/TXT.5310intervals,161two-field,0three-plus,48.52FPS,
+0ownership. Firstferry46.62FPS/29of401misses; last41.68/101of506(19.96%).
+Both halves need investigation; prior last49.43 does not establish healthyfps.
+User-requested precision Spillwing appended asID11 at1840,patrol1728..2144,
+high profile. Ferry IDs/profiles untouched; same4activepool, existing art and
+precomputed collisionclearance. Actual joined C tests pass12spawns, flyer solid
+avoidance, jumps and checkpoint resets. Inherited Level1 1up gameplay/render
+now disabled in Drowned; renderer tests confirm Level1 behavior unchanged.
+Native020 build passes existing warnings only. No FPS fix claimed.
+Current dist/Drowned-Level-020-HD/Drowned-Test staged70assets/51refs;
+68releasefiles unchanged. Prior drawer/log preserved byte-exact at /Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-183827.
+proof-checkpoint.json current; proof-checkpoint-regions-v2.json prior.
+User precision encounter feel/FPS gate pending. No emulator/release/commit.
+
+## 2026-09-19 — Patch/water setup reuse candidate, 020 gate pending
+
+Latest evidence Unassigned-Drowned-precision-flyer-run1.log/TXT preserved and
+verified. User accepts precision flyer/no perceived extra drops.2737intervals,
+76two-field,0three-plus,48.64FPS,0ownership. Precision49.36(6/463misses),
+firstferry45.95(17/193),last44.85(28/244). Short ferry samples, not controlledAB.
+No shore samples. Both ferry sections remain concern.
+
+Inspected enemy copy-on-unload (already default), Spillwing precomputed collision
+(already default), resident caches, pontoon and water paths; retained them.
+Concrete redundant work: drownedCopyPatchRect rewrote6constant Blitter words
+for everyplane/copy,12times per clipped chunk. Now onlyfirstplane/firstcopy;
+66registerword writes removed perchunk. Precompute bltsize once. All DMA waits,
+4planes,3copies, pixel spans and strides retained; no new allocations or art/
+physics/enemy changes. SPARKPAW_DROWNED_PATCH_SETUP_REFERENCE retains old setup.
+VBCC+aos68k -O2 -cpu68020 actual-header probe assembly in
+build/drowned-patch-setup-audit/{reference,candidate}.s confirms branches skip
+setup and cached size is written froma5, not repeated shifts/stack intermediates.
+This is reduced work evidence, NOT measured CPUtime/FPSgain.
+
+ActualC ASan/UBSan pixel oracle:48720rectangles EACH CPU/referenceDMA/candidateDMA,
+including160/320/512waterwidths andwrap/clips. Integratedwater133120cases pass,
+pixel/phase parity and DMAwait/repeatnoop behavior. Native020 build passes existing
+main/ready_ui warnings only. Added missing patchheader Make dependency, ensuring
+actual candidate rebuild. No new timing scopes; same regionalminimaldiagnostic.
+
+Staged dist/Drowned-Level-020-HD/Drowned-Test; all70runtimeassets byte-identical
+to playedbaseline,51literalrefs covered,68officialreleasefiles unchanged.
+Previous drawer/log archived byte-exact at /Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-184938.
+proof-checkpoint.json current; proof-before-patch-setup.json baseline.
+User gate: bothferryhalves withshoot/jump/return, waterseams/residue andcadence;
+saveLMB/freeze/wait15sec/reset. No emulator, release, commit or push.
+
+## 2026-09-19 — Enemy frame address precompute candidate
+
+Patch-setup run preserved Unassigned-Drowned-patch-setup-run1.log/TXT:
+3278intervals,67two+2three-field,48.93FPS,0ownership. Firstferry47.40vs45.95,
+last45.90vs44.85 previous, butdifferentworkload; not controlledgain. Two60ms
+frames(approach/firstferry) are open concern, setup candidate provisional.
+
+User asks furtheroptimization/precompute. Added joined-only frame pointer table
+src/drowned_enemy_frames.h:3families x2facings x32slots x2pointers=1536normalBSS
+bytes, zeroextraChip. Prepared after each cacheallocation, addresses refer to
+same Chip bits/masks; framecounts capped32. Used forCrab/Spillwing draw and
+residentWalker selection. ReferenceSPARKPAW_DROWNED_FRAME_ADDRESS_REFERENCE.
+All140validframe pairs tested withASan/UBSan againstoldlayout, repeatedprepare,
+lastwordwrites andlimitguard; existing24pxcachepixeltest passes. Native020build
+passes existing warnings only. VBCC020probe inbuild/drowned-frame-audit shows
+lookup uses shifts/pointerloads, replacing layout multiplications; thisdoesnot
+measure wholeframeFPS or reduceBlittertraffic. Sameassets/behavior/diagnostics.
+StagedDrowned-Level-020-HD/Drowned-Test,70assetsbyteidentical,51refs,68release
+filesunchanged. Priorarchive:/Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-190131. proof-checkpoint.json current,
+proof-before-frame-address.json prior. User020cadence/visualgatepending.
+Noemulator/release/commit. Checktwo60msframes andbothferryhalves next.
+
+## 2026-09-19 — Canonical water batching + first precision Spillwing
+
+User requests firstprecision flyer andbroaderFPSthinking. Latest frame-address
+run preserved Unassigned-Drowned-frame-address-run1.log/TXT plus requestPNG/TXT.
+3210intervals,72two,0three-plus,48.90FPS,ownership0. Firstferry46.69,last43.19,
+not measuredgain over prior47.40/45.90; userfeelsbetter butlateupperroutestutters.
+Short/differentworkloads, earliermicrooptimizationsremainprovisional.
+
+Larger candidate: src/drowned_water_batch.h prepares6exact80pxrepeat tiles per
+frame/plane. Extra42240Chip bytes, no new diskassets. Same16frames/25Hzphase,
+samepixels/bankramps/bubbles; contiguousdirtyvisiblecanonicalstrips groupedmax6.
+Up to24canonicalDMAcommands become4; same number of copiedpixels, fewer setups/
+launches/waits. Target water synchronization unchanged. Reference macro
+SPARKPAW_DROWNED_WATER_BATCH_REFERENCE restores old canonicalpath.
+NoFPSclaim. PriorfreeChip456576 implies~414336beforeallocationoverhead; verifylog.
+Cache freed/reset onrelease. ActualC DMApixeloracle25728cases passes all16frames,
+continuous/gappedlayouts,partialdirty,culling,repeatnoop. Native020buildpasses
+existingwarnings. No quality/enemy reductions.
+
+Opening flyer appendedID12 at1488,lowprofile,patrol1328..1552. Wider1648patrol
+failedactualsolidavoidancetest duehoveredge; narrowedbeforehigherpillarpasses.
+ExistingID11precision/ferryIDs unchanged. Same4activepool,13spawns. ActualC joined
+sanitizer testpassesall13spawns/families,flyersolids,jumps/checkpoint.
+
+StagedDrowned-Level-020-HD/Drowned-Test,70assetsbyteidenticalto baseline,
+51refs/68releasefiles unchanged. Previousdrawer/logarchive:/Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-191155.
+Proof-checkpoint.json current; proof-before-water-batch.json prior.
+User gatebothferryhalves/upperroute,waterseams/boatwaterline,Chipheadroom,FPS.
+Newenemy affects precisionworkload; ferrygeometry/enemyprofiles unchanged.
+No emulator/release/commit. Tests added toMake hostsuite.
+
+## 2026-09-19 — Late-ferry rotating profiler staged, not FPS candidate
+
+Waterbatch userlog preserved Unassigned-Drowned-water-batch-run1.log/TXT.
+3273intervals,120two,0three-plus,48.23FPS,ownership0. Firstferry48.93,
+last43.67(87of601misses); user reports littlelateimprovement. Chip411744free,
+largest410312. Worst snapshotcamera2802,3smallfamilyBobs,2shots,2collectibles,
+6waterupdates; no single-snapshot causality. Currentwaterbatch gainsunproven,
+retained provisionally for profiling. Minimal baselineproof-before-ferry-profile.json.
+
+New target drowned-joined-profile, SPARKPAW_DROWNED_FERRY_PROFILE, current
+Drowned-Level-020-HD/Drowned-Test. Onlyplayerx2800..3199: select1of8scopes each
+frame,17frame cycleavoids poweroftwoanimation phasealias. Scopes gameupdate,
+displayupdate,totalBobpass,enemies,compacttarget(sync+roll),canonicalwater,
+enemyrestore,enemydraw. Maximum1timerpair/frame; aggregateupperplayerY<140count.
+Not separateupper/lower timing distributions. Parent/child samples fromdifferent
+frames, notadditive. Draw scopes include precedingpendingDMAwaits; avoid equating
+CPUorBlitterexclusively. Nonzeroobservercost; do NOT compareFPS asacceptance.
+Actualselector/macrotest3200frames passesboundaries/nesting/timerpairlimit.
+Actualcadenceentrytest/mutation passes. Native020buildpassesexistingwarnings.
+Normalminimalbuild retainsdisabledinstrumentation. Noart/gameplaychanges.
+
+Nativecompileinitiallyrejectedpreprocessordirectivesinsideopenmacroargs; fixed
+withcompleteguardedcalls andrebuiltsuccessfullybeforefinalhandoff. An intermediate
+olderprofilerbinary wasbrieflystagedduringverification thenarchivedand replaced;
+notuseraccepted. Authoritativeproof-checkpoint.json now finalsuccessfullybuilt
+profiler. Finalpriorarchive:/Users/mpoelstra/Projects/amigagame/sparkpaw/dist/older-builds/Drowned-Level-020-H-old-192118. Originalplayedminimaldrawer/log remain
+intact in dist/older-builds/Drowned-Level-020-H-old-192013.
+70assets/51refsverified,68releasefilesunchanged. Userplay30-60sec inlateferry,
+upperroute/fighting/return; LMBsave,wait15sec/reset. Nextchoosecausaloptimization
+fromscopeevidence. No emulator/release/commit/push.
+
+## 2026-09-19 — Late-ferry upper-route profile identifies buffer work
+
+Preserved Unassigned-Drowned-ferry-profile-upper-twice.log/TXT; exactstagedexe
+verified, completefooter. Userupperroute,deliberatewaterdeath/checkpoint,upperagain.
+544lateframes,501upperY<140(92.1%). Late41.40FPS/113doubleframes isobserver-
+contaminateddiagnostic,notperformanceacceptance.0ownership,0threeplus.
+CIA avg:game4.98ms;displayupdate0.65ms;totalBob11.06ms(p9514.01);
+compacttarget3.90ms(p956.93);enemyupdate1.30ms;enemydraw1.21ms;
+enemyrestore0.70ms;canonicalwater0.78ms. Parent/childnotadditive, different
+sampledframes andpendingBlitterwaits. Strongestmeasuredsubsystemlead iscompact
+bufferpreparation(scrollroll+water sync+initialwait), notenemyAIalone.
+FullcolumnDMAstill208rowsx4planesx3copies; canonicalwaterbatchdoesnotremove
+triplicatedtargetsync. Nextfocusreducebuffertraffic/guaranteedblankrows orsplit
+roll/synctiming. No speculativevisual/culling shortcuts. Profilerdrawerunchanged.
+Chip414336free/largest413304;water1/checkpoint1audio;Core/1up0. Source/evidence
+analysisonlythisturn,no runtimechange ornewbuild. Usercheckpointreturnreported.
+
+## 2026-09-19 — Shortened scrolling columns candidate staged
+
+The upper-route profile points to compact-target buffer preparation (average
+3.90 ms, p95 6.93 ms including pending DMA waits), rather than enemy AI alone.
+The joined renderer now skips guaranteed blank upper rows when replacing one
+16px ring-buffer column. It takes the minimum bound of the evicted and incoming
+world columns; actor restores precede rolling. Generated bounds cover actual
+foreground pixels plus water, mechanisms, beacon and collectible footprints.
+All four planes, three physical copies and DMA completion waits remain intact.
+Initial/full resets retain full copies; invalid positions fall back to full height.
+SPARKPAW_DROWNED_FULL_COLUMN_REFERENCE retains the reference implementation.
+
+The generated 220-byte table needs no extra Chip allocation. Representative late
+ferry exchanges skip an average 149 of 208 rows (about 72% less column pixel
+traffic, NOT a measured frame-time or FPS gain). Water target sync remains work.
+Actual helper and prototypeRollTarget DMA oracle tests pass 1788 cases with
+sanitizers, forward/backward scrolling, dynamic rows and guarded buffers. Existing
+60-column full-height test passes. Native 68020 build and compiled probe reviewed:
+row-offset multiplies are outside the DMA loop. Runtime FPS/visual acceptance is
+pending; previous speculative optimizations remain provisional.
+
+Drowned-Level-020-HD/Drowned-Test now contains the normal minimal regional cadence
+build, targeted ferry profiler OFF. All 70 runtime assets match the preceding
+candidate, 51 executable references verified, all 68 alpha.8 files unchanged.
+Prior profiler drawer and log archived byte-identically in
+`dist/older-builds/Drowned-Level-020-H-old-193411`.
+Proof: build/drowned-joined/proof-checkpoint.json; prior proof-before-column-tops.json.
+Repeat upper route, deliberate water death/checkpoint, upper route again; inspect
+scroll edges and restored actors/diamonds. LMB once/release, wait 15 seconds on
+frozen image, reset. Compare next cadence with minimal water-batch evidence, not
+the profiler's observer-contaminated FPS. If gains are insufficient, separate
+remaining target water-sync traffic from roll cost before another candidate.
+No emulator launch, release, commit or push.
+
+## 2026-09-19 — Shortened columns: first cadence result
+
+ 3139 intervals: 3098 one-field, 39 two-field, 2 three-plus, max3;49.32FPS.
+0 ownership violations. Late ferry:542 intervals,37 misses,0 three-plus,
+46.80FPS;6.83% intervals miss20ms versus87/601=14.48%,43.67FPS in
+Unassigned-Drowned-water-batch-run1.log (same minimal instrumentation).
+First ferry49.70 versus48.93FPS. Land,precision,shore50.00FPS thisrun.
+Two60ms intervals: one approach,one firstferry. Cause not inferable from
+aggregate counters; checkpoint/loading causality not established.
+Different manual workloads: promising measured association, not controlled
+causal gain or final acceptance. Profiler41.40FPS is not a valid baseline.
+Chip414336free/largest413304; Fastprepared5184896/largest5183816.
+Checkpoint audio1/1,water2/2,Core0,extraLife0.
+Retain candidate provisionally. Remaining focus: lateferry target water-sync
+traffic and pending DMA waits; distinguish roll from sync if profiling again.
+No additional build or runtime changes made during this evidence review.
+
+## 2026-09-19 — Buffer split profiling staged after column gain
+
+Continued investigation: water synchronization already merges adjacent dirty
+strips and skips unchanged phases. Three physical ring copies remain required
+by the current renderer contract. The previous compact-target profile conflated
+initial pending DMA wait, ring roll and dynamic water sync, so no unmeasured
+copy-elision or visual reduction was introduced.
+
+The focused ferry profiler now samples eight scopes: game update, total Bob pass,
+compact target, canonical water, ring roll, ring dynamic sync, initial compact
+Blitter wait, enemy draw. One timer pair per eligible frame, same 17-frame cycle,
+player x2800..3199. Log marker buffer_split=1. Roll includes no-scroll calls;
+initial wait covers only the pre-compact wait, not every renderer wait. Dynamic
+sync includes its copy completion waits. Parent/child costs are sampled on
+different frames and cannot be added. This measures remaining work after the
+shortened-column change; profiler cadence is NOT an optimization verdict.
+
+Actual selector/macro test passes 3200 frames, checks selected new scopes,
+boundaries and exactly one pair per eligible frame. Actual regional cadence
+lifecycle/mutation test passes. Native 68020 profile build passes with existing
+warnings only. Normal build gains no new instrumentation (wait wrapper guarded).
+Drowned-Level-020-HD/Drowned-Test is now this profiler. All 70 runtime assets
+unchanged, 51 literal references verified; 68 alpha.8 release files unchanged.
+Prior minimal-column build and user log preserved byte-identically in
+`dist/older-builds/Drowned-Level-020-H-old-195037`; prior proof saved as
+build/drowned-joined/proof-before-buffer-split.json.
+
+User test: upper late ferry, water/checkpoint, upper again, preferably 30-60 sec
+in this area. LMB press/release, wait 15 sec, reset. Next use split costs to select
+one causal optimization, then return to minimal cadence for the FPS comparison.
+No gameplay/art change, emulator launch, release, commit or push.
+
+## 2026-09-19 — Water sync profile and patch invariant candidate
+
+Preserved Unassigned-Drowned-buffer-split-run1.log/TXT, exact executable verified,
+complete footer. User upperroute, waterdeath/checkpoint, upper again; second felt
+heavier. Aggregate profile does not separate passages. 2964 intervals,57two,
+0threeplus,49.05FPS;late46.57 (40/544 misses),ownership0. Profile observer cost;
+not a minimal-cadence speed verdict. 491/544 profile frames upperY<140.
+CIA averages: dynamic sync3.23ms (p954.26), roll0.20ms (p951.33), initialwait
+0.025ms, compact3.49ms, canonicalwater0.75ms, game4.86ms, Bob11.04ms.
+Bob maximum37.40ms is an isolated sampled duration, not proof of a specific
+cause. Parent/child scopes are sampled on different frames, not additive.
+
+Changed only generic Drowned canonical patch copier: compute source/destination
+row offsets once per rectangle instead of once per plane/chunk; move invariant
+DMA setup outside plane/copy loops. Safe setup wait added per clipped chunk;
+all existing copy/final waits, pixels, four planes and three copies preserved.
+Reference setup macro retained. No memory growth or visual/gameplay reduction.
+Native probe build/drowned-patch-setup-audit/hoisted.s confirms both multiplies
+before loops; previous candidate.s retains compiler comparison. This is a modest
+CPU-overhead hypothesis, not a reduction of water DMA bytes or proven FPS gain.
+Actual CPU/referenceDMA/candidateDMA tests pass 48720 rectangles each; merged
+water helper passes133120 cases;277 authored mechanism transitions pass.
+Native normal020 build passes existing warnings only. Runtime acceptance pending.
+
+Drowned-Level-020-HD/Drowned-Test now normal minimal cadence, profiler OFF.
+70 assets unchanged,51 compiled refs verified,68 release files untouched.
+Previous profile/log archived byte-exactly at older-builds/Drowned-Level-020-H-old-201416.
+proof-before-patch-hoist.json preserves predecessor. Next compare with minimal
+column-tops run1 (late46.80FPS), not profiler FPS. User repeat upper/checkpoint/upper,
+LMB once/release,wait15sec/reset. Watch water,gate,geysers,beacon for glitches.
+No emulator launch, release, commit or push.
+
+## 2026-09-19 — Patch hoist first cadence run: encouraging, shorter ferry sample
+
+Patch invariant hoisting first run, reviewed 2026-09-19.
+Exact staged executable verified against proof-checkpoint.json; complete log,
+minimal regional cadence, profiler OFF. Established FS-UAE HD 68020,
+2MB Chip/8MB Fast. User says played; exact route and visual verdict unspecified.
+4527 intervals:4497one,30two,0threeplus,max2;49.67FPS,ownership0.
+Lateferry297intervals,7misses (2.36%),48.84FPS versus prior minimal column
+run542intervals,37misses (6.83%),46.80FPS. Firstferry178intervals50.00FPS,
+versus512intervals49.70FPS. Land49.63,precision49.92,approach/shore50.00.
+No60ms intervals thisrun. Chip414336free/largest413304.
+Material workload difference: lateferry sample about half the prior run;
+land2982intervals versus1027. Whole-run FPS not a fair causal comparison.
+No proof that microoptimization alone produced regional improvement, nor
+that second upper-route passage is fixed. Candidate retained provisionally.
+Prior evidence: Unassigned-Drowned-column-tops-run1.log. No new build.
+
+## 2026-09-19 — Undertow Circuit review and finale implementation proposal
+
+User redirects priority to original level music and planned ending. Produced
+music/drowned/generate.py, original144BPM64bar three-voice MOD,106.58sec full
+micromod WAV and27sec theme extract. Score17468Fastbytes,bank19798Chipbytes;
+reserved fourth channel empty, sample lengths/duration/no-clipping checks pass.
+Host rendering only; composition audition and native balance/FPS pending.
+Project .venv lacks numpy; generated with bundled Codex Python runtime.
+No runtime integration or dist changes yet. Current optimized SFX-only build
+and previous evidence preserved. No release/commit/push.
+
+DROWNED_ENDGAME_IMPLEMENTATION.md reconciles current3520 route with proposed
+4480world: preserve boat2400..3200, return sluices3328..3712, proposedGovernor
+3712..4224, separate station/Core4224..4480. Original machine-versus-mobile-boss
+choice was still open; asynchronous user question asked, no answer at writing.
+Do not infer machine acceptance from this proposal. New art still concept-first.
+Recommend second existing-style beacon before finale; detailed reset/award states
+and performance gates documented. Earlier60–90sec machine arena superseded by
+later25–45sec traversal-based design proposal.
+
+Integration concern found: joined target currently has no gameplay music flag;
+checkpoint directly writes Paula1 and must route through effect mixer before
+music enabled. Existing level1AudioLoad validates only two exact track sizes;
+new track selector, mappings and lifecycle tests required. Music raw payload
+37266bytes exceeds original12–24KiB disk aspiration; no packing/ADF claim.
+Next user audition, then dedicated music+SFX native candidate; finale choice and
+concept review before final-area integration.
+
+## 2026-09-19 — Undertow Circuit v2 melodic review
+
+User requests more epic/catchy/melodic music. New sibling music/drowned-v2
+preserves v1. Repeated8bar call/answer hook, sustained harmonic lead with clear
+breaths, stronger bass rhythm, bell bridge and returning theme.144BPM64bars,
+106.58sec;27sec chorus preview. Three voices,fourth empty. Bank20810Chipbytes,
+score17468Fastbytes; new looped lead1012bytes. Host micromod generator checks
+loop bounds, sample lengths, reserved channel, duration and no clipping pass.
+Not listened/accepted by user or tested in native ptplayer; no runtime integration
+or dist changes. Finale choice from previous turn remains open.
+
+## 2026-09-19 — Undertow v2 rejected; v3 warmer middle ground
+
+User rejects v2 as too bright/shrill and prefers v1. Preserve both; do not
+integrate v2. Created music/drowned-v3 from v1, retaining drums/bass/atmosphere.
+New recurring eight-bar melody with fewer notes and more space; non-looping
+warm reed with gentle attack, fundamental-dominant spectrum and no FM, instead
+of v2 sustained harmonic lead. Main melody stays at/below A4. Same144BPM,
+64bars,106.58sec,3voices, fourth empty. Bank21622Chipbytes,score17468Fastbytes.
+Generator length/channel/duration/no-clipping assertions pass. Host micromod
+full and27sec theme previews ready; subjective approval pending. No native or
+runtime/dist changes. Finale choice still open; music audition is current task.
+
+## 2026-09-19 — Undertow v4: distinct level-specific theme review
+
+User perceives title-melody resemblance and asks original,cool,catchy music that
+fits Drowned Turbines. V3 did not import title notes; a note-only MOD audit finds
+at most3 consecutive pitch indices shared with any Neon Sky channel. This does
+not refute perceived similarity (timbre/harmony/rhythm/sample tuning omitted).
+Do not dismiss the feedback or claim algorithmic originality proof.
+
+Created sibling music/drowned-v4: new E-minor harmony over Em/Em/C/Bm/Am/C/Em/B,
+syncopated recurring motif with falling fifth response, new bass/kick rhythm,
+low-register bell variation and quiet bridge. Warm non-looping reed retained;
+no bright sustained v2 lead.144BPM64bars106.58sec,3voices,fourth empty;
+same21622Chip samplebytes and17468Fastscore. Full/theme micromod previews.
+Sample/channel/duration/no-clipping validation passes. Title-note audit JSON
+retained as limited source evidence, not listening acceptance. No runtime or
+dist change. Musical review pending; existing finale decision remains open.
+
+## 2026-09-20 — Undertow Circuit v4 integrated in Drowned music test
+
+User approves v4 for now and requests in-level integration before confirmation
+runs. New make target drowned-music links existing three-channel ptplayer and
+AUD3 two-effect mixer with joined level. Rain score17468Fastbytes,bank21622Chip
+plus224Chip mixer buffers (allocator/code/effect-copy overhead additional).
+Compile-selected Drowned track load validates exact sizes and signature; other
+tracks retain prior paths/sizes. Drowned effect4 uses pump-shot.raw; checkpoint
+appended16 with priority10,volume58,cooldown32 and AUDIO_MIX dispatch before any
+Paula1 direct write. Existing IDs/priorities preserved. No per-frame track lookup.
+
+Music build deliberately omits SPARKPAW_RENDER_DIAGNOSTIC and all CIA profiling;
+level1_audio.c ownership guard stays intact. NO renderdiag.log or LMB log save in
+this drawer. Runtime smoothness is subjective until compatible cadence-only
+instrumentation is separately designed. Life loss retains existing song lifecycle;
+user should verify checkpoint, damage/shots, water, pause/resume and upper route.
+
+Native020 build passes (initial unresolved gameStormrailActive in isolated target
+fixed by compile-time FALSE selection before staging). Host actual backend
+lifecycle runs both ordinary and Drowned variants, all allocation failures,
+checkpoint mapping/priority/cooldown,24starts/stops each and ownership cleanup.
+Mixer oracle40000operations/13225tails passes. No emulator launched.
+
+Staged dist/Drowned-Level-020-HD/Drowned-Test with72assets/55literalrefs;
+v4 split files exact byte parity.68alpha.8releasefiles unchanged. Prior SFX-only
+cadence drawer/log archived byte-identically in older-builds/Drowned-Level-020-H-old-111058.
+Proof-checkpoint.json identifies music/no diagnostics; prior proof-before-music-v4.json.
+README explicitly says reset/stop after playing, no mouse log or Workbench promise.
+Music/art/gameplay native approval and memory peaks pending user run. Finale not
+implemented; proposal remains in DROWNED_ENDGAME_IMPLEMENTATION.md. No release,
+version change,commit or push.
+
+## 2026-09-20 — Undertow v5 continuous melody staged
+
+User tested music and requests constant melody/tempo, finding the quiet passage
+out of place. Tempo was already144BPM; v5 removes sparse opening/bridge and
+lower-register breakdown, using warm v4 lead plus full drums/bass throughout.
+Existing recurring motif and small later variation retained; no bright v2 lead.
+Generator asserts at least8percussion,6bass,5lead notes per bar. Empty fourth
+track, sizes, duration106.58sec and no host clipping checks pass. Sample bank
+byte-identical21622bytes, score17468bytes. Prior v4 preserved.
+
+Current Drowned-Level-020-HD/Drowned-Test has only rain-score.bin and ReadMe
+changed versus played v4 drawer; executable and all other assets byte-identical.
+72assets/55refs,68releasefiles preserved. Prior drawer archived intact at
+older-builds/Drowned-Level-020-H-old-112210. Music target now copies v5 score/bank
+from source to build assets for reproducible future staging. No native rebuild
+needed for this score-only edit. No renderdiag.log; CIA remains music-owned.
+User audible approval pending; no FPS claim, release,commit or push.
+
+## 2026-09-20 — Music v5 accepted; finale/station concept review
+
+User says music is good and requests continuation with level ending. Preserve
+v5 as current music. Produced assets/concept/drowned-finale-station-v1.png/TXT
+with imagegen using accepted pontoon scene for materials/palette. Two panels:
+Pressure Governor (three low/mid/low locks) and separate small rain weather
+station with Rain Core. Concept only; not native indexed art, not final collision
+layout. Generated fox is scale reference, never new player art. No HUD or rear
+replacement implied. Illustrated path gap/platform accessibility must be resolved
+with actual physics; retain safe dry waiting place and second beacon proposal.
+Prompt and pending review logged in IMAGEGEN_PROMPTS.md. Governor remains the
+recommended finale direction; user has not explicitly resolved boss alternative.
+No new runtime changes/build/dist mutation this turn. Current music drawer stays
+playable. Next obtain concept/direction feedback, then native parts and geometry
+proof; return sluices/independent instances and finale state follow endgame plan.
+
+## 2026-09-20 — Pressure Governor isolated gameplay proof staged
+
+User finds art unclear and explicitly requests playable test, then says continue.
+Built compile-guarded SPARKPAW_DROWNED_GOVERNOR test, make drowned-governor;
+starts at ordinary x36 in a short dry arena bounded0..960. Existing3520 asset
+allocation reused for isolation; real final layout/campaign not integrated.
+Targets x256/y136,512/y88,768/y136; raised solid platform432..576,y152..168.
+Ground200. Numbered32x64 test panels with closed slats, amber warning, exposed
+cyan bullseye,3remaining-hit lamps and done checkmark. These are procedural
+readability mockups, not approved finale pixelart. Same music v5/HUD/player/jet.
+
+Each lock:45tickwarning,55tickvent,100tickexposed,3hits, sequential. Future/closed
+panels consume bullets but take no damage. Full panel must be on-screen with
+margin. Jets x384 (first2locks) and640(lastlock), existing64pxjet visual; safe
+dry floor around jets. Third lock stops jets and opens solid exit864..896.
+No Core,station,results,new SFX or enemy waves. Walking through E completes the
+proof informally. Death resets locks and returns start; normal lives retained.
+No actual new beacon/checkpoint needed within this short prototype.
+
+Renderer reuses six compact patches and existing610Chipstage; generated
+4*6*4*256=24576bytes normal-program art table. Full-column bounds0 for this
+prototype prevent incorrect inherited upper-row skips. Static foreground has
+matching raised platform. Collision conditional uses exact prototype geometry;
+spawns/collectibles disabled and old water/boat/checkpoint moved or remain out
+of reachable area. Main full-level paths behind guard remain preserved.
+
+Actual-state ASan/UBSan test covers closed/exposed hits, hitcount/stages,both
+sweep directions,offscreen rejection,warning/vent,exit/reset and solid bounds.
+Native build passes; no emulator or actual movement/FPS acceptance claimed.
+Artwork reviewed: corrected prototype base to darksteel pen8 (initial preview
+used orange pen2). Generator remains deterministic, host pixels only.
+
+Current dist/Drowned-Level-020-HD/Drowned-Test is ISOLATED Governor,not fulllevel.
+72assets/55refs verified;68alpha.8files unchanged. Previous fulllevel+v5 drawer
+preserved byte-identically at older-builds/Drowned-Level-020-H-old-184853.
+Proof-before-governor.json preserves prior music state. No renderdiag.log or
+leftmouse save; music owns CIA. User judge readability/timing/jumps/fun,stop/reset.
+No release/version/commit/push. Concept machine art and real weatherstation remain
+pending; do not mistake this explicit test-graphics proof for final art approval.
+
+## 2026-09-20 — Governor v2 challenge pass
+
+User reports initial mechanic works but asks whether it becomes difficult,
+perhaps enemies, and authorizes continuation. Tightened exposed windows from
+100ticks each to100/75/55(2.0/1.5/1.1seconds). Same45warning+55vent; no surprise
+warning reduction. Adds one Turbine Crab spawn624..640, surface576..816,y200,
+existing respawn policy. No inherited traversal links or other route spawns.
+Governor encounter now arbitrates real enemy/panel sweeps by nearest hit and
+routes damage to enemies before panel fallback. All outside proof compileguards
+unchanged. Same test art, music,geometry and exit. Not final encounter acceptance.
+
+Actual-C state tests cover each window boundary/cycle and reset; actual encounter
+callbacks tested with enemy shim for left/right nearest ordering and enemy damage.
+Native020 build passes. Staged same Drowned-Level-020-HD/Drowned-Test;
+72assets/55refs,68releasefiles unchanged. Prior v1/log drawer preserved byte-exact
+at older-builds/Drowned-Level-020-H-old-192207. Proof-before-governor-v2.json.
+No renderdiag/noLMBsave. User judge pressure/fairness/clarity and enemy interference;
+no automatic emulator,no measuredFPS claim,no release/commit/push.
+
+## 2026-09-20 — Governor native pixelart/shutter review
+
+User accepts gameplay v2 and requests polished AGA pixelart. Produced versioned
+RGBA tower source via imagegen using approved concept material direction;
+assets/concept/drowned-governor-tower-source-v1.png/TXT. Tool returned alpha,
+not magenta; preserved source. Converted in tools/prepare_governor_art.py with
+one aspect-preserving scale to57x128 within80x128 native cell, current16pen
+foreground palette, pen0 transparency, no dithering. Native SPBM decoded parity
+passes. Full body mainly static; moving shutter and hit lamps remain wholly
+inside existing32x64 lower patch. Deterministic review GIF opens split shutters,
+shows exposed cyan port, extinguishes three lamps then subdued done indication;
+all pixels outside that patch verified identical throughout animation.
+
+Review assets in assets/concept/drowned-governor-native-v1: scene-4x.png,
+tower-6x.png,states-4x.png,shutters-preview.gif,tower.spbm. Actual128high body
+maps low top72 and high top24 onto tested ground200/perch152. Exact port/hitbox
+alignment needs integration review (generous old24x32 hitbox versus narrower
+visible port); do not claim final gameplay art match yet. No renderer,gameplay,
+dist or audio change. Existing v2 remains staged. Art/motion review pending
+before integrating, then static pipe connections/platform polish and own exit
+art; Rain weatherstation follows separately. No native/FPS claim or release.
+
+## 2026-09-22 — Continuous rear panorama staged for ingame review
+
+User approved ingame trial. Full builder consumes `assets/concept/drowned-panorama-v2/drowned-rear.spbm` with palette/prefix/fetch bounds assertions; Makefile depends on this asset. Native build passes. Staged `dist/Drowned-Level-020-HD/Drowned-Test` with73assets/55literalrefs. Compared entire previous drawer: ONLY ReadMe and drowned-rear.spbm changed; executable byte-identical, gameplay/music/front art unchanged. Previous drawer and evidence archived intact in `dist/older-builds/Drowned-Level-020-H-old-005237`;68official alpha.8 files unchanged. Test first governor approach through station: no repeated rear seam, natural scroll. No diagnostics/FPS claim; manual020acceptance pending.
+
+## 2026-09-22 — Full-level rear ambience candidate staged
+
+User approved combined water/fall appearance and asked to spread animation. New `tools/build_drowned_rear_ambience.py` precomputes approved water-animation-v1 exactly plus4existing waterfall rectangles into `drowned-amb.bin`:205828bytes Fast data. `src/drowned_rear_ambience.h`, compile-isolated to DROWNED_FULL, uses one1848byte Chip DMA stage. Visible352px water window only,24frames/6simulationticks; staged source rows then Blitter copies both canonical rear and guarded display. At most one update family (water or1fall) per publication.4falls at rear x112/432/656/1216; last matches approved32x44patch exactly within aligned48x44rect. Other3adapt same streak/foam law to existingwater.
+
+Shore-wave pens4/6 get three raster bands184/186/188 plus full high/low nibble restore at190; palette tables precomputed and per-inactive-list cache avoids repeatedpatching. Copper capacity896 versus768words adds512Chip across2lists, total extra explicit Chip2360bytes. Binary291316bytes, +2884. No extra full backdrop.
+
+Important live architecture: rolling renderer composes front asynchronously, so rear single-buffer DMA runs immediately AFTER successful line0publication, not in asynchronous Bob draw. Entry afterline64 defers; first animatedfall row112(display156) leaves a conservative beam window. CPU writes only private stage; Blitter handles canonical/display updates and completes before reuse. Hardware beam timing/performance still requires user proof.
+
+Tests: test_drowned_rear_ambience.py verifies actual C with ASAN/UBSAN, all24waterframes versus approved GIF, originalfall4frames, plane/row guards across1830waterrectangles, Copper64-word extension/phase, max6blits, late-entry deferral and allocation lifecycle. Full route +tail collectible tests pass after build completes (an earlier concurrent test saw a transient intermediate generator asset; final rerunpasses). Native build existing unrelated warnings only.
+
+Staged `dist/Drowned-Level-020-HD/Drowned-Test`,74assets/56literalrefs,68official alpha.8 files unchanged. Previous staticrear build/evidence archived byte-identical `dist/older-builds/Drowned-Level-020-H-old-084445`. Difference from previous drawer: executable/ReadMe plus new drowned-amb.bin ONLY. Existing assets/gameplay/music byte-identical. User test020opening,precision,secondferryupper/checkpoint repeat,governor/station; no log in music-enabledvisualcandidate. No emulator launch, release, commit or push. Acceptance pending.
+
+## 2026-09-22 — Rear waterfall black stripes: native mask fix staged
+
+User screenshots show black rectangles/vertical strips at waterfall patches and
+water strip. Preserved with provenance as testresults/Drowned-waterfall-black-stripes-1/2.png
+and TXT sidecars. Initial animation candidate rejected.
+
+Confirmed compiled-code defect: chained volatile assignment
+`hw->bltafwm=hw->bltalwm=0xffff` makes vbcc read back write-only BLTALWM
+before writing BLTAFWM. Separate statements now produce two immediate -1
+writes to offsets68/70; tools/audit_drowned_rear_masks.py audits actual full-build
+68020 assembly and reproduces the defect from saved prior assembly. Other
+renderer mask assignments already separate. Prior host fake registers were
+readable RAM and missed this hardware restriction; host pass was insufficient.
+
+Host ASAN/UBSAN test now checks both masks and all four waterfall rectangles
+across four phases, including untouched plane/row guards. Existing water/colour
+parity tests, full-level tests, native assembly audit and native build pass.
+No art/gameplay changes. Staged dist/Drowned-Level-020-HD/Drowned-Test:
+only executable and ReadMe differ from archived faulty candidate
+`dist/older-builds/Drowned-Level-020-H-old-085301`;74assets/56refs verified,
+68official alpha.8 files unchanged. Proof build/drowned-full/proof.json.
+Manual020 visual acceptance and performance remain pending. Test first waterfall
+and water strip for black bars, then later falls. No automatic emulator run,
+release, version bump, commit or push.
+
+
+## 2026-09-22 — Full-level FPS A/B staged; user 020 measurement pending
+
+User accepts corrected rear ambience visually and requests full5120 FPS work
+on68020/2MBChip/8MBFast/PAL50/noJIT, preserving music/art/gameplay. Alpha.8
+remains official; no release, commit, push or automatic emulator.
+
+Read current contracts and historical engine/audio timing evidence. Starting
+Drowned-Test SHA25692bf65300ffba69ee894adc60e72ec557c63232f7c8382b632b1bec4e261825d
+has NO renderdiag; logger-free A rebuild is byte-identical. Existing startupdiag
+was appended during user's run: initial742bytes recovered by exact prefix hash,
+current2226bytes separately preserved. User confirmed emulator stopped before
+archiving full drawer/metadata at dist/older-builds/20260922-fps-baseline/.
+All68alpha.8files unchanged. Historical logs bound to archived executables;
+old3520px nonmusic timings are not measurements of current full music level.
+
+One bounded B change: advancing row pointers in rear private staging removes
+84 repeated native row multiplies per water upload. Same42CopyMem calls,
+1848staged bytes,6blits,3696destination bytes, masks/waits/schedule/animation.
+No allocation growth; plain binary60bytes smaller. Actual reference/candidate
+pixel/Copper/guard tests and native write-only mask audit pass. This proves
+less CPU work, NOT FPSgain. Broader findings and next hypotheses documented.
+
+Active pair: dist/Drowned-FPS-A-020-HD and Drowned-FPS-B-020-HD; launch
+Drowned-Test. Both musicv5, same74assets/56refs, fixed matching initial seed.
+Separate SPARKPAW_DROWNED_FPS reads CIA-A TOD once immediately after COPJMP1,
+no CIA-B timer/profile ownership. Eight regions plus late upper/lower before/
+after reset; reset+next and pause accounted separately. Preserve rawzero/two
+phase pairs: NOT exact deadline misses. Ownership counts unavailable. Observer
+adds2956filebytes/3040loader allocationbytes including448BSS, no explicitChip;
+time overhead unmeasured. Build ID in logs/ReadMes; proofs/assembly/plaincontrols
+at build/drowned-fps-round. Host counters and actual safe-flush lifecycle pass;
+fullworld/sprite/pause/audio regression checks pass; nativefourbuilds pass.
+
+Manual A then B: opening10sec; full route to checkpoint; lateferry upperroute
+combat/back-forth20sec; waterdeath/checkpoint; sameupperroute20sec; Governors/
+station and laterfalls. BeforeCore LMBpress/release,wait15sec,frozenimage,reset.
+Each writes own renderdiag.log; preserve before rerun. Explicit020scope overrides
+usualskill030first. Need user's visuals/audio/smoothness AND logs; no50FPSclaim.
+Details: sparkpaw/docs/DROWNED_FULL_FPS_ROUND.md. Next do not blindly enable old
+renderdiag alongside music or combine other optimizations before this A/B.
+
+## 2026-09-22 — Rear-stage A/B reviewed; runtime reset-copy A/B staged
+
+User played both rear-stage variants and reports no clear speed difference,
+with image and music good. Both complete logs/build IDs/executables verified
+and raw evidence preserved as testresults/Drowned-full-fps-stage-A/B-020-run1.log
+with TXT sidecars. Raw aggregate publications/s: A43.99/B45.01; late ferry
+36.40/36.52. Upper before reset33.79/36.26, after reset37.17/36.53. Unequal
+manual workloads, no consistent late-ferry win. Retain rear pointers as a small
+work reduction, NOT a measured FPS success. All four long intervals in EACH
+run are in reset_and_next: four times8TODfields, two simulation resets. No
+three-plus elsewhere; zero/two phase caveat and no ownership counter remain.
+
+User explicitly says continue. New isolated SPARKPAW_DROWNED_RESET_BLIT uses
+existing bounded canonical DMA copier only for >=512px runtime camera jumps.
+Startup remains CPU. Full208rows, fourplanes, allthree physical ring copies,
+waits and exact water/collectible history retained. No new allocations. Same
+159744destinationbytes per target,12/24blits; Blitter rereads source percopy,
+106496more source bytes than CPU path. Speed advantage UNMEASURED. This targets
+reset pauses, not ordinary late-ferry performance. Default full target does
+NOT enable this new flag pending user gate.
+
+ASan/UBSan actual oldCPU/newDMA/independent pixel oracle:1734resets, every
+valid16pxorigin over5120world, both buffers/directions, guards andhistory.
+Existing1788short-columncases pass. Actual counters/flush tests pass; native
+fourbuilds pass. New A-plain is byte-identical to preceding B-plain. Other
+inspected translation units identical A/B; native reset branch calls DMA,
+startup path retained, mask writes remain safe. New B-plain +132bytes, noBSS
+orChipbuffer growth. Proofs/assembly: build/drowned-fps-reset/.
+
+ACTIVE: dist/Drowned-Reset-A-020-HD and Drowned-Reset-B-020-HD, executable
+Drowned-Test. ACPUreset/BBlitterreset; both priorrear pointers/musicv5, same
+TODobserver/seed,74assets/56refs;68alpha.8files unchanged. Played FPS pair
+and complete logs archived intact at dist/older-builds/20260922-fps-stage-run1/.
+Reproduce: make drowned-fps-reset (prepared current full assets required).
+Manual020: checkpoint, LAST ferry upperledges nearfarbank,15secjump/shoot,
+deliberatewaterfall, observe respawn pause,10secplay afterreturn, inspect
+water/diamonds/enemies/scrollstrips. LMBrelease/wait15sec/frozenimage/reset.
+No finale replay needed. Ordinary ferry sync/margin remains separate research.
+No emulator launch, release, commit or push. Detailed report:
+sparkpaw/docs/DROWNED_FULL_FPS_ROUND.md. Await user's reset/image/audio/log gate.
+
+## 2026-09-22 — Busy-scene discovery build ready (not an optimization)
+
+User requests continuation with sustained busy-scene FPS as the priority.
+One active drawer: `sparkpaw/dist/Drowned-Busy-020-HD/Drowned-Test`.
+Build ID `busy_d3d8e3e3d83e1d406994_sparse`, SHA256
+`0b5ca6b88c481f4b7c3560328a392730fe0830739dd42da021a2e0b372364dfe`.
+The reset Blitter flag is OFF. Enemy-row trimming is NOT implemented pending
+actual busy-scene cost evidence; its theoretical saving is not a measured win.
+
+New compile-only diagnostic `SPARKPAW_DROWNED_BUSY` takes read-only CIA-A TOD
+and raster checkpoints every 31 frames (prime stride avoids phase-locking to
+2/4/6/16-tick animations). Up to 16 samples per region, with a separate late-
+ferry-after-reset quota; 144 samples / 28,512 explicit MEMF_FAST bytes total.
+No additional Chip allocation. Actual submitted enemy draws by family,
+projectile draws, generic masked-Bob and restore word cells are recorded on
+sampled frames only. Counts do not cover every dynamic DMA transfer.
+
+Checkpoints cover game/AI, sprite+HUD+Copper, restores, water/patch generation,
+ring/dynamic synchronization, enemy/projectile draws, final wait/history and
+rear update. No extra WaitBlit, timer ownership/configuration, audio callback
+or publication-policy changes. Intervals include IRQ and deferred DMA waiting;
+a first wait may retire preceding work, so do not label scopes pure CPU or
+add nested AI/game or enemy-restore/all-restores totals. An empty consecutive
+checkpoint is a timestamp-overhead probe, not a total observer-cost measure.
+Unsampled frames still execute diagnostic guards and sample selection.
+Time overhead remains unmeasured; discovery FPS is not production FPS.
+
+`tools/analyze_drowned_busy.py` retains raw zero/two TOD behavior and rejects
+incomplete saves, invalid/torn stamps and negative/excessive intervals. Same-
+TOD nondecreasing beam intervals need no wrap inference. Cross-TOD estimates
+assume PAL312 and aligned field epochs away from raster8..300 edges; retain
+that assumption until the supplied raw trace is checked. No exact-deadline
+or ownership-violation claim is possible. At most 16 regional samples support
+coarse prioritization, not strong percentile or causal FPS claims.
+
+Actual collector ASan/UBSan tests cover allocation failure, sparse gating,
+all region/reset quotas and full capacity, torn/edge clock handling, disabled
+counts, 24-bit wrap and analyzer attribution/reset exclusion. Existing cadence
+and safe audio/OS flush tests pass. Native plain/minimal/sparse builds pass;
+plain SHA256 remains byte-identical to the played pre-reset pointer baseline.
+Sparse executable297064bytes, +2844versus minimal; static BSS +52bytes.
+Native masks remain separate immediate writes; diagnostic calls absent from
+plain/minimal hot paths. Proofs and offline controls: build/drowned-busy/.
+Rebuild with `make drowned-busy` using prepared current full assets.
+
+Staged with the standard HD stager:74assets,56compiledreferences,76files.
+Both played reset drawers/logs/launch metadata are archived intact under
+`dist/older-builds/20260922-fps-reset-run1/`. All68alpha.8files unchanged.
+Manual020 route:10seconds quiet opening, checkpoint,20seconds busy second
+ferry/upper route with normal jumping/shooting, one death, repeat20seconds
+after checkpoint. No finale replay needed. LMB press/release, wait30seconds
+on frozen image, stop/reset; keep the drawer's renderdiag.log. Only one run,
+not A/B. No emulator launched, release, commit or push. Await this discovery
+trace before selecting the next sustained-throughput optimization.
+
+## 2026-09-22 — Busy run2 complete; sustained scene cost priorities
+
+User replayed and left the save screen frozen. Verified83/83samples and
+post_run=complete; log93263bytes, executable/source ID match staged discovery.
+Preserved raw as testresults/Drowned-busy-020-run2.log plus provenance TXT;
+strict analyzer output: build/drowned-busy/run2-analysis.json. Original partial
+run1 retained. User told FS-UAE may now stop/reset. No new image/audio verdict.
+Regional/global cadence sums and raw distribution sums verified. Discovery
+aggregate2964intervals/3540fields=41.86publications/s; lateferry478/708=33.76,
+upper before reset222/336=33.04, after225/333=33.78. One reset,no pause. These
+are observer-contaminated discovery numbers, not ordinary music-build FPS.
+
+Late-ferry before/after groups contain9/7samples. Conditional PAL312 scanline
+medians (IRQ/deferred DMA/observer included, nested scopes NOT additive):
+
+| Scope | Before reset | After reset |
+|---|---:|---:|
+| Game incl AI |98lines,n9|105lines,n7|
+| AI nested within game |29lines,n9|30lines,n7|
+| Sprite/HUD/Copper |10lines,n9|10lines,n7|
+| All Bob work |204lines,n7|190.5lines,n4|
+| Ring+dynamic sync nested in Bob |55lines,n9|59.5lines,n6|
+| All restores nested in Bob |50lines,n9|44.5lines,n6|
+| Enemy draw nested in Bob |23lines,n6|17.5lines,n6|
+
+At nominal64us/line this is about12..13ms Bob work,6..7ms game,
+3.5..3.8ms ring/dynamic sync and1.1..1.5ms enemy draw. Do not sum medians
+or interpret these as pure CPU timings.134invalid scope pairs were excluded;
+near-edge TOD/raster disagreements remain visible in the raw evidence.
+Empty timestamp probe median1line confirms nonzero instrumentation cost,
+not total overhead. Some rear updates reach77..79lines (~5ms), versus2lines
+for the common light path. Instrumented lateframe budgets are close enough to
+a PAL boundary for this combined load to matter. This is a scheduling/workload
+hypothesis, not proof that any single family explains every missed interval.
+Finale-approach group5 has heavier enemies (enemy draw median55.5lines,n8),
+so enemy cost must not be generalized from ferry Spillwings to all encounters.
+
+Priority now: ring/dynamic-water transfer workload and interaction with rear
+publication work, while retaining all ring copies and single-buffer rear DMA
+contracts. Enemy-row trimming is secondary, not the presumed primary fix.
+Source review confirms existing merged-water sync and three-copy patch copier;
+do not rediscover those as new optimizations. Prepared rear phase row audit
+(build/drowned-busy/rear-phase-row-audit.json) shows all14rows vary in planes0/1
+and12in plane2, so a simple static-row skip there is not a large win either.
+No optimization or new drawer staged in this review. Current discovery drawer
+remains available; no further replay needed for this diagnosis. Alpha.8 and
+all local work preserved; no emulator, commit, push or release.
+
+## 2026-09-22 — Rear-water transfer A/B staged for busy-scene gain
+
+User authorizes one meaningful optimization round after complete discovery.
+Ring/dynamic foreground synchronization already merges dirty water and keeps
+three required physical copies; no unsafe copy removal or animation reduction
+was selected. Discovery also exposes intermittent rear work around77..79PAL
+lines. Candidate targets redundant transfers in THAT path, not a claimed fix
+for all ring-sync cost or a promise of50FPS.
+
+Opt-in `SPARKPAW_DROWNED_REAR_DIRECT_WATER`: after successful publication and
+the unchanged line<=64 gate, retire DMA, copy strided Fast water rows directly
+into private rearWorld bitmap, then three canonical-to-rearDisplay blits.
+Reference copies Fast->private stage then six stage->canonical/display blits.
+Both destination rectangles, all pixels/phases, palette and schedule retained.
+CPU never writes the fetched rearDisplay. Compile guard requires full Drowned
+and the separate guarded rear display; both initial Copper pointers and scroll
+patching use rearDisplay in this configuration. This narrowly changes which
+private Chip buffer receives CPU water writes, not display ownership. Initial
+and final DMA retirement retained. Waterfalls keep their one contiguous CPU
+stage copy and six-blit path; their small source rows would make direct CPU
+row copies an unfavorable change. Dedicated stage allocation retained for them.
+
+Full water upload:42CPU CopyMem calls/1848bytes in both. Blits6->3; logical
+Chip transfer bytes9240->5544 (40%less for this upload, NOT40%FPS). No new
+allocations or BSS growth. Actual native plain B+420bytes; ordinary default
+build does NOT enable candidate. A plain exactly equals played music baseline
+SHA2568ba2327ef2766ee743e21baba1dda5292285d5030bef6871698e6af373dca30d.
+Actual native other8translation units identical A/B, safe separate mask writes
+verified in both plain/cadence renderers; busy profiler and old CIA profiler
+absent. Existing minimal TOD cadence is identical apart from variant/build ID.
+
+Host actual-C ASan/UBSan tests pass baseline, old staging reference and new
+candidate:24water phases x76windows=1824rectangles, both destination bitmaps,
+untouched pixels/guards, all4waterfalls/4phases, 1000scheduler camera steps,
+Copper phases and lifecycle. CPU copies assert no pending DMA; DMA source
+bounds and exact transfer count asserted. Existing cadence/safe music+OS save
+checks pass. Native fourbuilds pass. This proves pixels/work reduction on host
+and native instruction selection, not real runtime timing or visual acceptance.
+
+ACTIVE pair: dist/Drowned-Water-A-020-HD and Drowned-Water-B-020-HD, each
+Drowned-Test. IDs fps_8e768ab93ca563d8e77f_A/B. A-cadence SHA256
+26ab9932ff321fbb9b8e6f0b211cee3425c206369709d2217513f8c46f62102b;
+B-cadence13f7c990148ceac307792249ee0e309e48e79582cc6e36ae9f1cfe8e16a6faa9.
+Both74identicalassets/56compiledreferences; all68alpha.8files unchanged.
+Complete played discovery drawer/log/launch metadata archived intact under
+`dist/older-builds/20260922-busy-discovery/`. Raw evidence also remains in
+`testresults`. Proofs/controls:build/drowned-rear-direct/. Rebuild with
+`make drowned-rear-direct` after any required full asset generation.
+
+User020 A thenB: briefly inspect water while stationary/scrolling; checkpoint;
+20seconds busy second-ferry/upper route jumping/shooting; one death; repeat
+20seconds after checkpoint. Optional B-only continuation to inspect last
+waterfall is visual-only, excluded from matched FPS comparison. LMBrelease,
+wait15seconds (compact cadence logs again), reset. Report busy hitches and
+image/music separately. Preserve logs before rerun. No automatic emulator,
+commit,push or release. Candidate pending; reject for visual/audio errors or
+no convincing benefit versus risk. Foreground ring-sync cost remains open.
+
+## 2026-09-22 — Rear-water A/B: no demonstrated busy-route improvement
+
+User played both and reports little perceived difference (uncertain), with
+second ferry/upper route and Spillwings still heaviest. Both complete logs,
+build IDs, executable hashes and regional sums verified. Raw preserved as
+`testresults/Drowned-water-direct-{A,B}-020-run1.log` with provenance TXT;
+calculations in `build/drowned-rear-direct/run1-analysis.json`.
+Before-reset upper: A201intervals/294fields=34.18publications/s;
+B224/326=34.36. No convincing gain. Whole-run A41.25/B44.02 is not causal
+performance evidence: A records1reset and252after-reset upper intervals;
+B records0resets and0after-reset upper intervals, with different region time.
+Aafter-reset upper35.29 has no B counterpart. No new image/music verdict given.
+Do not request another same-candidate run merely to chase this small difference.
+Candidate stays opt-in/off in normal build and is NOT promoted as an FPS fix.
+Logical transfer reduction remains proven; subjective/native benefit is not.
+
+Reassess sustained foreground work, not another rear micro-optimization.
+Historical audit reminder: PERFORMANCE_68020_STAGE2_AUDIT.md rejects H3
+fetch-union pruning at28.96vs28.64FPS in matched old CPU-copy runs; scaled
+indexing and branch/address costs erased reduced writes. Current Drowned uses
+DMA transfers, so those numbers are not its current cost, but any renewed
+copy-pruning idea must explicitly distinguish the new mechanism and prove
+fetch/restore/guard invariants rather than silently relaxing the three-copy
+contract or repeating H3. No such candidate implemented in this review.
+
+Existing A/B drawers remain intact in dist; no new executable, emulator,
+commit,push or release. Alpha.8 unchanged. Further progress needs a materially
+larger foreground scheduling/transfer improvement, not a claim that fewer
+transfer bytes already solved busy gameplay.
+
+## 2026-09-22 — System audit, retained bounds and structural renderer plan
+
+User played enemy A/B, reports little perceived improvement, asks to retain
+useful work reductions and research larger causes. Clarified “zoom uit” means
+look at the whole system; music stays ON. No request to disable music.
+
+Both complete logs preserved with hashes/provenance as
+`testresults/Drowned-enemy-bounds-{A,B}-020-run1.log/.txt`. After-reset upper
+A216/308=35.06publications/s; B468/654=35.78. Two-field shares42.59/39.74%.
+Not causal proof: different manual workloads, A1/B2resets, B no pre-reset upper
+samples. Whole42.85/44.95 is not a speedup claim. No governor/station samples
+or separate new image/music verdict. Current enemy A/B drawers/logs left intact.
+
+Enemy bounds now enabled in drowned-full alongside retained rear-water change.
+Historical A/B builders strip defaults as needed to reproduce controls. Current
+default native plain build is byte-identical to the plain counterpart of played
+B:39b6355bd3fa88cc5a6147290e21153b97bf1b680534f107878a090da2d8be3c.
+Separate all-object rebuild/link map verifies the same hash. No frame code,
+assets, audio settings or presentation changed beyond enabling the played flag.
+
+New active plan: `sparkpaw/docs/DROWNED_RENDERER_PERFORMANCE_PLAN.md`.
+Research uses Commodore Hardware Reference Manual, Motorola020manual and
+historical AA specification transcription. Audit covers actual native main,
+renderer, game, enemies, collision, Spillwing, music/SFX mixer plus player,
+projectiles, Drowned queries, governor, HUD and asset code. Evidence/maps under
+`build/drowned-system-audit/`; use verified-link.map, not initial link.map.
+No cache-conflict or exact CPU-time claim from static code/map offsets.
+
+Preferred structural hypothesis: two complete physical512px ring copies with
+base96 instead of three copies/base512, retaining current AGA fetch and art.
+New offline `tools/analyze_drowned_ring_layout.py` checks actual contract helpers
+for all4801camera positions: resident window0..1007, fetch64..959 within1024,
+identical world fetch phase. Geometric feasibility only, NOT runtime safety.
+Potential104KiBChip saving and1/3fewer ring-copy words, not1/3FPS. Requires full
+coordinate/restore/patch/Copper/history audit and pixel/ownership model before
+compile-guarded native A/B. Current three-copy runtime contract unchanged.
+
+Secondary plan: CPU/DMA overlap with immutable render snapshots and measured
+queue/dispatch overhead; interleaving, sprite enemies and64-bit fetch ranked
+lower. OldFMODE3/H3/full-copy failures explicitly retained as constraints.
+Concrete smaller CPU finding: water-contact query scans20spans before height
+rejection even on upper route; native output confirms. Not changed/timed yet.
+
+Do not ask for another micro A/B now. Next work: finish two-copy ownership/pixel
+model, then one structural experiment if safe. If insufficient, measure ready
+time/remaining deadline and CPU/IRQ/Blitter separation before broader rewrite.
+No claim50FPS. No emulator launch, commit,push or release; alpha.8 unchanged.
+
+## 2026-09-22 — Two-copy ring implemented; manual A/B pending
+
+Structural candidate `SPARKPAW_DROWNED_TWO_COPY_RING` is opt-in only. Two
+complete512px foreground copies/base96 replace three/base512. All world-slot
+writes rotate by96; actor/restores and Copper use the corresponding base.
+Both inactive target allocations become1024x208x4:106496bytes (104KiB) less
+Chip bitmap payload. Canonical world, fetch width/phase, animations, audio,
+gameplay and post-publication rear update scheduling remain unchanged.
+Default drowned-full still uses three copies, retained enemy bounds and water.
+
+Host ASan/UBSan proof runs actual ring/column/patch/restore/masked-blit kernels
+with modeled DMA:10048frames per layout, all4801camera positions in both
+directions, wraps, reversals, teleports, reset, overlap, guards and inactive
+ownership. Ring DMA words43606896->29071264 (exact one-third reduction);
+restore21152832 and masked21157344 unchanged. This is synthetic workload
+transfer evidence, NOT native time or FPS. Real140enemy poses/4096history
+scenes pass on both layouts. Existing reset/column/patch/water-sync/rear/FPS
+regressions pass; water-sync harness needed the new header include path.
+No emulator/raster acceptance is implied by host models.
+
+Native plain/cadence builds pass. A plain byte-identical to retained enemyB
+plain39b6355bd3fa88cc5a6147290e21153b97bf1b680534f107878a090da2d8be3c.
+B plain292196bytes,40bytes smaller. Eight non-renderer plain translation units
+byte-identical; four renderer assembly variants have separate mask writes and
+no old BLTALWM readback pattern. Actual assembly confirms base96/mask511,
+two CPU stores, two1024x208x4 allocations and initial Copper offset8 vs60.
+Evidence:build/drowned-two-copy/{builds.json,native-audit.json,host-ring-proof.txt}.
+
+User confirmed FS-UAE stopped. Played enemy drawers, logs and .uaem archived
+intact under dist/older-builds/20260922-enemy-bounds-run1; archive hashes saved.
+Only active diagnostic pair:dist/Drowned-Ring-{A,B}-020-HD/Drowned-Test.
+Both74assets/56compiled references checked, assets identical; all68alpha.8
+release hashes unchanged. Minimal in-memory TOD cadence only, music ON,
+no broad profiler or per-frame disk logging. Observer cost unmeasured.
+No runtime ownership counters; cadence is approximate publication timing.
+
+A: fps_569f847b713efc560ccc_A; SHA256 3e3e3a0f1cb203ce1f7ed7455ea7ceb0f300d61a7ed58f22fca9fbbbdfea7565
+
+B: fps_569f847b713efc560ccc_B; SHA256 cb27d9e30664d5cc13ab49ce5cbfa024819ed41e31f015a0281823bc78a26556
+
+Manual test pending: A then B, opening/reverse-scroll/background,20seconds
+second ferry half/upper route, die once,20seconds same route after checkpoint;
+inspect finale/weather station too, especially B. LMB press/release, frozen
+image expected, wait15seconds then reset/stop. Save both logs; report image,
+music and subjective hitches separately. Direct68020 per user scope; no030
+acceptance claimed. Do not promote until functional/manual evidence reviewed.
+One-third ring transfers is NOT one-third FPS; no50FPS claim. No emulator
+launch, commit, push or release. Smaller water-contact CPU query untouched.
+
+## 2026-09-22 — Ring A/B run1: promising cadence and user improvement
+
+Complete matching fps_569f847b713efc560ccc_A/B logs preserved byte-for-byte
+as testresults/Drowned-ring-{A,B}-020-run1.log with provenance sidecars.
+Staged executable hashes match builds.json. Analysis:build/drowned-two-copy/
+run1-analysis.json. User reports “volgens mij beter”; explicitly confirms B
+image/music good including reverse scroll/checkpoint, finale NOT reached.
+
+Approximate PAL50 publication cadence:
+- Whole A3261/3637=44.83FPS; B2979/3206=46.46FPS.
+- Ferry first A384/447=42.95; B389/415=46.87.
+- Ferry last A500/645=38.76; B489/586=41.72 (+7.65% observed).
+- Upper after reset A456/589=38.71; B230/275=41.82 (+8.03% observed).
+  Two-field share29.17%->19.57%; sample durations11.78s versus5.50s.
+- Resets A2/B1; no pauses. A has no upper-before-reset sample; B237/283.
+- Whole zero-TOD intervals A0/B2; preserve, do not reinterpret as exact
+  deadlines. Reset-pair long intervals recorded separately. Whole three-plus
+  A4/B2, including resets; no three-plus in after-reset upper samples.
+
+These manual workloads differ and B's after-reset sample is short. Evidence
+supports a useful gain together with the user impression and transfer proof,
+but is not a controlled deterministic8% speedup or stable50FPS. Music ON;
+minimal observer cost remains unmeasured. Neither log has governor/station
+samples. Keep candidate and active pair intact; final-region visual coverage
+still required before treating the full-level renderer as accepted. Normal
+three-copy default unchanged pending that coverage. No new A/B needed merely
+to repeat subjective confirmation; next useful manual check is B's finale.
+
+Memory caveat: bitmap payload reduction106496bytes is established by actual
+allocation dimensions. Startup prepared_chip is A152832/B142264 (B10568lower),
+so these runs do NOT demonstrate greater total free Chip RAM. Available-memory
+snapshots include external OS/emulator state; exact cause not established.
+Do not present the allocation saving as measured net free-memory gain.
+
+User asks to carry successful structural work to level1/interlude and supports
+larger evidence-driven changes. Source portability review: level1 shares
+canonical inactive ring,512logical width,32-bit guarded fetch and window-origin
+helper, so next candidate is a separately guarded generalized ring layout.
+Audit actual water/collectible CPU paths and world-end clamps; host-test its
+assets, scrolling/reversal/restore history and source masks before native A/B.
+Current Drowned macro deliberately rejects STORMRAIL_PROOF, which campaign
+builds include even during level1: simply enabling it globally is invalid.
+
+Stormrail flight differs: prototypePrepareCompactTarget clears each target
+once, then skips ordinary rolling/dynamic sync; restores use stormFlightBlank.
+Two copies can save the same bitmap payload but much less steady-flight work.
+Audit boarding/approach retirement, unbounded distance/wrap, vehicle/drone/
+reward histories, blank restores, finale gate damage/cache and transitions.
+Keep current FMODE/presentation; no assumption of Drowned-sized FPS gain.
+Implement generalized flag only with distinct per-mode tests and an unchanged
+reference binary; no global switch or release modification in this review.
+
+No emulator launched; no commit/push/release. Alpha.8 remains official.
+
+## 2026-09-22 — Two-copy retained; final Drowned diagnostic round staged
+
+User additionally played B to the end successfully, then approved: retain
+Drowned improvement, one bounded remaining-hotspot round, level1 transfer
+later; interlude deprioritized because already smooth. Full-level manual
+functional acceptance now includes finale/station by user report. Original
+A/B logs still have no finale samples: do not fabricate timing coverage.
+
+Normal drowned-full now enables SPARKPAW_DROWNED_TWO_COPY_RING. Fresh make
+build/sparkpaw-drowned-full (292196bytes) and independent plain control are
+byte-identical to accepted B plain:
+b78af227b85ffa7faa1e1ed8af637b98e6b01e74da6b3ef6f6ce4762f03fd738.
+Music ON; FPS/busy/renderdiag compiled out in normal build. Existing startup
+logging unchanged. Historical A/B builder strips new default before recreating
+reference flags. Shared ring header added to Make header dependencies.
+No level1/interlude renderer flags or published release files changed.
+
+One diagnostic now active:dist/Drowned-Busy2-020-HD/Drowned-Test.
+ID busy_00af8181ffe8fa93904b_sparse; SHA256
+709b987fdbf3fcf662ae38d9df9248cf0c0dfc53813d42bc04e65a00dd5d5141.
+Build records/plain/minimal/assembly in build/drowned-busy-two-copy (old
+build/drowned-busy evidence preserved). Uses unchanged tested sparse observer:
+1/31updates,16samples/region plus post-reset ferry bucket,144total,28512bytes
+explicit Fast allocation. Per-frame inactive branches/bookkeeping remain;
+active samples add clock reads/counts. Observer cost unmeasured. No per-frame
+disk output, music remains ON. Existing save pauses audio only for diagnostic
+flush after play. This is a phase-cost locator, NOT new production FPS proof.
+Timing includes IRQ/DMA/observer; nested scopes nonadditive, torn/edge pairs
+rejected. It cannot directly separate pure CPU from DMA wait.
+
+Native plain/minimal/sparse compile; separate mask-write audits pass. Actual
+collector capacity/reset/clock rejection and FPS/save ownership tests pass.
+74assets/56compiled references verified. User confirmed FS-UAE stopped;
+ring A/B drawers plus all logs/.uaem archived byte-identically under
+ dist/older-builds/20260922-ring-accepted (inventory in new build folder).
+68release hashes match before. No emulator launched, commit,push or release.
+
+Route for pending user run:25seconds second ferry half/upper route with
+multiple enemies, jump/shoot/reverse; die once, repeat25seconds after checkpoint.
+LMB press/release, image freezes, wait30seconds before reset/stop for larger
+log. No need to replay finale. One diagnostic build, no new A/B pair.
+
+Remaining analysis decisions: compare scope distribution on this actual
+retained renderer, conditional on region/enemy count and reset. Prior12..13ms
+Bob/6..7ms game estimates predate ring/bounds/water optimizations and are not
+current facts. If game dominates, inspect collision/AI/pure queries (known
+water-height check after span scan remains unchanged). If restore/draw dominates,
+inspect exact word traffic and setup counts before batching. If ring sync still
+dominates, inspect dirty generations. Only investigate cross-phase CPU/Blitter
+overlap with immutable history/state after profiling: current game mutates
+renderer-consumed state, initial old-target cleanup and canonical updates have
+strict ordering. Starting one short blit before gameUpdate is not a complete
+pipeline. No further optimization bundled in measurement build. If residual
+benefit is small/risky, stop Drowned round and transfer proven layout to level1.
+
+## 2026-09-22 — Retained-ring busy run1 analysed; bounded round complete
+
+New90532byte log matches busy_00af8181ffe8fa93904b_sparse and staged executable;
+complete footer. Preserved testresults/Drowned-busy-two-copy-020-run1.log/.txt.
+Analysis and actual upper-route individual samples in build/drowned-busy-two-copy/
+run1-analysis.json and run1-upper-samples.json.82samples;106invalid scope pairs
+rejected,0incomplete. User says played; no new detailed visual verdict requested.
+Previous B functional acceptance including finale remains intact.
+
+Conditional PAL312-line phase estimates, IRQ/DMA/observer included:
+- Ferry last groups4/8 gameplay medians5.96/5.83ms; AI nested1.92/1.92ms.
+- Foreground/Bob totals11.22/10.77ms (valid n9/7); all restores2.76/2.69ms,
+  ring/dynamic sync2.56/2.63ms, other draws2.56/2.37ms, enemy draw1.15/1.22ms.
+  Child scopes are nested/nonadditive; sample sets differ by rejected clocks.
+- Filtering actual upper y<140:8pre-reset and7post-reset samples. Actual
+  game-begin->Bob-end same-sample elapsed median18.78/17.44ms (valid n7/7),
+  max19.81/18.21ms. These are NOT sums of phase medians and exclude earlier
+  rear work plus final publication wait. Rejected clocks can bias valid subset.
+- Rear update median0.13ms; upper peaks3.85/3.91ms in3of15samples. Executed
+  after publication, so it delays NEXT update. Cannot add a sample's own rear
+  duration to that same sample's prepublication work as a causal deadline test.
+  No water-versus-waterfall operation tag: peak operation is not proven.
+- Publication-wait scope yields no valid ferry estimates because raw TOD/beam
+  edge guard rejects pairs; exact deadline slack and pure CPU vsDMA unproven.
+
+Raw observer cadence whole46.01FPS; upper pre41.59,post43.30. Not ordinary
+FPS and not comparable directly with previous minimally observed A/B. Upper
+recorded durations6.30/5.52s, shorter than requested25s; do not claim a long
+stability run. One reset, no finale samples. prepared_chip261040 in this run;
+external state varies, so allocation reduction remains separate from free-RAM
+comparison. No50FPS claim.
+
+Interpretation: remaining pressure is cumulative composition plus gameplay,
+with occasional rear-update spikes. Enemy draw alone is not the dominant
+cost; further enemy mask micro-tuning cannot remove the total load. Source
+checks confirm other_draw groups pontoon/collectibles/core/extra-life/splash,
+48collectible slots scanned, and asynchronous presentation still has serialized
+composition through WaitBlit. A pipeline would need immutable state/history and
+DMA lifetime changes. No single low-risk structural switch is justified by these
+samples. Existing all-frame marker overhead also contaminates estimated costs.
+
+Recommendation: conclude this bounded Drowned round with accepted ring gain,
+transfer proven layout to level1 next (interlude deferred per user). Preserve
+CPU/DMA overlap and rear precompute/scheduling as separate measured future
+projects, not promise stable50FPS or blindly reduce update frequency. Direct
+CPU water-height rejection remains a small unimplemented opportunity, not a
+reason for another standalone micro A/B. No further runtime changes in this
+analysis, no new test requested. Active Busy2 drawer/log left intact; no claim
+FS-UAE stopped. No emulator launch, commit,push or release; alpha.8 unchanged.
+
+## 2026-09-23 — Level1 two-copy candidate staged; opt-in only
+
+User asked to continue after the bounded Drowned analysis. Level1 transfer now
+implemented as SPARKPAW_LEVEL1_TWO_COPY_RING, effective ONLY inside the existing
+renderer_level1_unit.c isolation. Shared ring header derives internal
+SPARKPAW_RING_TWO_COPY; Drowned uses same retained layout. Stormrail unit keeps
+three copies/base512. No default campaign/release flag changed.
+
+Important Level1-specific finding:3392px world-end clamp differs from5120px
+Drowned. At camera3072, resident origin2880 maps to physical-96 with base96.
+Visible fetch remains safe, but full resident-window membership alone is not
+proof of valid Bob destination. Candidate prototypeRectFits therefore checks
+signed physical>=0 and physical+width<=1024 before existing residency check.
+Exhaustive host tests show rejected rectangles up to actual max64px are outside
+visible320px view plus16px margin. Histories store only prior successful draws;
+restore addresses stay target-local. This guard also covers splash drawing,
+which has no separate screen-cull predicate. Source/generated assembly reviewed.
+Do not remove this guard or claim Drowned's full-resident geometry proof applies
+unchanged to Level1. Guard has CPU cost; net FPS gain still unmeasured.
+
+Actual C host ASan/UBSan: real storm-front3392x208,6592frames/layout, all3073camera
+positions forward/back, wrap, teleports, CPU initial/column/dynamic rectangles,
+clipping, mutable canonical strips,16/24/32/64px overlapping Bobs, restore
+history, active-target immutability and memory guards, exact AGA fetch phase.
+DMA is modeled, no native raster proof. First naive all-resident actor test
+failed at world end; explicit guard and offscreen-rejection proof resolve it.
+Reference/candidate transfer counts differ slightly because synthetic invisible
+Bobs are now rejected. No world/gameplay/enemy removal is performed.
+
+Drowned actual kernel regression10048frames/layout still passes unchanged.
+TOD counter tests now exercise both Drowned/Level1 regions; save/music ownership,
+reset/wrap/pause behavior and campaign Level1 asset/isolation tests pass.
+Shared header included in Make dependencies; level1-two-copy build/test targets.
+
+Four native builds compile. A plain matches captured current campaign baseline
+(not a claim of alpha.8 byte parity). B plain adds44bytes for layout/bounds.
+Seven non-Level1 plain units including Stormrail, dispatcher, main, game and
+audio are byte-identical A/B. Stormrail cadence unit also identical. Native
+allocation calls verify two1024x208x4 bitmaps versus1536:106496byte payload
+saving. CPU column/rectangle loops store two destinations instead of three;
+this is not a measured whole-frame FPS gain. Retained ordinary Drowned rebuild
+still b78af227b85ffa7faa1e1ed8af637b98e6b01e74da6b3ef6f6ce4762f03fd738.
+
+Diagnostic reuse: existing music-safe read-only TOD counter, with Level1 X bins
+512,1024,1536,2048,2560,3072,3328 and unambiguous Level1 log header/variant/ID.
+No CIA profiler. Equal seeded direct-start paths; completion held for LMB log,
+so these diagnostics never transition to Stormrail. Plain controls retain the
+normal campaign. Title/ready, normal completion/transition and hardware remain
+separate acceptance boundaries. Observer overhead unmeasured, no exact deadline
+or runtime ownership counters. No new production cadence claim.
+
+Active manual pair:dist/Level1-Ring-{A,B}-020-HD/Level1-Test; each59runtime assets
+and59compiled references checked, asset sets identical.68alpha.8 release files
+byte-identical. Host/native details:build/level1-two-copy/{builds.json,
+source-hashes.json,native-audit.json,host-ring-proof.txt,drowned-regression.txt}.
+
+A-plain: plain; 305692bytes; SHA256 e80b9c41de04bca7a519b9afaca05fdf9297684f70c6b98454e97c145795c470
+
+A-cadence: l1ring_49e244338f68fb793341_A; 306788bytes; SHA256 24e1221a28a872b9f858520a4d55bea313209a2f5ad6390efe34b43a2d13668a
+
+B-plain: plain; 305736bytes; SHA256 0175c25a8534422c922506415756e54871bcc1010399a495506c02ef08e568c4
+
+B-cadence: l1ring_49e244338f68fb793341_B; 306828bytes; SHA256 53779275a92815e2b9a3fcc8cb7f51ced7e04cc2b61e4421e6bb46262a1aa6b7
+
+Pending user pass: same68020/2MBChip+8MBFast/PAL50/noJIT scope; A then B,
+60..90seconds comparable water/enemy/shot workload with reversal and death.
+Especially B right boundary/Core, reverse movement near end. LMB press/release,
+frozen image expected, wait15seconds then reset/stop. Keep both logs and report
+image/music plus subjective cadence. No030gate claimed; user explicitly keeps
+this020 investigation. Candidate not promoted before manual evidence.
+
+Temporary housekeeping exception: user has not answered whether FS-UAE stopped
+after Busy2. Its completed log is preserved, but do not move its potentially
+mounted drawer. Superseded Drowned-Busy2-020-HD remains intact in dist for now;
+only new Level1 pair is active. Archive Busy2 plus .uaem byte-identically after
+stopped confirmation. pgrep unavailable in sandbox; no emulator launched.
+No commit,push or release. Alpha.8 remains official. Interlude optimization is
+deferred at user's request, not inferred from Drowned performance evidence.

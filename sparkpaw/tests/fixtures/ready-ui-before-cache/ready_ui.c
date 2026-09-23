@@ -89,7 +89,7 @@ void readyUiCompose(struct ReadyUI *u,unsigned char **atlas,
     if(s->page==READY_PAGE_OPTIONS) {
         medium(u,"OPTIONS",124,READY_UI_CYAN);
         row(u,"SECOND BUTTON",s->secondary?"FIRE":"JUMP",146,s->row==0,READY_VALUE_X);
-        row(u,"START AT",s->section?"STORMRAIL":"STORM RUINS",162,s->row==1,READY_VALUE_X);
+        row(u,"START AT",s->section==2?"DROWNED TURBINES":s->section?"STORMRAIL":"STORM RUINS",162,s->row==1,READY_VALUE_X);
         row(u,"AUDIO MODE",modes[s->mode],178,s->row==2,READY_VALUE_X);
         if(soundtest) action(u,"SOUNDTEST",198,s->row==3);
         action(u,"BACK",211,s->row==(soundtest?4:3));
@@ -100,7 +100,7 @@ void readyUiCompose(struct ReadyUI *u,unsigned char **atlas,
             "STRIDER SHOT","JUMP","DIAMOND PICKUP","WATER SPLASH","STORMSTONE CORE",
             "TALLY TICK","EXTRA LIFE","FAN CHARGE","FAN FIRE",
             "HUNTER CHARGE","HUNTER FIRE","HEALTH PICKUP"};
-        static const char *const tracks[]={"HERO DRIVE","NEON SKY","COPPER SPRINT","IRON HORIZON","STORM LIGHT"};
+        static const char *const tracks[]={"HERO DRIVE","NEON SKY","COPPER SPRINT","IRON HORIZON","STORM LIGHT","UNDERTOW CIRCUIT"};
         const char *status=s->status==READY_PREVIEW_LOADING?"LOADING AUDIO":
             s->status==READY_PREVIEW_ERROR?"TRACK UNAVAILABLE":
             s->row==0?"PRESS FIRE TO PLAY SFX":

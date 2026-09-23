@@ -3,6 +3,9 @@
 #include <string.h>
 
 static struct Collectible collectibles[MAX_COLLECTIBLES];
+#ifdef SPARKPAW_DROWNED_ROUTE
+#include "drowned_route_coins.h"
+#endif
 
 void collectiblesInit(void)
 {
@@ -23,6 +26,10 @@ void collectiblesInit(void)
         100,84,116,100,92,108
     };
     UBYTE index;
+#ifdef SPARKPAW_DROWNED_SLICE
+    static const WORD sliceX[12]={144,176,208,272,352,384,544,576,640,704,864,896};
+    static const WORD sliceY[12]={132,124,132,124,176,176,132,132,124,176,176,176};
+#endif
     memset(collectibles,0,sizeof(collectibles));
     for(index=0;index<MAX_COLLECTIBLES;index++) {
         collectibles[index].x=spawnX[index];
@@ -33,6 +40,25 @@ void collectiblesInit(void)
         collectibles[index].drawnX=spawnX[index];
         collectibles[index].drawnY=spawnY[index];
         collectibles[index].active=TRUE;
+#ifdef SPARKPAW_DROWNED_ROUTE
+        collectibles[index].x=index<sizeof(routeCoins)/sizeof(routeCoins[0])?routeCoins[index][0]:32;
+        collectibles[index].y=index<sizeof(routeCoins)/sizeof(routeCoins[0])?routeCoins[index][1]:32;
+        collectibles[index].drawnX=collectibles[index].x;
+        collectibles[index].drawnY=collectibles[index].y;
+        collectibles[index].active=index<sizeof(routeCoins)/sizeof(routeCoins[0]);
+#if defined(SPARKPAW_DROWNED_GOVERNOR) && !defined(SPARKPAW_DROWNED_FULL)
+        collectibles[index].active=FALSE;
+#endif
+#if (defined(SPARKPAW_DROWNED_PONTOON) || defined(SPARKPAW_DROWNED_SPILLWING)) && !defined(SPARKPAW_DROWNED_FERRY)
+        collectibles[index].active=FALSE;
+#endif
+#elif defined(SPARKPAW_DROWNED_SLICE)
+        collectibles[index].x=index<12?sliceX[index]:32;
+        collectibles[index].y=index<12?sliceY[index]:32;
+        collectibles[index].drawnX=collectibles[index].x;
+        collectibles[index].drawnY=collectibles[index].y;
+        collectibles[index].active=index<12;
+#endif
     }
 }
 

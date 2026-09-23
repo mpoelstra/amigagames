@@ -39,6 +39,27 @@ int main(void)
     assert(campaignAcceptDecision(&state,RESULT_DECISION_REPLAY_CURRENT,
                                   5000,1,1,0)==RESULT_DECISION_REPLAY_CURRENT);
     assert(state.section==CAMPAIGN_SECTION_LEVEL1&&!state.bankedScore);
+    campaignStartAtStormrail(&state,3,6,11);
+    state.bankedScore=state.postLevel1Score=1200;
+    campaignBeginResults(&state);
+    assert(campaignAcceptDecision(&state,RESULT_DECISION_CONTINUE,
+        800,2,4,37)==RESULT_DECISION_CONTINUE);
+    assert(state.section==CAMPAIGN_SECTION_DROWNED);
+    assert(state.bankedScore==2000&&state.postStormrailScore==2000);
+    assert(state.postStormrailLives==2&&state.postStormrailHealth==4&&
+           state.postStormrailDiamonds==37&&state.postStormrailSnapshotValid);
+    assert(campaignAcceptDecision(&state,RESULT_DECISION_CONTINUE,
+        800,2,4,37)==RESULT_DECISION_NONE);
+    campaignBeginResults(&state);
+    assert(campaignAcceptDecision(&state,RESULT_DECISION_REPLAY_CURRENT,
+        5000,1,1,49)==RESULT_DECISION_REPLAY_CURRENT);
+    assert(state.bankedScore==2000&&state.postStormrailLives==2&&
+        state.postStormrailHealth==4&&state.postStormrailDiamonds==37);
+    campaignBeginResults(&state);
+    assert(campaignAcceptDecision(&state,RESULT_DECISION_BACK_TO_TITLE,
+        5000,1,1,49)==RESULT_DECISION_BACK_TO_TITLE);
+    assert(!state.postStormrailSnapshotValid&&!state.bankedScore&&
+        state.section==CAMPAIGN_SECTION_TITLE);
     puts("campaign contract: ok");
     return 0;
 }

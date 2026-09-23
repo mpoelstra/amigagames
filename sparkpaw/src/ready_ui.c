@@ -39,14 +39,14 @@ void readyUiCompose(struct ReadyUI *u,unsigned char **atlas,
     (void)soundtest;
     if(s->page==READY_PAGE_MAIN) state=s->row;
     else if(s->page==READY_PAGE_OPTIONS)
-        state=2+((s->secondary*2+s->section)*3+s->mode)*4+s->row;
+        state=2+((s->secondary*3+s->section)*3+s->mode)*4+s->row;
     else return; /* Soundtest has no ADF states or assets. */
 #else
     if(s->page==READY_PAGE_MAIN) state=s->row;
     else if(s->page==READY_PAGE_OPTIONS)
-        state=2+(soundtest?0:60)+((s->secondary*2+s->section)*3+s->mode)*
+        state=2+(soundtest?0:90)+((s->secondary*(soundtest?3:2)+s->section)*3+s->mode)*
               (soundtest?5:4)+s->row;
-    else state=110+(s->sfx*5+s->track)*12+s->status*3+s->row;
+    else state=140+(s->sfx*6+s->track)*12+s->status*3+s->row;
 #endif
     for(b=0;b<5;b++) {
         id=readyUiMap[state*5+b];

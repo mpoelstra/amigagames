@@ -132,6 +132,9 @@ void gameSetStormrailActive(BOOL active);
 BOOL gameStormrailActive(void);
 void gameRestoreCampaignVitals(UBYTE lives,UBYTE health,UBYTE diamonds);
 #endif
+#ifdef SPARKPAW_DROWNED_CAMPAIGN_MODULE
+void gameRestoreDrownedVitals(UBYTE lives,UBYTE health,UBYTE diamonds);
+#endif
 void gameUpdate(void);
 BOOL gameOver(void);
 BOOL gameLevelComplete(void);

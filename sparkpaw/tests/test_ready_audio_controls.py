@@ -27,7 +27,7 @@ static struct ReadySelection readySelection;
 static BOOL readyUiDirty[2];static UBYTE readyDustState;
 static struct { struct {unsigned char *Planes[6];} *bitmap;} asset;
 static int input[1024],length,cursor,owned=1,cia,lsp=1,title=1,mode=2;
-static int fxStarts,fxTime,heroLoads,neonLoads,stormLoads,restarts,copperLoads,railLoads,failLoad;
+static int fxStarts,fxTime,fxIds[16],heroLoads,neonLoads,stormLoads,restarts,copperLoads,railLoads,failLoad;
 static int tempTrack,frames,quit,mutations;
 static void *assetsLevelReadyMenu(void){return &asset;}
 /* Avoid an untyped mock cast at the real -> access. */
@@ -45,7 +45,14 @@ static void readReadyMenuInput(BOOL *u,BOOL *d,BOOL *l,BOOL *r,BOOL *f)
 static BOOL platformWHDLoadQuitRequested(void){return quit;}
 static void platformStopMenuPreview(void){assert(owned);cia=0;fxTime=0;}
 static void musicSuspend(void){lsp=0;}
-static void audioPreviewEffect(unsigned id){assert(owned&&!cia&&!lsp&&id<16);fxStarts++;fxTime=4;}
+static void audioPreviewEffect(unsigned id){
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+ assert(owned&&!cia&&!lsp&&id<18);
+#else
+ assert(owned&&!cia&&!lsp&&id<16);
+#endif
+ fxIds[fxStarts++]=id;fxTime=4;
+}
 static void audioUpdate(void){if(fxTime)fxTime--;}
 static BOOL audioPreviewEffectPlaying(void){return fxTime!=0;}
 static BOOL musicAudible(void){return lsp;}
@@ -106,13 +113,29 @@ int main(void){
  titleRunLevelReadyMenu(&second,&section);
  assert(quit&&owned&&!cia&&!lsp&&!tempTrack);
  assert(frames>100&&mutations>20);
- puts("PASS: actual menu, held Fire, 16-entry selection, all tracks, failure return, mode persistence and F10 quiescence");
+ puts("PASS: actual menu, held Fire, SFX selection, all tracks, failure return, mode persistence and F10 quiescence");
  return 0;
 }
 '''
-with tempfile.TemporaryDirectory() as td:
-    p=Path(td);(p/'test.c').write_text(shim+source+checks)
-    subprocess.run(['cc','-std=c99','-Wall','-Wextra','-Werror',
-                    '-fsanitize=address,undefined','-I'+str(ROOT/'src'),str(p/'test.c'),
-                    '-o',str(p/'test')],check=True)
-    subprocess.run([str(p/'test')],check=True)
+for integrated in (False,True):
+    selected_shim=shim
+    selected_checks=checks
+    if integrated:
+        selected_shim='#define SPARKPAW_CAMPAIGN_DROWNED\n'+shim.replace('CAMPAIGN_START_STORMRAIL };','CAMPAIGN_START_STORMRAIL,CAMPAIGN_START_DROWNED };')
+        selected_shim += '\nstatic int drownedLoads; static BOOL level1AudioPreviewPrepareDrowned(void){assert(!owned&&!cia&&!lsp);drownedLoads++;tempTrack=!failLoad;return !failLoad;}\n'
+        selected_checks=checks.replace('edge(8);edge(16); /* wrap to Hero */','edge(8);edge(16); /* Undertow */\n edge(8);edge(16); /* wrap to Hero */').replace('stormLoads==3','stormLoads==2&&drownedLoads==2').replace('i<5','i<6')
+        selected_checks=selected_checks.replace('/* Both directions through all three direct-start options. */',
+            '/* Wrap to the two Drowned-only SFX and play each. */\n'
+            ' length=cursor=0;readySelection.sfx=0; input[length++]=0;\n'
+            ' edge(2);hold(16);edge(2);edge(2);edge(2);hold(16);\n'
+            ' edge(4);edge(16);edge(4);edge(16);\n'
+            ' leave();titleRunLevelReadyMenu(&second,&section);\n'
+            ' assert(fxStarts==5&&fxIds[3]==17&&fxIds[4]==16&&readySelection.sfx==16);\n'
+            ' /* Both directions through all three direct-start options. */')
+        selected_checks=selected_checks.replace('/* Failure paths', '/* Both directions through all three direct-start options. */\n length=cursor=0; input[length++]=0;edge(2);edge(16);edge(2);edge(4);edge(16);edge(16);\n titleRunLevelReadyMenu(&second,&section);assert(section==CAMPAIGN_START_DROWNED);\n length=cursor=0; input[length++]=0;edge(2);edge(16);edge(2);edge(8);edge(16);edge(16);\n titleRunLevelReadyMenu(&second,&section);assert(section==CAMPAIGN_START_STORM_RUINS);\n /* Failure paths')
+    with tempfile.TemporaryDirectory() as td:
+        p=Path(td);(p/'test.c').write_text(selected_shim+source+selected_checks)
+        subprocess.run(['cc','-std=c99','-Wall','-Wextra','-Werror',
+                        '-fsanitize=address,undefined','-I'+str(ROOT/'src'),str(p/'test.c'),
+                        '-o',str(p/'test')],check=True)
+        subprocess.run([str(p/'test')],check=True)

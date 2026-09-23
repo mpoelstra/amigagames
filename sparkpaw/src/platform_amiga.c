@@ -45,9 +45,11 @@ static BOOL whdloadQuitRequested;
 
 /* Controller port 2 pin 5 holds a CD32 pad's shift register in its reset
    state, where pin 9 exposes Blue as the ordinary Amiga second button.
-   Keep pin 9 configured as an input so native two-button joysticks use the
-   same active-low POTINP bit. */
-#define PORT2_CD32_RESET_HIGH 0x3000
+   Pin 9 needs OUTRY+DATRY high too: Paula's output-high mode supplies the
+   pull-up for a switch to ground (Hardware Reference Manual, chapter 8).
+   Leaving it in proportional-input mode can retain a low after release,
+   pinning the merged jump/fire edge latch, including keyboard input. */
+#define PORT2_BUTTONS_PULLUP 0xf000
 #define PORT2_SECOND_BUTTON 0x4000
 
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -112,9 +114,9 @@ void platformBeginTakeover(void)
 void platformFinishTakeover(UWORD *copper)
 {
     UWORD musicDma;
-    hardware->potgo=PORT2_CD32_RESET_HIGH;
     OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
     Disable(); interruptsDisabled=TRUE;
+    hardware->potgo=PORT2_BUTTONS_PULLUP;
     musicDma=musicIsPlaying()?(hardware->dmaconr&0x000f):0;
     hardware->intena=0x7fff; hardware->dmacon=DMAF_ALL&~musicDma;
     hardware->cop1lc=(ULONG)copper; hardware->copjmp1=0;
@@ -204,9 +206,9 @@ void platformReleaseForLoading(BOOL keepDisplay)
 void platformResumeMenuAfterLoading(void)
 {
     UWORD musicDma;
-    hardware->potgo=PORT2_CD32_RESET_HIGH;
     OwnBlitter(); WaitBlit(); Forbid(); systemLocked=TRUE;
     Disable(); interruptsDisabled=TRUE;
+    hardware->potgo=PORT2_BUTTONS_PULLUP;
     musicDma=musicIsPlaying()?(hardware->dmaconr&DMAF_AUDIO):0;
     hardware->intena=0x7fff;
     /* Retain all display DMA and active LSP channels. Disk/OS sprite DMA
@@ -264,6 +266,11 @@ void platformRestore(void)
         DisownBlitter(); Permit(); systemLocked=FALSE;
     }
     if(!interruptsDisabled&&systemView&&GfxBase->ActiView!=systemView) {
+        /* A separate campaign module can return while the parent is already
+           DOS-live, with its presentation DMA intentionally disabled. Restore
+           the saved Workbench channels before reinstalling its View. */
+        hardware->dmacon=DMAF_ALL;
+        hardware->dmacon=DMAF_SETCLR|DMAF_MASTER|oldDma;
         LoadView(systemView); WaitTOF(); WaitTOF();
     }
 }
@@ -355,7 +362,9 @@ BOOL platformBlitterBusy(void)
 {
     return (hardware->dmaconr&DMAF_BLTDONE)!=0;
 }
+#endif
 
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) || defined(SPARKPAW_DROWNED_FPS)
 void platformPrepareDebugFlush(void)
 {
     /* A debug flush needs DOS scheduling and interrupts, not Workbench.  Stop
@@ -366,7 +375,9 @@ void platformPrepareDebugFlush(void)
 #ifdef SPARKPAW_LEVEL1_MUSIC
         if(audioInterruptsEnabled) { Disable(); audioInterruptsEnabled=FALSE; }
 #endif
+#ifdef SPARKPAW_RENDER_DIAGNOSTIC
         stopProfileTimer();
+#endif
         audioSetHardwareActive(FALSE);
         hardware->dmacon=DMAF_ALL;
         /* DOS can flush an HD log without custom-chip disk DMA, which hid
@@ -385,11 +396,14 @@ void platformPrepareDebugFlush(void)
 
 static void acknowledgeKeyboard(void)
 {
-    UWORD line=platformRasterLine(),changes=0;
+    UWORD line,changes=0;
     CIAA_CRA|=CIACRAF_SPMODE;
-    /* The keyboard requires an acknowledge pulse of at least 85 us. Two PAL
-       raster lines are deterministic even on accelerated CPUs. */
-    while(changes<2) {
+    line=platformRasterLine();
+    /* Three transitions guarantee two COMPLETE PAL/NTSC lines (>126 us).
+       The first transition can follow immediately; two transitions alone
+       can give only one full line, below the required 85 us. Sample the
+       starting line after asserting the handshake, including on fast CPUs. */
+    while(changes<3) {
         UWORD next=platformRasterLine();
         if(next!=line) { line=next; changes++; }
     }

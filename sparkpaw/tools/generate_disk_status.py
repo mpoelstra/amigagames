@@ -10,21 +10,33 @@ def read_spbm(path):
   for x in range(w):pixels[x,y]=sum(((raw[start+p*stride*h+y*stride+x//8]>>(7-x%8))&1)<<p for p in range(depth))
  return im
 
+TYPE_SOURCES={
+ 1:('sparkpaw-insert-disk-type-v1.png',(88,195,1811,336)),
+ 2:('sparkpaw-insert-disk-type-v1.png',(88,484,1811,626)),
+ 3:('sparkpaw-insert-disk-type-v2-disk3.png',(88,323,1812,465)),
+}
+
+def make_patch(number,palette):
+ """Convert one complete typography line through the common ADF pipeline."""
+ source,band=TYPE_SOURCES[number]
+ pal=list(palette)
+ def nearest(rgb):return min(range(64),key=lambda i:sum((pal[3*i+k]-rgb[k])**2 for k in range(3)))
+ sheet=Image.open(ROOT/'assets/concept'/source).convert('RGB')
+ patch=Image.new('P',(224,40),0);patch.putpalette(pal)
+ letters=sheet.crop(band).resize((216,24),Image.Resampling.LANCZOS)
+ pix=letters.load();dst=patch.load()
+ for y in range(24):
+  for x in range(216):dst[x+4,y+6]=nearest(pix[x,y])
+ return patch
+
 def main():
  out=ROOT/'build/multidisk-probe/status';out.mkdir(parents=True,exist_ok=True)
  base=read_spbm(ROOT/'assets/runtime/sparkpaw-level-loading.spbm');pal=base.getpalette();assert pal[:3]==[0,0,0]
- def nearest(rgb):return min(range(64),key=lambda i:sum((pal[3*i+k]-rgb[k])**2 for k in range(3)))
- sheet=Image.open(ROOT/'assets/concept/sparkpaw-insert-disk-type-v1.png').convert('RGB')
  # Generated typography sheet -> native indexed status assets only. The shared
  # floppy artwork is never included in a disk-message runtime asset.
- bands=[(88,195,1811,336),(88,484,1811,626)]
- preview=Image.new('RGB',(960,256));preview.paste(base.convert('RGB'),(0,0))
- for disk in (1,2):
-  patch=Image.new('P',(224,40),0);patch.putpalette(pal)
-  letters=sheet.crop(bands[disk-1]).resize((216,24),Image.Resampling.LANCZOS)
-  pix=letters.load();dst=patch.load()
-  for y in range(24):
-   for x in range(216):dst[x+4,y+6]=nearest(pix[x,y])
+ preview=Image.new('RGB',(1280,256));preview.paste(base.convert('RGB'),(0,0))
+ for disk in (1,2,3):
+  patch=make_patch(disk,pal)
   (out/f'disk{disk}-patch.spbm').write_bytes(spbm_payload(patch,224,40))
   composed=base.copy();composed.paste(patch,(48,192));preview.paste(composed.convert('RGB'),(disk*320,0))
   # No changes outside status rectangle; exact loading palette retained.

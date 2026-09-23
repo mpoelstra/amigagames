@@ -5,6 +5,9 @@
 #include "campaign_contract.h"
 #include "control_options.h"
 
+#ifdef SPARKPAW_DROWNED_CAMPAIGN_MODULE
+BOOL titleShowSectionLoading(void);
+#endif
 BOOL titleShow(void);
 BOOL titleShowMain(void);
 BOOL titleShowMainFromResults(void);

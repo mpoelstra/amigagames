@@ -105,7 +105,11 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         for(;;) {
             WORD sampleX=projectile->collisionX;
             if(solidAt(sampleX,y)) { contacted=TRUE; x=sampleX; break; }
-            if(!projectile->hostile) enemyHitResult=hitEnemy(sampleX,y);
+            if(!projectile->hostile
+#ifdef SPARKPAW_DROWNED_SLICE
+               &&sampleX>=cameraX&&sampleX<cameraX+SCREEN_W
+#endif
+              ) enemyHitResult=hitEnemy(sampleX,y);
             if(enemyHitResult) { contacted=TRUE; x=sampleX; break; }
             if(sampleX==x) break;
             projectile->collisionX=projectileSweepNext(sampleX,x);
@@ -114,8 +118,24 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
         {
             WORD solidX=0,enemyX=0;
             BOOL solidFound=firstSolid(projectile->collisionX,x,y,&solidX);
-            BOOL enemyFound=!projectile->hostile&&
+            BOOL enemyFound;
+#ifdef SPARKPAW_DROWNED_SLICE
+            WORD visibleStart=projectile->collisionX,visibleEnd=x;
+            WORD viewRight=(WORD)(cameraX+SCREEN_W-1);
+            /* Clip damage, not just the impact artwork. Retain the final
+               visible segment so edge targets still receive legitimate hits. */
+            if(visibleStart<cameraX) visibleStart=cameraX;
+            else if(visibleStart>viewRight) visibleStart=viewRight;
+            if(visibleEnd<cameraX) visibleEnd=cameraX;
+            else if(visibleEnd>viewRight) visibleEnd=viewRight;
+            enemyFound=!projectile->hostile&&
+                !((projectile->collisionX<cameraX&&x<cameraX)||
+                  (projectile->collisionX>viewRight&&x>viewRight))&&
+                firstEnemyHit(visibleStart,visibleEnd,y,&enemyX);
+#else
+            enemyFound=!projectile->hostile&&
                 firstEnemyHit(projectile->collisionX,x,y,&enemyX);
+#endif
             if(projectileSweepGeometryWins(projectile->collisionX,x,
                                            solidFound,solidX,
                                            enemyFound,enemyX)) {
@@ -125,6 +145,12 @@ void projectilesUpdate(WORD cameraX,ProjectileSolidAt solidAt,
                 if(enemyHitResult) { contacted=TRUE; x=enemyX; }
             }
         }
+#endif
+#ifdef SPARKPAW_DROWNED_SLICE
+        /* Retire the bullet once its leading edge exits. Preserve drawn
+           history: the renderer still restores the previous Bob normally. */
+        if(!projectile->hostile&&!contacted&&
+           (x<cameraX||x>=cameraX+SCREEN_W)) projectile->active=FALSE;
 #endif
         projectile->collisionX=x;
         if(enemyHitResult==PROJECTILE_ENEMY_KILL) playEnemyDeathSound();

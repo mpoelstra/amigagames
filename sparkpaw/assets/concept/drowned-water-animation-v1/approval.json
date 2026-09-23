@@ -1,0 +1,12 @@
+{
+  "name": "Water animation v1",
+  "source": "drowned-water-shimmer-v4",
+  "approved": "2026-09-22 user: mooi, vastleggen als v1 en ingame willen zien",
+  "status": "approved for future ingame trial; not native validated",
+  "hashes": {
+    "scene-3x.gif": "41a6cf7ab21b7946acdb51edabae8b65f344bf8eee9415658ed2142928a3504c",
+    "manifest.json": "8f5233cde03b1b722c83ef082d30c80e5a09d25be548aefe5a933448b4d33c28",
+    "generator-snapshot.py": "18ae3c2bc7173c0c167dd1adce0722ac50825125381ce6ded34893f88178ba41",
+    "water-detail-4x.gif": "c95eeb987922267e11b0f764f002ec5d79175432233da560882e10c5625b3740"
+  }
+}

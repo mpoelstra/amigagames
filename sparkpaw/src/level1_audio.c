@@ -14,7 +14,7 @@
 #include <string.h>
 #include "level1_audio.h"
 #include "music.h"
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
 #include "assets.h"
 #endif
 #include "audio_mix.h"
@@ -34,7 +34,7 @@ static ULONG scoreSize,bankSize;
 static UWORD nextBuffer=1;
 static volatile BOOL running;
 static BOOL installed,vectorInstalled,mixing;
-#ifndef SPARKPAW_MULTI_ADF
+#if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
 static UBYTE *previewScore,*previewBank;
 static ULONG previewScoreSize,previewBankSize;
 #endif
@@ -43,7 +43,7 @@ static UBYTE oldFilter;
 static struct Library *ciaResource;
 static UBYTE *load(const char *name,ULONG flags,ULONG *length)
 {
-#ifdef SPARKPAW_MULTI_ADF
+#if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
  return assetsLoadDiskData(name,flags,length);
 #else
  BPTR f=Open((STRPTR)name,MODE_OLDFILE);LONG n;UBYTE *p;
@@ -61,6 +61,14 @@ BOOL level1AudioLoad(BOOL stormrail)
  ciaResource=(struct Library *)OpenResource("ciab.resource");
  if(!ciaResource)return FALSE;
  if(!musicInitialize(50))return FALSE;
+#ifdef SPARKPAW_DROWNED_JOINED
+ (void)stormrail;
+ score=load("PROGDIR:assets/runtime/rain-score.bin",MEMF_FAST,&scoreSize);
+ bank=load("PROGDIR:assets/runtime/rain-bank.bin",MEMF_CHIP,&bankSize);
+ buffers=AllocMem(2*MIX_BYTES,MEMF_CHIP|MEMF_CLEAR);
+ if(!score||!bank||!buffers)goto fail;
+ if(scoreSize!=17468UL||bankSize!=21622UL||memcmp(score+1080,"M.K.",4))goto fail;
+#else
  score=load(stormrail?"PROGDIR:assets/runtime/rail-score.bin":
                      "PROGDIR:assets/runtime/pulse-score.bin",MEMF_FAST,&scoreSize);
  bank=load(stormrail?"PROGDIR:assets/runtime/rail-bank.bin":
@@ -69,7 +77,12 @@ BOOL level1AudioLoad(BOOL stormrail)
  if(!score||!bank||!buffers)goto fail;
  /* This backend ships two certified scores, not arbitrary MOD input. */
  if(scoreSize!=(stormrail?17468UL:9276UL)||bankSize!=11552||memcmp(score+1080,"M.K.",4))goto fail;
+#endif
  for(i=0;i<FX_COUNT;i++) {
+#ifdef SPARKPAW_DROWNED_THREE_ADF
+  /* Harrier effects are used only in Stormrail, which lives on disk 2. */
+  if(!stormrail&&i>=11&&i<=14)continue;
+#endif
   fxData[i]=load(paths[i],MEMF_FAST,&n);if(!fxData[i])goto fail;
   effects[i].data=(int8_t *)fxData[i];effects[i].length=n;
   effects[i].priority=priorities[i];effects[i].cooldown=cooldowns[i];
@@ -103,7 +116,7 @@ static BOOL startAudio(BOOL withEffects)
  mt_pause_timer_b();
  memset(&mixer,0,sizeof(mixer));memset(buffers,0,2*MIX_BYTES);nextBuffer=1;
  mask=hw->intenar;
-#ifndef SPARKPAW_MULTI_ADF
+#if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
  mt_init((void *)hw,previewScore?previewScore:score,previewBank?previewBank:bank,0);
 #else
  mt_init((void *)hw,score,bank,0);
@@ -159,7 +172,7 @@ void level1AudioUpdate(void)
  if(!running||!mixing)return;
  hw->intena=INTF_AUD3;mixField(&mixer);hw->intena=INTF_SETCLR|INTF_AUD3;
 }
-#ifndef SPARKPAW_MULTI_ADF
+#if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
 void level1AudioPreviewClear(void)
 {
  if(running) return;
@@ -181,6 +194,20 @@ BOOL level1AudioPreviewPrepare(BOOL stormrail)
  }
  return TRUE;
 }
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+BOOL level1AudioPreviewPrepareDrowned(void)
+{
+ if(running||!installed) return FALSE;
+ level1AudioPreviewClear();
+ previewScore=load("PROGDIR:assets/runtime/rain-score.bin",MEMF_FAST,&previewScoreSize);
+ previewBank=load("PROGDIR:assets/runtime/rain-bank.bin",MEMF_CHIP,&previewBankSize);
+ if(!previewScore||!previewBank||previewScoreSize!=17468UL||previewBankSize!=21622UL||
+    memcmp(previewScore+1080,"M.K.",4)) {
+  level1AudioPreviewClear(); return FALSE;
+ }
+ return TRUE;
+}
+#endif
 #endif
 void level1AudioUnload(void)
 {
@@ -190,7 +217,7 @@ void level1AudioUnload(void)
   AbleICR(ciaResource,3);SetICR(ciaResource,3);
   mt_remove();installed=FALSE;Enable();
  }
-#ifndef SPARKPAW_MULTI_ADF
+#if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
  level1AudioPreviewClear();
 #endif
  if(buffers){FreeMem(buffers,2*MIX_BYTES);buffers=NULL;}

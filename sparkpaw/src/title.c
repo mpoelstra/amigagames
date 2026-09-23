@@ -18,7 +18,7 @@
 #include "game_over_art.h"
 #include "ready_ui.h"
 #include <string.h>
-#if defined(SPARKPAW_LEVEL1_MUSIC)&&!defined(SPARKPAW_MULTI_ADF)
+#if defined(SPARKPAW_LEVEL1_MUSIC)&&(!defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF))
 #include "level1_audio.h"
 #define READY_HAS_SOUNDTEST 1
 #else
@@ -28,7 +28,13 @@
 #include "ready_patch.h"
 #include "platform_amiga.h"
 
+#ifdef SPARKPAW_MULTI_ADF
+#include "disk_media.h"
+#define COPPER_WORDS 480
+static UWORD *presentationNullSprite;
+#else
 #define COPPER_WORDS 380
+#endif
 #define SCREEN_ROW_BYTES 40
 #define BPLCON0_SIX_PLANES_AGA 0x6201
 #define BPLCON2_KILLEHB 0x0200
@@ -244,6 +250,18 @@ static void buildCopper(const struct PlanarAsset *asset,UBYTE index,UWORD level)
 {
     UBYTE plane;
     buildCopperIndex=index; copperPos=0;
+#ifdef SPARKPAW_MULTI_ADF
+    /* DOS remains live during physical disk swaps. Retire gameplay sprite
+       state every field, including latched data: disabling DMA alone does
+       not give this presentation safe pointers after renderer cleanup. */
+    cmove(0x096,DMAF_SPRITE);
+    for(plane=0;plane<8;plane++) {
+        cptr((UWORD)(0x120+plane*4),presentationNullSprite);
+        cmove((UWORD)(0x142+plane*8),0); /* SPRxCTL: disarm */
+        cmove((UWORD)(0x144+plane*8),0); /* SPRxDATA */
+        cmove((UWORD)(0x146+plane*8),0); /* SPRxDATB */
+    }
+#endif
     cmove(0x08e,0x2c81); cmove(0x090,0x2cc1);
     /* DIWSTRT/DIWSTOP reset DIWHIGH for legacy compatibility. Write the
        complete PAL 320x256 stop high bits afterwards so an AGA Workbench
@@ -293,6 +311,11 @@ static void buildCopper(const struct PlanarAsset *asset,UBYTE index,UWORD level)
 static BOOL allocateCopper(void)
 {
     UBYTE index;
+#ifdef SPARKPAW_MULTI_ADF
+    if(!presentationNullSprite)
+        presentationNullSprite=(UWORD *)AllocMem(16,MEMF_CHIP|MEMF_CLEAR);
+    if(!presentationNullSprite) return FALSE;
+#endif
     for(index=0;index<2;index++) {
         copper[index]=(UWORD *)AllocMem(COPPER_WORDS*sizeof(UWORD),
                                         MEMF_CHIP|MEMF_CLEAR);
@@ -1131,6 +1154,22 @@ static void refreshReadyUI(void)
 #if READY_HAS_SOUNDTEST
 static BOOL readyPreviewUsed;
 static UBYTE readyPreviewKind; /* 0 silent, 1 direct sample, 2 LSP, 3 CIA music */
+#ifdef SPARKPAW_FOUR_ADF
+static BOOL selectSoundtestMedia(void)
+{
+    struct PlanarAsset display;
+    UBYTE next;
+    if(diskMediaSelectIfPresent(1)) return TRUE;
+    platformReleaseForLoading(TRUE);
+    if(!titleShowReplayLoading()||!diskMediaRequire(1)) return FALSE;
+    display=*assetsLevelReady();display.bitmap=readyMenuBack;
+    next=currentCopper^1;
+    buildCopper(&display,next,0);installCopper(next);
+    fadeTo(assetsLevelReady(),TRUE);
+    platformResetGameInput();platformResumeMenuAfterLoading();
+    return TRUE;
+}
+#endif
 static void stopReadyPreview(void)
 {
     /* Stop the interrupt-driven owner before LSP/direct Paula writes. */
@@ -1156,11 +1195,14 @@ static void startReadyPreview(void)
         else if(readySelection.track==1) {
             if(!musicRestartTitle()) ok=musicPlayTitle();
         } else if(readySelection.track==4) ok=musicPlayGameOver();
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+        else if(readySelection.track==5) ok=level1AudioPreviewPrepareDrowned();
+#endif
         else ok=level1AudioPreviewPrepare(readySelection.track==3);
         platformResetGameInput();
         platformResumeMenuAfterLoading();
-        if(ok&&(readySelection.track==2||readySelection.track==3)) ok=platformStartMenuMusic();
-        if(ok) readyPreviewKind=(readySelection.track==2||readySelection.track==3)?3:2;
+        if(ok&&(readySelection.track==2||readySelection.track==3||readySelection.track==5)) ok=platformStartMenuMusic();
+        if(ok) readyPreviewKind=(readySelection.track==2||readySelection.track==3||readySelection.track==5)?3:2;
     }
     readySelection.status=ok?READY_PREVIEW_PLAYING:READY_PREVIEW_ERROR;
 }
@@ -1241,7 +1283,12 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
                     *secondaryAction=(enum SecondaryButtonAction)(readySelection.secondary^1);
                     readySelection.secondary=(UBYTE)*secondaryAction;
                 } else if(readySelection.row==1) {
+
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+                    *startSection=(enum CampaignStartSection)((readySelection.section+3+delta)%3);
+#else
                     *startSection=(enum CampaignStartSection)(readySelection.section^1);
+#endif
                     readySelection.section=(UBYTE)*startSection;
                 } else if(readySelection.row==2) {
                     readySelection.mode=(UBYTE)((readySelection.mode+3+delta)%3);
@@ -1251,8 +1298,20 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
 #if READY_HAS_SOUNDTEST
             else if(readySelection.page==READY_PAGE_SOUND) {
                 if(readyPreviewUsed) stopReadyPreview();
-                if(readySelection.row==0) readySelection.sfx=(UBYTE)((readySelection.sfx+16+delta)%16);
-                if(readySelection.row==1) readySelection.track=(UBYTE)((readySelection.track+5+delta)%5);
+                if(readySelection.row==0) {
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+                    readySelection.sfx=(UBYTE)((readySelection.sfx+18+delta)%18);
+#else
+                    readySelection.sfx=(UBYTE)((readySelection.sfx+16+delta)%16);
+#endif
+                }
+                if(readySelection.row==1) {
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+                    readySelection.track=(UBYTE)((readySelection.track+6+delta)%6);
+#else
+                    readySelection.track=(UBYTE)((readySelection.track+5+delta)%5);
+#endif
+                }
             }
 #endif
             refreshReadyUI();
@@ -1262,6 +1321,12 @@ void titleRunLevelReadyMenu(enum SecondaryButtonAction *secondaryAction,
                 readySelection.page=READY_PAGE_OPTIONS;readySelection.row=0;
             } else if(readySelection.page==READY_PAGE_OPTIONS) {
                 if(READY_HAS_SOUNDTEST&&readySelection.row==3) {
+#ifdef SPARKPAW_FOUR_ADF
+                    if(!selectSoundtestMedia()) {
+                        readySelection.status=READY_PREVIEW_ERROR;
+                        refreshReadyUI();reseed=TRUE;continue;
+                    }
+#endif
                     readySelection.page=READY_PAGE_SOUND;readySelection.row=0;
                 } else { readySelection.page=READY_PAGE_MAIN;readySelection.row=0; }
             }
@@ -1438,6 +1503,11 @@ void titleRelease(void)
     for(index=0;index<2;index++) if(scoreBuffers[index]) {
         FreeBitMap(scoreBuffers[index]); scoreBuffers[index]=NULL;
     }
+#ifdef SPARKPAW_MULTI_ADF
+    if(presentationNullSprite) {
+        FreeMem(presentationNullSprite,16); presentationNullSprite=NULL;
+    }
+#endif
     assetsUnloadTitle(); assetsUnloadStoryIntro();
     assetsUnloadLevelLoading(); assetsUnloadLevelCharging();
     assetsUnloadLevelReadyMenu(); assetsUnloadLevelReady();
@@ -1449,3 +1519,16 @@ void titleRelease(void)
         }
     }
 }
+
+#ifdef SPARKPAW_DROWNED_CAMPAIGN_MODULE
+BOOL titleShowSectionLoading(void)
+{
+    if(!assetsLoadLevelLoading()||!allocateCopper()) return FALSE;
+    previousView=GfxBase->ActiView;
+    savedDma=hardware->dmaconr&DMAF_ALL;
+    LoadView(NULL); WaitTOF(); WaitTOF();
+    buildCopper(assetsLevelLoading(),0,0); installCopper(0);
+    fadeTo(assetsLevelLoading(),TRUE);
+    return TRUE;
+}
+#endif

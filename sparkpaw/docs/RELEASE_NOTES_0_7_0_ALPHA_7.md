@@ -1,49 +1,262 @@
-# Sparkpaw alpha.7 — Take flight, hear the storm, and make every life count
+# Sparkpaw 0.7.0-alpha.7 — Take flight, hear the storm, and make every life count
 
 ## What's new since alpha.68
 
-Alpha.68 ended at the first Core. This update connects Storm Ruins to a
-complete Stormrail Skimmer adventure, with new enemies, scenery, rewards,
-a boss finale and music throughout both playable sections.
+### TL;DR
 
-- **Board the Skimmer and take flight.** Jump into the waiting craft, steer
-  through storm-lit valleys and ruins, and battle Storm Darts and Pulse Orbs.
-  Clear formations for diamond chains, collect hearts and navigate a debris
-  field with both destructible and solid obstacles.
-- **Face the Harrier.** Dodge fan shots and aimed bursts, defeat the boss at
-  the sealed gate and reach the Stormrail results screen.
-- **Play a connected campaign.** Continue from Storm Ruins with your remaining
-  lives, health and diamond meter. Replay a section from its saved starting
-  position, or choose Stormrail directly from OPTIONS with a fresh set of lives.
-  Carried lives and hearts now appear from the first boarding scene.
-- **Five original themes.** Hero Drive accompanies the HD/WHDLoad intro,
-  Neon Sky plays at title and READY, Copper Sprint accompanies Storm Ruins,
-  Iron Horizon powers Stormrail, and Storm Light plays at game over.
-  Music and sound effects play together during the action.
-- **Choose your audio.** OPTIONS offers SFX ONLY, MUSIC ONLY and SFX + MUSIC.
-  HD/WHDLoad SOUNDTEST lets you try all 16 effects and all five themes.
-- **Pause with P.** Freeze the action and level timer while the music continues;
-  press P again to resume. Escape returns to READY, and WHDLoad retains F10 exit.
-- **A proper game over.** Losing the final life ends the run with a dedicated
-  AGA scene, your total campaign score and Storm Light. Press Fire to return
-  to the title. All editions share the same game-over artwork and music.
-- **Presentation improvements.** READY has wind particles and orange sparks;
-  OPTIONS and SOUNDTEST use a clearer layout. Intro skipping and direct
-  Stormrail loading include the fixes made since alpha.68.
-- **Still two ordinary floppy disks.** The complete campaign soundtrack and
-  game-over scene fit on two ADFs with unchanged image and sound quality.
-  ADF starts at the title; HD and WHDLoad also include the cinematic intro.
-  Use the two alpha.7 disks together. Disk 2 can be used in DF1, or inserted
-  into DF0 when prompted.
+- **A bigger adventure:** continue from Storm Ruins into Stormrail, board the
+  Skimmer and fly through enemy formations, debris and the Harrier boss finale.
+- **A connected campaign:** carry lives, hearts and rewards between sections,
+  replay from your section's starting state or choose Stormrail from OPTIONS.
+- **Five original music themes:** music and sound effects together during
+  gameplay, plus Storm Light for the new game-over scene.
+- **More control:** choose your audio mode, pause with P and preview all five
+  themes and 16 effects in HD/WHDLoad SOUNDTEST.
+- **A proper game over:** losing the final life ends the run with dedicated
+  AGA artwork, your total campaign score and a Fire prompt to return to title.
+- **Presentation polish:** animated READY particles, clearer menus, cleaner
+  transitions and consistent lives and hearts from boarding through flight.
+- **Now on two floppy disks:** the new Stormrail section, expanded soundtrack
+  and game-over presentation take the adventure beyond a single disk. Disk 1
+  contains Storm Ruins; Disk 2 adds Stormrail and its boss finale.
 
-## Compatibility and known issues
+### Detailed information
 
-PAL A1200/AGA, 68020 or faster, 2 MB Chip RAM and 8 MB Fast RAM.
-This is still an alpha: the next full platforming level is not included yet.
+Alpha.68 ended with the first Core and a Level-1 replay. This update connects
+that adventure to Stormrail: a complete Skimmer flight section with its own
+enemies, scenery, hazards, boss encounter and results. Five original themes now accompany the journey, including music and sound
+effects together during both playable sections and a dedicated game-over theme. The complete campaign comes
+in HD, WHDLoad and two-floppy ADF editions. Losing the final life now ends the
+run with a dedicated AGA scene and your total campaign score, with the same
+game-over artwork and music in every edition.
 
-A black screen after Fire on game over was reported in an earlier HD test and
-remains unresolved. The latest ADF startup/loading behaviour, WHDLoad and
-real-A1200/Gotek compatibility still need playtesting. The intermittent
-real-hardware HUD-boundary issue and precise free-Chip-RAM launch threshold
-also remain open. Earlier positive campaign/audio tests do not establish
-acceptance of every new path in this release.
+### Audio controls, soundtest and pause
+
+- **Choose gameplay audio.** OPTIONS now offers SFX ONLY, MUSIC ONLY and
+  SFX + MUSIC. The setting applies to Storm Ruins and Stormrail while title
+  and results audio keep their intended presentation.
+- **Try every sound in HD and WHDLoad.** SOUNDTEST includes all 16 effects and
+  all five themes: Hero Drive, Neon Sky, Copper Sprint, Iron Horizon and
+  Storm Light.
+  Effects can be triggered repeatedly; music previews can be played and stopped.
+- **Pause with P.** Press P during either playable section to freeze the action,
+  animations and level timer; press P again to resume. Music keeps playing
+  while the game is paused.
+- **A clearer OPTIONS layout.** Settings share a centred label/value grid with
+  compact selection markers and consistent BACK actions.
+
+### A connected campaign
+
+- **Continue beyond the first Core.** Finish Storm Ruins and choose CONTINUE
+  to begin Stormrail, carrying your remaining lives, health and diamond meter.
+- **Replay either section.** Level 1 keeps its instant replay, and Stormrail
+  can now be replayed from its departure point without reloading its gameplay
+  files. Stormrail replays restore the lives, health and diamonds brought into
+  that section, giving you another attempt from the same starting position.
+- **Choose where to begin.** The ready-screen OPTIONS menu now lets you start
+  in Storm Ruins or jump straight to Stormrail. The secondary-button Jump/Fire
+  setting remains available. A direct Stormrail start begins a fresh run with
+  three lives and three full hearts.
+- **Return and start afresh.** BACK TO TITLE after Stormrail clears the campaign
+  for a new run. Esc abandons the current run and returns to the ready screen,
+  without replaying the story introduction.
+
+### Every life counts: a proper game over
+
+- **The final life really is the final life.** Running out of lives ends the
+  run instead of silently giving Sparkpaw three more. This applies to defeat
+  in Storm Ruins and throughout Stormrail, including the Harrier encounter.
+  Normal new games still begin with three lives.
+- **A dedicated AGA scene.** A defeated Sparkpaw rests on a ruined ledge beneath
+  the storm. The 64-colour artwork leaves room for the GAME OVER heading,
+  score and continuation prompt, centred beside the character.
+- **Your total campaign score.** The screen combines points already banked
+  from completed sections with the score earned in the section where the run
+  ended. An unfinished section does not award a completion time bonus.
+- **Storm Light accompanies the ending.** The new game-over theme gives this
+  moment its own musical identity. It is also available as the fifth music
+  preview in HD/WHDLoad SOUNDTEST.
+- **PRESS FIRE TO CONTINUE.** After a short input guard, release and press Fire
+  to return to the title. This is a direct action rather than a selectable
+  menu item.
+- **The same presentation on floppy.** HD, WHDLoad and ADF share the complete
+  game-over artwork and music, without a reduced-colour or simplified-audio
+  floppy version.
+
+### Consistent lives and hearts from boarding to flight
+
+The Stormrail boarding scene now displays the lives and health carried out of
+Storm Ruins from its first frame. For example, finishing Level 1 with two lives
+and one-and-a-half hearts shows those same values while approaching the
+Skimmer, during boarding and after the fade into flight. The HUD no longer
+briefly presents a fresh three-life, full-health state before showing the
+carried values again.
+
+This also respects the two other ways into Stormrail: starting directly from
+OPTIONS gives you a fresh three-life, full-health run, while REPLAY LEVEL
+restores the saved state from the beginning of that section.
+
+### Board the Skimmer and take flight
+
+- **A playable departure.** Jump from the broken cliff into the hovering
+  Skimmer's cockpit to board it, then launch into an open, scrolling flight
+  section. Sparkpaw has a new seated cockpit pose and a compact craft designed
+  to leave room for steering and combat.
+- **Horizontal shooter controls.** Steer through the open air, dodge incoming
+  fire and keep shooting as the landscape scrolls past. Stormrail changes the
+  pace from on-foot platforming to a roughly two-and-a-half-minute flight route.
+- **A changing storm landscape.** Fly past mountain silhouettes, rain-veiled
+  valleys, waterfalls and ruined structures, with shifting colours, layered
+  scenery and passing dust. The departure fades into the flight environment
+  before the action builds toward the final gate.
+
+### Formations, rewards and a debris field
+
+- **Two new flight enemies.** Storm Darts and Pulse Orbs attack in mixed
+  formations, including curling paths, crossing lanes and fan-shaped groups
+  that split and rejoin.
+- **Rewards for clearing formations.** Destroy a whole formation to reveal a
+  diamond chain. Additional diamond patterns and heart pickups offer brief
+  recovery opportunities between encounters.
+- **A choreographed debris field.** Navigate broken masonry and larger pieces
+  of ruin. Shoot destructible debris, avoid solid obstacles and collect the
+  diamond or health rewards carried by selected objects.
+- **A complete encounter sequence.** Opening formations lead into the debris
+  field, followed by more demanding flight patterns and a short approach to
+  the finale.
+
+### The Harrier finale and Stormrail results
+
+- **A boss guarding the sealed gate.** The Harrier enters a fixed-screen arena
+  with room to manoeuvre. Read its charge warnings and dodge its spreading
+  fan shots; as its health falls, it adds aimed bursts that reward changing
+  direction.
+- **New combat sounds and effects.** Distinct charge and firing sounds accompany
+  the Harrier's attacks, with violet fan shots and distinct amber aimed shots.
+- **A proper finish.** Defeat the Harrier, watch the gate open and fly through
+  before the section's results appear.
+- **Results for your flight.** Stormrail uses the familiar tally presentation
+  for enemies, diamonds, time bonus and score, followed by REPLAY LEVEL or
+  BACK TO TITLE.
+
+### Updated editions
+
+- **A complete two-disk ADF edition.** Disk 1 boots into the title and contains
+  Level 1; Disk 2 contains Stormrail and its finale. The cinematic story remains
+  in the HD and WHDLoad editions, while ADF retains title, loading, charging
+  and the ready screen.
+- **Automatic second-drive support.** If Disk 2 is already in DF1, the game
+  uses it without asking you to swap disks. Single-drive setups receive
+  INSERT DISK 1/2 prompts when a change is needed.
+- **Matching disk-change artwork.** The prompts reuse the familiar floppy
+  picture with the same cyan, bevelled lettering style as LOADING and CHARGING.
+  Insert the requested disk and loading resumes automatically.
+- **Refreshed HD and WHDLoad packages.** Both contain the full campaign and
+  story introduction. WHDLoad retains its F10 exit to Workbench.
+
+### Five original music themes
+
+- **Hero Drive** accompanies the cinematic story introduction in HD and
+  WHDLoad, giving the opening its own full four-channel theme.
+- **Neon Sky** starts at the large title screen and continues through loading,
+  CHARGING, READY and OPTIONS. Floppy players get this title theme too.
+- **Copper Sprint** brings a driving 164 BPM accompaniment to Level 1,
+  alongside plasma fire, jumping, impacts, hurt, pickups and splashes.
+- **Iron Horizon** gives Stormrail a faster 172 BPM shooter theme: pulsing
+  bass, wide chord accents, a returning melody and an atmospheric bridge
+  before the action builds again. Its roughly 89-second loop accompanies
+  departure, flight and the Harrier fight without an extra music load.
+- **Storm Light** accompanies the game-over scene in every edition, using
+  the selected StormLight module as its source. HD/WHDLoad players can also
+  listen to it independently in SOUNDTEST.
+- **Music and effects together.** Both gameplay themes leave room for the
+  existing effects, including health and extra-life pickups, debris and the
+  Harrier's distinct attack warnings and firing cues.
+- **Music follows the run.** Losing a life does not restart the song. Results
+  stop gameplay music for the familiar tally sounds; REPLAY LEVEL starts the
+  section's track afresh. Returning to the ready screen brings back Neon Sky.
+  Losing the final life transitions to Storm Light for game over.
+
+### A little Amiga audio engineering
+
+Paula still has only four hardware channels. Intro and title music use all
+four; gameplay music is composed for three. A small software mixer combines
+**two effect voices onto the fourth Paula channel**: one for rapid plasma
+shots and one for the other effects, with priorities for important cues.
+This creates room for music and overlapping effects without pretending the
+Amiga has unlimited channels. Competing effects still have to share that
+second voice; this is not unlimited polyphony.
+
+Gameplay uses a ProTracker-compatible player driven by CIA timers, so the
+music clock is separate from the rate at which the game draws frames. Sample
+mixing runs in small blocks, with working data in Fast RAM and the final audio
+buffers in Chip RAM for Paula. Only the active section's track is loaded.
+These choices keep the soundtrack practical for the 68020/2 MB Chip + 8 MB Fast
+target. They are not a promise that every scene or accelerator runs at 50 FPS.
+
+### A livelier READY screen and cleaner transitions
+
+- **Wind before the storm.** Small streaks cross the dark READY background
+  from right to left, with cool colour changes and occasional orange sparks.
+  The logo, artwork and menu text remain in front of the effect.
+- **Smoother READY navigation on 68020.** Menu selection is more responsive,
+  with fewer interruptions to the music and particles when entering OPTIONS.
+- **Prepared menu text and masks.** READY, OPTIONS and SOUNDTEST use menu
+  graphics prepared ahead of time. The floppy edition keeps only the menu
+  states it can reach, saving space while preserving its menu appearance.
+- **A cleaner CHARGING-to-READY transition.** Preparation now happens while
+  CHARGING remains visible, shortening the intervening black pause.
+- **A lighter Stormrail load.** Stormrail needs less Chip RAM and avoids
+  loading unused graphics. It still needs more than about 1.45 MB free Chip
+  RAM in the ordinary HD edition; a precise free-memory minimum is not known.
+- **Title music on floppy too.** The two-ADF edition includes Neon Sky and
+  the animated READY screen while continuing to omit the cinematic intro.
+
+- **More reliable intro skipping.** Left-mouse skip requests are retained
+  through fades, and outgoing intro display DMA is stopped before the image
+  memory is freed.
+- **Visible loading for direct Stormrail starts.** Starting Stormrail from
+  OPTIONS uses the loading presentation in HD and WHDLoad as well as ADF,
+  instead of leaving a long unexplained black screen.
+
+### Fitting the soundtrack onto real floppies
+
+The ADF edition uses **two ordinary 880 KiB disks**. Music scores, sample banks
+and effects are packed losslessly on disk and unpacked before use; the music
+and sound samples are not reduced to lower-quality floppy versions. There is
+no decompression in the gameplay audio interrupt and no streaming music load
+halfway through the Harrier encounter.
+
+Another space saving comes from READY's fixed particle-mask tables: about
+39.3 KiB of tables now occupy approximately 6.3 KiB on floppy. They are loaded
+once into Fast RAM, preserving the same particle masking and menu appearance.
+Alpha.7 adds sample-bank compression that stores differences between sample
+bytes before packing them, plus compression of the ADF executable. Both restore
+the original data on loading. The floppy build also omits unused menu graphics
+and HD-only menu states. No artwork colours, music arrangements or sample
+quality are sacrificed to make room for game over.
+
+With the game-over scene and Storm Light included, the final disks retain
+**36.5 KiB free on Disk 1 and 92.5 KiB on Disk 2**. Both keep at least the
+normal 16 KiB packaging reserve. HD/WHDLoad retain ordinary unpacked runtime
+assets. The executable is unpacked at floppy startup.
+
+Use the two alpha.7 ADFs together. Updated disk identification prevents mixing
+these disks with an older pair. Single-drive disk-change prompts, automatic
+DF1 detection and resident replay remain part of the experience. The story
+intro and SOUNDTEST remain HD/WHDLoad-only; ADF starts with title music and
+READY and includes the full gameplay and game-over soundtrack.
+
+### Compatibility
+
+PAL A1200/AGA, 68020 or faster, **2 MB Chip RAM and 8 MB Fast RAM** remain the
+target.
+
+An ordinary HD launch still needs sufficient free Chip RAM after Workbench
+and other software have taken their share. A previous setup with roughly
+1.45 MB free Chip could run Level 1 but could not reliably start Stormrail;
+a precise free-memory threshold is not established. The intermittent
+real-Amiga HUD-boundary issue also remains an open test point.
+
+This is still an alpha: Stormrail extends the adventure, but the next full
+platforming level and the complete planned game are not included yet.

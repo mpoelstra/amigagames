@@ -1,5 +1,8 @@
 #include "enemies.h"
 #include "beetle_hitbox.h"
+#ifdef SPARKPAW_DROWNED_SPILLWING
+#include "spillwing.h"
+#endif
 
 #include "level_data.h"
 #include "performance_profile.h"
@@ -15,9 +18,20 @@
 #define ACTIVATE_MARGIN 96
 #define UNLOAD_MARGIN 32
 #define WALK_PHASE_DISTANCE 384
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+/* Approved Pump Walker stance moves 1.5px per pose (12px/cycle). */
+#define STRIDER_WALK_PHASE_DISTANCE 384
+#else
 #define STRIDER_WALK_PHASE_DISTANCE 768
+#endif
 #define STRIDER_WALK_FRAMES 8
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+#define STRIDER_TURN_FRAMES 12
+#define CRAB_WALK_FRAMES 8
+#else
 #define STRIDER_TURN_FRAMES 6
+#define CRAB_WALK_FRAMES 4
+#endif
 #define STRIDER_COMPRESS_START_FRAME 18
 #define STRIDER_COMPRESS_CHARGED_FRAME 19
 #define STRIDER_FLIGHT_FRAME 20
@@ -87,6 +101,9 @@ static UWORD randomBelow(UWORD limit)
 
 static BOOL spawnRuntimeReady(UBYTE type)
 {
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(type==ENEMY_TYPE_SPILLWING) return TRUE;
+#endif
     if(type==ENEMY_TYPE_CLOCKWORK_BEETLE) return TRUE;
     /* Phase 6C admits every authored Strider candidate while the existing
        camera-managed pool still limits simultaneous enemy Bobs to four. */
@@ -95,6 +112,9 @@ static BOOL spawnRuntimeReady(UBYTE type)
 
 static WORD enemyWidthForType(UBYTE type)
 {
+    #ifdef SPARKPAW_DROWNED_JOINED
+    if(type==ENEMY_TYPE_SPILLWING) return 24;
+#endif
     return type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?STRIDER_W:ENEMY_W;
 }
 
@@ -112,6 +132,9 @@ static void initializeSpawnState(struct EnemySpawnState *state,
     const struct EnemyPatrolSurface *surface=
         levelEnemyPatrolSurface(spawn->surfaceId);
     WORD speed=speeds[randomBelow(3)];
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+    if(spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&spawn->minX>=DROWNED_FINALE_OFFSET) speed=(spawnIndex==4||spawnIndex==17)?256:224;
+#endif
     BOOL selected=state->selected;
     BOOL scoreAwarded=state->scoreAwarded;
     if(!surface) return;
@@ -127,9 +150,15 @@ static void initializeSpawnState(struct EnemySpawnState *state,
     enemy->facingLeft=enemy->vx<0;
     enemy->spawnIndex=spawnIndex; enemy->type=spawn->type;
     enemy->surfaceId=spawn->surfaceId;
+#ifdef SPARKPAW_DROWNED_SPILLWING
+    if(enemy->type==ENEMY_TYPE_SPILLWING) spillwingInit(enemy);
+#endif
     enemy->traversalLink=INVALID_TRAVERSAL_LINK;
     if(spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER)
         enemy->shootCooldown=(UBYTE)(75+randomBelow(100));
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+    if(spawn->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&spawn->minX>=DROWNED_FINALE_OFFSET) enemy->shootCooldown=(spawnIndex==4||spawnIndex==17)?65:95;
+#endif
     state->selected=preserveSelection?selected:TRUE;
     state->scoreAwarded=preserveSelection?scoreAwarded:FALSE;
     state->loadedSlot=INVALID_SPAWN;
@@ -499,6 +528,9 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
             enemy->facingLeft=enemy->vx<0;
             enemy->walkTick=0; enemy->animFrame=0;
             enemy->shootCooldown=STRIDER_SHOOT_COOLDOWN_FRAMES;
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+            if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&(enemy->x>>8)>=DROWNED_FINALE_OFFSET) enemy->shootCooldown=90;
+#endif
         }
         return;
     }
@@ -523,12 +555,22 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
                 enemy->walkTick=0;
             }
         } else {
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+            enemy->animFrame=(UBYTE)(18+(8-enemy->hitTimer)/2);
+            enemy->hitTimer--;
+#else
             enemy->hitTimer--; enemy->animFrame=4;
+#endif
         }
         return;
     }
     if(enemy->turnTimer) {
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+        enemy->animFrame=(UBYTE)((enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?28:14)+
+            (STRIDER_TURN_FRAMES-enemy->turnTimer)/3);
+#else
         enemy->animFrame=8;
+#endif
         if(!--enemy->turnTimer) {
             enemy->facingLeft=enemy->vx<0;
             enemy->animFrame=0;
@@ -544,17 +586,24 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
     blocked=solidAt(front,enemy->y+height-8)||
             !solidAt(front,enemy->y+height);
     if(enemy->animFrame>=(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?
-                          STRIDER_WALK_FRAMES:4))
+                          STRIDER_WALK_FRAMES:CRAB_WALK_FRAMES))
         enemy->animFrame=0;
     if(patrolEnd||blocked) {
         enemy->vx=-enemy->vx;
         /* Only authored patrol extrema own the visible planted turn. A solid
            or missing-support safety probe may still reverse movement, but it
            must not flash slot 8 at an incidental point inside the route. */
-        if(patrolEnd&&
-           enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER) {
+        if(patrolEnd
+#ifndef SPARKPAW_DROWNED_ENEMY_ART
+           &&enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER
+#endif
+           ) {
             enemy->turnTimer=STRIDER_TURN_FRAMES;
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+            enemy->animFrame=enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?28:14;
+#else
             enemy->animFrame=8;
+#endif
         }
     } else {
         enemy->x+=enemy->vx;
@@ -568,7 +617,7 @@ static void updateEnemy(struct Enemy *enemy,EnemySolidAt solidAt)
                    before the next update corrected it back to zero. */
                 enemy->animFrame=(UBYTE)((enemy->animFrame+1)&7);
             else
-                enemy->animFrame=(UBYTE)((enemy->animFrame+1)&3);
+                enemy->animFrame=(UBYTE)((enemy->animFrame+1)&(CRAB_WALK_FRAMES-1));
         }
     }
     if(!enemy->turnTimer) enemy->facingLeft=enemy->vx<0;
@@ -643,12 +692,21 @@ void enemiesUpdate(WORD cameraX,EnemySolidAt solidAt,WORD playerCenterX,
         if(enemy->spawnIndex==INVALID_SPAWN) continue;
         state=&spawnStates[enemy->spawnIndex];
         if(enemy->active) {
+#ifdef SPARKPAW_DROWNED_SPILLWING
+            if(enemy->type==ENEMY_TYPE_SPILLWING) spillwingUpdate(enemy,cameraX,playerCenterX);
+            else
+#endif
             updateEnemy(enemy,solidAt);
             if(enemy->shotPending) {
                 if(enemyFullyVisible(enemy,cameraX)&&spawnProjectile)
                     spawnProjectile((WORD)((enemy->x>>8)+
                         (enemy->facingLeft?-6:STRIDER_W-10)),
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+                        /* Fire-pose aperture center row 26 + 1px Bob grounding. */
+                        (WORD)(enemy->y+23),enemy->facingLeft);
+#else
                         (WORD)(enemy->y+32),enemy->facingLeft);
+#endif
                 enemy->shotPending=FALSE;
             }
             tryStartStriderShot(enemy,cameraX,playerCenterX,playerCenterY);
@@ -745,6 +803,9 @@ UBYTE enemiesHitProjectile(WORD x,WORD y)
                         enemy->shootTimer=0; enemy->shotPending=FALSE;
                         enemy->vx=enemy->attackVX;
                         enemy->shootCooldown=STRIDER_SHOOT_COOLDOWN_FRAMES;
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+            if(enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER&&(enemy->x>>8)>=DROWNED_FINALE_OFFSET) enemy->shootCooldown=90;
+#endif
                     }
                     enemy->attackVX=enemy->vx;
                     enemy->vx=0;
@@ -755,18 +816,39 @@ UBYTE enemiesHitProjectile(WORD x,WORD y)
             }
             return enemy->dying?PROJECTILE_ENEMY_KILL:PROJECTILE_ENEMY_HIT;
         }
-        if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE&&
+        if((enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE
+#ifdef SPARKPAW_DROWNED_JOINED
+            ||enemy->type==ENEMY_TYPE_SPILLWING
+#endif
+           )&&
            enemy->active&&!enemy->dying&&
+#ifdef SPARKPAW_DROWNED_SPILLWING
+           (enemy->type==ENEMY_TYPE_SPILLWING?spillwingHit(enemy,x,y):
+            beetleHitboxContains(x,y,(WORD)(enemy->x>>8),enemy->y))) {
+#else
            beetleHitboxContains(x,y,(WORD)(enemy->x>>8),enemy->y)) {
+#endif
             if(!--enemy->health) {
                 enemy->dying=TRUE; enemy->deathTimer=20;
-                enemy->vx=0; enemy->animFrame=5;
+                enemy->vx=0;
+#ifdef SPARKPAW_DROWNED_SPILLWING
+                enemy->animFrame=10; if(enemy->type==ENEMY_TYPE_SPILLWING) enemy->deathTimer=24;
+#elif defined(SPARKPAW_DROWNED_ENEMY_ART)
+                enemy->animFrame=10;
+#else
+                enemy->animFrame=5;
+#endif
                 if(!spawnStates[enemy->spawnIndex].scoreAwarded) {
                     spawnStates[enemy->spawnIndex].scoreAwarded=TRUE;
                     pendingScoreAward+=20;
                 }
             } else {
-                enemy->hitTimer=8; enemy->animFrame=4;
+                enemy->hitTimer=8;
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+                enemy->animFrame=18;
+#else
+                enemy->animFrame=4;
+#endif
             }
             return enemy->dying?PROJECTILE_ENEMY_KILL:PROJECTILE_ENEMY_HIT;
         }
@@ -788,9 +870,23 @@ BOOL enemiesFirstProjectileHitOnSweep(WORD start,WORD end,WORD y,WORD *hitX)
                y>enemy->y+STRIDER_CONTACT_BOTTOM) continue;
             left=(WORD)(enemyX+STRIDER_CONTACT_LEFT);
             right=(WORD)(enemyX+STRIDER_CONTACT_RIGHT);
-        } else if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE) {
+        } else if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE
+#ifdef SPARKPAW_DROWNED_JOINED
+                  ||enemy->type==ENEMY_TYPE_SPILLWING
+#endif
+                  ) {
+#ifdef SPARKPAW_DROWNED_SPILLWING
+            if(enemy->type==ENEMY_TYPE_SPILLWING) {
+                if(y<enemy->y+9||y>enemy->y+20) continue;
+                left=spillwingLeft(enemy); right=spillwingRight(enemy);
+            } else {
+                if(y<enemy->y+7||y>enemy->y+ENEMY_H-1) continue;
+                left=(WORD)(enemyX+2); right=(WORD)(enemyX+ENEMY_W-3);
+            }
+#else
             if(y<enemy->y+7||y>enemy->y+ENEMY_H-1) continue;
             left=(WORD)(enemyX+2); right=(WORD)(enemyX+ENEMY_W-3);
+#endif
         } else continue;
         if(start<=end) {
             if(right<start||left>end) continue;
@@ -831,10 +927,24 @@ BOOL enemiesContactPlayer(WORD left,WORD top,WORD right,WORD bottom,
             enemyTop=enemy->y+STRIDER_CONTACT_TOP;
             enemyBottom=enemy->y+STRIDER_CONTACT_BOTTOM;
             width=STRIDER_W;
-        } else if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE) {
+        } else if(enemy->type==ENEMY_TYPE_CLOCKWORK_BEETLE
+#ifdef SPARKPAW_DROWNED_JOINED
+                  ||enemy->type==ENEMY_TYPE_SPILLWING
+#endif
+                  ) {
+#ifdef SPARKPAW_DROWNED_SPILLWING
+            if(enemy->type==ENEMY_TYPE_SPILLWING) {
+                enemyLeft=spillwingLeft(enemy)+2; enemyRight=spillwingRight(enemy)-2;
+                enemyTop=enemy->y+10; enemyBottom=enemy->y+18;
+            } else {
+                enemyLeft=x+2; enemyRight=x+ENEMY_W-3;
+                enemyTop=enemy->y+7; enemyBottom=enemy->y+ENEMY_H-1;
+            }
+#else
             enemyLeft=x+2; enemyRight=x+ENEMY_W-3;
             enemyTop=enemy->y+7; enemyBottom=enemy->y+ENEMY_H-1;
-            width=ENEMY_W;
+#endif
+            width=enemyWidthForType(enemy->type);
         } else continue;
         if(right>=enemyLeft&&left<=enemyRight&&
            bottom>=enemyTop&&top<=enemyBottom) {

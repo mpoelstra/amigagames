@@ -47,7 +47,10 @@ def main():
     contract()
     subprocess.run([sys.executable,str(ROOT/"tools/generate_ready_ui_cache.py"),"--check"],check=True)
     fixture=ROOT/'tests/fixtures/ready-ui-before-cache'
-    states=list(rasterize(fixture/'ready_ui.c',fixture))
+    states=list(rasterize(fixture/'ready_ui.c',fixture,sfx_count=16))
+    if not ADF:
+        states.extend(state for state in rasterize(ROOT/'tools/ready_ui_layout.c',ROOT/'src')
+                      if state[0].page==2 and state[0].sfx>=16)
     if ADF: states=[state for state in states if not state[0].page or not state[1]]
     raw=(ROOT/'assets/runtime/sparkpaw-ready-screen.spbm').read_bytes()
     clean=[raw[204+p*10240:204+(p+1)*10240] for p in range(6)]

@@ -2,7 +2,11 @@
 #define SPARKPAW_AUDIO_MIX_H
 #include <stdint.h>
 #define MIX_BYTES 112 /* 10.17 ms at Paula period 322 */
+#ifdef SPARKPAW_DROWNED_JOINED
+#define FX_COUNT 17 /* Append checkpoint; keep all existing effect IDs. */
+#else
 #define FX_COUNT 16 /* 15 source files plus the louder health-pickup variant */
+#endif
 typedef struct { const int8_t *data; uint32_t length; uint8_t priority,cooldown; } Effect;
 typedef struct { const int8_t *data; uint32_t remaining; uint8_t priority; } Voice;
 typedef struct {

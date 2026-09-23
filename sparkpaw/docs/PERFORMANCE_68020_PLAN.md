@@ -1,5 +1,7 @@
 # Sparkpaw stock-68020 performance plan
 
+> Reusable lessons from the full Drowned/Level1 optimization round: [retained 68020 lessons](DROWNED_TURBINES_LESSONS.md#retained-68020-optimization-lessons--september-2026). This is a synthesis of evidence, not a new experiment or an override of [current media/acceptance status](CURRENT_STATUS.md).
+
 > Current status (2026-09-05): Performance investigation is parked by explicit user decision. This plan preserves historical goals/evidence; do not resume experiments from its next-step instructions. See [status index](CURRENT_STATUS.md).
 
 Status: completed performance checkpoint on the alpha.45 Stage 5L/H7 baseline.

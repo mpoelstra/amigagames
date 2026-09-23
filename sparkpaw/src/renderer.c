@@ -1,3 +1,4 @@
+#include "drowned_busy.h"
 /* Sparkpaw: The Stormstone Quest -- AGA dual-playfield milestone. */
 #define SPARKPAW_RENDERER_IMPLEMENTATION_UNIT
 #include <exec/types.h>
@@ -11,11 +12,19 @@
 #include <hardware/dmabits.h>
 #include <proto/exec.h>
 #include <proto/dos.h>
+#ifdef SPARKPAW_MULTI_ADF
+#include "disk_media.h"
+#undef Open
+#define Open diskMediaOpen
+#endif
 #include <proto/graphics.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "assets.h"
+#ifdef SPARKPAW_DROWNED_SLICE
+#include "drowned_slice.h"
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
 #include "audio.h"
 #endif
@@ -34,6 +43,7 @@
 #include "rolling_renderer_contract.h"
 #endif
 #include "renderer.h"
+#include "drowned_fps.h"
 #include "world_config.h"
 #include "stormrail_contract.h"
 #ifdef SPARKPAW_LEVEL1_RENDERER_TU_ISOLATION
@@ -89,7 +99,11 @@
 #define PLAYFIELD_GUARD_BYTES 0
 #define HUD_FETCH_BYTES 42
 #endif
+#ifdef SPARKPAW_DROWNED_FULL
+#define COP_WORDS 896
+#else
 #define COP_WORDS 768
+#endif
 #define SPRITE_W 48
 #define SPRITE_H 48
 #define ANIM_FRAMES PLAYER_ANIM_FRAMES
@@ -147,6 +161,9 @@ static void writeStartupStage(const char *stage)
 #define PLASMA_SOURCE_WORDS 2
 #define DIAMOND_SOURCE_WORDS 2
 #define DIAMOND_PATCH_H (COLLECTIBLE_H+4)
+#ifdef SPARKPAW_DROWNED_ROUTE
+#include "drowned_collectible_restore.h"
+#endif
 #define DIAMOND_WIDE_INDEX 28
 #define DIAMOND_WIDE_WORDS 2
 /* Match the established diamond Bob: one visible word and one zero shift
@@ -171,8 +188,14 @@ static void writeStartupStage(const char *stage)
    or a per-scanline Copper split. Only entering 16-pixel world columns replace
    their fixed ring slots. */
 #define PROTOTYPE_RING_W 512
-#define PROTOTYPE_RING_COPIES 3
-#define PROTOTYPE_RING_BASE PROTOTYPE_RING_W
+#include "drowned_ring_layout.h"
+#ifdef SPARKPAW_RING_TWO_COPY
+#if (!defined(SPARKPAW_DROWNED_FULL) && !defined(SPARKPAW_LEVEL1_RENDERER_TU_ISOLATION)) || !defined(SPARKPAW_ROLLING_PROTOTYPE) || !defined(SPARKPAW_CANONICAL_BOB_RESTORE) || !defined(SPARKPAW_AGA32_LEFT_GUARD) || defined(SPARKPAW_AGA64_FETCH_CANDIDATE) || defined(SPARKPAW_STORMRAIL_PROOF) || defined(SPARKPAW_FETCH_RELEVANT_RING_COPIES)
+#error Two_copy_ring_requires_isolated_canonical_AGA32_renderer
+#endif
+#endif
+#define PROTOTYPE_RING_COPIES DROWNED_RING_COPIES
+#define PROTOTYPE_RING_BASE DROWNED_RING_BASE
 #define PROTOTYPE_TARGET_W (PROTOTYPE_RING_W*PROTOTYPE_RING_COPIES)
 #define PROTOTYPE_TARGET_BYTES (PROTOTYPE_TARGET_W/8)
 #endif
@@ -293,10 +316,14 @@ static UWORD frontColorValue[2][16];
 static UWORD stormRearColorValue[2][STORM_REAR_PALETTE_STAGES][8];
 static UBYTE stormRearPaletteBuildList,stormRearPaletteBuildStage;
 #endif
+#ifdef SPARKPAW_DROWNED_SLICE
+static UWORD frontColors[16];
+#else
 static const UWORD frontColors[16]={
     0x001,0x111,0xd41,0xf92,0xfea,0x26c,0x3ce,0x94c,
     0x444,0x666,0xa9a,0xedc,0x426,0x72a,0xa5d,0xe26
 };
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 struct PrototypeEnemyHistory {
     WORD x,worldX,y;
@@ -413,6 +440,14 @@ static struct RenderDiagnosticTrace *diagnosticTrace,diagnosticCurrent;
 static struct FramePhaseClock diagnosticClock;
 static UWORD diagnosticTraceCount,diagnosticTraceNext;
 static ULONG diagnosticGeneration;
+#ifdef SPARKPAW_DROWNED_EVENT_DIAGNOSTIC
+/* Bucket bits: ring column, canonical water update, compositor raster wrap.
+   No extra timer reads. Attribute an interval to the preceding update. */
+static ULONG drownedEventIntervals[8],drownedEventLong[8];
+#endif
+#ifdef SPARKPAW_DROWNED_JOINED
+#include "drowned_cadence_regions.h"
+#endif
 static ULONG diagnosticCadenceIntervals,diagnosticCadenceFields;
 static ULONG diagnosticCadenceOne,diagnosticCadenceTwo;
 static ULONG diagnosticCadenceThreePlus,diagnosticCadenceMax;
@@ -457,6 +492,9 @@ struct EnemyBobCache {
 };
 
 static struct EnemyBobCache enemyCaches[ENEMY_TYPE_COUNT];
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_FRAME_ADDRESS_REFERENCE)
+#include "drowned_enemy_frames.h"
+#endif
 static UWORD *striderStageMask,*striderStageBits;
 static UBYTE striderStageFacing[MAX_ENEMIES],striderStageFrame[MAX_ENEMIES];
 static BOOL striderStageValid[MAX_ENEMIES];
@@ -569,6 +607,11 @@ static void copperRearPalette(UBYTE source,UBYTE target,UBYTE step,UBYTE steps)
                  rearBandColors[target][i][1]*step)/steps;
         UWORD b=(rearBandColors[source][i][2]*(steps-step)+
                  rearBandColors[target][i][2]*step)/steps;
+#ifdef SPARKPAW_DROWNED_SLICE
+        r=rearWorld->palette[i][0]>>4;
+        g=rearWorld->palette[i][1]>>4;
+        b=rearWorld->palette[i][2]>>4;
+#endif
         cmove((UWORD)(0x1a0+i*2),
               (UWORD)((r<<8)|(g<<4)|b));
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -599,6 +642,10 @@ static void plainCptr(UWORD reg,APTR value)
 {
     ULONG p=(ULONG)value; cmove(reg,(UWORD)(p>>16)); cmove(reg+2,(UWORD)p);
 }
+
+#ifdef SPARKPAW_DROWNED_FULL
+#include "drowned_rear_ambience.h"
+#endif
 
 static void buildCopper(void)
 {
@@ -668,7 +715,13 @@ static void buildCopper(void)
        AGA palette bank zero (COLOR00..31). */
     cmove(0x106,0x1020);
     for(i=0;i<32;i++) {
-        cmove((UWORD)(0x180+i*2),colors[i]);
+        cmove((UWORD)(0x180+i*2),
+#ifdef SPARKPAW_DROWNED_SLICE
+              i<16?frontColors[i]:colors[i]
+#else
+              colors[i]
+#endif
+              );
         if(i<16) frontColorValue[listIndex][i]=copPos-1;
     }
     copperRearPalette(0,0,0,1);
@@ -715,6 +768,9 @@ static void buildCopper(void)
         cop[copPos++]=0xfffe;
         copperRearPalette(1,2,(UBYTE)i,8);
     }
+#ifdef SPARKPAW_DROWNED_FULL
+    buildDrownedShoreCopper(listIndex);
+#endif
 #if defined(SPARKPAW_HUD_SEAM_FRONT_BLACK)||defined(SPARKPAW_HUD_SEAM_ISOLATE_FRONT_PALETTE)||defined(SPARKPAW_HUD_SEAM_ISOLATE_REAR_PALETTE)
     /* H6 changes colour lookup only after line 250's final fetch. Bitplane
        DMA, shifters, pointers, modulos and the alpha.43 HUD split keep running
@@ -1026,12 +1082,26 @@ static WORD prototypeOriginForCamera(WORD cameraX)
 
 static BOOL prototypeRectFits(WORD x,WORD width)
 {
+#if defined(SPARKPAW_LEVEL1_TWO_COPY_RING) && defined(SPARKPAW_RING_TWO_COPY)
+    /* Level1's world-end clamp can leave a nonvisible part of the resident
+       window outside the rebased target. Unlike Drowned, residency alone is
+       not a physical-address guarantee. Reject only those offscreen Bobs;
+       histories retain the physical coordinates of successful prior draws. */
+    LONG physical=PROTOTYPE_RING_BASE+(game->cameraX&(PROTOTYPE_RING_W-1))+
+                  (LONG)x-game->cameraX;
+    if(physical<0||physical+width>PROTOTYPE_TARGET_W) return FALSE;
+#endif
     return rollingRectFits(x,width,prototypeBuildOrigin,PROTOTYPE_RING_W);
 }
 
 static WORD prototypePhysicalX(WORD worldX)
 {
+#ifdef SPARKPAW_RING_TWO_COPY
+    return (WORD)(PROTOTYPE_RING_BASE+(game->cameraX&(PROTOTYPE_RING_W-1))+
+                  worldX-game->cameraX);
+#else
     return (WORD)rollingRingPhysicalX(worldX,game->cameraX,PROTOTYPE_RING_W);
+#endif
 }
 
 static void prototypeCopyCanonicalSpan(struct PrototypeTarget *target,
@@ -1039,7 +1109,7 @@ static void prototypeCopyCanonicalSpan(struct PrototypeTarget *target,
 {
     WORD remaining=width;
     while(remaining>0) {
-        WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+        WORD slot=(WORD)DROWNED_RING_SLOT(worldX);
         WORD chunk=(WORD)(PROTOTYPE_RING_W-slot);
         WORD row,copy; UBYTE plane;
         if(chunk>remaining) chunk=remaining;
@@ -1070,7 +1140,9 @@ static void prototypeCopyCanonicalSpan(struct PrototypeTarget *target,
                 UWORD *clean2=clean1+(PROTOTYPE_RING_W/16);
 #endif
                 UWORD *display1=display+(PROTOTYPE_RING_W/16);
+#ifndef SPARKPAW_RING_TWO_COPY
                 UWORD *display2=display1+(PROTOTYPE_RING_W/16);
+#endif
                 WORD words=(WORD)(chunk>>4);
                 WORD word;
 #ifdef SPARKPAW_FETCH_RELEVANT_RING_COPIES
@@ -1098,7 +1170,10 @@ static void prototypeCopyCanonicalSpan(struct PrototypeTarget *target,
 #ifndef SPARKPAW_CANONICAL_BOB_RESTORE
                     *clean++=value; *clean1++=value; *clean2++=value;
 #endif
-                    *display++=value; *display1++=value; *display2++=value;
+                    *display++=value; *display1++=value;
+#ifndef SPARKPAW_RING_TWO_COPY
+                    *display2++=value;
+#endif
                 }
 #endif
             }
@@ -1138,6 +1213,10 @@ static void prototypeCopyCanonicalRect(struct PrototypeTarget *target,
     prototypeCopyCanonicalSpan(target,left,y,(WORD)(right-left),height);
 }
 
+#if defined(SPARKPAW_DROWNED_SLICE) && defined(SPARKPAW_DROWNED_COLUMN_BLIT)
+#include "drowned_column_blit.h"
+#endif
+
 #ifndef SPARKPAW_RING_COLUMN_GENERIC_REFERENCE
 /* The ordinary camera roll admits one aligned 16px column. Avoid the generic
    one-iteration word loop and repeated row-address multiplication: each row
@@ -1147,7 +1226,7 @@ static void prototypeCopyCanonicalRect(struct PrototypeTarget *target,
 static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
                                          WORD worldX)
 {
-    WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+    WORD slot=(WORD)DROWNED_RING_SLOT(worldX);
     WORD sourceStep=(WORD)(frontClean->bitmap->BytesPerRow>>1);
     WORD displayStep=(WORD)(target->display->BytesPerRow>>1);
     UBYTE plane;
@@ -1160,7 +1239,9 @@ static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
             UWORD value=*source;
             display[0]=value;
             display[PROTOTYPE_RING_W/16]=value;
+#ifndef SPARKPAW_RING_TWO_COPY
             display[(PROTOTYPE_RING_W/16)*2]=value;
+#endif
             source+=sourceStep;
             display+=displayStep;
         }
@@ -1170,7 +1251,7 @@ static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
 static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
                                          WORD worldX)
 {
-    WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+    WORD slot=(WORD)DROWNED_RING_SLOT(worldX);
     WORD sourceStep=(WORD)(frontClean->bitmap->BytesPerRow>>1);
     WORD displayStep=(WORD)(target->display->BytesPerRow>>1);
     UBYTE plane;
@@ -1189,7 +1270,9 @@ static void prototypeCopyCanonicalColumn(struct PrototypeTarget *target,
             UWORD value=flightBlank?0:*source;
             display[0]=value;
             display[PROTOTYPE_RING_W/16]=value;
+#ifndef SPARKPAW_RING_TWO_COPY
             display[(PROTOTYPE_RING_W/16)*2]=value;
+#endif
             if(!flightBlank) source+=sourceStep;
             display+=displayStep;
         }
@@ -1209,7 +1292,7 @@ static void prototypeCopyDynamicSpan(struct PrototypeTarget *target,
 {
     WORD remaining=width;
     while(remaining>0) {
-        WORD slot=(WORD)(worldX&(PROTOTYPE_RING_W-1));
+        WORD slot=(WORD)DROWNED_RING_SLOT(worldX);
         WORD chunk=(WORD)(PROTOTYPE_RING_W-slot);
         WORD row,word,words; UBYTE plane;
         if(chunk>remaining) chunk=remaining;
@@ -1240,7 +1323,9 @@ static void prototypeCopyDynamicSpan(struct PrototypeTarget *target,
                 UWORD *clean2=clean1+(PROTOTYPE_RING_W/16);
 #endif
                 UWORD *display1=display+(PROTOTYPE_RING_W/16);
+#ifndef SPARKPAW_RING_TWO_COPY
                 UWORD *display2=display1+(PROTOTYPE_RING_W/16);
+#endif
 #ifdef SPARKPAW_FETCH_RELEVANT_RING_COPIES
                 if(slot>=ROLLING_COPY0_REACH_START) {
                     for(word=0;word<words;word++) {
@@ -1266,7 +1351,10 @@ static void prototypeCopyDynamicSpan(struct PrototypeTarget *target,
 #ifndef SPARKPAW_CANONICAL_BOB_RESTORE
                     *clean++=value; *clean1++=value; *clean2++=value;
 #endif
-                    *display++=value; *display1++=value; *display2++=value;
+                    *display++=value; *display1++=value;
+#ifndef SPARKPAW_RING_TWO_COPY
+                    *display2++=value;
+#endif
                 }
 #endif
 #else
@@ -1321,6 +1409,15 @@ static void prototypeCopyInitial(struct PrototypeTarget *target)
     }
 }
 
+#ifdef SPARKPAW_DROWNED_RESET_BLIT
+#if !defined(SPARKPAW_DROWNED_FULL) || !defined(SPARKPAW_CANONICAL_BOB_RESTORE) || !defined(SPARKPAW_DROWNED_PATCH_BLIT) || defined(SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE)
+#error Drowned_reset_blit_requires_full_canonical_Drowned_renderer
+#endif
+static void drownedCopyPatchRect(struct PrototypeTarget *target,
+                                WORD worldX,WORD y,WORD width,WORD height);
+#include "drowned_reset_copy.h"
+#endif
+
 static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
 {
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -1335,7 +1432,12 @@ static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
     diagnosticCurrent.flags|=DIAG_RING_COLUMN;
 #endif
     if(pixels>=PROTOTYPE_RING_W||pixels<=-PROTOTYPE_RING_W) {
-        target->origin=newOrigin; prototypeCopyInitial(target);
+        target->origin=newOrigin;
+#ifdef SPARKPAW_DROWNED_RESET_BLIT
+        drownedCopyResetTarget(target);
+#else
+        prototypeCopyInitial(target);
+#endif
         performanceProfileEnd(PERF_RING_ROLL,profileStart);
         return;
     }
@@ -1345,8 +1447,12 @@ static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
         if(pixels>0) {
 #ifndef SPARKPAW_RING_COLUMN_GENERIC_REFERENCE
             if(pixels==16)
+#ifdef SPARKPAW_DROWNED_COLUMN_BLIT
+                drownedBlitColumn(target,(WORD)(oldOrigin+PROTOTYPE_RING_W),oldOrigin);
+#else
                 prototypeCopyCanonicalColumn(target,
                     (WORD)(oldOrigin+PROTOTYPE_RING_W));
+#endif
             else
 #endif
             prototypeCopyCanonicalRect(target,
@@ -1354,7 +1460,11 @@ static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
         } else {
 #ifndef SPARKPAW_RING_COLUMN_GENERIC_REFERENCE
             if(pixels==-16)
+#ifdef SPARKPAW_DROWNED_COLUMN_BLIT
+                drownedBlitColumn(target,newOrigin,(WORD)(newOrigin+PROTOTYPE_RING_W));
+#else
                 prototypeCopyCanonicalColumn(target,newOrigin);
+#endif
             else
 #endif
             prototypeCopyCanonicalRect(target,newOrigin,0,(WORD)-pixels,WORLD_H);
@@ -1363,15 +1473,31 @@ static void prototypeRollTarget(struct PrototypeTarget *target,WORD newOrigin)
     performanceProfileEnd(PERF_RING_ROLL,profileStart);
 }
 
+#if defined(SPARKPAW_DROWNED_SLICE) && defined(SPARKPAW_CANONICAL_BOB_RESTORE)
+static void drownedCopyPatchRect(struct PrototypeTarget *target,
+                                WORD worldX,WORD y,WORD width,WORD height);
+#endif
+
+#if defined(SPARKPAW_DROWNED_FERRY) && defined(SPARKPAW_CANONICAL_BOB_RESTORE) && !defined(SPARKPAW_WATER_SYNC_REFERENCE)
+#include "drowned_water_sync.h"
+#endif
+
 static void prototypeSynchronizeDynamic(struct PrototypeTarget *target)
 {
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     ULONG profileStart=performanceProfileBegin();
 #endif
     WORD i;
+#if defined(SPARKPAW_DROWNED_FERRY) && defined(SPARKPAW_CANONICAL_BOB_RESTORE) && !defined(SPARKPAW_WATER_SYNC_REFERENCE)
+    drownedSynchronizeWater(target);
+#else
     for(i=0;i<LEVEL_WATER_COUNT;i++) {
         if(target->waterFrame[i]==waterDrawnFrame[i]) continue;
-#ifdef SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE
+#if defined(SPARKPAW_DROWNED_SLICE) && defined(SPARKPAW_CANONICAL_BOB_RESTORE)
+        /* Same exact rectangle and phase tracking; reuse the bounded stride
+           copier for water as well as mechanisms in this isolated slice. */
+        drownedCopyPatchRect(target,levelWaterLeft(i),WATER_Y,WATER_W,WATER_H);
+#elif defined(SPARKPAW_DYNAMIC_RING_COPYMEM_REFERENCE)
         prototypeCopyCanonicalRect(target,levelWaterLeft(i),WATER_Y,
                                    WATER_W,WATER_H);
 #else
@@ -1380,6 +1506,7 @@ static void prototypeSynchronizeDynamic(struct PrototypeTarget *target)
 #endif
         target->waterFrame[i]=waterDrawnFrame[i];
     }
+#endif
 #ifdef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
     for(i=0;i<MAX_COLLECTIBLES;i++) {
         struct Collectible *item=collectibleAt(i);
@@ -1401,7 +1528,11 @@ static void prototypeSynchronizeDynamic(struct PrototypeTarget *target)
 
 static void prototypePrepareCompactTarget(struct PrototypeTarget *target)
 {
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+    DROWNED_MEASURE(PERF_BLITTER_WAIT,platformWaitBlit());
+#else
     platformWaitBlit();
+#endif
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game->stormrailActive&&game->stormrailMode==STORMRAIL_MODE_FLIGHT) {
         UBYTE index=(UBYTE)(target-prototypeTarget);
@@ -1443,9 +1574,9 @@ static void prototypePrepareCompactTarget(struct PrototypeTarget *target)
         return;
     }
 #endif
-    prototypeRollTarget(target,prototypeDesiredOrigin);
+    DROWNED_MEASURE(PERF_RING_ROLL,prototypeRollTarget(target,prototypeDesiredOrigin));
     prototypeBuildOrigin=target->origin;
-    prototypeSynchronizeDynamic(target);
+    DROWNED_MEASURE(PERF_RING_DYNAMIC,prototypeSynchronizeDynamic(target));
 }
 
 static void prototypeLoadHistory(UBYTE index)
@@ -1635,6 +1766,25 @@ static BOOL buildEnemyPatterns(struct EnemyBobCache *cache,BOOL fastMaster)
                 (LONG)sourceFacing*cache->width/8;
             LONG bitmapAt=sourceY*cache->source->bitmap->BytesPerRow+
                 (LONG)sourceFacing*cache->width/8;
+#ifdef SPARKPAW_DROWNED_SPILLWING
+            /* 24px pairs begin on byte 0/3: the last half-word must not
+               include the neighbouring facing. Preserve aligned family path. */
+            if(cache->width==24) {
+                for(x=0;x<2;x++) {
+                    const UBYTE *m=cache->source->mask+maskAt+x*2;
+                    UWORD sourceMask=(UWORD)((m[0]<<8)|(x?0:m[1]));
+                    UWORD opaque=0;
+                    for(plane=0;plane<FRONT_PLANES;plane++) {
+                        const UBYTE *b=cache->source->bitmap->Planes[plane]+bitmapAt+x*2;
+                        UWORD bits=(UWORD)((b[0]<<8)|(x?0:b[1]))&sourceMask;
+                        enemyBitsRow(cache,facing,frame,plane,y)[x]=bits;
+                        opaque|=bits;
+                    }
+                    enemyMaskRow(cache,facing,frame,y)[x]=opaque;
+                }
+                continue;
+            }
+#endif
             /* sourceWords includes one zero guard word required by the shifted
                cookie-cut Blit. Only width/16 words contain authored pixels. */
             for(x=0;x<(cache->width>>4);x++) {
@@ -1664,11 +1814,25 @@ static BOOL buildEnemyPatterns(struct EnemyBobCache *cache,BOOL fastMaster)
                     enemyBitsRow(cache,facing,frame,plane,y)[at]|=bit;
         }
 #endif
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_FRAME_ADDRESS_REFERENCE)
+    return prepareDrownedEnemyFrames(cache);
+#else
     return TRUE;
+#endif
 }
+
+#ifdef SPARKPAW_DROWNED_RESIDENT_WALKER
+#define STRIDER_FAST_MASTER FALSE
+#else
+#define STRIDER_FAST_MASTER TRUE
+#endif
 
 static BOOL prepareStriderStages(void)
 {
+#ifdef SPARKPAW_DROWNED_RESIDENT_WALKER
+    /* Frames are already DMA-readable. No mutable per-enemy Chip stage. */
+    return TRUE;
+#else
     const struct EnemyBobCache *cache=
         &enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER];
     LONG frameWords=(LONG)cache->height*cache->sourceWords;
@@ -1678,6 +1842,7 @@ static BOOL prepareStriderStages(void)
         MAX_ENEMIES*frameWords*FRONT_PLANES*2,MEMF_CHIP|MEMF_CLEAR);
     memset(striderStageValid,0,sizeof(striderStageValid));
     return striderStageMask&&striderStageBits;
+#endif
 }
 
 static BOOL stageStriderFrame(UBYTE slot,UBYTE facing,UBYTE frame,
@@ -1685,6 +1850,17 @@ static BOOL stageStriderFrame(UBYTE slot,UBYTE facing,UBYTE frame,
 {
     struct EnemyBobCache *cache=
         &enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER];
+#ifdef SPARKPAW_DROWNED_RESIDENT_WALKER
+    if(slot>=MAX_ENEMIES||facing>1||frame>=cache->frames) return FALSE;
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_FRAME_ADDRESS_REFERENCE)
+    *mask=drownedEnemyFrames[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER][facing][frame].mask;
+    *bits=drownedEnemyFrames[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER][facing][frame].bits;
+#else
+    *mask=enemyMaskRow(cache,facing,frame,0);
+    *bits=enemyBitsRow(cache,facing,frame,0,0);
+#endif
+    return TRUE;
+#else
     LONG frameWords=(LONG)cache->height*cache->sourceWords;
     LONG pattern=(LONG)facing*cache->frames+frame;
     UWORD *slotMask=striderStageMask+(LONG)slot*frameWords;
@@ -1702,6 +1878,7 @@ static BOOL stageStriderFrame(UBYTE slot,UBYTE facing,UBYTE frame,
     }
     *mask=slotMask; *bits=slotBits;
     return TRUE;
+#endif
 }
 
 static void configureEnemyCaches(void)
@@ -1714,6 +1891,14 @@ static void configureEnemyCaches(void)
     beetle->width=ENEMY_W; beetle->height=ENEMY_H;
     beetle->frames=ENEMY_FRAMES; beetle->sourceWords=ENEMY_SOURCE_WORDS;
     beetle->sourceLeftFirst=TRUE;
+#ifdef SPARKPAW_DROWNED_JOINED
+    enemyCaches[ENEMY_TYPE_SPILLWING].source=assetsSpillwingSprites();
+    enemyCaches[ENEMY_TYPE_SPILLWING].width=24;
+    enemyCaches[ENEMY_TYPE_SPILLWING].height=24;
+    enemyCaches[ENEMY_TYPE_SPILLWING].frames=16;
+    enemyCaches[ENEMY_TYPE_SPILLWING].sourceWords=3;
+    enemyCaches[ENEMY_TYPE_SPILLWING].sourceLeftFirst=TRUE;
+#endif
     strider->source=assetsStriderSprites();
     strider->width=STRIDER_W; strider->height=STRIDER_H;
     strider->frames=STRIDER_FRAMES;
@@ -1838,6 +2023,39 @@ static void setHudPointers(void)
     }
 }
 
+#ifdef SPARKPAW_DROWNED_SLICE
+#ifndef SPARKPAW_AGA64_PLAYER_SPRITE
+#error Drowned near-post occlusion requires the AGA64 attached player
+#endif
+#include "drowned_sprite_occlusion.h"
+#ifdef SPARKPAW_DROWNED_FULL
+#include "drowned_full_masks.h"
+#include "drowned_full_occlusion.h"
+#endif
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+#include "drowned_shrub_mask.h"
+#endif
+static ULONG drownedPostMask[DROWNED_POST_H];
+static BOOL drownedSpriteMasked[2];
+
+static void prepareDrownedPostMask(void)
+{
+    WORD x,y,p;
+    memset(drownedPostMask,0,sizeof(drownedPostMask));
+    memset(drownedSpriteMasked,0,sizeof(drownedSpriteMasked));
+    for(y=0;y<DROWNED_POST_H;y++) for(x=0;x<DROWNED_POST_W;x++) {
+        LONG at=(LONG)(DROWNED_POST_Y+y)*frontClean->bitmap->BytesPerRow+
+                ((DROWNED_POST_X+x)>>3);
+        UBYTE bit=(UBYTE)(0x80>>((DROWNED_POST_X+x)&7));
+        for(p=0;p<FRONT_PLANES;p++)
+            if(frontClean->bitmap->Planes[p][at]&bit) {
+                drownedPostMask[y]|=0x80000000UL>>x;
+                break;
+            }
+    }
+}
+#endif
+
 static void setHardwareSprite(void)
 {
     const struct PlayerState *player=playerState();
@@ -1892,11 +2110,29 @@ static void setHardwareSprite(void)
     hwSpriteStageIndex^=1;
     {
         BOOL copyImage=TRUE;
+#ifdef SPARKPAW_DROWNED_SLICE
+        WORD worldSpriteX=(WORD)(player->x>>8)-(SPRITE_W-PLAYER_W)/2;
+        WORD worldSpriteY=(WORD)(player->y>>8)-(SPRITE_H-PLAYER_H);
+        BOOL maskPost=drownedSpriteOverlapsPost(worldSpriteX,worldSpriteY);
+#ifdef SPARKPAW_DROWNED_FULL
+        BOOL fullMasked=drownedFullOverlap(worldSpriteX,worldSpriteY);
+        maskPost=fullMasked;
+#endif
+#if defined(SPARKPAW_DROWNED_GOVERNOR) && !defined(SPARKPAW_DROWNED_FULL)
+        BOOL maskShrub=drownedSpriteOverlapsShrub(worldSpriteX,worldSpriteY);
+        maskPost=maskPost||maskShrub;
+#endif
+#endif
 #if defined(SPARKPAW_SPRITE_STAGE_CACHE) && \
     !defined(SPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE)
         copyImage=(BOOL)SPRITE_STAGE_CACHE_NEEDS_COPY(
             &hwSpriteStageCache[hwSpriteStageIndex],(UBYTE)facing,
             spriteFrame);
+#endif
+#ifdef SPARKPAW_DROWNED_SLICE
+        /* A cached pose may contain last use's cutout. Restore it even when
+           frame/facing match, including the first frame leaving the post. */
+        if(maskPost||drownedSpriteMasked[hwSpriteStageIndex]) copyImage=TRUE;
 #endif
     for(channel=0;channel<SPRITE_CHANNELS;channel++) {
         UWORD *data=hwSpriteStage[hwSpriteStageIndex][channel];
@@ -1919,6 +2155,20 @@ static void setHardwareSprite(void)
 #endif
         cop[hi]=(UWORD)(p>>16); cop[hi+2]=(UWORD)p;
     }
+#ifdef SPARKPAW_DROWNED_SLICE
+#ifdef SPARKPAW_DROWNED_FULL
+    if(fullMasked)drownedFullMask(hwSpriteStage[hwSpriteStageIndex][0],hwSpriteStage[hwSpriteStageIndex][1],worldSpriteX,worldSpriteY);
+#else
+    if(maskPost&&worldSpriteX<DROWNED_POST_X+DROWNED_POST_W) drownedMaskSprite(hwSpriteStage[hwSpriteStageIndex][0],
+        hwSpriteStage[hwSpriteStageIndex][1],drownedPostMask,
+        worldSpriteX,worldSpriteY);
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+    if(maskShrub)drownedMaskShrub(hwSpriteStage[hwSpriteStageIndex][0],
+        hwSpriteStage[hwSpriteStageIndex][1],drownedShrubMask,worldSpriteX,worldSpriteY);
+#endif
+    #endif
+    drownedSpriteMasked[hwSpriteStageIndex]=maskPost;
+#endif
 #if defined(SPARKPAW_SPRITE_STAGE_CACHE) && \
     !defined(SPARKPAW_SPRITE_STAGE_ALWAYS_COPY_REFERENCE)
         if(copyImage)
@@ -1961,6 +2211,21 @@ static UBYTE plasmaPatternPen(UBYTE pattern,BOOL left,WORD x,WORD y)
     BOOL hostile=pattern>=PLAYER_PLASMA_PATTERNS;
     UBYTE hostileBase=hostile?(UBYTE)(pattern-PLAYER_PLASMA_PATTERNS):0;
     UBYTE pen;
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+    if(hostile&&hostileBase<2) {
+        /* Compact pressure slug, same 16x9 cache and collision dimensions.
+           Warm copper shoulder and pale core distinguish it from player cyan. */
+        WORD lx=left?PROJECTILE_W-1-x:x;
+        if(y>=3&&y<=5&&lx>=5&&lx<=13) {
+            if(y==4&&lx>=9) return 11;
+            return lx>=8?15:14;
+        }
+        if((y==2||y==6)&&lx>=7&&lx<=10) return 14;
+        if(y==4&&lx==14) return 15;
+        if(y>=3&&y<=5&&lx<5&&((lx+hostileBase)&1)==0) return 13;
+        return 0;
+    }
+#endif
     if(hostile&&hostileBase==4) {
         /* Left-flying Hunter needle: long light spine, amber shoulders and a
            one-pixel nose. It does not reuse either round fan silhouette. */
@@ -2767,6 +3032,7 @@ static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
 #endif
     {
     UWORD words=(UWORD)stormrailRestoreWordCount(localX,width);
+    BUSY_COUNT(DB_RESTORE_WORDS,(ULONG)words*height*FRONT_PLANES);
 #ifdef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
     stormFinaleGateMarkDamage(
         stormrailRestoreFootprintWorldX(sourceX,localX),y,
@@ -2799,7 +3065,7 @@ static void blitRestoreRect(WORD sourceX,WORD x,WORD y,WORD width,WORD height)
     }
 }
 
-#ifdef SPARKPAW_STORMRAIL_PROOF
+#if defined(SPARKPAW_STORMRAIL_PROOF) || defined(SPARKPAW_DROWNED_ENEMY_BOUNDS)
 static void blitMaskedBobTargetStride(struct BitMap *target,UWORD *mask,
                                 UWORD *bits,WORD sourceWords,WORD planeRows,
                                 WORD width,WORD height,WORD x,WORD y);
@@ -2823,6 +3089,7 @@ static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
 #endif
     UBYTE plane; UWORD shift=(UWORD)(x&15);
     UWORD words=(UWORD)((shift+width+15)>>4);
+    BUSY_COUNT(DB_DRAW_WORDS,(ULONG)words*height*FRONT_PLANES);
     LONG at=(LONG)y*target->BytesPerRow+(x>>4)*2;
     for(plane=0;plane<FRONT_PLANES;plane++) {
         platformWaitBlit();
@@ -2840,7 +3107,7 @@ static void blitMaskedBobTarget(struct BitMap *target,UWORD *mask,UWORD *bits,
         }
 #endif
         hw->bltapt=mask;
-#ifdef SPARKPAW_STORMRAIL_PROOF
+#if defined(SPARKPAW_STORMRAIL_PROOF) || defined(SPARKPAW_DROWNED_ENEMY_BOUNDS)
         hw->bltbpt=bits+(LONG)plane*planeRows*sourceWords;
 #else
         hw->bltbpt=bits+(LONG)plane*height*sourceWords;
@@ -3081,6 +3348,10 @@ static UBYTE waterPatternPen(UBYTE frame,WORD x,WORD y)
     return 5;
 }
 
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_WATER_BATCH_REFERENCE)
+#include "drowned_water_batch.h"
+#endif
+
 static BOOL buildWaterPatterns(void)
 {
     UBYTE frame,plane; WORD x,y;
@@ -3095,7 +3366,11 @@ static BOOL buildWaterPatterns(void)
             for(plane=0;plane<FRONT_PLANES;plane++) if(pen&(1<<plane))
                 waterBits[row+(LONG)plane*WATER_H*WATER_WORDS+(x>>4)]|=bit;
         }
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_WATER_BATCH_REFERENCE)
+    return prepareDrownedWaterBatch();
+#else
     return TRUE;
+#endif
 }
 
 static UBYTE splashPatternPen(UBYTE frame,WORD x,WORD y)
@@ -3214,8 +3489,143 @@ static void blitWaterFrame(struct BitMap *target,UBYTE frame,WORD waterX)
     }
 }
 
+#ifdef SPARKPAW_DROWNED_SLICE
+#include "drowned_patch_copy.h"
+
+static UBYTE *drownedStage;
+#ifdef SPARKPAW_DROWNED_FULL
+#include "drowned_governor.h"
+#include "governor_art.h"
+#include "drowned_checkpoint.h"
+#define DROWNED_PATCH_COUNT 10
+static BYTE drownedCanonical[10]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+static BYTE drownedTarget[2][10]={{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}};
+static const WORD drownedPatchX[10]={3952,4208,4464,4080,4336,4528,448,768,1792,2320};
+static const WORD drownedPatchY[10]={136,88,136,131,131,136,131,136,107,152};
+static const WORD drownedPatchW[10]={32,32,32,32,32,80,32,80,32,48};
+static const WORD drownedPatchH[10]={64,64,64,64,64,61,64,61,64,48};
+#elif defined(SPARKPAW_DROWNED_GOVERNOR)
+#include "drowned_governor.h"
+#include "governor_art.h"
+#define DROWNED_PATCH_COUNT 6
+static BYTE drownedCanonical[6]={-1,-1,-1,-1,-1,-1};
+static BYTE drownedTarget[2][6]={{-1,-1,-1,-1,-1,-1},{-1,-1,-1,-1,-1,-1}};
+static const WORD drownedPatchX[6]={704,960,1216,832,1088,1280};
+static const WORD drownedPatchY[6]={136,88,136,131,131,136};
+static const WORD drownedPatchW[6]={32,32,32,32,32,80};
+static const WORD drownedPatchH[6]={64,64,64,64,64,61};
+#elif defined(SPARKPAW_DROWNED_JOINED)
+#include "drowned_checkpoint.h"
+#define DROWNED_PATCH_COUNT 4
+static BYTE drownedCanonical[4]={-1,-1,-1,-1};
+static BYTE drownedTarget[2][4]={{-1,-1,-1,-1},{-1,-1,-1,-1}};
+static const WORD drownedPatchX[4]={448,768,1792,DROWNED_CHECKPOINT_X};
+static const WORD drownedPatchY[4]={131,136,107,DROWNED_CHECKPOINT_Y};
+static const WORD drownedPatchW[4]={32,80,32,48};
+static const WORD drownedPatchH[4]={64,61,64,48};
+#elif defined(SPARKPAW_DROWNED_ROUTE)
+#define DROWNED_PATCH_COUNT 3
+static BYTE drownedCanonical[3]={-1,-1,-1};
+static BYTE drownedTarget[2][3]={{-1,-1,-1},{-1,-1,-1}};
+static const WORD drownedPatchX[3]={448,768,1792};
+static const WORD drownedPatchY[3]={131,136,107};
+static const WORD drownedPatchW[3]={32,80,32};
+static const WORD drownedPatchH[3]={64,61,64};
+#else
+#define DROWNED_PATCH_COUNT 2
+static BYTE drownedCanonical[2]={-1,-1};
+static BYTE drownedTarget[2][2]={{-1,-1},{-1,-1}};
+static const WORD drownedPatchX[2]={448,768};
+static const WORD drownedPatchY[2]={131,136};
+static const WORD drownedPatchW[2]={32,80};
+static const WORD drownedPatchH[2]={64,61};
+#endif
+
+static void drownedAnimatePatches(void)
+{
+    const struct PlanarAsset *asset=assetsDrownedPatches();
+    UBYTE item,plane;
+    for(item=0;item<DROWNED_PATCH_COUNT;item++) {
+        UBYTE frame=item==1?drownedGateFrame():drownedJetFrame();
+        WORD rowBytes=drownedPatchW[item]>>3;
+        WORD bytes=rowBytes*drownedPatchH[item];
+        LONG offset=item==1?2304L+(LONG)(frame-9)*610:(LONG)frame*256;
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+#ifdef SPARKPAW_DROWNED_FULL
+        asset=assetsDrownedPatches();
+        if(item>=6) {
+            frame=item==7?drownedGateFrame():drownedJetFrame();
+            offset=item==7?2304L+(LONG)(frame-9)*610:(LONG)frame*256;
+            if(item==9) {
+                UBYTE tick=drownedCheckpointActivationTick();
+                frame=tick?(UBYTE)(1+((tick-1)>>2)):0;
+                if(frame>7)frame=7;
+                offset=(LONG)frame*288;asset=assetsCheckpointPatches();
+            }
+        } else
+#endif
+        {frame=governorArtFrame(item);offset=(LONG)frame*256;}
+        if(item==5){frame=governorExitFrame();offset=2304L+(LONG)(frame-9)*610;}
+#elif defined(SPARKPAW_DROWNED_JOINED)
+        asset=assetsDrownedPatches();
+        if(item==3) {
+            UBYTE tick=drownedCheckpointActivationTick();
+            frame=tick?(UBYTE)(1+((tick-1)>>2)):0;
+            if(frame>7) frame=7;
+            offset=(LONG)frame*288;
+            asset=assetsCheckpointPatches();
+        }
+#endif
+        if(drownedPatchX[item]+drownedPatchW[item]<(WORD)game->cameraX-16||
+           drownedPatchX[item]>(WORD)game->cameraX+SCREEN_W+16) continue;
+        if(drownedCanonical[item]==frame) continue;
+        for(plane=0;plane<FRONT_PLANES;plane++) {
+            platformWaitBlit();
+            hw->bltcon0=0x09f0; hw->bltcon1=0;
+            hw->bltafwm=0xffff; hw->bltalwm=0xffff;
+            /* The atlas is Fast RAM. Only this fixed Chip stage is a DMA source.
+               Wait above also retires the previous plane before reuse. */
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+            if(item<3) CopyMem(governorArt[frame][plane],drownedStage,bytes);
+            else
+#endif
+            CopyMem(asset->bitmap->Planes[plane]+offset,drownedStage,bytes);
+            hw->bltamod=0;
+            hw->bltdmod=frontClean->bitmap->BytesPerRow-rowBytes;
+            hw->bltapt=drownedStage;
+            hw->bltdpt=frontClean->bitmap->Planes[plane]+
+                (LONG)drownedPatchY[item]*frontClean->bitmap->BytesPerRow+(drownedPatchX[item]>>3);
+            hw->bltsize=(drownedPatchH[item]<<6)|(rowBytes>>1);
+        }
+        drownedCanonical[item]=(BYTE)frame;
+    }
+    platformWaitBlit();
+}
+
+static void drownedSynchronizePatches(struct PrototypeTarget *target)
+{
+    UBYTE item,index=(UBYTE)(target-prototypeTarget);
+    for(item=0;item<DROWNED_PATCH_COUNT;item++) {
+        if(drownedTarget[index][item]==drownedCanonical[item]) continue;
+        drownedCopyPatchRect(target,drownedPatchX[item],drownedPatchY[item],
+                                  drownedPatchW[item],drownedPatchH[item]);
+        drownedTarget[index][item]=drownedCanonical[item];
+    }
+}
+#endif
+
+#ifdef SPARKPAW_DROWNED_PONTOON
+#include "drowned_pontoon_render.h"
+#endif
+
 static void animateWater(void)
 {
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_WATER_BATCH_REFERENCE)
+    animateDrownedWaterBatch(); return;
+#endif
+#if defined(SPARKPAW_DROWNED_SPILLWING) && !defined(SPARKPAW_DROWNED_FERRY)
+    return;
+#endif
     UBYTE index;
     UBYTE frame=(UBYTE)((game->frameCounter>>1)&(WATER_FRAMES-1));
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -3252,7 +3662,11 @@ static void restoreCollectibleBobs(void)
         if(target->collectibleDrawn[index]) {
             WORD sourceX=(WORD)(item->x&~15);
             WORD targetX=(WORD)(target->collectibleX[index]&~15);
+#ifdef SPARKPAW_DROWNED_ROUTE
+            WORD width=drownedCollectibleRestoreWidth(item->x);
+#else
             WORD width=index==DIAMOND_WIDE_INDEX?32:16;
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
             diagnosticFrame.collectibleRestore++;
 #endif
@@ -3398,9 +3812,19 @@ static WORD desiredCoreY(void)
 
 static BOOL coreRenderVisible(void)
 {
+#ifdef SPARKPAW_DROWNED_GOVERNOR
+    const WORD x=LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2;
+    return governorComplete()&&x+CORE_SPRITE_W>=(WORD)game->cameraX-16&&
+           x<=(WORD)game->cameraX+SCREEN_W+16;
+#elif defined(SPARKPAW_DROWNED_SLICE)
+    /* Drowned has no authored Core finale yet. The inherited Level-1 Bob
+       becomes visible once the joined route extends past x3200. */
+    return FALSE;
+#else
     const WORD x=LEVEL_STORMSTONE_CORE_CENTER_X-CORE_SPRITE_W/2;
     return x+CORE_SPRITE_W>=(WORD)game->cameraX-16&&
            x<=(WORD)game->cameraX+SCREEN_W+16;
+#endif
 }
 
 static void restoreCoreBob(void)
@@ -3456,8 +3880,12 @@ static void drawCoreBob(void)
 
 static BOOL extraLifeRenderVisible(void)
 {
+#ifdef SPARKPAW_DROWNED_SLICE
+    return FALSE;
+#else
     return game->extraLifeState==EXTRA_LIFE_DROPPING||
            game->extraLifeState==EXTRA_LIFE_READY;
+#endif
 }
 
 static void restoreExtraLifeBob(void)
@@ -3558,6 +3986,7 @@ static void drawProjectileBobs(void)
 #else
         p->drawnX=worldX;
 #endif
+        BUSY_COUNT(DB_PROJECTILES,1);
         blitMaskedBob(plasmaMaskRow(pattern,left,0),
                       plasmaBitsRow(pattern,left,0,0),PLASMA_SOURCE_WORDS,
                       PROJECTILE_W,PROJECTILE_H,p->drawnX,p->drawnY);
@@ -3577,16 +4006,33 @@ static void restoreEnemyBob(void)
         struct Enemy *enemy=enemyAt(order[i]);
         struct EnemyBobCache *cache;
         WORD j,unionX,unionY,unionW,unionH;
+#ifdef SPARKPAW_DROWNED_ENEMY_BOUNDS
+        WORD restoreY,height;
+#endif
         if(!enemy->drawn) continue;
         cache=&enemyCaches[enemy->drawnType<ENEMY_TYPE_COUNT?
                            enemy->drawnType:ENEMY_TYPE_CLOCKWORK_BEETLE];
+#ifdef SPARKPAW_DROWNED_ENEMY_BOUNDS
+        {
+            UWORD bounds=drownedEnemyDrawnBounds[prototypePreparedCopper][order[i]];
+            restoreY=enemy->drawnY+(bounds>>8);height=bounds&255;
+        }
+#endif
         if(enemy->drawnType==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER)
             for(j=(WORD)(i+1);j<MAX_ENEMIES;j++) {
                 struct Enemy *other=enemyAt(order[j]);
+#ifdef SPARKPAW_DROWNED_ENEMY_BOUNDS
+                UWORD otherBounds=drownedEnemyDrawnBounds[prototypePreparedCopper][order[j]];
+                if((otherBounds&255)!=height)continue;
+#endif
                 if(!other->drawn||
                    other->drawnType!=ENEMY_TYPE_CLOCKWORK_STORM_STRIDER||
-                   !striderRestoreUnion(enemy->drawnX,enemy->drawnY,
-                       other->drawnX,other->drawnY,cache->width,cache->height,
+                   !striderRestoreUnion(enemy->drawnX,
+#ifdef SPARKPAW_DROWNED_ENEMY_BOUNDS
+                       restoreY,other->drawnX,other->drawnY+(otherBounds>>8),cache->width,height,
+#else
+                       enemy->drawnY,other->drawnX,other->drawnY,cache->width,cache->height,
+#endif
                        &unionX,&unionY,&unionW,&unionH)) continue;
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
                 diagnosticFrame.striderRestore+=2;
@@ -3616,8 +4062,12 @@ static void restoreEnemyBob(void)
 #else
                         enemy->drawnX,
 #endif
-                        enemy->drawnX,enemy->drawnY,
-                        cache->width,cache->height);
+                        enemy->drawnX,
+#ifdef SPARKPAW_DROWNED_ENEMY_BOUNDS
+                        restoreY,cache->width,height);
+#else
+                        enemy->drawnY,cache->width,cache->height);
+#endif
         enemy->drawn=FALSE;
     }
 }
@@ -3650,8 +4100,14 @@ static void drawEnemyBob(void)
            logical 64px collision cell remains grounded at enemy->y+64, while
            the Bob needs a two-pixel visual offset for row 61 to meet the last
            free row above that surface. Beetle geometry remains unchanged. */
+#ifdef SPARKPAW_DROWNED_ENEMY_ART
+        /* Pump Walker sole row 62, unlike the legacy Strider's row 61. */
+        enemy->drawnY=(WORD)(enemy->y+
+            (enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?1:0));
+#else
         enemy->drawnY=(WORD)(enemy->y+
             (enemy->type==ENEMY_TYPE_CLOCKWORK_STORM_STRIDER?2:0));
+#endif
           if(worldX+cache->width<(WORD)game->cameraX-32||
               worldX>(WORD)game->cameraX+SCREEN_W+32||
            worldX<0||worldX+cache->width>WORLD_W||
@@ -3671,8 +4127,14 @@ static void drawEnemyBob(void)
             if(!stageStriderFrame(slot,facing,enemy->animFrame,&mask,&bits))
                 continue;
         } else {
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_FRAME_ADDRESS_REFERENCE)
+            const struct DrownedEnemyFrame *pose=
+                &drownedEnemyFrames[enemy->type][facing][enemy->animFrame];
+            mask=pose->mask; bits=pose->bits;
+#else
             mask=enemyMaskRow(cache,facing,enemy->animFrame,0);
             bits=enemyBitsRow(cache,facing,enemy->animFrame,0,0);
+#endif
         }
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 #ifdef SPARKPAW_CANONICAL_BOB_RESTORE
@@ -3682,9 +4144,20 @@ static void drawEnemyBob(void)
 #else
         enemy->drawnX=worldX;
 #endif
+        BUSY_COUNT(enemy->type,1);
+#ifdef SPARKPAW_DROWNED_ENEMY_BOUNDS
+        {
+            UWORD bounds=drownedEnemyBounds[enemy->type][facing][enemy->animFrame];
+            drownedEnemyDrawnBounds[prototypePreparedCopper][slot]=bounds;
+            blitMaskedBobTargetStride(frontDisplay,mask,bits,cache->sourceWords,
+                cache->height,cache->width,(WORD)(bounds&255),enemy->drawnX,
+                (WORD)(enemy->drawnY+(bounds>>8)));
+        }
+#else
         blitMaskedBob(mask,bits,
                       cache->sourceWords,cache->width,cache->height,
                       enemy->drawnX,enemy->drawnY);
+#endif
         enemy->drawnType=enemy->type;
         enemy->drawn=TRUE;
         }
@@ -3712,6 +4185,29 @@ BOOL rendererLoadGameplay(void)
 }
 
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+static void writeAga32Layout(void)
+{
+    const struct BitMap *hud=hudDisplayBitmap();
+    UBYTE plane;
+    BPTR file=Open("PROGDIR:startupdiag.log",MODE_READWRITE);
+    if(!file) file=Open("PROGDIR:startupdiag.log",MODE_NEWFILE);
+    if(!file) return;
+    Seek(file,0,OFFSET_END);
+    FPrintf(file,"aga32 front_stride=%ld rear_stride=%ld hud_stride=%ld blank=%lx\n",
+            frontDisplay?(LONG)frontDisplay->BytesPerRow:-1L,
+            rearDisplay?(LONG)rearDisplay->BytesPerRow:-1L,
+            hud?(LONG)hud->BytesPerRow:-1L,(ULONG)hudBlankPlane());
+    for(plane=0;plane<FRONT_PLANES;plane++)
+        FPrintf(file,"aga32 front_plane_%ld=%lx\n",(LONG)plane,
+                frontDisplay?(ULONG)frontDisplay->Planes[plane]:0UL);
+    for(plane=0;plane<REAR_PLANES;plane++)
+        FPrintf(file,"aga32 rear_plane_%ld=%lx hud_plane_%ld=%lx\n",
+                (LONG)plane,rearDisplay?(ULONG)rearDisplay->Planes[plane]:0UL,
+                (LONG)plane,hud?(ULONG)hud->Planes[plane]:0UL);
+    Flush(file); Close(file);
+}
+#endif
 static BOOL aga32DisplayLayoutValid(void)
 {
     UBYTE plane;
@@ -3758,16 +4254,19 @@ static BOOL prepareRearGuardedDisplay(void)
     UBYTE plane;
     UWORD row;
     const struct BitMap *source=rearWorld->bitmap;
+    UWORD requiredRowBytes=(UWORD)(source->BytesPerRow+PLAYFIELD_GUARD_BYTES);
     /* Base the guarded allocation on the source's physical stride, not its
        logical width. graphics.library may pad a DISPLAYABLE source row; using
        width+guard can then allocate the destination in the same stride class
-       and leave no actual leading guard bytes. */
+       and leave no actual leading guard bytes. Round up for AGA 32-bit fetch:
+       Drowned's 194-byte source plus four guard bytes otherwise requests 198. */
+    requiredRowBytes=(UWORD)((requiredRowBytes+3U)&~3U);
     rearDisplay=AllocBitMap(
-        (UWORD)((source->BytesPerRow+PLAYFIELD_GUARD_BYTES)*8),
+        (UWORD)(requiredRowBytes*8),
                            rearWorld->height,
                            REAR_PLANES,BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     if(!rearDisplay||rearDisplay->BytesPerRow<
-       source->BytesPerRow+PLAYFIELD_GUARD_BYTES)
+       requiredRowBytes)
         return FALSE;
     for(plane=0;plane<REAR_PLANES;plane++)
         for(row=0;row<rearWorld->height;row++)
@@ -3777,12 +4276,13 @@ static BOOL prepareRearGuardedDisplay(void)
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game->stormrailActive) {
     source=stormrailFlightRear->bitmap;
+    requiredRowBytes=(UWORD)((source->BytesPerRow+PLAYFIELD_GUARD_BYTES+3U)&~3U);
     stormFlightRearDisplay=AllocBitMap(
-        (UWORD)((source->BytesPerRow+PLAYFIELD_GUARD_BYTES)*8),
+        (UWORD)(requiredRowBytes*8),
         stormrailFlightRear->height,REAR_PLANES,
         BMF_CLEAR|BMF_DISPLAYABLE,NULL);
     if(!stormFlightRearDisplay||stormFlightRearDisplay->BytesPerRow<
-       source->BytesPerRow+PLAYFIELD_GUARD_BYTES)
+       requiredRowBytes)
         return FALSE;
     for(plane=0;plane<REAR_PLANES;plane++)
         for(row=0;row<stormrailFlightRear->height;row++)
@@ -3808,6 +4308,19 @@ BOOL rendererPrepareGameplay(void)
 } while(0)
 #endif
     game=gameState();
+#ifdef SPARKPAW_DROWNED_PONTOON
+    if(!preparePontoon())return FALSE;
+#endif
+#ifdef SPARKPAW_DROWNED_SLICE
+    drownedStage=(UBYTE *)AllocMem(610,MEMF_CHIP|MEMF_CLEAR);
+    if(!drownedStage) return FALSE;
+    memset(drownedCanonical,-1,sizeof(drownedCanonical));
+    memset(drownedTarget,-1,sizeof(drownedTarget));
+    prepareDrownedPostMask();
+    for(p=0;p<16;p++) frontColors[p]=(UWORD)(
+        ((frontClean->palette[p][0]>>4)<<8)|
+        ((frontClean->palette[p][1]>>4)<<4)|(frontClean->palette[p][2]>>4));
+#endif
 #ifdef SPARKPAW_STORMRAIL_PROOF
 #define LEVEL1_PREPARE(expression) (game->stormrailActive?TRUE:(expression))
 #else
@@ -3907,9 +4420,15 @@ BOOL rendererPrepareGameplay(void)
 #endif
 #endif
 #endif
+#ifdef SPARKPAW_DROWNED_FULL
+    if(!prepareDrownedRearAmbience()) return FALSE;
+#endif
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
     /* Never hand an invalid wide-fetch layout to Alice. Graphics.library may
        pad displayable rows, so validate its actual pointers and stride. */
+#ifdef SPARKPAW_STARTUP_DIAGNOSTIC
+    writeAga32Layout();
+#endif
     if(!aga32DisplayLayoutValid()) {
 #ifdef SPARKPAW_STARTUP_DIAGNOSTIC
         writeStartupStage("failed_aga32_layout_validation");
@@ -3956,7 +4475,7 @@ BOOL rendererPrepareGameplay(void)
     DIAG_LOAD(DIAG_LOAD_BEETLE,
         LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)));
     DIAG_LOAD(DIAG_LOAD_STRIDER,
-        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)));
+        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],STRIDER_FAST_MASTER)));
     DIAG_LOAD(DIAG_LOAD_STRIDER_STAGE,LEVEL1_PREPARE(prepareStriderStages()));
     DIAG_LOAD(DIAG_LOAD_PLASMA,buildPlasmaPatterns());
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -3976,7 +4495,7 @@ BOOL rendererPrepareGameplay(void)
     STARTUP_REQUIRE("beetle_patterns",
         LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)));
     STARTUP_REQUIRE("strider_patterns",
-        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE)));
+        LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],STRIDER_FAST_MASTER)));
     STARTUP_REQUIRE("strider_stages",LEVEL1_PREPARE(prepareStriderStages()));
     STARTUP_REQUIRE("plasma_patterns",buildPlasmaPatterns());
     STARTUP_REQUIRE("diamond_pattern",buildDiamondPattern());
@@ -3991,7 +4510,7 @@ BOOL rendererPrepareGameplay(void)
     STARTUP_REQUIRE("splash_patterns",LEVEL1_PREPARE(buildSplashPatterns()));
 #else
     if(!LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE))||
-       !LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],TRUE))||
+       !LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],STRIDER_FAST_MASTER))||
        !LEVEL1_PREPARE(prepareStriderStages())||
        !buildPlasmaPatterns()||
 #ifdef SPARKPAW_STORMRAIL_PROOF
@@ -4021,6 +4540,9 @@ BOOL rendererPrepareGameplay(void)
     diagnosticLoadingFrames[DIAG_LOAD_RING_TARGETS]=
         GfxBase->VBCounter-diagnosticLoadStart;
 #endif
+#endif
+#ifdef SPARKPAW_DROWNED_JOINED
+    if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_SPILLWING],FALSE)) return FALSE;
 #endif
     for(p=0;p<LEVEL_WATER_COUNT;p++) waterDrawnFrame[p]=255;
 #if defined(PHASE6_MEMORY_TEST)||defined(SPARKPAW_RENDER_DIAGNOSTIC)
@@ -4061,6 +4583,9 @@ BOOL rendererPrepareGameplay(void)
 #ifdef SPARKPAW_STORMRAIL_PROOF
     stormrailSprite=NULL;
     stormrailObstacleSprite=NULL;
+#endif
+#ifdef SPARKPAW_DROWNED_JOINED
+    enemyCaches[ENEMY_TYPE_SPILLWING].source=NULL;
 #endif
     enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE].source=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER].source=NULL;
@@ -4163,6 +4688,14 @@ void rendererFadeOut(void)
 void rendererCleanup(void)
 {
     WORD facing,frame,channel,type;
+#ifdef SPARKPAW_DROWNED_PONTOON
+    platformWaitBlit();
+    if(pontoonChip){FreeMem(pontoonChip,1120);pontoonChip=NULL;}
+    if(pontoonClip){FreeMem(pontoonClip,PONTOON_CLIP_BYTES);pontoonClip=NULL;}
+#endif
+#ifdef SPARKPAW_DROWNED_SLICE
+    if(drownedStage) { platformWaitBlit(); FreeMem(drownedStage,610); drownedStage=NULL; }
+#endif
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(stormFlightBlank) {
         FreeBitMap(stormFlightBlank); stormFlightBlank=NULL;
@@ -4302,6 +4835,10 @@ void rendererCleanup(void)
         MAX_COLLECTIBLES*FRONT_PLANES*DIAMOND_PATCH_H*2);
     if(diamondWideBackground) FreeMem(diamondWideBackground,
         FRONT_PLANES*DIAMOND_PATCH_H*DIAMOND_WIDE_WORDS*2);
+#if defined(SPARKPAW_DROWNED_JOINED) && !defined(SPARKPAW_DROWNED_WATER_BATCH_REFERENCE)
+    if(drownedWaterBatchBits) FreeMem(drownedWaterBatchBits,DROWNED_WATER_BATCH_BYTES);
+    drownedWaterBatchBits=NULL;
+#endif
     if(waterBits) FreeMem(waterBits,WATER_FRAMES*FRONT_PLANES*WATER_H*
                           WATER_WORDS*2);
     if(splashBits) FreeMem(splashBits,SPLASH_FRAMES*FRONT_PLANES*SPLASH_H*
@@ -4325,6 +4862,9 @@ void rendererCleanup(void)
     if(frontDisplay) FreeBitMap(frontDisplay);
 #endif
 #if defined(SPARKPAW_AGA32_LEFT_GUARD)||defined(SPARKPAW_FMODE0_EARLY_WORD_GUARD)
+#ifdef SPARKPAW_DROWNED_FULL
+    freeDrownedRearAmbience();
+#endif
     if(rearDisplay) FreeBitMap(rearDisplay);
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(stormFlightRearDisplay) FreeBitMap(stormFlightRearDisplay);
@@ -4533,11 +5073,14 @@ void rendererUpdateGameplay(void)
     cop=prototypeCopper[prototypePreparedCopper];
     frontDisplay=prototypeTarget[prototypePreparedCopper].display;
     prototypeDesiredOrigin=prototypeOriginForCamera((WORD)game->cameraX);
+#ifdef SPARKPAW_DROWNED_FULL
+    updateDrownedShoreCopper();
+#endif
 #endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     profileStart=performanceProfileBegin();
     setCoreWorldFlash();
-    setHardwareSprite();
+    DROWNED_MEASURE(PERF_SPRITE_STAGE,setHardwareSprite());
     performanceProfileEnd(PERF_SPRITE_STAGE,profileStart);
     profileStart=performanceProfileBegin();
     setHudPointers();
@@ -4582,11 +5125,20 @@ BOOL rendererPublishGameplay(UWORD rasterLine)
         return FALSE;
     hw->cop1lc=(ULONG)prototypeCopper[prototypePreparedCopper];
     hw->copjmp1=0;
+#ifdef SPARKPAW_DROWNED_FPS
+    /* Capture before history exposure/rear DMA; retain raw TOD zero deltas. */
+    drownedFpsPublished(platformFieldCounter(),rasterLine);
+#endif
     prototypeActiveCopper=prototypePreparedCopper;
     prototypeCopperReady=FALSE;
     cop=prototypeCopper[prototypeActiveCopper];
     frontDisplay=prototypeTarget[prototypeActiveCopper].display;
     prototypeExposeHistoryUnion();
+#ifdef SPARKPAW_DROWNED_FULL
+    BUSY_MARK(DB_REAR_BEGIN);
+    publishDrownedRearAmbience();
+    BUSY_MARK(DB_REAR_END);
+#endif
     return TRUE;
 #else
     return TRUE;
@@ -4604,6 +5156,12 @@ void rendererDrawGameplayBobs(void)
     after=platformRasterLine(); \
     diagnosticCurrent.familyLines[slot]+=(UWORD)( \
         (after<before?SPARKPAW_PAL_LINES:0)+after-before); \
+} while(0)
+#elif defined(SPARKPAW_DROWNED_FERRY_PROFILE)
+#define DIAG_CALL(slot,perf,call) do { \
+    if((perf)==PERF_BOB_ENEMY_RESTORE||(perf)==PERF_BOB_ENEMY_DRAW|| \
+       (perf)==PERF_BOB_COMPACT_TARGET) { DROWNED_MEASURE(perf,call); } \
+    else { call; } \
 } while(0)
 #else
 #define DIAG_CALL(slot,perf,call) do { call; } while(0)
@@ -4636,18 +5194,41 @@ void rendererDrawGameplayBobs(void)
             DIAG_CALL(1,PERF_STORMRAIL_DRAW,drawStormrailBobs());
         } else {
 #endif
+#ifdef SPARKPAW_DROWNED_PONTOON
+        restorePontoon();
+#endif
         DIAG_CALL(0,PERF_BOB_PROJECTILE_RESTORE,eraseProjectileBobs());
+        BUSY_MARK(DB_ENEMY_RESTORE_BEGIN);
         DIAG_CALL(1,PERF_BOB_ENEMY_RESTORE,restoreEnemyBob());
+        BUSY_MARK(DB_ENEMY_RESTORE_END);
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCollectibleBobs());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreCoreBob());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_RESTORE,restoreExtraLifeBob());
         DIAG_CALL(4,PERF_BOB_SPLASH_RESTORE,restoreSplashBob());
+        BUSY_MARK(DB_RESTORE_END);
 #ifdef SPARKPAW_STORMRAIL_PROOF
         if(game->stormrailActive) restoreStormrailBobs();
 #endif
-        DIAG_CALL(3,PERF_BOB_WATER,animateWater());
+        DIAG_CALL(3,PERF_BOB_WATER,DROWNED_MEASURE(PERF_BOB_WATER,animateWater()));
+        BUSY_MARK(DB_WATER_END);
+#ifdef SPARKPAW_DROWNED_SLICE
+#if defined(SPARKPAW_DROWNED_JOINED) || (!defined(SPARKPAW_DROWNED_PONTOON) && !defined(SPARKPAW_DROWNED_SPILLWING))
+        DROWNED_MEASURE(PERF_DROWNED_PATCH_BUILD,drownedAnimatePatches());
+        BUSY_MARK(DB_PATCH_BUILD_END);
+#endif
+#endif
 #ifndef SPARKPAW_COLLECTIBLE_CANONICAL_SYNC_REFERENCE
         DIAG_CALL(3,PERF_BOB_COMPACT_TARGET,prototypePrepareCompactTarget(target));
+        BUSY_MARK(DB_COMPACT_END);
+#ifdef SPARKPAW_DROWNED_SLICE
+#if defined(SPARKPAW_DROWNED_JOINED) || (!defined(SPARKPAW_DROWNED_PONTOON) && !defined(SPARKPAW_DROWNED_SPILLWING))
+        DROWNED_MEASURE(PERF_DROWNED_PATCH_SYNC,drownedSynchronizePatches(target));
+        BUSY_MARK(DB_PATCH_SYNC_END);
+#endif
+#ifdef SPARKPAW_DROWNED_PONTOON
+        drawPontoon();
+#endif
+#endif
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCoreBob());
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawExtraLifeBob());
@@ -4658,11 +5239,14 @@ void rendererDrawGameplayBobs(void)
         DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawExtraLifeBob());
 #endif
         DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
+        BUSY_MARK(DB_OTHER_DRAW_END);
         DIAG_CALL(1,PERF_BOB_ENEMY_DRAW,drawEnemyBob());
+        BUSY_MARK(DB_ENEMY_DRAW_END);
 #ifdef SPARKPAW_STORMRAIL_PROOF
         if(game->stormrailActive) drawStormrailBobs();
 #endif
         DIAG_CALL(0,PERF_BOB_PROJECTILE_DRAW,drawProjectileBobs());
+        BUSY_MARK(DB_PROJECTILE_DRAW_END);
 #ifdef SPARKPAW_STORMRAIL_PROOF
         }
 #endif
@@ -4697,7 +5281,7 @@ void rendererDrawGameplayBobs(void)
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(game->stormrailActive) restoreStormrailBobs();
 #endif
-    DIAG_CALL(3,PERF_BOB_WATER,animateWater());
+    DIAG_CALL(3,PERF_BOB_WATER,DROWNED_MEASURE(PERF_BOB_WATER,animateWater()));
     DIAG_CALL(4,PERF_BOB_SPLASH_DRAW,drawSplashBob());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCollectibleBobs());
     DIAG_CALL(2,PERF_BOB_COLLECTIBLE_DRAW,drawCoreBob());
@@ -4735,8 +5319,20 @@ static ULONG diagnosticPointer(UWORD highWord)
 void rendererDiagnosticUpdateEntry(UWORD line)
 {
     ULONG updateTick;
+#ifdef SPARKPAW_DROWNED_JOINED
+    /* Retain the preceding position before clearing this frame snapshot. */
+    WORD priorPlayerX=(WORD)diagnosticCurrent.playerX;
+#endif
+#ifdef SPARKPAW_DROWNED_EVENT_DIAGNOSTIC
+    UBYTE priorEvents=(UBYTE)(((diagnosticCurrent.flags&DIAG_RING_COLUMN)?1:0)|
+        (diagnosticCurrent.counts.waterUpdates?2:0)|
+        ((diagnosticCurrent.flags&DIAG_MISSED_FIELD)?4:0));
+#endif
     memset(&diagnosticCurrent,0,sizeof(diagnosticCurrent));
     memset(&diagnosticFrame,0,sizeof(diagnosticFrame));
+#ifdef SPARKPAW_DROWNED_FERRY_PROFILE
+    performanceFerryFrame((WORD)(playerState()->x>>8),(WORD)(playerState()->y>>8));
+#endif
     diagnosticCurrent.gameFrame=game->frameCounter;
     diagnosticCurrent.updateStamp=diagnosticSample(line);
     /* Raster lines and graphics.library's VBCounter can both miss complete
@@ -4785,6 +5381,13 @@ void rendererDiagnosticUpdateEntry(UWORD line)
         ULONG elapsed=updateTick-diagnosticPreviousUpdateField;
         ULONG fields=(elapsed+7094UL)/14188UL;
         if(fields<1) fields=1;
+#ifdef SPARKPAW_DROWNED_EVENT_DIAGNOSTIC
+        drownedEventIntervals[priorEvents]++;
+        if(fields>1) drownedEventLong[priorEvents]++;
+#endif
+#ifdef SPARKPAW_DROWNED_JOINED
+        drownedCadenceRecord(priorPlayerX,fields);
+#endif
         diagnosticCadenceIntervals++;
         diagnosticCadenceFields+=fields;
         if(fields==1) diagnosticCadenceOne++;
@@ -4885,8 +5488,34 @@ void rendererWriteDiagnosticLog(void)
     BPTR file=Open("PROGDIR:renderdiag.log",MODE_NEWFILE);
     if(!file) return;
     FPrintf(file,"Sparkpaw render diagnostic 2026-08-20-alpha41-phase6c1\n");
+#ifdef SPARKPAW_DROWNED_ROUTE
+#ifdef SPARKPAW_DROWNED_JOINED
+    FPrintf(file,"drowned_joined=1 width=3520 land=0..2400 basin=2400..3200 mixed_families=3 water_strips=20 upper_after_middle=1 region_attribution=2\n");
+#elif defined(SPARKPAW_DROWNED_FERRY)
+    FPrintf(file,"drowned_ferry=v7 flight_clearance=precomputed2400 upper_after_middle=1 upper_ledges=3 width=16 deck=528..624_at160 diamonds=7 visible_player_shots=1 water=160..960 spawn_sites=5 profiles=low_high_low_high_low pontoon=96\n");
+#elif defined(SPARKPAW_DROWNED_SPILLWING)
+#ifdef SPARKPAW_SPILLWING_PAIR
+    FPrintf(file,"spillwing=dry_pair spawn_sites=2 water=0\n");
+#else
+    FPrintf(file,"spillwing=dry_single spawn_sites=1 water=0\n");
+#endif
+#else
+    FPrintf(file,"drowned_route=v3-precision width=2400 water_strips=10 spawn_sites=6 traversal_links=4\n");
+#endif
+#ifdef SPARKPAW_DROWNED_RESIDENT_WALKER
+#ifdef SPARKPAW_DROWNED_PATCH_BLIT
+#ifdef SPARKPAW_DROWNED_PONTOON
+    FPrintf(file,"pontoon_proof=1 basin=%ld..%ld width=96 chip_bytes=1120 fast_clip_bytes=286720\n",(LONG)PONTOON_LEFT,(LONG)(PONTOON_RIGHT+PONTOON_W));
+#endif
+    FPrintf(file,"patch_transfer=blitter all_planes=4 ring_copies=%ld\n",
+            (LONG)PROTOTYPE_RING_COPIES);
+#endif
+    FPrintf(file,"walker_cache=resident_chip frames=32 stage_copy_bytes=0 extra_chip_bytes=192000\n");
+#endif
+#endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
-    FPrintf(file,"prototype=stage4g-earlier-hud-setup-no-copy-ring-front512x3\n");
+    FPrintf(file,"prototype=rolling-ring copies=%ld base=%ld\n",
+        (LONG)PROTOTYPE_RING_COPIES,(LONG)PROTOTYPE_RING_BASE);
 #ifdef SPARKPAW_BLITTER_PRIORITY_CANDIDATE
     FPrintf(file,"performance_candidate=stage5b-bounded-blitter-priority\n");
 #endif
@@ -4937,11 +5566,12 @@ void rendererWriteDiagnosticLog(void)
     FPrintf(file,"aga_fetch_candidate=off fmode=0 fetch_bytes=42\n");
 #endif
 #endif
-    FPrintf(file,"ring_width=512 physical_width=1536 ownership_violations=%ld active_target=%ld\n",
+    FPrintf(file,"ring_width=512 physical_width=%ld ownership_violations=%ld active_target=%ld\n",
+            (LONG)PROTOTYPE_TARGET_W,
             prototypeOwnershipViolations,(LONG)prototypeActiveCopper);
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
-    FPrintf(file,"renderer=no-copy-ring512x3-4+3 hud_line=252 compose=inactive-after-update frames=%ld wraps=%ld\n",
+    FPrintf(file,"renderer=rolling-ring-4+3 hud_line=252 compose=inactive-after-update frames=%ld wraps=%ld\n",
             diagnosticFrames,diagnosticWraps);
 #else
     FPrintf(file,"renderer=production-4+3 hud_line=252 bobs_line=253 passive_profile frames=%ld wraps=%ld\n",
@@ -4955,6 +5585,18 @@ void rendererWriteDiagnosticLog(void)
                 diagnosticCadenceTwo,diagnosticCadenceThreePlus,
                 diagnosticCadenceMax,fields1000,fps100/100,fps100%100);
     }
+#ifdef SPARKPAW_DROWNED_JOINED
+    {
+        static const char *names[6]={"land","precision","approach","ferry_first","ferry_last","shore"};
+        UBYTE region;
+        for(region=0;region<6;region++) {
+            const struct DrownedCadenceRegion *r=&drownedCadenceRegions[region];
+            ULONG fps=r->fields?r->intervals*5000UL/r->fields:0;
+            FPrintf(file,"region=%s intervals=%ld fields=%ld missed=%ld three_plus=%ld max_fields=%ld fps=%ld.%02ld\n",
+                (STRPTR)names[region],r->intervals,r->fields,r->missed,r->longFrames,r->maxFields,fps/100,fps%100);
+        }
+    }
+#endif
     FPrintf(file,"worst_frame=%ld camera=%ld start_line=%ld end_line=%ld elapsed_lines=%ld margin_lines=%ld\n",
             diagnosticWorstFrame,diagnosticWorstCamera,
             (LONG)diagnosticWorstStart,(LONG)diagnosticWorstEnd,
@@ -4991,8 +5633,21 @@ void rendererWriteDiagnosticLog(void)
             diagnosticLoadingFrames[DIAG_LOAD_SPLASH],
             diagnosticLoadingFrames[DIAG_LOAD_RING_TARGETS],
             diagnosticLoadingFrames[DIAG_LOAD_COPPER]);
+#ifdef SPARKPAW_DROWNED_TARGETED_PROFILE
+    FPrintf(file,"drowned_targeted_profile=1 scopes=7 cadence_includes_measurement_overhead=1\n");
+#endif
+#ifdef SPARKPAW_DROWNED_EVENT_DIAGNOSTIC
+    {
+        WORD bucket;
+        FPrintf(file,"drowned_events prior_update=1 bit0=ring_column bit1=canonical_water bit2=compositor_raster_wrap\n");
+        for(bucket=0;bucket<8;bucket++)
+            FPrintf(file,"drowned_event bucket=%ld intervals=%ld long=%ld\n",
+                (LONG)bucket,drownedEventIntervals[bucket],drownedEventLong[bucket]);
+    }
+#endif
     performanceProfileWrite(file);
     audioDiagnosticWrite(file);
+#if !defined(SPARKPAW_DROWNED_SLICE) || !defined(SPARKPAW_MINIMAL_CADENCE_DIAGNOSTIC)
     FPrintf(file,"trace_fields=game epoch_line(update,patch_in,patch_out,bob_in,bob_done,boundary) flags camera player hud copper generation published busy(patch,bob_in,bob_done) fetch(mode,front_phase,rear_phase,bplcon1,front_logical,rear_logical,front_coarse,rear_coarse) world_ptrs hud_ptrs enemies counts\n");
     {
         UWORD n;
@@ -5043,6 +5698,7 @@ void rendererWriteDiagnosticLog(void)
                 (LONG)trace->counts.waterUpdates);
         }
     }
+#endif
     FPrintf(file,"prepared_peak chip_free=%ld chip_largest=%ld fast_free=%ld fast_largest=%ld\n",
             (LONG)phase6PeakChipFree,(LONG)phase6PeakChipLargest,
             (LONG)phase6PeakFastFree,(LONG)phase6PeakFastLargest);
