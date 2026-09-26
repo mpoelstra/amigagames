@@ -611,4 +611,3 @@ Read `data/load-times.log` from the NEW drawer. Watch for larger black disk-read
 intervals or allocation failures. CHARGING and its unexplained outlier remain
 open. Full report: `sparkpaw/docs/WHDLOAD_LOADING_MEASUREMENTS.md`.
 No emulator launch, release, version bump, commit or push.
-

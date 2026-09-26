@@ -415,4 +415,3 @@ then short Stormrail/Drowned starts; report flicker/load failure. No mouse-log
 save is present. HighRAM requires a separate >=16MiB playtest. No need to
 repeat broad startup debugging now. 57% remains the earlier same-code A/B
 CHARGING result, not a measured final-binary or hardware performance guarantee.
-
