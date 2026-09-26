@@ -31,6 +31,7 @@ STORMRAIL_USER_CADENCE_TARGET = build/sparkpaw-stormrail-user-cadence
 STORMRAIL_PROFILE_TARGET = build/sparkpaw-stormrail-profile
 STORMRAIL_FINALE_PROOF_TARGET = build/sparkpaw-stormrail-finale-proof
 STORMRAIL_FINALE_TEST_TARGET = build/sparkpaw-stormrail-finale-test
+HARRIER_DEFEAT_TEST_TARGET = build/sparkpaw-harrier-defeat-test
 STORMRAIL_FINALE_CADENCE_TARGET = build/sparkpaw-stormrail-finale-cadence
 STORMRAIL_FINALE_PROFILE_TARGET = build/sparkpaw-stormrail-finale-profile
 STORMRAIL_INTERLUDE_TEST_TARGET = build/sparkpaw-stormrail-interlude-test
@@ -140,7 +141,7 @@ HEADERS = src/game_over_art.h src/ready_ui_cache_adf_data.h src/ready_ui_cache_a
 HEADERS += src/level1_rear_ambience.h src/level1_rear_ambience_release_data.h
 HEADERS += src/level1_audio.h src/audio_mix.h src/audio_catalog.h src/drowned_ring_layout.h
 HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
-	src/stormrail_results_contract.h
+	src/stormrail_results_contract.h src/stormrail_harrier_death_art.h
 RUNTIME_ASSETS = assets/runtime/game-over.spbm assets/runtime/storm-light.lsmusic assets/runtime/storm-light.lsbank assets/runtime/hero-drive.lsmusic assets/runtime/hero-drive.lsbank \
 	assets/runtime/neon-sky.lsmusic assets/runtime/neon-sky.lsbank \
 	assets/runtime/storm-world.spbm \
@@ -168,6 +169,7 @@ RUNTIME_ASSETS = assets/runtime/game-over.spbm assets/runtime/storm-light.lsmusi
 	assets/runtime/harrier-fan-fire.raw \
 	assets/runtime/harrier-hunter-charge.raw \
 	assets/runtime/harrier-hunter-fire.raw \
+	assets/runtime/harrier-defeat.raw \
 	assets/runtime/jump.raw \
 	assets/runtime/collect-spark.raw \
 	assets/runtime/water-splash.raw \
@@ -209,6 +211,7 @@ RUNTIME_ASSETS = assets/runtime/game-over.spbm assets/runtime/storm-light.lsmusi
 all: assets $(TARGET)
 
 test:
+	$(PYTHON) tests/test_harrier_defeat_integration.py
 	$(PYTHON) tests/test_drowned_fps.py
 	$(PYTHON) tests/test_drowned_busy.py
 	$(PYTHON) tests/test_drowned_reset_copy.py
@@ -542,6 +545,7 @@ $(filter-out %.lsmusic %.lsbank assets/runtime/game-over.spbm,$(RUNTIME_ASSETS))
 	sfx/raw/enemy-hit.raw \
 	sfx/raw/enemy-death.raw \
 	sfx/raw/strider-shot.raw \
+	sfx/raw/harrier-defeat.raw \
 	sfx/raw/jump.raw \
 	sfx/raw/tally-tick.raw \
 	sfx/raw/extra-life.raw
@@ -556,7 +560,7 @@ $(STORY_INTRO_ASSETS): tools/generate_intro_proof.py \
 	$(PYTHON) tools/generate_intro_proof.py
 
 sfx/raw/energy-shot.raw sfx/raw/player-hurt.raw sfx/raw/enemy-hit.raw sfx/raw/enemy-death.raw sfx/raw/strider-shot.raw \
-sfx/raw/harrier-fan-charge.raw sfx/raw/harrier-fan-fire.raw sfx/raw/harrier-hunter-charge.raw sfx/raw/harrier-hunter-fire.raw \
+sfx/raw/harrier-fan-charge.raw sfx/raw/harrier-fan-fire.raw sfx/raw/harrier-hunter-charge.raw sfx/raw/harrier-hunter-fire.raw sfx/raw/harrier-defeat.raw \
 sfx/raw/jump.raw sfx/raw/collect-spark.raw sfx/raw/tally-tick.raw sfx/raw/extra-life.raw: \
 	tools/generate_sparkpaw_sfx.py
 	$(PYTHON) tools/generate_sparkpaw_sfx.py
@@ -739,7 +743,7 @@ $(CAMPAIGN_TEST_TARGET): Makefile $(SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
 
 campaign-test: $(CAMPAIGN_TEST_TARGET)
 
-$(CAMPAIGN_SPLIT_RENDERER_TARGET) $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET): Makefile src/renderer.c $(SPLIT_RENDERER_SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
+$(CAMPAIGN_SPLIT_RENDERER_TARGET) $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET) $(HARRIER_DEFEAT_TEST_TARGET): Makefile src/renderer.c $(SPLIT_RENDERER_SOURCES) $(HEADERS) $(RUNTIME_ASSETS) \
 		assets/runtime/stormrail-family.spbm assets/runtime/stormrail-front.spbm \
 		assets/runtime/stormrail-rear.spbm assets/runtime/stormrail-flight-rear.spbm \
 		$(STORMRAIL_OBSTACLE_ASSET)
@@ -751,10 +755,11 @@ $(CAMPAIGN_SPLIT_RENDERER_TARGET) $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET): Mak
 		-DSPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE \
 		-DSPARKPAW_STORMRAIL_RESULTS_TEST -DSPARKPAW_CAMPAIGN \
 		-DSPARKPAW_SPLIT_RENDERER_CLIENT \
-		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),-DSPARKPAW_CAMPAIGN_PLAY,-DSPARKPAW_CAMPAIGN_TRANSITION_TRACE) \
+		$(if $(filter $(HARRIER_DEFEAT_TEST_TARGET),$@),-DSPARKPAW_STORMRAIL_FINALE_DIRECT_START) \
+		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET) $(HARRIER_DEFEAT_TEST_TARGET),$@),-DSPARKPAW_CAMPAIGN_PLAY,-DSPARKPAW_CAMPAIGN_TRANSITION_TRACE) \
 		$(if $(filter $(WHDLOAD_TARGET),$@),-DSPARKPAW_WHDLOAD) \
-		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),-DSPARKPAW_LEVEL1_MUSIC) -o $@ $(SPLIT_RENDERER_SOURCES) \
-		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET),$@),$(GAME_AUDIO_SOURCES))
+		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET) $(HARRIER_DEFEAT_TEST_TARGET),$@),-DSPARKPAW_LEVEL1_MUSIC) -o $@ $(SPLIT_RENDERER_SOURCES) \
+		$(if $(filter $(CAMPAIGN_PLAY_TARGET) $(WHDLOAD_TARGET) $(HARRIER_DEFEAT_TEST_TARGET),$@),$(GAME_AUDIO_SOURCES))
 
 campaign-split-renderer: $(CAMPAIGN_SPLIT_RENDERER_TARGET)
 

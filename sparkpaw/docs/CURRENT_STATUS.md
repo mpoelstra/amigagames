@@ -1,5 +1,175 @@
 # Sparkpaw current status and next work
 
+## 2026-09-26 — alpha.13 release complete locally; media playtest pending
+
+The user accepted the focused Harrier destruction and final loud
+boom-boom-BOOM cue, then requested normal-game integration, an alpha release,
+documentation, commit and push. Current local version is 0.7.0-alpha.13,
+Phase 7B.1. All three campaign sections, controls, HUD, scrolling, music,
+pause, gate and results paths remain. The approved defeat art/sound are in
+the ordinary HD, standard/High RAM WHDLoad and three-ADF builds. HD/WHDLoad
+SOUNDTEST now selects HARRIER DEFEAT and loads/releases its Chip preview only
+on demand; ADF has no SOUNDTEST.
+
+`make`, full `make test`, `make release` and the independent checkpoint verifier
+pass. All six ZIP/LHA ReadMe files, 76 WHD bank assets and every file on each
+ADF read back; Disk free blocks are 16/184/105. The initial 13-block ADF
+packaging attempt was retained; selected large bitmaps now use a wider host
+lossless match search with unchanged Amiga decoder and exact decoded bytes.
+Nine alpha.13 artifacts and three drawers are in `dist`. Alpha.12 (181 files)
+and the final focused test (78 files) were archived intact. Public itch still
+offers alpha.8; no upload or Codex FS-UAE launch. The accepted focused HD
+feedback does not prove these exact release media, 68020 cadence or real
+hardware. The intermittent hardware HUD-boundary issue remains open.
+See `RELEASE_VERIFICATION_0.7.0-alpha.13.md` for budgets and hashes.
+
+
+## 2026-09-26 — Harrier defeat SFX body revised after user listening
+
+The user reports the previous cue remained quieter than Sparkpaw's shot, even
+in SFX ONLY. This was supported by the PCM: its first 50 ms measured about
+11.4 raw RMS versus 59.2 for the shot; the two lead impacts decayed rapidly.
+The new 1.24 s / 13,672-byte sample uses stronger first and second impacts,
+a sustained final blast, more audible upper body and soft saturation with a
+short fade. Measured raw 50 ms RMS is 63.0 / 72.3 / 84.0 at the three onsets;
+the final blast is still about 45.0 RMS at 0.7 s. Peak is 122/127 without
+hard clipping. The existing 120/128 music-mixer gain and one-shot request
+remain unchanged. Paula SFX ONLY plays the raw sample at hardware volume 64.
+Compared with the prior cue, each Stormrail-only Chip fallback and Fast mixer
+sample grows by 1,324 bytes; no extra voice, IRQ or per-frame Blitter work is
+added. The 1.24 s sound fits within the 64-tick / 1.28 s defeat phase. These
+host measurements do not prove perceived loudness on FS-UAE or real A1200.
+The new cue is staged in `dist/Harrier-Death-030-HD/Harrier-Test`; the prior
+candidate is intact in `dist/older-builds/Harrier-Death-030-H-old-193747`.
+The focused art/sample/lifecycle, audio-mixer and asset-ownership tests pass,
+as does the 68020-target native compile. Staging verified 76 runtime assets,
+61 executable references and all 181 alpha.12 release files unchanged.
+Staged executable SHA-256 remains
+`feabf251d362e160af178361e4d9fd1f22978dc474ed477fce6510c24bd46814`;
+new raw cue SHA-256 is
+`2b58180c43a5bed750df445957166f3a283fdb880fe42ff3e223cf5803a7e9`.
+No FS-UAE launch, release, commit or push. Ask the user for a short comparison
+in MUSIC + SFX and SFX ONLY before claiming audio acceptance.
+
+
+## 2026-09-26 — Harrier defeat correction after first user screenshot
+
+The user's FS-UAE screenshot shows a straight left edge on the fire and the
+user reports the boss cue is barely audible.
+The screenshot is preserved with provenance at
+`testresults/Phase 7B.1-rejected-harrier-defeat-left-edge-fs-uae-030.png`.
+The flame generator had a fixed
+left X limit of 20 native pixels; it now renders down to X=4. The native crop
+grows from 96x64 to 112x64, with the same hull anchor, while the preview-only
+gate art starts outside the cropped sprite. The gate clamp remains in force.
+The 13 frames now occupy 66,560 program/Fast bytes and one 5,120-byte Chip
+stage (+8,320 and +640 bytes respectively); worst-case masked draw/restore
+traffic is about 24 KiB per visible frame and the once-per-five-ticks stage
+copy is at most 50 KiB/s. These are traffic estimates, not native timings.
+
+The 12,348-byte cue is regenerated with peak 124 instead of 104;
+the Stormrail mixer gain rises from 64/128 to 120/128. Combined nominal
+amplitude is about 2.24 times the first test (~7 dB). On cue start, a
+remaining shot voice is retired so the two signed 8-bit voices cannot wrap
+through the louder boom. Fallback Paula gain remains at its hardware maximum
+64 and benefits only from the sample gain. The 68030 screenshot proves only
+the reported single-frame visual defect, not timing or audio quality. A new
+user playtest is pending; minimum 68020 cadence remains unverified.
+The corrected 68030 drawer is staged at `dist/Harrier-Death-030-HD/`.
+The previous 96x64 drawer was archived intact as
+`dist/older-builds/Harrier-Death-030-H-old-192502`. The full host suite and
+68020-target native compilation pass. Staging verified 76 runtime assets, 61
+executable references and all 181 alpha.12 release files byte-identical.
+The staged executable SHA-256 is
+`feabf251d362e160af178361e4d9fd1f22978dc474ed477fce6510c24bd46814`;
+the runtime cue SHA-256 is
+`42a22fb1d49fef83907dc4981ca44cc65fe279e1e0b7733278fd160027a19430`.
+No FS-UAE launch, release, commit or push.
+
+## 2026-09-26 — Harrier defeat candidate staged for first user gate
+
+Approved v4 visual direction and v5 higher-pitched three-hit SFX are integrated
+in an unnumbered, direct-to-finale HD candidate:
+`dist/Harrier-Death-030-HD/Harrier-Test`. The 64-tick defeat phase follows the
+one-time score award, retires both shot pools, blocks damage/attacks/control,
+keeps the gate closed, then enters the unchanged 48-tick gate opening and exit
+to results. Escape/new-game init resets the phase; main's P pause stops its
+simulation clock. The sound request occurs once on phase entry. Other level
+paths retain their original art/audio selection.
+
+The animation stores 13 prebuilt masked 96x64 frames (58,240 bytes program/Fast
+data), copies one 4,480-byte frame to Chip staging at most every five PAL ticks,
+and draws/restores one Bob over four colour planes on each active frame. The
+upper bound is four masked plane draws plus four plane restores per visible
+frame, over at most seven 16-pixel words by 64 rows. Source/destination traffic
+is roughly 21 KiB per such frame, and stage refresh is at most 43.75 KiB/s
+during the 1.2-second visible portion; these are transfer counts, not measured
+CPU/Blitter duration or proof of spare PAL time. The
+12,348-byte 11,025 Hz sample is loaded into Chip for the fallback Paula path
+and Fast for the music mixer only in Stormrail. Added raw storage is 70,588
+bytes plus code/packaging overhead; native CPU and Blitter duration is not yet
+measured. Baseline alpha.12 Disk2 had 206 free 512-byte blocks, but ADF fit is
+not claimed for this HD candidate. Minimum remains PAL A1200/AGA 68020,
+2 MB Chip/8 MB Fast, subject to the later user cadence gate.
+
+Native campaign and focused direct-start compiles pass. The full host
+regression suite and the new frame/sample/lifecycle proof pass. Staging verified
+76 declared runtime assets, 61 literal executable references and all 181
+alpha.12 release files byte-identical. Missing unchanged Drowned source assets
+were sourced from the current extracted release by the staging tool. No FS-UAE
+launch, release, commit or push. First user test: PAL 68030 visual/function;
+68020 cadence remains pending.
+
+The first 80x64 staged draft clipped the blast edge and was moved intact to
+`dist/older-builds/Harrier-Death-030-H-old-180928` by the stage helper. The
+active 96x64 drawer is the corrected version. Its X origin stops at the closed
+gate, avoiding new gate-row repair traffic.
+Final readback matches the built executable and generated source sample
+byte-for-byte. Active executable SHA-256 is
+`2eb4c8de306a88c03cd38ebb839610111278764faf4752d1e98801dd1c6811bb`;
+SFX SHA-256 is
+`fbb2572e4cd205d128234796f6e91cfc37afb1ded9f8810435f7c18c03c7d625`.
+
+## 2026-09-26 — Harrier defeat preview awaiting approval
+
+User approved v4 visuals. The sound felt too low/out of place, so v5 changes
+only the preview SFX: higher pitch on all three impacts, a brief upper harmonic
+for attack definition, less noise and a shorter brighter electrical tail.
+`build/harrier-defeat-preview-v5/harrier-defeat-preview.wav` is pending user
+listening; the v4 visual remains approved. No game/test build yet.
+
+User accepted v3 as the right visual direction but requested a fuller explosion
+and a cleaner three-hit "boom boom BOOM" with deeper bass. V4 preview at
+`build/harrier-defeat-preview-v4/` expands the irregular fire plumes while
+preserving the ruptures and residue. Its revised original sound is 1.12 s,
+11,025 Hz mono 8-bit: 12,348 raw bytes with peak 104/127 and no digital
+clipping in the generated sample. User review of v4 is pending. Runtime,
+native audio playback and 68020 costs remain untested.
+
+User also found v2's main blast too vector-like; v3 keeps the accepted opening
+and residual tail but builds the central fire from irregular native-resolution
+pixel clusters and shards cropped from the Harrier sprite. Review GIF:
+`build/harrier-defeat-preview-v3/harrier-defeat-preview.gif`. Sound unchanged.
+No runtime work or test drawer yet.
+
+User found the first preview's small initial ruptures acceptable but the later
+light-ball finish insufficient. Revised visual preview v2 is under
+`build/harrier-defeat-preview-v2/`: a 64-tick localized layered fireburst,
+flying armour fragments and fading sparks. Its sound file currently repeats
+the first preview for comparison; audio approval also remains open. No runtime
+integration or test build has been made.
+
+Release remains 0.7.0-alpha.12. A 52-PAL-tick offline concept preview shows
+three localized hull ruptures, a central burst and sparse fading fragments;
+an original 11,025 Hz mono 8-bit sound preview lasts 0.96 s (10,584 raw bytes).
+Files: `build/harrier-defeat-preview/`; reproducible preview source:
+`tools/preview_harrier_defeat.py`. Neither preview is integrated into the game.
+The current lethal hit awards score once and enters the 48-tick gate opening
+immediately. Candidate integration must add a bounded defeat phase, retire
+shots, preserve pause/restart/results contracts, and prove 68020/Chip/Blitter
+costs before acceptance. User visual/audio approval is pending. No native test
+drawer, release, commit, push or FS-UAE run was made.
+
 ## 2026-09-26 — alpha.12 release: flight controls and complete ReadMe
 
 User explicitly requests new alpha, updated docs and commit/push of all work.

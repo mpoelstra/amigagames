@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from campaign_asset_manifest import HD_ALL as ALL, HD_GROUPS as GROUPS, LEVEL1, STORMRAIL  # noqa: E402
+from campaign_asset_manifest import HD_ALL as ALL, HD_GROUPS as GROUPS, LEVEL1, STORMRAIL, DROWNED  # noqa: E402
 from make_release import RELEASE_VERSION
 from runtime_asset_refs import executable_runtime_files  # noqa: E402
 from campaign_runtime_sources import source as runtime_source  # noqa: E402
@@ -24,8 +24,16 @@ campaign = ROOT / "build" / f"release-{RELEASE_VERSION}" / "hd/Sparkpaw-Campaign
 # newly integrated presentation assets.
 if campaign.is_file():
     refs = set(executable_runtime_files(campaign))
-    assert refs == ALL, (f"campaign refs without ownership={sorted(refs-ALL)}; "
-                         f"owned but unreachable={sorted(ALL-refs)}")
+    # A published release remains immutable while an unnumbered candidate
+    # introduces one new Stormrail-only asset.
+    assert refs <= ALL
+    assert ALL-refs <= {"harrier-defeat.raw"}
+candidate = ROOT / "build/sparkpaw-harrier-defeat-test"
+if candidate.is_file():
+    refs = set(executable_runtime_files(candidate))
+    assert refs == ALL-DROWNED, (
+        f"candidate refs without ownership={sorted(refs-ALL)}; "
+        f"unexpected missing={sorted((ALL-DROWNED)-refs)}")
 
 source = (ROOT / "src/assets.c").read_text()
 campaign_load = source.split("#ifdef SPARKPAW_CAMPAIGN", 1)[1].split(

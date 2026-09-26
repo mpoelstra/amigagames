@@ -94,6 +94,8 @@
 #define STORMRAIL_FINALE_PHASE_OPENING 2
 #define STORMRAIL_FINALE_PHASE_EXIT 3
 #define STORMRAIL_FINALE_PHASE_COMPLETE 4
+#define STORMRAIL_FINALE_PHASE_DEFEAT 5
+#define STORMRAIL_FINALE_DEFEAT_TICKS 64
 #define STORMRAIL_FINALE_ARRIVAL_TICKS 32
 #define STORMRAIL_FINALE_ACTOR_COUNT 1
 #define STORMRAIL_FINALE_ATTACK_COUNT 2
@@ -209,7 +211,8 @@ static short stormrailFinaleContactResolveX(short actorX)
 }
 
 #define stormrailFinaleGateResident(phase,gateOpen) \
-    ((phase)==STORMRAIL_FINALE_PHASE_COMBAT&&(gateOpen)==0)
+    (((phase)==STORMRAIL_FINALE_PHASE_COMBAT|| \
+      (phase)==STORMRAIL_FINALE_PHASE_DEFEAT)&&(gateOpen)==0)
 
 #define stormrailFinaleShouldBegin(distance,active) \
     ((distance)==STORMRAIL_SLICE_END_DISTANCE&&!(active))

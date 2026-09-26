@@ -79,6 +79,8 @@ BOOL level1AudioLoad(BOOL stormrail)
  if(scoreSize!=(stormrail?17468UL:9276UL)||bankSize!=11552||memcmp(score+1080,"M.K.",4))goto fail;
 #endif
  for(i=0;i<FX_COUNT;i++) {
+  /* The new large cue belongs only to the Stormrail fight. */
+  if(!stormrail&&i==FX_COUNT-1)continue;
 #ifdef SPARKPAW_DROWNED_THREE_ADF
   /* Harrier effects are used only in Stormrail, which lives on disk 2. */
   if(!stormrail&&i>=11&&i<=14)continue;
@@ -164,7 +166,10 @@ void level1AudioRequest(unsigned id)
 {
  if(!running||!mixing)return;
  /* Serialize only the two-voice state; level-6 music stays live. */
- hw->intena=INTF_AUD3;mixRequest(&mixer,effects,id);
+ hw->intena=INTF_AUD3;
+ /* The defeat cue owns the shot voice too: avoid a wrapping 8-bit sum. */
+ if(id==FX_COUNT-1){mixer.voice[0].remaining=0;mixer.voice[0].priority=0;}
+ mixRequest(&mixer,effects,id);
  hw->intena=INTF_SETCLR|INTF_AUD3;
 }
 void level1AudioUpdate(void)

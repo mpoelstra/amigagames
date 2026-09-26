@@ -9,6 +9,7 @@ int main(void)
     unsigned char phase=STORMRAIL_FINALE_PHASE_ARRIVAL;
     unsigned char gateOpen=0;
     unsigned char hostileActive=0;
+    unsigned char defeatStarts=0;
     unsigned long distance=STORMRAIL_SLICE_END_DISTANCE;
     unsigned long tick,lastLaunch=0;
     int hasLaunched=0;
@@ -52,6 +53,7 @@ int main(void)
            stormrailRestoreFootprintWidth(984,16)>1000);
     assert(STORMRAIL_FINALE_MIDLEVEL_LOADS==0);
     assert(stormrailFinaleGateResident(STORMRAIL_FINALE_PHASE_COMBAT,0));
+    assert(stormrailFinaleGateResident(STORMRAIL_FINALE_PHASE_DEFEAT,0));
     assert(!stormrailFinaleGateResident(STORMRAIL_FINALE_PHASE_OPENING,0));
     assert(stormrailFinaleAttackEnabled(61,STORMRAIL_FINALE_ATTACK_FAN));
     assert(!stormrailFinaleAttackEnabled(61,STORMRAIL_FINALE_ATTACK_HUNTER));
@@ -97,9 +99,18 @@ int main(void)
             hostileActive=0;
             if(tick==240) hp[STORMRAIL_FINALE_HARRIER]=0;
             if(stormrailFinaleAllDestroyed(hp)) {
-                phase=STORMRAIL_FINALE_PHASE_OPENING;
+                phase=STORMRAIL_FINALE_PHASE_DEFEAT;
                 tick=0;
                 hostileActive=0;
+                defeatStarts++;
+            }
+        } else if(phase==STORMRAIL_FINALE_PHASE_DEFEAT) {
+            assert(stormrailFinaleGateResident(phase,gateOpen));
+            assert(!hostileActive);
+            assert(!stormrailFinalePlayerMayMove(phase));
+            if(tick>=STORMRAIL_FINALE_DEFEAT_TICKS) {
+                phase=STORMRAIL_FINALE_PHASE_OPENING;
+                tick=0;
             }
         } else if(phase==STORMRAIL_FINALE_PHASE_OPENING) {
             assert(!stormrailFinaleGateResident(phase,gateOpen));
@@ -123,6 +134,7 @@ int main(void)
     assert(x==STORMRAIL_FINALE_CENTER_X);
     assert(y==STORMRAIL_FINALE_CENTER_Y);
     assert(stormrailFinaleAllDestroyed(hp));
+    assert(defeatStarts==1);
     assert(STORMRAIL_FINALE_RESPAWN_X<STORMRAIL_FINALE_CENTER_X);
     assert(STORMRAIL_FINALE_RESPAWN_Y==STORMRAIL_FINALE_CENTER_Y);
     assert(stormrailFinaleGateOpenOffset(0)==0);

@@ -13,6 +13,10 @@ void audioBeginGameplay(void);
 #ifndef SPARKPAW_MULTI_ADF
 void audioPreviewEffect(unsigned id);
 BOOL audioPreviewEffectPlaying(void);
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+BOOL audioPreviewPrepareHarrierDefeat(void);
+void audioPreviewReleaseHarrierDefeat(void);
+#endif
 #endif
 BOOL audioLoad(void);
 void audioUnload(void);
@@ -26,6 +30,7 @@ void audioPlayHarrierFanCharge(void);
 void audioPlayHarrierFanFire(void);
 void audioPlayHarrierHunterCharge(void);
 void audioPlayHarrierHunterFire(void);
+void audioPlayHarrierDefeat(void);
 void audioPlayJump(void);
 void audioPlayCollect(void);
 void audioPlayHealthCollect(void);

@@ -35,7 +35,7 @@ STORMRAIL = frozenset({
     "stormrail-family.spbm", "stormrail-heart.spbm",
     "stormrail-obstacles.spbm", "harrier-fan-charge.raw",
     "harrier-fan-fire.raw", "harrier-hunter-charge.raw",
-    "harrier-hunter-fire.raw",
+    "harrier-hunter-fire.raw", "harrier-defeat.raw",
 })
 
 DROWNED = frozenset({

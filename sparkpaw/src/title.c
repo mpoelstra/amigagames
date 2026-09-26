@@ -1204,7 +1204,16 @@ static void startReadyPreview(void)
     BOOL ok=TRUE;
     stopReadyPreview(); readyPreviewUsed=TRUE;
     if(readySelection.row==0) {
-        audioPreviewEffect(readySelection.sfx); readyPreviewKind=1;
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+        if(readySelection.sfx==18) {
+            readySelection.status=READY_PREVIEW_LOADING;
+            refreshReadyUI(); renderReadyDustFrame();
+            platformReleaseForLoading(TRUE);
+            ok=audioPreviewPrepareHarrierDefeat();
+            platformResetGameInput(); platformResumeMenuAfterLoading();
+        }
+#endif
+        if(ok) { audioPreviewEffect(readySelection.sfx); readyPreviewKind=1; }
     } else {
         /* DOS work must occur outside Forbid/Disable, with the published menu
            and every prepared gameplay allocation still owned and resident. */
@@ -1231,6 +1240,9 @@ static void leaveReadySoundtest(void)
 {
     if(!readyPreviewUsed) return; /* preserve uninterrupted title playback */
     stopReadyPreview(); level1AudioPreviewClear();
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+    audioPreviewReleaseHarrierDefeat();
+#endif
     if(!musicRestartTitle()) {
         readySelection.status=READY_PREVIEW_LOADING;
         refreshReadyUI(); renderReadyDustFrame();
@@ -1330,7 +1342,7 @@ void titleRunLevelReadyMenu(enum ControlMode *controlMode,
                 if(readyPreviewUsed) stopReadyPreview();
                 if(readySelection.row==0) {
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
-                    readySelection.sfx=(UBYTE)((readySelection.sfx+18+delta)%18);
+                    readySelection.sfx=(UBYTE)((readySelection.sfx+19+delta)%19);
 #else
                     readySelection.sfx=(UBYTE)((readySelection.sfx+16+delta)%16);
 #endif

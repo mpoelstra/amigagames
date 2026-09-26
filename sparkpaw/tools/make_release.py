@@ -19,7 +19,7 @@ from make_sparkpaw_icon import make_project_icon
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STAGE_PARENT = ROOT / "build" / "release"
-RELEASE_VERSION = "0.7.0-alpha.12"
+RELEASE_VERSION = "0.7.0-alpha.13"
 ROADMAP_CHECKPOINT = "7B.1"
 RELEASE_NAME = f"Sparkpaw-{RELEASE_VERSION}"
 STAGE = STAGE_PARENT / RELEASE_NAME
@@ -89,7 +89,7 @@ REPLAY LEVEL or BACK TO TITLE. Replay stays resident; continuing carries
 remaining lives, health and the live diamond meter into Stormrail.
 Esc abandons the run and returns to the ready screen. OPTIONS includes a
 section start selector, secondary-button assignment and gameplay audio mode.
-HD/WHDLoad also include a SOUNDTEST for all 16 effects and five themes.
+HD/WHDLoad also include a SOUNDTEST for gameplay effects and music themes.
 
 Requirements: PAL Amiga A1200 / AGA, 68020 or better, 2 MB Chip + 8 MB Fast RAM.
 This package is the complete ordinary HD edition. Copy the entire drawer to
@@ -111,7 +111,8 @@ speed increase is claimed.
 Alpha.7 includes Copper Sprint for Level 1 and Iron Horizon for Stormrail.
 Three Paula channels play music; two software-mixed effect voices share the
 fourth. Existing shots, hurt, pickups, debris and Harrier warning/fire cues
-remain active. Music continues through life resets; results retain their tally
+remain active. The Harrier has a three-stage defeat explosion cue.
+Music continues through life resets; results retain their tally
 sounds and replay restarts the track. Intro/title retain all four channels.
 
 Hero Drive accompanies the HD/WHDLoad story intro; Neon Sky plays from title

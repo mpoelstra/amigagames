@@ -440,7 +440,7 @@ static void stormrailUpdateObstacles(void)
                             game.score+=type==STORMRAIL_OBSTACLE_BIG?20:
                                         type==STORMRAIL_OBSTACLE_PILLAR?10:5;
                         }
-                        audioPlayEnemyDeath();
+                        /* The one-shot finale cue starts on phase entry. */
                         if(dropId<64)
                             stormrailDropObstacleReward(dropId,
                                 dropId==33?STORMRAIL_REWARD_HEART:
@@ -747,6 +747,7 @@ static void stormrailBeginFinale(void)
     game.stormrailFinalePhase=STORMRAIL_FINALE_PHASE_ARRIVAL;
     game.stormrailFinaleTick=0;
     game.stormrailFinaleVisualTick=0;
+    game.stormrailDeathX=game.stormrailDeathY=0;
     game.stormrailFinaleGateOpen=0;
     game.stormrailFinaleExitCentered=0;
     game.stormrailFinaleHasFired=0;
@@ -856,7 +857,7 @@ static void stormrailUpdateFinale(void)
                     } else audioPlayEnemyHit();
                     break;
                 }
-            if(stormrailFinalePlayerContact(game.stormrailX,
+            if(game.stormrailFinaleHp[i]&&stormrailFinalePlayerContact(game.stormrailX,
                game.stormrailY,actorX,actorY,i)) {
                 game.stormrailX=(WORD)stormrailClamp(
                     stormrailFinaleContactResolveX(actorX),
@@ -872,9 +873,14 @@ static void stormrailUpdateFinale(void)
             }
         }
         if(stormrailFinaleAllDestroyed(game.stormrailFinaleHp)) {
-            game.stormrailFinalePhase=STORMRAIL_FINALE_PHASE_OPENING;
+            game.stormrailDeathX=stormrailFinaleActorX(
+                game.stormrailFinaleVisualTick,STORMRAIL_FINALE_HARRIER);
+            game.stormrailDeathY=stormrailFinaleActorY(
+                game.stormrailFinaleVisualTick,STORMRAIL_FINALE_HARRIER);
+            game.stormrailFinalePhase=STORMRAIL_FINALE_PHASE_DEFEAT;
             game.stormrailFinaleTick=0;
             stormrailRetireFinaleFire();
+            audioPlayHarrierDefeat();
             return;
         }
         for(i=0;i<STORMRAIL_FINALE_ATTACK_COUNT;i++) {
@@ -937,6 +943,14 @@ static void stormrailUpdateFinale(void)
             for(i=0;i<STORMRAIL_FINALE_ACTOR_COUNT;i++)
                 game.stormrailFinaleFlash[i]=0;
             stormrailRetireFinaleFire();
+            return;
+        }
+    } else if(game.stormrailFinalePhase==STORMRAIL_FINALE_PHASE_DEFEAT) {
+        stormrailRetireFinaleFire();
+        game.stormrailFinalePhaseMask|=1<<STORMRAIL_FINALE_PHASE_DEFEAT;
+        if(game.stormrailFinaleTick>=STORMRAIL_FINALE_DEFEAT_TICKS) {
+            game.stormrailFinalePhase=STORMRAIL_FINALE_PHASE_OPENING;
+            game.stormrailFinaleTick=0;
             return;
         }
     } else if(game.stormrailFinalePhase==STORMRAIL_FINALE_PHASE_OPENING) {
@@ -1050,6 +1064,7 @@ void gameInit(ULONG enemySeed)
     game.stormrailFinalePhase=STORMRAIL_FINALE_PHASE_COMBAT;
     game.stormrailFinaleTick=0;
     game.stormrailFinaleVisualTick=0;
+    game.stormrailDeathX=game.stormrailDeathY=0;
     game.stormrailFinaleGateOpen=0;
     game.stormrailFinaleExitCentered=0;
     game.stormrailFinaleHasFired=0;

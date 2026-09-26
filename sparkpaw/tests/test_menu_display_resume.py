@@ -17,8 +17,8 @@ title=(ROOT/'src/title.c').read_text()
 a=title.index('static void startReadyPreview')
 b=title.index('void titleRunLevelReadyMenu',a)
 preview=title[a:b]
-assert preview.count('platformReleaseForLoading(TRUE)')==2
-assert preview.count('platformResumeMenuAfterLoading()')==2
+assert preview.count('platformReleaseForLoading(TRUE)')==3
+assert preview.count('platformResumeMenuAfterLoading()')==3
 assert 'platformFinishTakeover(' not in preview
 for function in preview.split('static void ')[1:]:
     assert function.index('platformReleaseForLoading(TRUE)')<function.index('platformResumeMenuAfterLoading()')
@@ -66,7 +66,7 @@ int main(void){int music,mask;
   assert(hardware->potgo==PORT2_BUTTONS_PULLUP&&hardware->intena==32767);
   assert(dma==(DMAF_MASTER|DMAF_COPPER|DMAF_RASTER|DMAF_BLITTER|retainedMusic));
  }
- puts("PASS: retained display DMA/Copper, 32 LSP DMA cases, reacquired ownership and both soundtest reload call sites");
+ puts("PASS: retained display DMA/Copper, 32 LSP DMA cases, reacquired ownership and all soundtest reload call sites");
 }
 '''
 with tempfile.TemporaryDirectory() as td:

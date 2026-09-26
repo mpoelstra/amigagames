@@ -104,6 +104,7 @@ struct GameState {
     UBYTE stormrailFinalePhase;
     UWORD stormrailFinaleTick;
     UWORD stormrailFinaleVisualTick;
+    WORD stormrailDeathX,stormrailDeathY;
     UBYTE stormrailFinaleGateOpen;
     UBYTE stormrailFinaleExitCentered;
     UBYTE stormrailFinaleHp[STORMRAIL_FINALE_ACTOR_COUNT];

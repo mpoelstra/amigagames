@@ -47,7 +47,7 @@ static void platformStopMenuPreview(void){assert(owned);cia=0;fxTime=0;}
 static void musicSuspend(void){lsp=0;}
 static void audioPreviewEffect(unsigned id){
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
- assert(owned&&!cia&&!lsp&&id<18);
+ assert(owned&&!cia&&!lsp&&id<19);
 #else
  assert(owned&&!cia&&!lsp&&id<16);
 #endif
@@ -122,7 +122,9 @@ for integrated in (False,True):
     selected_checks=checks
     if integrated:
         selected_shim='#define SPARKPAW_CAMPAIGN_DROWNED\n'+shim.replace('CAMPAIGN_START_STORMRAIL };','CAMPAIGN_START_STORMRAIL,CAMPAIGN_START_DROWNED };')
-        selected_shim += '\nstatic int drownedLoads; static BOOL level1AudioPreviewPrepareDrowned(void){assert(!owned&&!cia&&!lsp);drownedLoads++;tempTrack=!failLoad;return !failLoad;}\n'
+        selected_shim += '\nstatic int drownedLoads,harrierLoads,harrierReleases; static BOOL level1AudioPreviewPrepareDrowned(void){assert(!owned&&!cia&&!lsp);drownedLoads++;tempTrack=!failLoad;return !failLoad;}\n'
+        selected_shim += 'static BOOL audioPreviewPrepareHarrierDefeat(void){assert(!owned&&!cia&&!lsp);harrierLoads++;return !failLoad;}\n'
+        selected_shim += 'static void audioPreviewReleaseHarrierDefeat(void){assert(owned&&!cia);harrierReleases++;}\n'
         selected_checks=checks.replace('edge(8);edge(16); /* wrap to Hero */','edge(8);edge(16); /* Undertow */\n edge(8);edge(16); /* wrap to Hero */').replace('stormLoads==3','stormLoads==2&&drownedLoads==2').replace('i<5','i<6')
         selected_checks=selected_checks.replace('/* Both directions through all three direct-start options. */',
             '/* Wrap to the two Drowned-only SFX and play each. */\n'
@@ -130,7 +132,8 @@ for integrated in (False,True):
             ' edge(2);hold(16);edge(2);edge(2);edge(2);hold(16);\n'
             ' edge(4);edge(16);edge(4);edge(16);\n'
             ' leave();titleRunLevelReadyMenu(&second,&section);\n'
-            ' assert(fxStarts==5&&fxIds[3]==17&&fxIds[4]==16&&readySelection.sfx==16);\n'
+            ' assert(fxStarts==5&&fxIds[3]==18&&fxIds[4]==17&&readySelection.sfx==17);\n'
+            ' assert(harrierLoads==1&&harrierReleases>0);\n'
             ' /* Both directions through all three direct-start options. */')
         selected_checks=selected_checks.replace('/* Failure paths', '/* Both directions through all three direct-start options. */\n length=cursor=0; input[length++]=0;edge(2);edge(16);edge(2);edge(4);edge(16);edge(16);\n titleRunLevelReadyMenu(&second,&section);assert(section==CAMPAIGN_START_DROWNED);\n length=cursor=0; input[length++]=0;edge(2);edge(16);edge(2);edge(8);edge(16);edge(16);\n titleRunLevelReadyMenu(&second,&section);assert(section==CAMPAIGN_START_STORM_RUINS);\n /* Failure paths')
     with tempfile.TemporaryDirectory() as td:

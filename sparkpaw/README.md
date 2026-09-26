@@ -1,5 +1,28 @@
 # Sparkpaw: The Stormstone Quest
 
+## 0.7.0-alpha.13 / Phase 7B.1 — Harrier destruction finale
+
+The Stormrail Harrier now breaks apart in a 64-tick pixel-art sequence with
+three hull ruptures, a full fireburst, fragments and a fading tail. Its louder
+three-hit defeat cue plays once per victory; HD and WHDLoad SOUNDTEST now
+include HARRIER DEFEAT. The gate opens after the sequence, then the existing
+results transition continues. All three playable sections remain included.
+
+The ordinary HD build, standard 8 MB WHDLoad, High RAM WHDLoad and three ADFs
+pass packaging and independent readback. The full host suite passes. The
+approved focused HD look and sound have not yet been replayed in the exact
+alpha.13 packages; minimum-68020 cadence and real-A1200 checks remain open.
+Target: PAL A1200/AGA, 68020, 2 MB Chip and 8 MB Fast; High RAM WHDLoad needs
+16 MB Fast. The intermittent hardware HUD-boundary issue remains open.
+
+Nine alpha.13 files and three extracted drawers are current in `dist`.
+Alpha.12 and the accepted Harrier test are intact under `dist/older-builds`.
+Public itch downloads are still alpha.8; no upload was made.
+
+[Release notes](docs/RELEASE_NOTES_0.7.0-alpha.13.md) ·
+[Verification and hashes](docs/RELEASE_VERIFICATION_0.7.0-alpha.13.md).
+Earlier entries below are historical records.
+
 ## 0.7.0-alpha.12 / Phase 7B.1 — flight controls and player ReadMe
 
 Skimmer directional Up works in both JOYSTICK and JOYPAD modes. On-foot jump

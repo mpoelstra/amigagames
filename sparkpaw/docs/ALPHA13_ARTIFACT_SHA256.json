@@ -1,0 +1,53 @@
+{
+  "version": "0.7.0-alpha.13",
+  "archive_file_counts": {
+    "HD": 81,
+    "WHDLoad": 11,
+    "WHDLoad-HighRAM": 82
+  },
+  "readme_all_six_archives_verified": true,
+  "three_adfs_read_back": true,
+  "trace_free": true,
+  "bank_entries_raw_verified": 76,
+  "highram_preload_bytes": 5844230,
+  "highram_reservation_plus_preload_bytes": 11611398,
+  "highram_budget_is_not_playtest": true,
+  "artifacts": {
+    "Sparkpaw-0.7.0-alpha.13.zip": {
+      "bytes": 1648905,
+      "sha256": "13eaefaeebd9547b56ce585290e664ff688005ed9b18404b038e50d323f1b49a"
+    },
+    "Sparkpaw-0.7.0-alpha.13.lha": {
+      "bytes": 1669268,
+      "sha256": "325437973b7544d44b690e1c87821bc22903e443a52ea106d42fc0fd1e6c538a"
+    },
+    "Sparkpaw-0.7.0-alpha.13-WHDLoad.zip": {
+      "bytes": 1650548,
+      "sha256": "b0fac791ebd21be3f6bd44412dd881643c292f2c7c789f175200cb997b2a05ea"
+    },
+    "Sparkpaw-0.7.0-alpha.13-WHDLoad.lha": {
+      "bytes": 1681524,
+      "sha256": "a0fe076a81d750dc0308731e8c444099fc1c9fc506cfbd5c75f262d77eaff8b4"
+    },
+    "Sparkpaw-0.7.0-alpha.13-WHDLoad-HighRAM.zip": {
+      "bytes": 1654644,
+      "sha256": "11b3f968913816c51b63e61155381a0cdd01a7dcefc8b0c3e6ee307b353c7a64"
+    },
+    "Sparkpaw-0.7.0-alpha.13-WHDLoad-HighRAM.lha": {
+      "bytes": 1674426,
+      "sha256": "b94af07d019568a4a4673c28f136ea48a6a000ce4504c267e59edfd1594d4f02"
+    },
+    "Sparkpaw-0.7.0-alpha.13-Disk1.adf": {
+      "bytes": 901120,
+      "sha256": "6029d1eccf662b8ec9e2f7261e572a810475cd96bebb0c07c4f707ac788dc279"
+    },
+    "Sparkpaw-0.7.0-alpha.13-Disk2.adf": {
+      "bytes": 901120,
+      "sha256": "6cea6beded1f76139dc47995d429ebaea56b36c8c175bbff0f0dd1224d594203"
+    },
+    "Sparkpaw-0.7.0-alpha.13-Disk3.adf": {
+      "bytes": 901120,
+      "sha256": "286b7b2faeb8d2708a3ad2bb8bf89a39885c430215dea1a6fb1a727a0da7a4e1"
+    }
+  }
+}

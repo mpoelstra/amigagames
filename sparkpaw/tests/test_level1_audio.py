@@ -65,7 +65,8 @@ void mt_mastervol(void *h,UWORD x){(void)h;assert(x==48);}
 checks=r'''
 int main(void){
  unsigned i;int cycle;
- for(i=1;i<=FX_COUNT+3;i++){
+ /* The appended Harrier defeat sample is Stormrail-only. */
+ for(i=1;i<=FX_COUNT+2;i++){
   allocCalls=0;failAlloc=i;assert(!level1AudioLoad(FALSE));
   assert(!allocations&&!resourcesOwned&&!vector&&!locks);
  }

@@ -58,12 +58,13 @@ IN THIS ALPHA
   Stormstone Core. Electrical pulses cross the purple sky and illuminate
   the tower crystal; distant machinery flickers to life.
 * Stormrail Skimmer: board your ship for an aerial combat interlude.
+  Defeat the Harrier to trigger a three-stage explosion before the gate opens.
 * Drowned Turbines: flooded platforms, moving pontoons, animated waterfalls,
   new enemies, a checkpoint and the Rain Core encounter.
 * Lives, health, collected diamonds and score carry through the campaign.
 * Story introduction, music and sound effects, results screens and replay.
 * OPTIONS offers section selection, audio settings and controller choice.
-  HD and WHDLoad also include SOUNDTEST.
+  HD and WHDLoad also include SOUNDTEST with the Harrier defeat effect.
 
 The complete five-Core adventure is still in development.
 See ReleaseNotes.txt for changes since the previous public version.

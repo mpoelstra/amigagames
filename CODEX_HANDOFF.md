@@ -1,5 +1,83 @@
 # Codex handoff: Amiga game workspace
 
+## 2026-09-26 — alpha.13 Harrier release ready for Git publication
+
+User accepted the focused 112x64 Harrier destruction and loud 1.24 s
+three-hit cue, then explicitly requested ordinary-game release, docs, commit
+and push. Current local release is 0.7.0-alpha.13 / Phase 7B.1. Normal HD,
+standard/High RAM WHDLoad and all three ADF builds include the 64-tick
+one-shot defeat before gate opening/results. HD/WHDLoad SOUNDTEST now has
+HARRIER DEFEAT, loaded into Chip only when selected and freed on exit; ADF
+menu remains without SOUNDTEST. Full host suite, `make`, `make release` and
+`tools/verify_checkpoint_release.py` PASS. Disk free blocks: 16/184/105.
+The initial 13-block ADF attempt remains under
+`sparkpaw/build/alpha13-pre-soundtest-adf13-attempt`; wider lossless host
+packing restored the 16-block floor without changing the decoder. Alpha.12
+(181 files) and final focused test (78 files) are byte-identical in
+`sparkpaw/dist/older-builds`. Nine alpha.13 artifacts and three drawers are
+current in dist. Public itch downloads/devlog still alpha.8, no upload.
+See release notes and `RELEASE_VERIFICATION_0.7.0-alpha.13.md` for hashes,
+RAM/traffic budget and outstanding exact-media/68020/hardware tests.
+The user confirmed that two deleted alpha.5 release-art files should be
+included in the commit. No FS-UAE was launched by Codex. Commit/push is
+explicitly authorized and remains to be done after final diff audit.
+
+
+## 2026-09-26 — Harrier SFX still too quiet; denser cue staged
+
+User reports the previous defeat cue below the Sparkpaw shot level even in
+SFX ONLY. Old first 50 ms measured ~11.4 raw RMS vs shot 59.2. Revised only
+`harrier_defeat()` sample: three impact-window RMS 63.0/72.3/84.0, sustained
+final boom, soft saturation peak 122, 1.24 s / 13,672 bytes. Preview v6 WAV
+is byte-equivalent to runtime signed PCM. Mixer gain remains 120/128 and
+fallback Paula volume 64; one-shot/lifecycle/art unchanged. +1,324 bytes each
+Stormrail-only Chip and Fast and raw storage, no new runtime voices or Blitter
+cost. New test is in `sparkpaw/dist/Harrier-Death-030-HD/Harrier-Test`;
+prior candidate archived intact in
+`sparkpaw/dist/older-builds/Harrier-Death-030-H-old-193747`.
+Focused tests and 68020-target compile pass; staging preserves all 181
+alpha.12 release files. New raw cue SHA-256 is
+`2b58180c43a5bed750df445957166f3a283fdb880fe42ff3e223cf5803a7e9`.
+User audio acceptance remains pending. No FS-UAE launch, release, commit or
+push.
+
+
+## 2026-09-26 — Harrier screenshot correction staged for user test
+
+User screenshot showed the explosion's straight left fire edge and reported
+barely audible SFX. Generator flame range now starts at X=4; native masked
+crop is 112x64 with the preview gate outside it. Static art is 66,560 bytes,
+Chip stage 5,120 bytes. Sample peak rises to 124, music-mixer gain to 120/128
+(about 2.24x combined nominal amplitude); defeat request retires a concurrent
+shot voice to avoid overflow. Full host tests and native 68020-target compile
+pass. Corrected 68030 test: `sparkpaw/dist/Harrier-Death-030-HD/Harrier-Test`.
+The previous 96x64 candidate is intact under
+`sparkpaw/dist/older-builds/Harrier-Death-030-H-old-192502` after staging
+with `stage_hd_test.py --replace`. The active executable SHA-256 is
+`feabf251d362e160af178361e4d9fd1f22978dc474ed477fce6510c24bd46814`;
+cue SHA-256 is
+`42a22fb1d49fef83907dc4981ca44cc65fe279e1e0b7733278fd160027a19430`.
+User audio/visual acceptance and 68020 cadence remain pending. No FS-UAE
+launch, release, commit or push.
+
+## 2026-09-26 — Harrier defeat 68030 HD candidate awaiting user play
+
+User approved the v4 fuller native-pixel fire/shard look and v5 higher-pitched
+boom-boom-BOOM sample. Integrated a 64-tick defeat state between lethal hit and
+gate opening, plus one 96x64 staged masked Bob and 12,348-byte Stormrail-only
+sample. Focused campaign direct-start build is staged in
+`sparkpaw/dist/Harrier-Death-030-HD/Harrier-Test`; use READY OPTIONS START
+SECTION STORMRAIL. The staged ReadMe requests a short 68030 visual/function
+pass, then a later 68020 cadence gate. Stager verified 76 assets, 61 binary
+references and all 181 alpha.12 release files unchanged. Full host suite and
+new frame/sample/lifecycle proof pass after correcting its Level1-only
+audio-load allocation count and candidate ownership check.
+No FS-UAE launched, release, commit or push. See CURRENT_STATUS and
+HARRIER_DEFEAT_030_TEST.txt; keep all old builds/evidence intact.
+The first 80x64 draft clipped the fire edge and was archived intact under
+`dist/older-builds/Harrier-Death-030-H-old-180928`; the active drawer uses
+the corrected 96x64 art clamped left of the closed gate.
+
 ## 2026-09-26 — alpha.12 release: flight controls and complete ReadMe
 
 User explicitly requests new alpha, updated docs and commit/push of all work.

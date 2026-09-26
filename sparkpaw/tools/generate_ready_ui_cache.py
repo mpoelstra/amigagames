@@ -13,7 +13,7 @@ class Layout(c.Structure):
 class Selection(c.Structure):
     _fields_=[(n,U8) for n in ('page','row','secondary','section','mode','sfx','track','status')]
 BANDS=[(0,26),(26,16),(42,16),(58,20),(78,26)]
-def selections(adf=False,sfx_count=18):
+def selections(adf=False,sfx_count=19):
     yield from [(Selection(0,r,0,0,0,0,0,0),1) for r in range(2)]
     for hd in (1,0):
         for second in range(2):
@@ -29,7 +29,7 @@ def selections(adf=False,sfx_count=18):
                 for row in range(3):
                     yield Selection(2,row,0,0,0,sfx,track,status),1
 
-def rasterize(source,include,adf=False,sfx_count=18):
+def rasterize(source,include,adf=False,sfx_count=19):
     with tempfile.TemporaryDirectory() as td:
         lib=Path(td)/'layout.so'
         subprocess.run(['cc','-shared','-fPIC','-O2','-I'+str(include),str(source),'-o',str(lib)],check=True)

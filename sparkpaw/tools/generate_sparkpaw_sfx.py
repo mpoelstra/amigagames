@@ -69,6 +69,33 @@ def harrier_hunter_fire():
                gain(tone(.105,245,22,-720,True),.68),
                gain(noise(.075,68663,34,.42),.58),
                gain(delay(tone(.08,620,28,-1800),.012),.26))
+
+def harrier_defeat():
+    """Three dense, rising hull impacts with a sustained final fireball."""
+    rng=random.Random(68020)
+    hits=((0.00,.82,235,112,10),(.16,.96,206,98,9),(.40,1.20,168,78,3.2))
+    phases=[0.0]*3; upper=[0.0]*3; low_noise=[0.0]*3; samples=[]
+    for i in range(round(1.24*RATE)):
+        t=i/RATE; value=0.0
+        for n,(onset,strength,high,low,decay) in enumerate(hits):
+            age=t-onset
+            if age<0: continue
+            frequency=low+(high-low)*math.exp(-age*13)
+            phases[n]+=frequency/RATE; upper[n]+=frequency*2.05/RATE
+            attack=min(1.0,age*400)
+            body=math.sin(math.tau*phases[n])*math.exp(-age*decay)
+            edge=math.sin(math.tau*upper[n])*math.exp(-age*(decay+3))
+            low_noise[n]+=(rng.uniform(-1,1)-low_noise[n])*.19
+            grit=low_noise[n]*math.exp(-age*(decay+5))
+            value+=strength*attack*(body*.77+edge*.42+grit*.30)
+        tail=t-.53
+        if tail>0:
+            value+=.065*math.sin(math.tau*(450*tail-210*tail*tail))*math.exp(-tail*7)
+        if t>1.16:
+            value*=max(0.0,(1.24-t)/.08)
+        # Soft saturation raises the body of each hit without hard 8-bit clipping.
+        samples.append(round(124*math.tanh(1.65*value)))
+    return samples
 def enemy_hit(): return plasma_hit_energy_pop()
 
 def enemy_death():
@@ -253,6 +280,7 @@ EFFECTS=[
     ("harrier-fan-fire",harrier_fan_fire,62,7,8),
     ("harrier-hunter-charge",harrier_hunter_charge,57,6,16),
     ("harrier-hunter-fire",harrier_hunter_fire,64,8,6),
+    ("harrier-defeat",harrier_defeat,64,12,0),
     ("enemy-hit",enemy_hit,60,6,4),("enemy-death",enemy_death,64,8,6),
     ("player-hurt",player_hurt,64,9,16),
     ("collect-spark",collect,52,4,3),("water-splash",water_splash,64,10,20),

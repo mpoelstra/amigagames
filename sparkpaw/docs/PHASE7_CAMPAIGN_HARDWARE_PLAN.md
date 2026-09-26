@@ -1,5 +1,20 @@
 # Phase 7 — campaign releases and hardware validation
 
+## 2026-09-26 — alpha.13 Harrier finale integrated
+
+Current local release is 0.7.0-alpha.13 / Phase 7B.1. The user accepted the
+Harrier's full pixel-art destruction and louder three-hit cue in focused HD
+testing, then requested the complete release and Git publication. The ordinary
+campaign includes the one-shot defeat phase before gate opening/results;
+HD/WHDLoad SOUNDTEST exposes HARRIER DEFEAT. The ADF retains its no-SOUNDTEST
+menu. Full host tests, four native campaign builds, release packaging and
+independent ZIP/LHA/three-ADF readback pass. Disk free blocks are 16/184/105;
+Disk 1 sits exactly at the 16-block floor. Alpha.12 and the focused test are
+archived intact. Public itch downloads remain alpha.8. Exact alpha.13 media,
+68020 cadence and real-A1200 playtests remain pending, as does the intermittent
+hardware HUD-boundary issue. See `RELEASE_VERIFICATION_0.7.0-alpha.13.md`.
+
+
 ## 2026-09-26 — alpha.12 release: flight controls and complete ReadMe
 
 User explicitly requests new alpha, updated docs and commit/push of all work.

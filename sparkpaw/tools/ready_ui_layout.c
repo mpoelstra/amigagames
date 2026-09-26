@@ -101,7 +101,7 @@ void readyUiCompose(struct ReadyUI *u,unsigned char **atlas,
             "STRIDER SHOT","JUMP","DIAMOND PICKUP","WATER SPLASH","STORMSTONE CORE",
             "TALLY TICK","EXTRA LIFE","FAN CHARGE","FAN FIRE",
             "HUNTER CHARGE","HUNTER FIRE","HEALTH PICKUP",
-            "PUMP SHOT","CHECKPOINT"};
+            "PUMP SHOT","CHECKPOINT","HARRIER DEFEAT"};
         static const char *const tracks[]={"HERO DRIVE","NEON SKY","COPPER SPRINT","IRON HORIZON","STORM LIGHT","UNDERTOW CIRCUIT"};
         const char *status=s->status==READY_PREVIEW_LOADING?"LOADING AUDIO":
             s->status==READY_PREVIEW_ERROR?"TRACK UNAVAILABLE":

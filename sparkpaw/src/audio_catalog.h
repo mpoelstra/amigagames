@@ -16,19 +16,23 @@ static const char *paths[FX_COUNT]={
 #ifdef SPARKPAW_DROWNED_JOINED
  ,"PROGDIR:assets/runtime/checkpoint.raw"
 #endif
+ ,"PROGDIR:assets/runtime/harrier-defeat.raw"
 };
 static const UBYTE priorities[FX_COUNT]={127,9,6,8,7,4,5,10,11,3,10,7,7,7,8,5
 #ifdef SPARKPAW_DROWNED_JOINED
  ,10
 #endif
+ ,12
 };
 static const UBYTE volumes[FX_COUNT]={60,64,60,64,64,58,58,64,64,54,62,64,64,64,64,64
 #ifdef SPARKPAW_DROWNED_JOINED
  ,58
 #endif
+ ,120
 };
 static const UBYTE cooldowns[FX_COUNT]={0,16,4,6,12,4,3,20,55,1,20,16,8,16,6,3
 #ifdef SPARKPAW_DROWNED_JOINED
  ,32
 #endif
+ ,0
 };

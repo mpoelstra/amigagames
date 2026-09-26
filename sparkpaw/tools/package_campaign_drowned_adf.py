@@ -30,6 +30,11 @@ ALIASES = {
     'sparkpaw-level-complete.spbm': 'level-complete.spr1',
 }
 DIRECT_RAW = {'storm-collision.bin', 'drowned-route.bin'}
+WIDE_PACK = {'sparkpaw-sprites4.spbm', 'storm-rear.spbm',
+             'sparkpaw-title.spbm', 'sparkpaw-ready-screen.spbm',
+             'sparkpaw-level-complete.spbm', 'clockwork-storm-strider.spbm',
+             'sparkpaw-level-loading.spbm', 'stormstone-core.spbm',
+             'l1-electric.bin'}
 MENU = {'sparkpaw-title.spbm', 'sparkpaw-level-loading.spbm',
         'level-charge-patch.spbm', 'sparkpaw-ready-screen.spbm',
         'readymenu.spbm', 'neon-sky.lsmusic', 'neon-sky.lsbank',
@@ -105,6 +110,8 @@ def payload(name):
     if name in DIRECT_RAW:
         return name, raw, source, 'raw'
     options = [pack_lz(raw), pack_rle(raw), pack_opt(raw)]
+    if name in WIDE_PACK:
+        options.append(pack_opt(raw,candidates=256))
     if name.endswith(('.lsbank', '-bank.bin')):
         options.extend((pack_delta(raw), pack_delta_opt(raw)))
     data = min(options, key=len)

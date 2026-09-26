@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "audio_contract.h"
+#include "game.h"
 #ifdef SPARKPAW_LEVEL1_MUSIC
 #include "level1_audio.h"
 #include "game.h"
@@ -42,6 +43,11 @@ static UBYTE *harrierFanChargeSample,*harrierFanFireSample;
 static UBYTE *harrierHunterChargeSample,*harrierHunterFireSample;
 static LONG harrierFanChargeSampleBytes,harrierFanFireSampleBytes;
 static LONG harrierHunterChargeSampleBytes,harrierHunterFireSampleBytes;
+static UBYTE *harrierDefeatSample;
+static LONG harrierDefeatSampleBytes;
+#if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
+static BOOL harrierDefeatPreviewOwned;
+#endif
 static UBYTE *jumpSample;
 static LONG jumpSampleBytes;
 static UBYTE *collectSample;
@@ -69,6 +75,7 @@ static UBYTE enemyDeathCooldown;
 static UBYTE striderShotCooldown;
 static UBYTE harrierFanChargeCooldown,harrierFanFireCooldown;
 static UBYTE harrierHunterChargeCooldown,harrierHunterFireCooldown;
+static UBYTE harrierDefeatCooldown;
 static UBYTE jumpCooldown;
 static UBYTE collectCooldown;
 static UBYTE waterSplashCooldown;
@@ -92,6 +99,7 @@ enum AudioDiagnosticEvent {
     AUDIO_DIAG_HARRIER_FAN_FIRE,
     AUDIO_DIAG_HARRIER_HUNTER_CHARGE,
     AUDIO_DIAG_HARRIER_HUNTER_FIRE,
+    AUDIO_DIAG_HARRIER_DEFEAT,
     AUDIO_DIAG_JUMP,
     AUDIO_DIAG_COLLECT,
     AUDIO_DIAG_WATER,
@@ -229,6 +237,11 @@ BOOL audioLoad(void)
     LOAD_HARRIER_SAMPLE("harrier-fan-fire",harrierFanFire)
     LOAD_HARRIER_SAMPLE("harrier-hunter-charge",harrierHunterCharge)
     LOAD_HARRIER_SAMPLE("harrier-hunter-fire",harrierHunterFire)
+#ifdef SPARKPAW_STORMRAIL_PROOF
+    if(gameStormrailActive()) {
+        LOAD_HARRIER_SAMPLE("harrier-defeat",harrierDefeat)
+    }
+#endif
 #ifdef SPARKPAW_DROWNED_THREE_ADF
     }
 #endif
@@ -322,6 +335,10 @@ void audioUnload(void)
     FREE_HARRIER_SAMPLE(harrierFanFire)
     FREE_HARRIER_SAMPLE(harrierHunterCharge)
     FREE_HARRIER_SAMPLE(harrierHunterFire)
+    FREE_HARRIER_SAMPLE(harrierDefeat)
+#if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
+    harrierDefeatPreviewOwned=FALSE;
+#endif
 #undef FREE_HARRIER_SAMPLE
     if(jumpSample) {
         FreeMem(jumpSample,jumpSampleBytes);
@@ -380,6 +397,7 @@ void audioSetHardwareActive(BOOL active)
         striderShotCooldown=0;
         harrierFanChargeCooldown=harrierFanFireCooldown=0;
         harrierHunterChargeCooldown=harrierHunterFireCooldown=0;
+        harrierDefeatCooldown=0;
         jumpCooldown=0; collectCooldown=0; waterSplashCooldown=0;
         stormstoneCoreCooldown=0;
         tallyTickCooldown=0;
@@ -490,6 +508,14 @@ HARRIER_AUDIO_FN(audioPlayHarrierHunterCharge,AUDIO_DIAG_HARRIER_HUNTER_CHARGE,
                  harrierHunterCharge,7,harrierHunterChargeCooldown,HARRIER_CHARGE_COOLDOWN,64,13)
 HARRIER_AUDIO_FN(audioPlayHarrierHunterFire,AUDIO_DIAG_HARRIER_HUNTER_FIRE,
                  harrierHunterFire,8,harrierHunterFireCooldown,HARRIER_HUNTER_FIRE_COOLDOWN,64,14)
+#ifdef SPARKPAW_DROWNED_JOINED
+#define HARRIER_DEFEAT_MIX_ID 17
+#else
+#define HARRIER_DEFEAT_MIX_ID 16
+#endif
+HARRIER_AUDIO_FN(audioPlayHarrierDefeat,AUDIO_DIAG_HARRIER_DEFEAT,
+                 harrierDefeat,12,harrierDefeatCooldown,1,64,HARRIER_DEFEAT_MIX_ID)
+#undef HARRIER_DEFEAT_MIX_ID
 #undef HARRIER_AUDIO_FN
 #undef AUDIO_DIAG_ARG
 
@@ -616,6 +642,7 @@ void audioUpdate(void)
     if(harrierFanFireCooldown) harrierFanFireCooldown--;
     if(harrierHunterChargeCooldown) harrierHunterChargeCooldown--;
     if(harrierHunterFireCooldown) harrierHunterFireCooldown--;
+    if(harrierDefeatCooldown) harrierDefeatCooldown--;
     if(jumpCooldown) jumpCooldown--;
     if(collectCooldown) collectCooldown--;
     if(waterSplashCooldown) waterSplashCooldown--;
@@ -637,7 +664,7 @@ void audioDiagnosticWrite(BPTR file)
 #else
         "strider_shot","harrier_fan_charge","harrier_fan_fire",
 #endif
-        "harrier_hunter_charge","harrier_hunter_fire",
+        "harrier_hunter_charge","harrier_hunter_fire","harrier_defeat",
         "jump","collect","water","stormstone_core",
         "tally_tick","extra_life"
 #ifdef SPARKPAW_DROWNED_JOINED
@@ -655,6 +682,24 @@ void audioDiagnosticWrite(BPTR file)
 #if !defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_FOUR_ADF)
 /* Solo preview uses the original samples and gains, not mixed-game panning.
    Caller has stopped LSP/CIA/mixer before granting direct-effect ownership. */
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+/* The 13.7 KiB Chip cue is loaded only when selected in SOUNDTEST. */
+BOOL audioPreviewPrepareHarrierDefeat(void)
+{
+    if(harrierDefeatSample) return TRUE;
+    if(!loadSample("PROGDIR:assets/runtime/harrier-defeat.raw",
+                   &harrierDefeatSample,&harrierDefeatSampleBytes)) return FALSE;
+    harrierDefeatPreviewOwned=TRUE;
+    return TRUE;
+}
+void audioPreviewReleaseHarrierDefeat(void)
+{
+    if(!harrierDefeatPreviewOwned) return;
+    if(harrierDefeatSample) FreeMem(harrierDefeatSample,harrierDefeatSampleBytes);
+    harrierDefeatSample=NULL;harrierDefeatSampleBytes=0;
+    harrierDefeatPreviewOwned=FALSE;
+}
+#endif
 void audioPreviewEffect(unsigned id)
 {
     static void (*const play[])(void)={audioPlayShot,audioPlayPlayerHurt,
@@ -664,11 +709,14 @@ void audioPreviewEffect(unsigned id)
         audioPlayHarrierFanFire,audioPlayHarrierHunterCharge,
         audioPlayHarrierHunterFire,audioPlayHealthCollect};
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
-    if(id>=18) return;
+    if(id>=19) return;
 #else
     if(id>=16) return;
 #endif
     audioSetHardwareActive(FALSE); audioSetHardwareActive(TRUE);
+#ifdef SPARKPAW_CAMPAIGN_DROWNED
+    if(id==18) { audioPlayHarrierDefeat(); return; }
+#endif
 #if defined(SPARKPAW_CAMPAIGN_DROWNED) && !defined(SPARKPAW_MULTI_ADF)
     if(id>=16) {
         UBYTE cooldown=0;

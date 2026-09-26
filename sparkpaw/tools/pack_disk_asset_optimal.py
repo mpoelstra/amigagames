@@ -3,14 +3,14 @@ from collections import defaultdict,deque
 import struct,zlib
 from pack_disk_asset import HEADER,decode
 
-def pack(raw):
+def pack(raw,candidates=64):
     size=len(raw);lengths=bytearray(size);distances=[0]*size
     index=defaultdict(deque)
     for pos in range(size):
         q=index[raw[pos:pos+3]]
         while q and pos-q[0]>4096:q.popleft()
         best=0;distance=0
-        for prev in reversed(list(q)[-64:]):
+        for prev in reversed(list(q)[-candidates:]):
             n=0
             while n<18 and pos+n<size and raw[prev+n]==raw[pos+n]:n+=1
             if n>best:best=n;distance=pos-prev

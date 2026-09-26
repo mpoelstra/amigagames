@@ -1,0 +1,30 @@
+SPARKPAW HARRIER DEFEAT - UNNUMBERED 68030 HD VISUAL TEST
+
+Build: Harrier-Test in drawer Harrier-Death-030-HD
+This historical focused test preceded the 0.7.0-alpha.13 release.
+
+Use PAL A1200/AGA, 68030, 2 MB Chip and 8 MB Fast in FS-UAE.
+Mount this entire drawer as the HD game directory and run Harrier-Test.
+Do not mix its assets with a numbered release drawer.
+
+At READY, choose OPTIONS -> START SECTION: STORMRAIL, then start.
+This corrected candidate keeps the expanded blast and uses a much denser,
+longer three-hit defeat SFX. It begins just before the Harrier encounter.
+Fly with the joystick or arrow keys; Fire shoots. Defeat the boss and watch the hull
+ruptures, full fireburst, fragments, closed gate, then gate opening and
+automatic flight into Stormrail results. Listen for boom, boom, BOOM over
+Iron Horizon. Play time should be about one to two minutes.
+
+Please compare the three booms with Sparkpaw's normal shot in both SFX ONLY
+and MUSIC + SFX. The first boom should already sound forceful, the final BOOM
+should dominate and ring out, without crackling. Also report
+visual quality, smoothness, sound balance, any damage or shots after the kill,
+wall/HUD corruption, and whether results appears. If easy,
+pause with P during combat, resume, and verify controls; Esc returns to READY.
+The explosion should play once for each actual victory. A fresh Stormrail
+start may replay it after a new kill.
+
+This is a logger-free visual candidate. Left mouse does not save a log and
+there is no expected frozen diagnostic screen. Please send a screenshot or
+short recording if any visual glitch appears. The minimum-68020 cadence gate
+comes only after this 68030 visual/function review.

@@ -1873,7 +1873,8 @@ def main() -> None:
     (RUNTIME / "strider-shot.raw").write_bytes(
         (ROOT / "sfx" / "raw" / "strider-shot.raw").read_bytes())
     for name in ("harrier-fan-charge", "harrier-fan-fire",
-                 "harrier-hunter-charge", "harrier-hunter-fire"):
+                 "harrier-hunter-charge", "harrier-hunter-fire",
+                 "harrier-defeat"):
         (RUNTIME / f"{name}.raw").write_bytes(
             (ROOT / "sfx" / "raw" / f"{name}.raw").read_bytes())
     (RUNTIME / "jump.raw").write_bytes(

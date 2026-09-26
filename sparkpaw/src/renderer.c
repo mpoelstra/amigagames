@@ -64,6 +64,7 @@
 #include "stormrail_palette_table.h"
 #ifdef SPARKPAW_STORMRAIL_PROOF
 #include "stormrail_gate6_art.h"
+#include "stormrail_harrier_death_art.h"
 #endif
 #endif
 
@@ -252,6 +253,8 @@ static UWORD *stormRockBigMask,*stormRockBigBits;
 static UWORD *stormRockShardMask,*stormRockShardBits;
 static UWORD *stormRockPillarMask,*stormRockPillarBits;
 static UWORD *stormFinaleActorMask,*stormFinaleActorBits;
+static UWORD *stormDeathMask,*stormDeathBits;
+static UBYTE stormDeathCachedFrame=255;
 static UWORD *stormFinaleGateMask,*stormFinaleGateBits;
 #define STORM_FINALE_GATE_DIRTY_WORDS ((STORMRAIL_PLAYFIELD_H+15)/16)
 static UWORD stormFinaleGateDirty[STORM_FINALE_GATE_DIRTY_WORDS];
@@ -273,6 +276,7 @@ struct StormrailBobHistory {
     BOOL rewardDrawn[STORMRAIL_MAX_REWARDS];
     BOOL obstacleDrawn[STORMRAIL_MAX_OBSTACLES];
     BOOL finaleActorDrawn[STORMRAIL_FINALE_ACTOR_COUNT];
+    BOOL finaleDeathDrawn;
     BOOL finaleGateDrawn[2];
 #ifdef SPARKPAW_STORMRAIL_FINALE_GATE_OVERLAY_CACHE
     BOOL finaleGateResident;
@@ -296,6 +300,7 @@ struct StormrailBobHistory {
     WORD finaleActorX[STORMRAIL_FINALE_ACTOR_COUNT];
     WORD finaleActorWorldX[STORMRAIL_FINALE_ACTOR_COUNT];
     WORD finaleActorY[STORMRAIL_FINALE_ACTOR_COUNT];
+    WORD finaleDeathX,finaleDeathWorldX,finaleDeathY;
     WORD finaleGateX[2],finaleGateWorldX[2],finaleGateY[2];
     WORD finaleWarningX[STORMRAIL_FINALE_ATTACK_COUNT];
     WORD finaleWarningWorldX[STORMRAIL_FINALE_ATTACK_COUNT];
@@ -2423,6 +2428,11 @@ static BOOL buildStormrailPatterns(void)
         FRONT_PLANES*
         STORM_FINALE_ACTOR_H*STORM_FINALE_ACTOR_WORDS*2,
         MEMF_CHIP|MEMF_CLEAR);
+    stormDeathMask=(UWORD *)AllocMem(STORM_DEATH_H*STORM_DEATH_WORDS*2,
+                                    MEMF_CHIP|MEMF_CLEAR);
+    stormDeathBits=(UWORD *)AllocMem(FRONT_PLANES*STORM_DEATH_H*
+                                    STORM_DEATH_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
+    stormDeathCachedFrame=255;
     stormFinaleGateMask=(UWORD *)AllocMem(STORM_FINALE_GATE_HALVES*
         STORM_FINALE_GATE_H*
         STORM_FINALE_GATE_WORDS*2,MEMF_CHIP|MEMF_CLEAR);
@@ -2449,6 +2459,7 @@ static BOOL buildStormrailPatterns(void)
        !stormRockShardMask||!stormRockShardBits||
        !stormRockPillarMask||!stormRockPillarBits||
        !stormFinaleActorMask||!stormFinaleActorBits||
+       !stormDeathMask||!stormDeathBits||
        !stormFinaleGateMask||!stormFinaleGateBits
 #ifdef SPARKPAW_STORMRAIL_DUST
        ||!stormDustMask||!stormDustBits
@@ -2687,6 +2698,12 @@ static void restoreStormrailBobs(void)
                 STORMRAIL_FINALE_RENDER_H);
             stormrailHistory.finaleActorDrawn[shot]=FALSE;
         }
+    if(stormrailHistory.finaleDeathDrawn) {
+        blitRestoreRect(stormrailHistory.finaleDeathWorldX,
+            stormrailHistory.finaleDeathX,stormrailHistory.finaleDeathY,
+            STORM_DEATH_W,STORM_DEATH_H);
+        stormrailHistory.finaleDeathDrawn=FALSE;
+    }
     for(shot=0;shot<2;shot++) if(stormrailHistory.finaleGateDrawn[shot]) {
         blitRestoreRect(stormrailHistory.finaleGateWorldX[shot],
             stormrailHistory.finaleGateX[shot],stormrailHistory.finaleGateY[shot],
@@ -2883,6 +2900,34 @@ static void drawStormrailBobs(void)
                 stormrailHistory.finaleActorWorldX[shot]=worldX;
                 stormrailHistory.finaleActorY[shot]=actorY;
             }
+        if(game->stormrailFinalePhase==STORMRAIL_FINALE_PHASE_DEFEAT&&
+           game->stormrailFinaleTick<60) {
+            UBYTE frame=(UBYTE)(game->stormrailFinaleTick/5);
+            WORD effectX=(WORD)(game->stormrailDeathX-19);
+            WORD effectY=(WORD)(game->stormrailDeathY-9);
+            if(effectX>STORMRAIL_FINALE_GATE_X-STORM_DEATH_W)
+                effectX=STORMRAIL_FINALE_GATE_X-STORM_DEATH_W;
+            if(stormDeathCachedFrame!=frame) {
+                const UWORD *source=stormHarrierDeathPlanar+
+                    (LONG)frame*STORM_DEATH_FRAME_WORDS;
+                WaitBlit();
+                CopyMem((APTR)source,stormDeathMask,
+                    STORM_DEATH_H*STORM_DEATH_WORDS*2);
+                CopyMem((APTR)(source+STORM_DEATH_H*STORM_DEATH_WORDS),
+                    stormDeathBits,FRONT_PLANES*STORM_DEATH_H*
+                    STORM_DEATH_WORDS*2);
+                stormDeathCachedFrame=frame;
+            }
+            worldX=(WORD)(game->cameraX+effectX);
+            physicalX=prototypePhysicalX(worldX);
+            blitMaskedBobTargetStride(frontDisplay,stormDeathMask,
+                stormDeathBits,STORM_DEATH_WORDS,STORM_DEATH_H,
+                STORM_DEATH_W,STORM_DEATH_H,physicalX,effectY);
+            stormrailHistory.finaleDeathDrawn=TRUE;
+            stormrailHistory.finaleDeathX=physicalX;
+            stormrailHistory.finaleDeathWorldX=worldX;
+            stormrailHistory.finaleDeathY=effectY;
+        }
         if(game->stormrailFinalePhase==STORMRAIL_FINALE_PHASE_COMBAT)
             for(shot=0;shot<STORMRAIL_FINALE_ATTACK_COUNT;shot++)
                 if(game->stormrailFinaleHp[stormrailFinaleAttacks[shot].actor]&&
@@ -4862,6 +4907,10 @@ void rendererCleanup(void)
     if(stormFinaleActorBits) FreeMem(stormFinaleActorBits,
         (LONG)STORMRAIL_FINALE_ACTOR_COUNT*FRONT_PLANES*STORM_FINALE_ACTOR_H*
         STORM_FINALE_ACTOR_WORDS*2);
+    if(stormDeathMask) FreeMem(stormDeathMask,
+        STORM_DEATH_H*STORM_DEATH_WORDS*2);
+    if(stormDeathBits) FreeMem(stormDeathBits,
+        FRONT_PLANES*STORM_DEATH_H*STORM_DEATH_WORDS*2);
     if(stormFinaleGateMask) FreeMem(stormFinaleGateMask,
         STORM_FINALE_GATE_HALVES*STORM_FINALE_GATE_H*
         STORM_FINALE_GATE_WORDS*2);
@@ -4947,6 +4996,8 @@ void rendererCleanup(void)
     stormRockShardMask=stormRockShardBits=NULL;
     stormRockPillarMask=stormRockPillarBits=NULL;
     stormFinaleActorMask=stormFinaleActorBits=NULL;
+    stormDeathMask=stormDeathBits=NULL;
+    stormDeathCachedFrame=255;
     stormFinaleGateMask=stormFinaleGateBits=NULL;
 #ifdef SPARKPAW_STORMRAIL_DUST
     stormDustMask=stormDustBits=NULL;
