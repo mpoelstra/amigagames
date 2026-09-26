@@ -1,0 +1,107 @@
+{
+  "gif_exact_rgb": true,
+  "loop_ms": 5760,
+  "loop_closes": true,
+  "tower_rectangle": [
+    192,
+    24,
+    240,
+    88
+  ],
+  "tower_unique_states": 15,
+  "tower_bytes_per_state": 1152,
+  "tower_raw_payload": 17280,
+  "maximum_changed_rear_pixels": 83,
+  "source_unchanged": true,
+  "cloud_payloads": [
+    {
+      "rect": [
+        16,
+        35,
+        80,
+        59
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        96,
+        16,
+        160,
+        40
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        272,
+        35,
+        336,
+        59
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        400,
+        27,
+        464,
+        51
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        544,
+        20,
+        608,
+        44
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        704,
+        35,
+        768,
+        59
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        864,
+        24,
+        928,
+        48
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    },
+    {
+      "rect": [
+        1024,
+        25,
+        1088,
+        49
+      ],
+      "unique_states": 9,
+      "bytes_per_state": 576,
+      "raw_bytes": 5184
+    }
+  ],
+  "combined_raw_payload": 58752
+}

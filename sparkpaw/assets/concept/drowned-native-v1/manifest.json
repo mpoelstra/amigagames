@@ -1,0 +1,169 @@
+{
+  "status": "offline indexed art study; user review pending; no runtime integration",
+  "size": [
+    320,
+    256
+  ],
+  "playfield": [
+    320,
+    208
+  ],
+  "front_palette": [
+    [
+      0,
+      0,
+      17
+    ],
+    [
+      17,
+      17,
+      17
+    ],
+    [
+      221,
+      68,
+      17
+    ],
+    [
+      255,
+      153,
+      34
+    ],
+    [
+      255,
+      238,
+      170
+    ],
+    [
+      34,
+      102,
+      204
+    ],
+    [
+      51,
+      204,
+      238
+    ],
+    [
+      153,
+      68,
+      204
+    ],
+    [
+      55,
+      55,
+      65
+    ],
+    [
+      101,
+      98,
+      103
+    ],
+    [
+      163,
+      157,
+      158
+    ],
+    [
+      229,
+      225,
+      219
+    ],
+    [
+      67,
+      29,
+      100
+    ],
+    [
+      112,
+      45,
+      157
+    ],
+    [
+      166,
+      77,
+      218
+    ],
+    [
+      224,
+      35,
+      104
+    ]
+  ],
+  "rear_palette": [
+    [
+      0,
+      0,
+      17
+    ],
+    [
+      17,
+      34,
+      51
+    ],
+    [
+      34,
+      51,
+      68
+    ],
+    [
+      34,
+      68,
+      85
+    ],
+    [
+      34,
+      68,
+      119
+    ],
+    [
+      51,
+      85,
+      119
+    ],
+    [
+      51,
+      102,
+      136
+    ],
+    [
+      102,
+      136,
+      170
+    ]
+  ],
+  "rear_palette_mode": "one fixed 8-pen 12-bit bank",
+  "planar_bytes": {
+    "front": 33280,
+    "rear": 24960,
+    "total": 58240
+  },
+  "player": {
+    "frame": 0,
+    "cell": [
+      48,
+      48
+    ],
+    "position": [
+      62,
+      152
+    ],
+    "opaque_bounds": [
+      8,
+      3,
+      39,
+      48
+    ],
+    "unchanged": true
+  },
+  "limitations": [
+    "single static screen; foreground mask is source-aligned study",
+    "rear still contains hidden foreground underpaint: not a clean scrolling layer",
+    "no collision, parallax seams, native timing or allocator proof",
+    "no enemy, jet, water animation or Copper band morph added"
+  ],
+  "hashes": {
+    "assets/concept/drowned-turbines-slice-source-v1.png": "7a4a3dd82cb4636373667f5c0cb42019e20b08c00fe836a5444c04a50d2d4672",
+    "assets/runtime/sparkpaw-sprites4.spbm": "e02eadbad5879b563aa2ca020e87f67f9ab2d70c232acc8f41c279c1cedf47b3"
+  }
+}

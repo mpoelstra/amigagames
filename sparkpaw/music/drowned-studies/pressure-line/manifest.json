@@ -1,0 +1,14 @@
+{
+  "title": "PRESSURE LINE",
+  "bpm": 130,
+  "bars": 48,
+  "seconds": 88.6073469387755,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "module_bytes": 34446,
+  "score_bytes": 13372,
+  "bank_bytes": 21074,
+  "peak_dbfs": -10.1,
+  "sha256": "8c94d72e204cccdb19b676a064fffe67900d5dbfae4e7dcde78951efebfd5c7c",
+  "host_preview_only": true
+}

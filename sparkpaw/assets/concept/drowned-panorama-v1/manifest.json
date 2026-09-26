@@ -1,0 +1,118 @@
+{
+  "status": "full-level background concept, native review pending, no runtime integration",
+  "world_width": 3392,
+  "camera_max": 3072,
+  "rear_scroll_max": 768,
+  "visible_width": 320,
+  "conservative_fetch_width": 352,
+  "rear_dimensions": [
+    1120,
+    208
+  ],
+  "source_crop": [
+    0,
+    190,
+    2057,
+    572
+  ],
+  "palette": [
+    [
+      0,
+      0,
+      17
+    ],
+    [
+      17,
+      34,
+      51
+    ],
+    [
+      34,
+      51,
+      68
+    ],
+    [
+      34,
+      68,
+      85
+    ],
+    [
+      34,
+      68,
+      119
+    ],
+    [
+      51,
+      85,
+      119
+    ],
+    [
+      51,
+      102,
+      136
+    ],
+    [
+      102,
+      136,
+      170
+    ]
+  ],
+  "palette_policy": "same fixed eight pens as accepted native V1",
+  "source_planar_bytes": 87360,
+  "source_stride": 140,
+  "guarded_stride_lower_bound": 142,
+  "guarded_planar_lower_bound": 88608,
+  "note": "graphics.library may pad physical stride; total residency includes source and guarded copy, renderer/HUD/sprites/audio separately",
+  "stored_bytes": {
+    "raw_spbm": 87396,
+    "SPR1": 66510,
+    "SPL1": 64226
+  },
+  "checks": [
+    "all 3073 camera origins fit visible and conservative fetch",
+    "three-plane SPBM exact index/palette round-trip",
+    "SPR1 and SPL1 decode to identical SPBM",
+    "HUD unchanged across six example compositions",
+    "runtime asset hashes unchanged"
+  ],
+  "scenes": [
+    {
+      "camera": 0,
+      "rear_origin": 0,
+      "label": "Onderhoudsinlaat"
+    },
+    {
+      "camera": 512,
+      "rear_origin": 128,
+      "label": "Inlaat en turbinehof"
+    },
+    {
+      "camera": 1120,
+      "rear_origin": 280,
+      "label": "Bypasshal"
+    },
+    {
+      "camera": 1760,
+      "rear_origin": 440,
+      "label": "Turbinegalerij"
+    },
+    {
+      "camera": 2400,
+      "rear_origin": 600,
+      "label": "Hoofdregelaar: omgeving"
+    },
+    {
+      "camera": 3072,
+      "rear_origin": 768,
+      "label": "Rustige stationomgeving"
+    }
+  ],
+  "limitations": [
+    "static concept, not collision or gameplay",
+    "no native Copper or palette-consumer integration",
+    "no native memory or FPS measurement",
+    "not an ADF filesystem fit proof",
+    "station and Core deliberately absent from rear"
+  ],
+  "source_sha256": "24a69e2744f168ac80d4b7c241d1cd8354758a73d1a9a1994cab75d467a21216"
+}

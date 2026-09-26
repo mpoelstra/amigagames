@@ -35,7 +35,7 @@ def require(path: Path, description: str) -> None:
         raise SystemExit(f"missing {description}: {path}")
 
 
-def assemble(*, packed: bool = False) -> None:
+def assemble(*, packed: bool = False, output: Path = SLAVE) -> None:
     require(VASM, "vasm assembler")
     require(DEV / "Include" / "whdload.i", "WHDLoad include files")
     require(NDK_INCLUDE / "exec" / "execbase.i", "NDK assembler includes")
@@ -44,7 +44,7 @@ def assemble(*, packed: bool = False) -> None:
         str(VASM), "-m68000", "-Fhunkexe", "-nosym", "-quiet", "-nowarn=62",
         f"-I{ROOT / 'whdload' / 'include'}", f"-I{DEV / 'Include'}",
         f"-I{NDK_INCLUDE}", f"-I{DEV / 'Src' / 'sources'}",
-        str(SLAVE_SOURCE), "-o", str(SLAVE),
+        str(SLAVE_SOURCE), "-o", str(output),
     ]
     if packed:
         args.insert(-3, "-DPACKED_WHDLOAD")

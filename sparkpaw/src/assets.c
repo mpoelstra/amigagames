@@ -6,6 +6,7 @@
 #include <proto/exec.h>
 #include <proto/graphics.h>
 #include <string.h>
+#include "whd_bank_io.h"
 
 #include "packed_crc32.h"
 #ifdef SPARKPAW_MULTI_ADF
@@ -68,6 +69,10 @@ static UWORD readBigEndian16(const UBYTE *value)
 
 static BOOL readExact(BPTR file,UBYTE *target,LONG size)
 {
+#ifdef SPARKPAW_WHD_BANKS
+    /* This handle reads validated resident Fast RAM, never a DOS device. */
+    return Read(file,target,size)==size;
+#else
     UBYTE input[RAW_READ_CHUNK];
     while(size>0) {
         LONG wanted=size>RAW_READ_CHUNK?RAW_READ_CHUNK:size;
@@ -77,6 +82,7 @@ static BOOL readExact(BPTR file,UBYTE *target,LONG size)
         target+=got; size-=got;
     }
     return TRUE;
+#endif
 }
 
 #ifdef ADF_PACKED_ASSETS
@@ -86,6 +92,9 @@ struct PackedReader {
     UWORD inputAt,inputCount,tokenRemaining;
     ULONG packedRemaining,expectedSize,produced,expectedCRC,crc;
     BOOL run;
+#ifdef SPARKPAW_WHD_HYBRID
+    BOOL raw;
+#endif
 #if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
     BOOL lz,delta;
     UBYTE deltaPrevious;
@@ -118,9 +127,33 @@ static BOOL packedByte(struct PackedReader *reader,UBYTE *value)
 static BOOL packedOpen(const char *name,struct PackedReader *reader)
 {
     UBYTE header[16];
+#ifdef SPARKPAW_WHD_HYBRID
+    LONG got,length;
+#endif
     memset(reader,0,sizeof(*reader));
     reader->file=Open((STRPTR)name,MODE_OLDFILE);
     if(!reader->file) return FALSE;
+#ifdef SPARKPAW_WHD_HYBRID
+    /* The candidate manifest selects raw or packed bytes under canonical
+       names. DOS-backed raw reads retain the proven 512-byte staging path;
+       the banked candidate reads its already-resident Fast bytes directly.
+       This is a WHDLoad-only test mode; normal packed/ADF builds are unchanged. */
+    got=Read(reader->file,header,sizeof(header));
+    if(got<0) { Close(reader->file); reader->file=0; return FALSE; }
+    if(got<4||(memcmp(header,"SPR1",4)&&memcmp(header,"SPL1",4)&&
+               memcmp(header,"SPD1",4))) {
+        if(Seek(reader->file,0,OFFSET_END)<0||
+           (length=Seek(reader->file,0,OFFSET_CURRENT))<=0||
+           Seek(reader->file,0,OFFSET_BEGINNING)<0) {
+            Close(reader->file); reader->file=0; return FALSE;
+        }
+        reader->raw=TRUE; reader->expectedSize=(ULONG)length;
+        return TRUE;
+    }
+    if(Seek(reader->file,0,OFFSET_BEGINNING)<0) {
+        Close(reader->file); reader->file=0; return FALSE;
+    }
+#endif
     if(Read(reader->file,header,sizeof(header))!=sizeof(header)||
        (memcmp(header,"SPR1",4)!=0
 #if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
@@ -141,9 +174,105 @@ static BOOL packedOpen(const char *name,struct PackedReader *reader)
     return TRUE;
 }
 
+#ifdef SPARKPAW_WHD_FAST_DECODE
+/* Keep format/CRC validation, but parse a token once per run instead of
+   dispatching its state for every output byte. Window and delta state remain
+   continuous across palette/row/plane reads, including overlapping matches. */
+static BOOL packedReadRuns(struct PackedReader *reader,UBYTE *target,LONG size)
+{
+    ULONG produced=reader->produced,crc=reader->crc;
+    UWORD count,left;
+    UBYTE token,value,previous=reader->deltaPrevious;
+    if(size<0||produced>reader->expectedSize||
+       (ULONG)size>reader->expectedSize-produced) return FALSE;
+    if(reader->lz) {
+        while(size) {
+            if(!reader->tokenRemaining) {
+                if(!reader->flagMask) {
+                    if(!packedByte(reader,&reader->flags)) return FALSE;
+                    reader->flagMask=128;
+                }
+                reader->run=(reader->flags&reader->flagMask)!=0;
+                reader->flagMask>>=1;
+                reader->tokenRemaining=1;
+                if(reader->run) {
+                    UBYTE low;
+                    if(!packedByte(reader,&token)||!packedByte(reader,&low))
+                        return FALSE;
+                    reader->distance=(UWORD)((((UWORD)token&15)<<8)|low)+1;
+                    reader->tokenRemaining=(UWORD)(token>>4)+3;
+                    if(reader->distance>produced) return FALSE;
+                }
+            }
+            count=(ULONG)size<reader->tokenRemaining?(UWORD)size:reader->tokenRemaining;
+            left=count;
+            if(reader->run) {
+                if(reader->delta) {
+                    while(left--) {
+                        value=diskDecodeWindow[(produced-reader->distance)&4095];
+                        diskDecodeWindow[produced++&4095]=value;
+                        previous=(UBYTE)(previous+value);
+                        *target++=previous; crc=packedCRC32Byte(crc,previous);
+                    }
+                } else {
+                    while(left--) {
+                        value=diskDecodeWindow[(produced-reader->distance)&4095];
+                        diskDecodeWindow[produced++&4095]=value;
+                        *target++=value; crc=packedCRC32Byte(crc,value);
+                    }
+                }
+            } else {
+                /* LZ literals are one-byte tokens. */
+                if(!packedByte(reader,&value)) return FALSE;
+                diskDecodeWindow[produced++&4095]=value;
+                if(reader->delta) { previous=(UBYTE)(previous+value); value=previous; }
+                *target++=value; crc=packedCRC32Byte(crc,value);
+            }
+            reader->tokenRemaining-=count; size-=count;
+        }
+    } else {
+        while(size) {
+            if(!reader->tokenRemaining) {
+                if(!packedByte(reader,&token)) return FALSE;
+                reader->tokenRemaining=(UWORD)((token&0x7f)+1);
+                reader->run=(token&0x80)!=0;
+                if(reader->run&&!packedByte(reader,&reader->value)) return FALSE;
+            }
+            count=(ULONG)size<reader->tokenRemaining?(UWORD)size:reader->tokenRemaining;
+            left=count;
+            if(reader->run) {
+                value=reader->value;
+                while(left--) { *target++=value; crc=packedCRC32Byte(crc,value); }
+            } else {
+                while(left--) {
+                    if(!packedByte(reader,&value)) return FALSE;
+                    *target++=value; crc=packedCRC32Byte(crc,value);
+                }
+            }
+            produced+=count; reader->tokenRemaining-=count; size-=count;
+        }
+    }
+    reader->produced=produced; reader->crc=crc; reader->deltaPrevious=previous;
+    return TRUE;
+}
+#endif
+
 static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
 {
+#ifndef SPARKPAW_WHD_FAST_DECODE
     UBYTE token,value;
+#endif
+#ifdef SPARKPAW_WHD_HYBRID
+    if(reader->raw) {
+        if(size<0||(ULONG)size>reader->expectedSize-reader->produced||
+           !readExact(reader->file,target,size)) return FALSE;
+        reader->produced+=(ULONG)size;
+        return TRUE;
+    }
+#endif
+#ifdef SPARKPAW_WHD_FAST_DECODE
+    return packedReadRuns(reader,target,size);
+#else
     while(size--) {
 #if defined(SPARKPAW_MULTI_ADF)||defined(SPARKPAW_WHD_PACKED)
         if(reader->lz) {
@@ -193,6 +322,7 @@ static BOOL packedRead(struct PackedReader *reader,UBYTE *target,LONG size)
         reader->produced++; reader->tokenRemaining--;
     }
     return TRUE;
+#endif
 }
 
 static BOOL packedClose(struct PackedReader *reader,BOOL complete)
@@ -201,6 +331,9 @@ static BOOL packedClose(struct PackedReader *reader,BOOL complete)
         !reader->tokenRemaining&&!reader->packedRemaining&&
         reader->inputAt==reader->inputCount&&
         (reader->crc^0xffffffffUL)==reader->expectedCRC;
+#ifdef SPARKPAW_WHD_HYBRID
+    if(reader->raw) valid=complete&&reader->produced==reader->expectedSize;
+#endif
     if(reader->file) Close(reader->file);
     reader->file=0;
     return valid;

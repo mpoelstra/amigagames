@@ -13,7 +13,8 @@ STAGE5L_RENDERER_FLAGS = -DSPARKPAW_BLITTER_PRIORITY_CANDIDATE \
 	-DSPARKPAW_AGA32_LEFT_GUARD -DSPARKPAW_AGA64_PLAYER_SPRITE
 RELEASE_RENDERER_FLAGS = $(STAGE5L_RENDERER_FLAGS) -DSPARKPAW_LEVEL1_TWO_COPY_RING \
 	-DSPARKPAW_HUD_SEAM_FRONT_BLACK -DSPARKPAW_SPRITE_STAGE_CACHE \
-	-DSPARKPAW_STORY_INTRO
+	-DSPARKPAW_STORY_INTRO -DSPARKPAW_LEVEL1_REAR_AMBIENCE \
+	-DSPARKPAW_LEVEL1_REAR_AMBIENCE_RELEASE
 TARGET = sparkpaw
 ADF_TARGET = build/sparkpaw-adf
 WHDLOAD_TARGET = build/sparkpaw-whdload
@@ -136,6 +137,7 @@ SPLIT_RENDERER_SOURCES = $(filter-out src/renderer.c,$(SOURCES)) \
 HEADERS = src/game_over_art.h src/ready_ui_cache_adf_data.h src/ready_ui_cache_adf_size.h src/ready_ui_cache_data.h src/ready_ui_cache_size.h src/ready_ui.h src/ready_ui_data.h src/ready_patch.h src/ready_dust.h src/ready_dust_mask.h src/music.h src/assets.h src/audio.h src/audio_contract.h src/campaign_contract.h src/extra_life_contract.h src/beetle_hitbox.h src/collision.h src/collectibles.h src/control_options.h src/enemies.h src/enemy_vertical_order.h src/frame_phase.h src/game.h src/hud.h \
 	src/level_data.h src/performance_profile.h src/platform_amiga.h src/player.h src/projectiles.h src/renderer.h src/title.h \
 	src/camera_contract.h src/collision_hazard_cache.h src/packed_crc32.h src/projectile_render_visibility.h src/projectile_sweep.h src/rolling_renderer_contract.h src/sprite_stage_cache.h src/strider_restore_union.h src/water_update_visibility.h src/world_config.h
+HEADERS += src/level1_rear_ambience.h src/level1_rear_ambience_release_data.h
 HEADERS += src/level1_audio.h src/audio_mix.h src/audio_catalog.h src/drowned_ring_layout.h
 HEADERS += src/stormrail_palette_table.h src/stormrail_contract.h \
 	src/stormrail_results_contract.h
@@ -984,7 +986,7 @@ build/adf-assets/level-complete.spr1: assets/runtime/sparkpaw-level-complete.spb
 	$(PYTHON) tools/pack_adf_asset.py $< $@
 
 
-release: campaign-drowned
+release: assets
 	$(PYTHON) tools/make_release.py
 
 whdload: all $(WHDLOAD_TARGET)
@@ -2230,3 +2232,8 @@ level1-two-copy:
 .PHONY: campaign-drowned
 campaign-drowned: build/sparkpaw-drowned-full $(CAMPAIGN_PLAY_TARGET)
 	$(PYTHON) tools/build_campaign_drowned.py
+
+# Approved Level1 electrical ambience, exact v5 indexed frames.
+assets: assets/runtime/l1-electric.bin
+assets/runtime/l1-electric.bin src/level1_rear_ambience_release_data.h: tools/build_level1_rear_release.py tools/build_level1_rear_ambience_v5.py $(wildcard assets/concept/level1-rear-ambience-study-v5/frame-*-indices.png)
+	$(PYTHON) tools/build_level1_rear_release.py

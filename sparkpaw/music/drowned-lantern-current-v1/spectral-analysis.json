@@ -1,0 +1,244 @@
+{
+  "file": "sparkpaw/music/drowned-lantern-current-v1/preview.wav",
+  "seconds": 119.95,
+  "peak_dbfs": -9.7,
+  "rms_dbfs": -25.5,
+  "median_centroid_hz": 640,
+  "upper_band_ratio": 0.094,
+  "tonal_change_mean": 0.146,
+  "tonal_change_max": 0.24,
+  "largest_tonal_shifts_s": [
+    80.0,
+    112.0,
+    40.0,
+    88.0
+  ],
+  "beat_candidates": [
+    {
+      "bpm": 86.5,
+      "correlation": 0.208
+    },
+    {
+      "bpm": 90.0,
+      "correlation": 0.183
+    },
+    {
+      "bpm": 83.0,
+      "correlation": 0.108
+    },
+    {
+      "bpm": 129.5,
+      "correlation": 0.091
+    },
+    {
+      "bpm": 126.0,
+      "correlation": 0.058
+    },
+    {
+      "bpm": 120.5,
+      "correlation": 0.058
+    }
+  ],
+  "pitch_classes": [
+    {
+      "note": "A",
+      "share": 0.123
+    },
+    {
+      "note": "D",
+      "share": 0.116
+    },
+    {
+      "note": "G",
+      "share": 0.113
+    },
+    {
+      "note": "E",
+      "share": 0.113
+    },
+    {
+      "note": "F",
+      "share": 0.102
+    },
+    {
+      "note": "C",
+      "share": 0.091
+    },
+    {
+      "note": "Bb",
+      "share": 0.065
+    },
+    {
+      "note": "F#",
+      "share": 0.065
+    },
+    {
+      "note": "Ab",
+      "share": 0.064
+    },
+    {
+      "note": "C#",
+      "share": 0.056
+    },
+    {
+      "note": "Eb",
+      "share": 0.046
+    },
+    {
+      "note": "B",
+      "share": 0.046
+    }
+  ],
+  "sections": [
+    {
+      "at_s": 0.0,
+      "rms": 0.055,
+      "centroid_hz": 651,
+      "top_pitch_classes": [
+        "F",
+        "A",
+        "D"
+      ]
+    },
+    {
+      "at_s": 8.0,
+      "rms": 0.057,
+      "centroid_hz": 614,
+      "top_pitch_classes": [
+        "A",
+        "E",
+        "D"
+      ]
+    },
+    {
+      "at_s": 16.0,
+      "rms": 0.055,
+      "centroid_hz": 631,
+      "top_pitch_classes": [
+        "D",
+        "G",
+        "A"
+      ]
+    },
+    {
+      "at_s": 24.0,
+      "rms": 0.054,
+      "centroid_hz": 620,
+      "top_pitch_classes": [
+        "A",
+        "E",
+        "F"
+      ]
+    },
+    {
+      "at_s": 32.0,
+      "rms": 0.049,
+      "centroid_hz": 672,
+      "top_pitch_classes": [
+        "D",
+        "F",
+        "E"
+      ]
+    },
+    {
+      "at_s": 40.0,
+      "rms": 0.047,
+      "centroid_hz": 651,
+      "top_pitch_classes": [
+        "A",
+        "G",
+        "D"
+      ]
+    },
+    {
+      "at_s": 48.0,
+      "rms": 0.049,
+      "centroid_hz": 658,
+      "top_pitch_classes": [
+        "D",
+        "E",
+        "A"
+      ]
+    },
+    {
+      "at_s": 56.0,
+      "rms": 0.053,
+      "centroid_hz": 635,
+      "top_pitch_classes": [
+        "A",
+        "F",
+        "D"
+      ]
+    },
+    {
+      "at_s": 64.0,
+      "rms": 0.056,
+      "centroid_hz": 633,
+      "top_pitch_classes": [
+        "G",
+        "A",
+        "C"
+      ]
+    },
+    {
+      "at_s": 72.0,
+      "rms": 0.055,
+      "centroid_hz": 623,
+      "top_pitch_classes": [
+        "A",
+        "E",
+        "F"
+      ]
+    },
+    {
+      "at_s": 80.0,
+      "rms": 0.056,
+      "centroid_hz": 638,
+      "top_pitch_classes": [
+        "G",
+        "D",
+        "A"
+      ]
+    },
+    {
+      "at_s": 88.0,
+      "rms": 0.052,
+      "centroid_hz": 648,
+      "top_pitch_classes": [
+        "E",
+        "A",
+        "G"
+      ]
+    },
+    {
+      "at_s": 96.0,
+      "rms": 0.052,
+      "centroid_hz": 628,
+      "top_pitch_classes": [
+        "D",
+        "E",
+        "A"
+      ]
+    },
+    {
+      "at_s": 104.0,
+      "rms": 0.051,
+      "centroid_hz": 657,
+      "top_pitch_classes": [
+        "A",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "at_s": 112.0,
+      "rms": 0.052,
+      "centroid_hz": 645,
+      "top_pitch_classes": [
+        "G",
+        "D",
+        "A"
+      ]
+    }
+  ]
+}

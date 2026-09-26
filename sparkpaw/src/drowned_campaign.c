@@ -1,3 +1,4 @@
+#include "whd_load_trace.h"
 /* Separate, namespaced native engine. Same gameplay pipeline as full Drowned;
    the only public boundary is drownedCampaignRun and its immutable entry. */
 #include "drowned_campaign.h"
@@ -102,21 +103,21 @@ int drownedCampaignRun(const struct DrownedCampaignEntry *entry)
     if(!titleShowSectionLoading()) { whdDrownedTrace("loading_image_failed");
         closeSection(); return DROWNED_CAMPAIGN_ERROR; }
     whdDrownedTrace("loading_image_ready");
-    if(!rendererLoadGameplay()) { whdDrownedTrace("gameplay_assets_failed");
+    if(!WLT_CALL(WLT_FILES,rendererLoadGameplay())) { whdDrownedTrace("gameplay_assets_failed");
         closeSection(); return DROWNED_CAMPAIGN_ERROR; }
     whdDrownedTrace("gameplay_assets_ready");
-    if(!collisionLoad()) { whdDrownedTrace("collision_failed");
+    if(!WLT_CALL(WLT_COLLISION,collisionLoad())) { whdDrownedTrace("collision_failed");
         closeSection(); return DROWNED_CAMPAIGN_ERROR; }
     whdDrownedTrace("collision_ready");
-    if(!audioLoad()) { whdDrownedTrace("audio_failed");
+    if(!WLT_CALL(WLT_AUDIO,audioLoad())) { whdDrownedTrace("audio_failed");
         closeSection(); return DROWNED_CAMPAIGN_ERROR; }
     whdDrownedTrace("audio_ready");
-    if(!rendererPrepareGameplay()) { whdDrownedTrace("renderer_prepare_failed");
+    if(!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) { whdDrownedTrace("renderer_prepare_failed");
         closeSection(); return DROWNED_CAMPAIGN_ERROR; }
     whdDrownedTrace("renderer_ready");
 #else
-    if(!titleShowSectionLoading()||!rendererLoadGameplay()||
-       !collisionLoad()||!audioLoad()||!rendererPrepareGameplay()) {
+    if(!titleShowSectionLoading()||!WLT_CALL(WLT_FILES,rendererLoadGameplay())||
+       !WLT_CALL(WLT_COLLISION,collisionLoad())||!WLT_CALL(WLT_AUDIO,audioLoad())||!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
         closeSection(); return DROWNED_CAMPAIGN_ERROR;
     }
 #endif

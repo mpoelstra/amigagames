@@ -39,12 +39,23 @@ make release
 ```
 
 `make` regenerates required runtime conversions and builds the root executable.
-For Sparkpaw 0.7, the root executable is the exact logger-free campaign build.
-`make release` creates campaign HD ZIP/LHA, Disk1/Disk2 ADF, WHDLoad ZIP/LHA
-and the extracted HD drawer. The WHDLoad target now uses the campaign flags
-and sources. Run `tools/verify_checkpoint_release.py` for independent checks.
-Physical hardware and new campaign WHDLoad native acceptance remain separate. Alpha.68 files are protected;
-no source ZIP is produced unless explicitly requested.
+Use the release drawers for the complete three-section campaign; the release
+packager separately links the Drowned module into each media-specific build.
+`make release` currently creates nine alpha.12 artifacts: HD ZIP/LHA,
+standard 8-MB WHDLoad ZIP/LHA, separate >=16-MB HighRAM WHDLoad ZIP/LHA,
+and Disk1/Disk2/Disk3 ADF, plus three extracted drawers. Run
+`tools/verify_checkpoint_release.py` for independent checks. Current packaging
+uses isolated `build/release-<version>` outputs and refuses to overwrite prior
+staging. Preserve previous builds; do not delete them to force a rebuild.
+
+Use `make release PYTHON=../.venv/bin/python3` from `sparkpaw` for the current
+campaign, not the legacy standalone `make whdload` packager/template.
+Standard WHDLoad uses raw level banks, no PRELOAD and NOCACHE; HighRAM is a
+separate raw-file build using PRELOAD and normal CPU cache policy. These are
+intentional different profiles. Never add PRELOAD to the 8-MB banked edition.
+Three-disk media identifiers SP09D1/2/3 remain compatibility markers.
+Host/package verification is separate from native/hardware play acceptance.
+Archive superseded outputs intact under dist/older-builds; protect evidence.
 
 Sparkpaw release manifests use one set of Amiga-safe runtime names for HD,
 WHDLoad and the ADF source streams. No extracted filename or drawer component
@@ -111,3 +122,25 @@ binary is committed. Hash-bound input/output verification and a 32-block reserve
 per disk are mandatory. SPD1 sample banks decode byte-exactly via the existing
 streaming LZ reader plus a delta accumulator. Native startup timing remains
 a user test gate. See `sparkpaw/docs/ADF_COMPRESSION_RESEARCH.md`.
+
+## Alpha.11 Level1 ambience packaging
+
+`make PYTHON=../.venv/bin/python3` generates the approved v5 planar data through
+`tools/build_level1_rear_release.py`. `make release PYTHON=../.venv/bin/python3`
+builds four complete campaign variants via `make_campaign_release.py` and emits
+HD, standard/High RAM WHDLoad ZIP/LHA plus three ADFs. New `l1-electric.bin`
+belongs to Level1; ADF uses its packed reader, standard WHDLoad its bank reader.
+ADF packaging may select optimal-parsed SPL1/SPD1 with unchanged runtime format
+and uses Shrinkler preset 3. Source images/audio are losslessly reconstructed
+and all disk files read back. Run `tools/verify_checkpoint_release.py` for the
+current campaign verifier. Release identity is alpha.12; never rebuild older numbered releases
+with new bytes. Preserve superseded drawers and logs under dist/older-builds.
+
+## Player ReadMe release gate
+
+`tools/game_readme.py` generates HD and both WHDLoad ReadMe files from the
+shared player content and `docs/PERSONAL_NOTE.txt`. Preserve that user-authored
+note verbatim apart from plain-text formatting. Review edition-specific
+requirements, controls and links. `tools/verify_checkpoint_release.py` now
+requires complete matching ReadMe text in all six extracted ZIP/LHA archives,
+including the opening note and current version, before release handoff.

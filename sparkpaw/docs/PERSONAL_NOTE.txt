@@ -1,0 +1,7 @@
+Personal note (not written by ai)
+
+As a big Amiga fan, I always dreamed of making my own Amiga game, but I do not have the skills to program in C or Assembly. I am a software engineer though, and I know what to think of when making software, how to approach problems, test results, and work in small isolated steps. My previous 2 games were made in a couple of evenings, but now I wanted to do something more ambitious: an A1200 game, AGA, parallax scrolling, platform action, enemies, simple levels, some nice art, and good FPS. My target machine is a 68020 with 2 MB chip RAM and 8 MB fast RAM. My own A1200 is a 68030 at 34.5 MHz, connected to an HD screen and a 1084S monitor, on which I tested every milestone.
+
+On the AI note,: I have a love and hate relationship with it in my line of work (software engineering) and I use it more and more in my daily work most of times as a code assistent. For learning purposes I did made software with 100% AI but making an Amiga game with 100% AI and learning AI things along the way is way more fun.
+
+If you have any questions, feedback drop them below or contact me at mrdigamiga@outlook.com

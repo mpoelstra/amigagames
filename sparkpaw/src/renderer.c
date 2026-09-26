@@ -43,9 +43,13 @@
 #include "rolling_renderer_contract.h"
 #endif
 #include "renderer.h"
+#include "whd_load_trace.h"
 #include "drowned_fps.h"
 #include "world_config.h"
 #include "stormrail_contract.h"
+#ifndef SPARKPAW_LEVEL1_RENDERER_TU_ISOLATION
+#undef SPARKPAW_LEVEL1_REAR_AMBIENCE
+#endif
 #ifdef SPARKPAW_LEVEL1_RENDERER_TU_ISOLATION
 /* Diagnostic only: retain the integrated campaign/game binary while asking
    vbcc to emit the proven Level-1 renderer translation unit. Public
@@ -645,6 +649,9 @@ static void plainCptr(UWORD reg,APTR value)
 
 #ifdef SPARKPAW_DROWNED_FULL
 #include "drowned_rear_ambience.h"
+#endif
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+#include "level1_rear_ambience.h"
 #endif
 
 static void buildCopper(void)
@@ -4299,6 +4306,9 @@ static BOOL prepareRearGuardedDisplay(void)
 BOOL rendererPrepareGameplay(void)
 {
     UBYTE p;
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceBegin(WLT_RENDER_SETUP);
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     ULONG diagnosticLoadStart=GfxBase->VBCounter;
 #define DIAG_LOAD(index,expression) do { \
@@ -4423,6 +4433,9 @@ BOOL rendererPrepareGameplay(void)
 #ifdef SPARKPAW_DROWNED_FULL
     if(!prepareDrownedRearAmbience()) return FALSE;
 #endif
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    if(!prepareLevel1RearAmbience()) return FALSE;
+#endif
 #ifdef SPARKPAW_AGA32_FETCH_CANDIDATE
     /* Never hand an invalid wide-fetch layout to Alice. Graphics.library may
        pad displayable rows, so validate its actual pointers and stride. */
@@ -4471,6 +4484,10 @@ BOOL rendererPrepareGameplay(void)
         CopyMem(frontClean->bitmap->Planes[p],frontDisplay->Planes[p],
                 (LONG)frontDisplay->BytesPerRow*WORLD_H);
 #endif
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_RENDER_SETUP,TRUE);
+    whdLoadTraceBegin(WLT_RENDER_ENEMIES);
+#endif
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
     DIAG_LOAD(DIAG_LOAD_BEETLE,
         LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE)));
@@ -4511,8 +4528,12 @@ BOOL rendererPrepareGameplay(void)
 #else
     if(!LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE],FALSE))||
        !LEVEL1_PREPARE(buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER],STRIDER_FAST_MASTER))||
-       !LEVEL1_PREPARE(prepareStriderStages())||
-       !buildPlasmaPatterns()||
+       !LEVEL1_PREPARE(prepareStriderStages())) return FALSE;
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_RENDER_ENEMIES,TRUE);
+    whdLoadTraceBegin(WLT_RENDER_EFFECTS);
+#endif
+    if(!buildPlasmaPatterns()||
 #ifdef SPARKPAW_STORMRAIL_PROOF
        (game->stormrailActive&&!buildStormrailPatterns())||
 #endif
@@ -4526,6 +4547,10 @@ BOOL rendererPrepareGameplay(void)
        !LEVEL1_PREPARE(buildSplashPatterns()))
         return FALSE;
 #endif
+#endif
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_RENDER_EFFECTS,TRUE);
+    whdLoadTraceBegin(WLT_RENDER_TARGETS);
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
 #ifdef SPARKPAW_RENDER_DIAGNOSTIC
@@ -4543,6 +4568,10 @@ BOOL rendererPrepareGameplay(void)
 #endif
 #ifdef SPARKPAW_DROWNED_JOINED
     if(!buildEnemyPatterns(&enemyCaches[ENEMY_TYPE_SPILLWING],FALSE)) return FALSE;
+#endif
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_RENDER_TARGETS,TRUE);
+    whdLoadTraceBegin(WLT_RENDER_FINAL);
 #endif
     for(p=0;p<LEVEL_WATER_COUNT;p++) waterDrawnFrame[p]=255;
 #if defined(PHASE6_MEMORY_TEST)||defined(SPARKPAW_RENDER_DIAGNOSTIC)
@@ -4562,11 +4591,17 @@ BOOL rendererPrepareGameplay(void)
 #endif
 #ifdef SPARKPAW_ROLLING_PROTOTYPE
     cop=prototypeCopper[1]; frontDisplay=prototypeTarget[1].display;
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    rearDisplay=l1RearBuffers[1];
+#endif
     buildCopper();
 #ifdef SPARKPAW_FMODE0_EARLY_WORD_GUARD
     if(!earlyWordCopperLayoutValid()) return FALSE;
 #endif
     cop=prototypeCopper[0]; frontDisplay=prototypeTarget[0].display;
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    rearDisplay=l1RearBuffers[0];
+#endif
     prototypeActiveCopper=0; prototypePreparedCopper=1;
     prototypeCopperReady=FALSE;
 #endif
@@ -4590,6 +4625,9 @@ BOOL rendererPrepareGameplay(void)
     enemyCaches[ENEMY_TYPE_CLOCKWORK_BEETLE].source=NULL;
     enemyCaches[ENEMY_TYPE_CLOCKWORK_STORM_STRIDER].source=NULL;
     setScroll(0,0);
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_RENDER_FINAL,TRUE);
+#endif
 #ifdef SPARKPAW_STARTUP_DIAGNOSTIC
     writeStartupStage("renderer_prepare_complete");
 #undef STARTUP_REQUIRE
@@ -4606,6 +4644,12 @@ void rendererResetGameplay(void)
     UBYTE p;
     game=gameState();
     platformWaitBlit();
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    /* The first prepared target refreshes all visible patches from the new
+       simulation phase. Never reset either displayed bitmap in-place here. */
+    rearDisplay=l1RearBuffers[0];
+    memset(l1RearDrawn,255,sizeof(l1RearDrawn));
+#endif
     splashDrawn=FALSE;
 #ifdef SPARKPAW_STORMRAIL_PROOF
     memset(stormFlightTargetClean,0,sizeof(stormFlightTargetClean));
@@ -4865,6 +4909,9 @@ void rendererCleanup(void)
 #ifdef SPARKPAW_DROWNED_FULL
     freeDrownedRearAmbience();
 #endif
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    freeLevel1RearAmbience();
+#endif
     if(rearDisplay) FreeBitMap(rearDisplay);
 #ifdef SPARKPAW_STORMRAIL_PROOF
     if(stormFlightRearDisplay) FreeBitMap(stormFlightRearDisplay);
@@ -5072,6 +5119,10 @@ void rendererUpdateGameplay(void)
 #endif
     cop=prototypeCopper[prototypePreparedCopper];
     frontDisplay=prototypeTarget[prototypePreparedCopper].display;
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    rearDisplay=l1RearBuffers[prototypePreparedCopper];
+    updateLevel1RearAmbience();
+#endif
     prototypeDesiredOrigin=prototypeOriginForCamera((WORD)game->cameraX);
 #ifdef SPARKPAW_DROWNED_FULL
     updateDrownedShoreCopper();

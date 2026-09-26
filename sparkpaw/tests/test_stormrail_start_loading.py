@@ -6,6 +6,7 @@ s=(root/'src/main.c').read_text();a=s.index('static BOOL switchPreparedLevel1ToS
 helper=s[a:b]
 harness=r'''
 #include <assert.h>
+#include "whd_load_trace.h"
 #include <string.h>
 typedef int BOOL; typedef unsigned long ULONG;
 #define TRUE 1
@@ -44,6 +45,6 @@ int main(void){struct CampaignState c;unsigned i;
 with tempfile.TemporaryDirectory() as td:
  p=Path(td);(p/'test.c').write_text(harness+helper+main)
  for flag in (None,'SPARKPAW_WHDLOAD','SPARKPAW_MULTI_ADF'):
-  subprocess.run(['cc','-std=c99','-Wall','-Wextra','-Werror',*(['-D'+flag] if flag else []),str(p/'test.c'),'-o',str(p/'test')],check=True)
+  subprocess.run(['cc','-std=c99','-Wall','-Wextra','-Werror','-I'+str(root/'src'),*(['-D'+flag] if flag else []),str(p/'test.c'),'-o',str(p/'test')],check=True)
   subprocess.run([str(p/'test')],check=True)
 print('PASS: actual Stormrail OPTIONS helper loading/order/failure paths in HD, WHDLoad and ADF')

@@ -1,3 +1,4 @@
+#include "whd_load_trace.h"
 #include "title.h"
 
 #include <exec/memory.h>
@@ -27,6 +28,9 @@
 #include "ready_dust.h"
 #include "ready_patch.h"
 #include "platform_amiga.h"
+#ifdef SPARKPAW_WHD_BANKS
+#include "whd_banks.h"
+#endif
 
 #ifdef SPARKPAW_MULTI_ADF
 #include "disk_media.h"
@@ -528,6 +532,11 @@ static BOOL titleShowInternal(BOOL playStory)
     }
     introInputActive=FALSE;
     musicStop(); /* Release intro bank before loading title/music. */
+#ifdef SPARKPAW_WHD_BANKS
+    if(!whdBanksFinishIntro()) {
+        failureReason="intro bank still has a live reader"; return FALSE;
+    }
+#endif
     if(!assetsLoadTitle()) {
 #ifdef SPARKPAW_WHDLOAD_INTRO_DIAGNOSTIC
         introDiagnosticEvent("title_load_failed",4); introDiagnosticClose();
@@ -628,7 +637,13 @@ BOOL titleShowLevelCharging(void)
 
 void titleWaitLevelCharging(UWORD frames)
 {
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceBegin(WLT_MIN_WAIT);
+#endif
     while((ULONG)(GfxBase->VBCounter-chargingStartFrame)<frames) WaitTOF();
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_MIN_WAIT,TRUE);
+#endif
 }
 
 BOOL titleShowLevelLoading(void)
@@ -751,7 +766,13 @@ BOOL titleShowLevelReady(void)
     if(!readyUI) { failureReason="audio menu Fast memory unavailable"; return FALSE; }
     /* Mandatory 020 contract: decode all menu caches before the fade/takeover.
        See docs/READY_UI_PERFORMANCE_CONTRACT.md and test_ready_audio_ui.py. */
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceBegin(WLT_MENU_CACHE);
+#endif
     readyUiInit(readyUI,NULL);
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+    whdLoadTraceEnd(WLT_MENU_CACHE,TRUE);
+#endif
     memset(&readySelection,0,sizeof(readySelection));
     readyUiDirty[0]=readyUiDirty[1]=FALSE;
     readyDustSetMenuMask(NULL);
@@ -1237,6 +1258,15 @@ void titleRunLevelReadyMenu(enum ControlMode *controlMode,
     oldUp=oldDown=oldLeft=oldRight=oldFire=TRUE;
     for(;;) {
         BOOL move,change,press; int delta,count;
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+        /* Terminal save only from READY; no writes in measured phases. */
+        if(platformLeftMouse()) {
+            while(platformLeftMouse()) waitOwnedDisplayFrame();
+            platformPrepareDebugFlush();
+            whdLoadTraceWrite();
+            for(;;) { }
+        }
+#endif
         renderReadyDustFrame();
         readReadyMenuInput(&up,&down,&left,&right,&fire);
 #ifdef SPARKPAW_WHDLOAD

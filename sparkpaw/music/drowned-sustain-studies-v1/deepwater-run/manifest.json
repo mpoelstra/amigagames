@@ -1,0 +1,20 @@
+{
+  "title": "DEEPWATER RUN",
+  "bpm": 124,
+  "seconds": 123.8552380952381,
+  "score_bytes": 17468,
+  "bank_bytes": 31942,
+  "lead_events": 96,
+  "mean_note_seconds": 1.29,
+  "longest_note_seconds": 2.42,
+  "peak_dbfs": -10.1,
+  "clipped_samples": 0,
+  "loop_join_step": 0,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "sha256": "b104ae9f888c123bbd977b41622706e5f3fbc51db41227fdbd5b2411a74cddbb",
+  "preview_engine": "micromod",
+  "gain": "48/64",
+  "integrated": false,
+  "native_tested": false
+}

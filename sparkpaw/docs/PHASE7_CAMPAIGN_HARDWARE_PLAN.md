@@ -1,5 +1,85 @@
 # Phase 7 — campaign releases and hardware validation
 
+## 2026-09-26 — alpha.12 release: flight controls and complete ReadMe
+
+User explicitly requests new alpha, updated docs and commit/push of all work.
+Current release: 0.7.0-alpha.12 / Phase 7B.1. All three sections retained.
+Skimmer uses directional Up in both JOYSTICK/JOYPAD, independently of the
+on-foot jump mapping. ReadMe for HD and both WHDLoad editions starts with the
+user-authored personal note and includes plot, version/content, creator,
+contact/itch links and separate walking/flying/keyboard controls.
+
+`make`, `make release`, full host suite and independent checkpoint verifier
+PASS. Actual ReadMe readback/parity in all six archives, 75 runtime/bank assets,
+icons and all-file three-ADF verification PASS. Nine artifacts and three drawers
+are current in dist. Alpha.11 (181 files) and controls-test/evidence (77 files)
+archived byte-identically under `dist/older-builds/alpha11-and-controls-20260926`.
+Existing ignored builds/evidence remain local; repository changes include the
+accumulated WHDLoad work, Level1 studies, art/music sources and release skill.
+
+Public itch still alpha.8 (downloads/devlog checked); notes cover the full delta.
+No itch upload or emulator launch. The release and Git publication are explicitly
+authorized; native flight confirmation, final-media replay, minimum-68020 cadence
+and real hardware remain pending. Intermittent hardware HUD glitch stays open.
+See `sparkpaw/docs/RELEASE_VERIFICATION_0.7.0-alpha.12.md` for hashes/budgets;
+`RELEASE_NOTES_0.7.0-alpha.12.md` is the canonical English player copy.
+Historical entries below retain their original scope and acceptance status.
+
+## 2026-09-26 — alpha.11 local release complete
+
+Approved v5 Level1 ambience integrated and packaged as 0.7.0-alpha.11.
+`make`, final `make release`, full host suite and independent checkpoint
+verification pass. Nine artifacts and three extracted drawers are current in
+dist: HD ZIP/LHA, standard WHDLoad ZIP/LHA, High RAM ZIP/LHA, three ADFs.
+All 75 runtime/bank assets, icons and disk file readback verified. Production
+omits animation test counters and diagnostic shortcuts. Source and approved
+v5 animation data match; prior graphics/audio unchanged.
+
+Alpha.10 (179 files) and v5 test/evidence (80 files) archived byte-identically
+under `dist/older-builds/alpha10-and-level1-tests-20260926`. Prior packaging
+attempts retained. Public itch still alpha.8; canonical English release notes
+cover that full delta. No commit, push, upload or automatic emulator launch.
+
+Disk1 has 22 free 512-byte blocks (11 KiB), passing the existing 16-block floor
+but below 16 KiB; this constrains further growth. Disk2/3 have 206/103 blocks.
+Details/hashes: `sparkpaw/docs/RELEASE_VERIFICATION_0.7.0-alpha.11.md`.
+Focused visuals accepted; final-media replay, minimum-68020 performance and
+real hardware remain pending. Intermittent hardware HUD-boundary glitch open.
+
+## 2026-09-26 — alpha.11: approved Level1 electrical ambience
+
+User accepted the fixed-size v5 building light and explicitly requested game
+integration and a new alpha release. Candidate identity: 0.7.0-alpha.11,
+Phase 7B.1 scenery refinement. Public downloads verified as alpha.8 with the
+itch detector; canonical English release notes include the full alpha.8 delta.
+
+Production enables the approved 48-phase sequence in the isolated Level1
+renderer: downward tower pulse/crystal response, sixteen sky-discharge sites,
+and blinking of exactly five original blue building pixels. Existing palette,
+gameplay, HUD and scrolling contracts retained. Inactive rear writes complete
+before Copper publication; source bitmap stays immutable. Normal campaign
+entry points retained, with no focused-start or diagnostic-save code enabled.
+
+HD loads the raw 99,268-byte frame file. ADF uses the existing CRC-checked packed
+asset reader; standard WHDLoad uses that reader's resident bank backend. The
+new file belongs only to Level1 (ADF Disk1 and WHD level1 bank), not Stormrail
+or Drowned. Extra Chip payload is 96,000 bytes at the native-observed stride;
+Fast frame copy 99,268 bytes plus small descriptors. Standard WHDLoad additionally
+retains 99,268 bytes in its active raw Level1 bank plus directory overhead.
+Loading CPU/storage costs do not establish spare gameplay frame time.
+
+The first ADF packaging attempt ran out of Disk1 space and was preserved under
+`build/alpha11-integration/adf-attempt1-preserved`. Host-only lossless SPL1/SPD1
+parsing improvements and Shrinkler preset 3 retain the established runtime
+formats and exact decoded data. Every packed asset is checked by the real C
+reader; final artifact/ADF results are recorded in RELEASE_VERIFICATION below.
+
+User acceptance covers focused FS-UAE v5 visuals; exact CPU configuration was
+not supplied. Minimum-68020 cadence, final HD/WHDLoad/ADF replay and real-A1200
+verification remain open, as does the intermittent hardware HUD-boundary glitch.
+No automatic FS-UAE launch, commit, push or itch upload is authorized/performed.
+Earlier entries below retain their historical status.
+
 ## Phase 7B.1 — three-section campaign, alpha.9 preparation
 
 The approved HD, WHDLoad and three-disk ADF campaign candidates add Drowned

@@ -1,0 +1,1 @@
+Offline fixed-part walk audition,8 poses per enemy. Exact native cells, nearest-neighbour parts from idle master. Not final gait/turn approval. Stop-and-mirror is direction-test staging, not final planted turn animation. No shots/death or runtime integration. Walking speed here illustrates cycle, not engine speed. Source:tools/preview_drowned_enemy_walk.py

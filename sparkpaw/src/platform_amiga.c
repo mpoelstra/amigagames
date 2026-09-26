@@ -364,7 +364,7 @@ BOOL platformBlitterBusy(void)
 }
 #endif
 
-#if defined(SPARKPAW_RENDER_DIAGNOSTIC) || defined(SPARKPAW_DROWNED_FPS)
+#if defined(SPARKPAW_RENDER_DIAGNOSTIC) || defined(SPARKPAW_DROWNED_FPS) || defined(SPARKPAW_WHD_LOAD_TRACE)
 void platformPrepareDebugFlush(void)
 {
     /* A debug flush needs DOS scheduling and interrupts, not Workbench.  Stop

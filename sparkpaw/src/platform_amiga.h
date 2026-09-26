@@ -39,4 +39,8 @@ void platformPrepareDebugFlush(void);
 void platformReadGameKeys(BOOL *left,BOOL *right,BOOL *down,
                           BOOL *jump,BOOL *fire);
 
+#ifdef SPARKPAW_WHD_LOAD_TRACE
+void platformPrepareDebugFlush(void);
+#endif
+
 #endif

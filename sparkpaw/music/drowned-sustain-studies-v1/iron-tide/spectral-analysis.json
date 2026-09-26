@@ -1,0 +1,234 @@
+{
+  "file": "sparkpaw/music/drowned-sustain-studies-v1/iron-tide/preview.wav",
+  "seconds": 109.64,
+  "peak_dbfs": -9.6,
+  "rms_dbfs": -20.3,
+  "median_centroid_hz": 738,
+  "upper_band_ratio": 0.081,
+  "tonal_change_mean": 0.482,
+  "tonal_change_max": 0.79,
+  "largest_tonal_shifts_s": [
+    48.0,
+    104.0,
+    56.0,
+    40.0
+  ],
+  "beat_candidates": [
+    {
+      "bpm": 140.0,
+      "correlation": 0.376
+    },
+    {
+      "bpm": 147.5,
+      "correlation": 0.376
+    },
+    {
+      "bpm": 143.5,
+      "correlation": 0.376
+    },
+    {
+      "bpm": 136.0,
+      "correlation": 0.367
+    },
+    {
+      "bpm": 155.5,
+      "correlation": 0.255
+    },
+    {
+      "bpm": 152.0,
+      "correlation": 0.255
+    }
+  ],
+  "pitch_classes": [
+    {
+      "note": "E",
+      "share": 0.154
+    },
+    {
+      "note": "D",
+      "share": 0.14
+    },
+    {
+      "note": "G",
+      "share": 0.123
+    },
+    {
+      "note": "B",
+      "share": 0.109
+    },
+    {
+      "note": "C",
+      "share": 0.103
+    },
+    {
+      "note": "A",
+      "share": 0.088
+    },
+    {
+      "note": "F#",
+      "share": 0.079
+    },
+    {
+      "note": "Eb",
+      "share": 0.055
+    },
+    {
+      "note": "F",
+      "share": 0.04
+    },
+    {
+      "note": "C#",
+      "share": 0.039
+    },
+    {
+      "note": "Ab",
+      "share": 0.036
+    },
+    {
+      "note": "Bb",
+      "share": 0.033
+    }
+  ],
+  "sections": [
+    {
+      "at_s": 0.0,
+      "rms": 0.097,
+      "centroid_hz": 721,
+      "top_pitch_classes": [
+        "E",
+        "C",
+        "B"
+      ]
+    },
+    {
+      "at_s": 8.0,
+      "rms": 0.099,
+      "centroid_hz": 716,
+      "top_pitch_classes": [
+        "D",
+        "E",
+        "G"
+      ]
+    },
+    {
+      "at_s": 16.0,
+      "rms": 0.095,
+      "centroid_hz": 736,
+      "top_pitch_classes": [
+        "D",
+        "G",
+        "C"
+      ]
+    },
+    {
+      "at_s": 24.0,
+      "rms": 0.098,
+      "centroid_hz": 765,
+      "top_pitch_classes": [
+        "G",
+        "F#",
+        "B"
+      ]
+    },
+    {
+      "at_s": 32.0,
+      "rms": 0.096,
+      "centroid_hz": 752,
+      "top_pitch_classes": [
+        "D",
+        "E",
+        "C"
+      ]
+    },
+    {
+      "at_s": 40.0,
+      "rms": 0.097,
+      "centroid_hz": 754,
+      "top_pitch_classes": [
+        "A",
+        "G",
+        "E"
+      ]
+    },
+    {
+      "at_s": 48.0,
+      "rms": 0.097,
+      "centroid_hz": 716,
+      "top_pitch_classes": [
+        "B",
+        "D",
+        "E"
+      ]
+    },
+    {
+      "at_s": 56.0,
+      "rms": 0.096,
+      "centroid_hz": 736,
+      "top_pitch_classes": [
+        "E",
+        "G",
+        "C"
+      ]
+    },
+    {
+      "at_s": 64.0,
+      "rms": 0.097,
+      "centroid_hz": 706,
+      "top_pitch_classes": [
+        "E",
+        "D",
+        "B"
+      ]
+    },
+    {
+      "at_s": 72.0,
+      "rms": 0.097,
+      "centroid_hz": 747,
+      "top_pitch_classes": [
+        "D",
+        "C",
+        "B"
+      ]
+    },
+    {
+      "at_s": 80.0,
+      "rms": 0.097,
+      "centroid_hz": 756,
+      "top_pitch_classes": [
+        "E",
+        "G",
+        "F#"
+      ]
+    },
+    {
+      "at_s": 88.0,
+      "rms": 0.095,
+      "centroid_hz": 737,
+      "top_pitch_classes": [
+        "D",
+        "C",
+        "E"
+      ]
+    },
+    {
+      "at_s": 96.0,
+      "rms": 0.097,
+      "centroid_hz": 773,
+      "top_pitch_classes": [
+        "G",
+        "A",
+        "E"
+      ]
+    },
+    {
+      "at_s": 104.0,
+      "rms": 0.096,
+      "centroid_hz": 735,
+      "top_pitch_classes": [
+        "B",
+        "F#",
+        "Eb"
+      ]
+    }
+  ]
+}

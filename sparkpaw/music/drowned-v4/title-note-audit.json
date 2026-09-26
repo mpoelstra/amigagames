@@ -1,0 +1,20 @@
+{
+  "drowned-v3": {
+    "longest_contiguous_equal_note_indices_vs_each_title_channel": [
+      3,
+      1,
+      2,
+      3
+    ],
+    "scope": "note-only approximate pitch index; ignores sample tuning, rhythm, harmony and timbre; not a perceptual originality test"
+  },
+  "drowned-v4": {
+    "longest_contiguous_equal_note_indices_vs_each_title_channel": [
+      4,
+      0,
+      3,
+      4
+    ],
+    "scope": "note-only approximate pitch index; ignores sample tuning, rhythm, harmony and timbre; not a perceptual originality test"
+  }
+}

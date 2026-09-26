@@ -12,6 +12,7 @@ from campaign_asset_manifest import (SHARED_PRESENTATION, SHARED_GAMEPLAY,
                                      STORMRAIL_HD_AUDIO, DROWNED as DROWNED_FILES)
 from pack_adf_asset import pack as pack_rle, decode as decode_rle
 from pack_disk_asset import pack as pack_lz, pack_delta, decode as decode_lz
+from pack_disk_asset_optimal import pack as pack_opt, pack_delta as pack_delta_opt
 from runtime_asset_refs import executable_runtime_files
 from campaign_runtime_sources import source as runtime_source
 
@@ -53,7 +54,7 @@ COMMON = ((set(SHARED_PRESENTATION) - {'readymenu.spbm'}) -
 SETS = [
     (COMMON - {'disk1-patch.spbm'}) | set(LEVEL1) | set(LEVEL1_HD_AUDIO),
     COMMON | set(STORMRAIL) | set(STORMRAIL_HD_AUDIO) |
-    (set(LEVEL1) - {'storm-front.spbm', 'storm-rear.spbm',
+    (set(LEVEL1) - {'l1-electric.bin', 'storm-front.spbm', 'storm-rear.spbm',
                     'sparkpaw-sprites4.spbm'}),
     DROWNED | set(SHARED_GAMEPLAY) |
     (EFFECTS - {n for n in EFFECTS if n.startswith('harrier-')} -
@@ -67,7 +68,7 @@ def verify_phase_dependencies():
     harrier = {n for n in EFFECTS if n.startswith('harrier-')}
     level1 = (COMMON - {'disk1-patch.spbm'}) | set(LEVEL1) | set(LEVEL1_HD_AUDIO)
     stormrail = (COMMON | set(STORMRAIL) | set(STORMRAIL_HD_AUDIO) |
-                 (set(LEVEL1) - {'storm-front.spbm', 'storm-rear.spbm',
+                 (set(LEVEL1) - {'l1-electric.bin', 'storm-front.spbm', 'storm-rear.spbm',
                                  'sparkpaw-sprites4.spbm'}))
     drowned = (DROWNED | set(SHARED_GAMEPLAY) | (EFFECTS - harrier -
                {'strider-shot.raw'}) | {'drowned-amb.bin', 'pontoon-clip.bin',
@@ -103,9 +104,9 @@ def payload(name):
     raw = source.read_bytes()
     if name in DIRECT_RAW:
         return name, raw, source, 'raw'
-    options = [pack_lz(raw), pack_rle(raw)]
+    options = [pack_lz(raw), pack_rle(raw), pack_opt(raw)]
     if name.endswith(('.lsbank', '-bank.bin')):
-        options.append(pack_delta(raw))
+        options.extend((pack_delta(raw), pack_delta_opt(raw)))
     data = min(options, key=len)
     assert (decode_lz(data) if data[:4] in (b'SPL1', b'SPD1')
             else decode_rle(data)) == raw
@@ -113,12 +114,20 @@ def payload(name):
     return target, data, source, data[:4].decode('ascii')
 
 def main():
+    global OUT, STATUS
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--build-dir', type=Path)
+    args = parser.parse_args()
+    if args.build_dir:
+        OUT = args.build_dir.resolve()
+        STATUS = OUT / 'status'
     verify_phase_dependencies()
     status_assets()
     exe = OUT / 'Sparkpaw-crunched'
     source_exe = OUT / 'Sparkpaw-Campaign'
     assert source_exe.is_file()
-    crunch = subprocess.run([str(ROOT / 'build/shrinkler/Shrinkler'), '-1', '-p',
+    crunch = subprocess.run([str(ROOT / 'build/shrinkler/Shrinkler'), '-3', '-p',
                              str(source_exe), str(exe)], text=True,
                             capture_output=True, check=True)
     assert 'Verifying... OK' in crunch.stdout

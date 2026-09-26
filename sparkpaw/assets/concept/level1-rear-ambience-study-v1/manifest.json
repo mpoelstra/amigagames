@@ -1,0 +1,69 @@
+{
+  "purpose": "visual study only; no runtime frames or timing acceptance",
+  "source": "assets/runtime/storm-rear.spbm",
+  "camera": 0,
+  "index_rectangles": {
+    "lightning": [
+      192,
+      18,
+      48,
+      64
+    ],
+    "crystal": [
+      208,
+      78,
+      16,
+      10
+    ]
+  },
+  "frames": [
+    {
+      "name": "idle",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 0,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "clouds",
+      "changed_indexed_pixels": {
+        "cloud": 62,
+        "lightning": 0,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "charge",
+      "changed_indexed_pixels": {
+        "cloud": 62,
+        "lightning": 48,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "discharge",
+      "changed_indexed_pixels": {
+        "cloud": 65,
+        "lightning": 146,
+        "crystal": 11
+      }
+    },
+    {
+      "name": "afterglow",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 0,
+        "crystal": 7
+      }
+    },
+    {
+      "name": "rest",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 0,
+        "crystal": 0
+      }
+    }
+  ]
+}

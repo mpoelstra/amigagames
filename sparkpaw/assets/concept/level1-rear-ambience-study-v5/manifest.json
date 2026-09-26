@@ -1,0 +1,390 @@
+{
+  "status": "v5 candidate: denser sky and user-indicated building pulse; v3 retained",
+  "source_sha256": "600374464bcf3951734f1b60e72b9bbc2fdba7287a6189634d3f0248338ec247",
+  "pulse_path": [
+    [
+      214,
+      28
+    ],
+    [
+      217,
+      30
+    ],
+    [
+      215,
+      34
+    ],
+    [
+      214,
+      36
+    ],
+    [
+      212,
+      39
+    ],
+    [
+      210,
+      42
+    ],
+    [
+      213,
+      45
+    ],
+    [
+      216,
+      49
+    ],
+    [
+      219,
+      52
+    ],
+    [
+      221,
+      55
+    ],
+    [
+      219,
+      58
+    ],
+    [
+      216,
+      61
+    ],
+    [
+      213,
+      64
+    ],
+    [
+      210,
+      68
+    ],
+    [
+      208,
+      71
+    ],
+    [
+      209,
+      74
+    ],
+    [
+      212,
+      78
+    ],
+    [
+      214,
+      82
+    ]
+  ],
+  "sky_sites": [
+    [
+      24,
+      35
+    ],
+    [
+      105,
+      16
+    ],
+    [
+      275,
+      35
+    ],
+    [
+      410,
+      27
+    ],
+    [
+      554,
+      20
+    ],
+    [
+      711,
+      35
+    ],
+    [
+      868,
+      24
+    ],
+    [
+      1030,
+      25
+    ],
+    [
+      60,
+      60
+    ],
+    [
+      130,
+      60
+    ],
+    [
+      325,
+      60
+    ],
+    [
+      482,
+      60
+    ],
+    [
+      630,
+      60
+    ],
+    [
+      780,
+      60
+    ],
+    [
+      935,
+      60
+    ],
+    [
+      1052,
+      60
+    ]
+  ],
+  "step_ms": 120,
+  "loop_ms": 5760,
+  "tower_cycle_ms": 2880,
+  "frames": [
+    {
+      "frame": 0,
+      "tower_phase": 0,
+      "changed_pixels": 44
+    },
+    {
+      "frame": 1,
+      "tower_phase": 1,
+      "changed_pixels": 58
+    },
+    {
+      "frame": 2,
+      "tower_phase": 2,
+      "changed_pixels": 73
+    },
+    {
+      "frame": 3,
+      "tower_phase": 3,
+      "changed_pixels": 92
+    },
+    {
+      "frame": 4,
+      "tower_phase": 4,
+      "changed_pixels": 123
+    },
+    {
+      "frame": 5,
+      "tower_phase": 5,
+      "changed_pixels": 133
+    },
+    {
+      "frame": 6,
+      "tower_phase": 6,
+      "changed_pixels": 132
+    },
+    {
+      "frame": 7,
+      "tower_phase": 7,
+      "changed_pixels": 124
+    },
+    {
+      "frame": 8,
+      "tower_phase": 8,
+      "changed_pixels": 89
+    },
+    {
+      "frame": 9,
+      "tower_phase": 9,
+      "changed_pixels": 86
+    },
+    {
+      "frame": 10,
+      "tower_phase": 10,
+      "changed_pixels": 82
+    },
+    {
+      "frame": 11,
+      "tower_phase": 11,
+      "changed_pixels": 97
+    },
+    {
+      "frame": 12,
+      "tower_phase": 12,
+      "changed_pixels": 98
+    },
+    {
+      "frame": 13,
+      "tower_phase": 13,
+      "changed_pixels": 114
+    },
+    {
+      "frame": 14,
+      "tower_phase": 14,
+      "changed_pixels": 119
+    },
+    {
+      "frame": 15,
+      "tower_phase": 15,
+      "changed_pixels": 88
+    },
+    {
+      "frame": 16,
+      "tower_phase": 16,
+      "changed_pixels": 68
+    },
+    {
+      "frame": 17,
+      "tower_phase": 17,
+      "changed_pixels": 54
+    },
+    {
+      "frame": 18,
+      "tower_phase": 18,
+      "changed_pixels": 62
+    },
+    {
+      "frame": 19,
+      "tower_phase": 19,
+      "changed_pixels": 64
+    },
+    {
+      "frame": 20,
+      "tower_phase": 20,
+      "changed_pixels": 84
+    },
+    {
+      "frame": 21,
+      "tower_phase": 21,
+      "changed_pixels": 54
+    },
+    {
+      "frame": 22,
+      "tower_phase": 22,
+      "changed_pixels": 46
+    },
+    {
+      "frame": 23,
+      "tower_phase": 23,
+      "changed_pixels": 65
+    },
+    {
+      "frame": 24,
+      "tower_phase": 0,
+      "changed_pixels": 65
+    },
+    {
+      "frame": 25,
+      "tower_phase": 1,
+      "changed_pixels": 75
+    },
+    {
+      "frame": 26,
+      "tower_phase": 2,
+      "changed_pixels": 42
+    },
+    {
+      "frame": 27,
+      "tower_phase": 3,
+      "changed_pixels": 83
+    },
+    {
+      "frame": 28,
+      "tower_phase": 4,
+      "changed_pixels": 99
+    },
+    {
+      "frame": 29,
+      "tower_phase": 5,
+      "changed_pixels": 99
+    },
+    {
+      "frame": 30,
+      "tower_phase": 6,
+      "changed_pixels": 113
+    },
+    {
+      "frame": 31,
+      "tower_phase": 7,
+      "changed_pixels": 90
+    },
+    {
+      "frame": 32,
+      "tower_phase": 8,
+      "changed_pixels": 82
+    },
+    {
+      "frame": 33,
+      "tower_phase": 9,
+      "changed_pixels": 73
+    },
+    {
+      "frame": 34,
+      "tower_phase": 10,
+      "changed_pixels": 71
+    },
+    {
+      "frame": 35,
+      "tower_phase": 11,
+      "changed_pixels": 93
+    },
+    {
+      "frame": 36,
+      "tower_phase": 12,
+      "changed_pixels": 64
+    },
+    {
+      "frame": 37,
+      "tower_phase": 13,
+      "changed_pixels": 57
+    },
+    {
+      "frame": 38,
+      "tower_phase": 14,
+      "changed_pixels": 72
+    },
+    {
+      "frame": 39,
+      "tower_phase": 15,
+      "changed_pixels": 44
+    },
+    {
+      "frame": 40,
+      "tower_phase": 16,
+      "changed_pixels": 61
+    },
+    {
+      "frame": 41,
+      "tower_phase": 17,
+      "changed_pixels": 47
+    },
+    {
+      "frame": 42,
+      "tower_phase": 18,
+      "changed_pixels": 49
+    },
+    {
+      "frame": 43,
+      "tower_phase": 19,
+      "changed_pixels": 53
+    },
+    {
+      "frame": 44,
+      "tower_phase": 20,
+      "changed_pixels": 37
+    },
+    {
+      "frame": 45,
+      "tower_phase": 21,
+      "changed_pixels": 50
+    },
+    {
+      "frame": 46,
+      "tower_phase": 22,
+      "changed_pixels": 32
+    },
+    {
+      "frame": 47,
+      "tower_phase": 23,
+      "changed_pixels": 38
+    }
+  ],
+  "note": "3-plane indexed frames; no native beam/cadence proof; existing inactive-rear scheduling; native v5 cadence pending"
+}

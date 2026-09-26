@@ -1,0 +1,124 @@
+{
+  "status": "offline animation art review pending",
+  "frames": 8,
+  "cell": [
+    32,
+    64
+  ],
+  "source_size": [
+    1774,
+    887
+  ],
+  "uniform_grid_scale": [
+    256,
+    128
+  ],
+  "bounds": [
+    [
+      5,
+      49,
+      26,
+      63
+    ],
+    [
+      6,
+      33,
+      25,
+      63
+    ],
+    [
+      2,
+      4,
+      26,
+      63
+    ],
+    [
+      6,
+      4,
+      28,
+      64
+    ],
+    [
+      2,
+      3,
+      26,
+      64
+    ],
+    [
+      5,
+      2,
+      30,
+      62
+    ],
+    [
+      6,
+      20,
+      26,
+      62
+    ],
+    [
+      5,
+      45,
+      27,
+      62
+    ]
+  ],
+  "pens": [
+    0,
+    5,
+    6,
+    11
+  ],
+  "raw_planes_bytes": 8192,
+  "optional_masks_bytes": 2048,
+  "two_frame_chip_stage_planes_bytes": 2048,
+  "timing_ms": [
+    2000,
+    300,
+    300,
+    100,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    120,
+    160,
+    400
+  ],
+  "sequence": [
+    null,
+    0,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    2,
+    3,
+    4,
+    5,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    null
+  ],
+  "limitations": [
+    "GIF timing is illustrative, not native FPS",
+    "no collision or damage acceptance",
+    "no runtime integration",
+    "no full-screen animation cache intended; local frames only",
+    "shared foreground palette audit remains pending"
+  ]
+}

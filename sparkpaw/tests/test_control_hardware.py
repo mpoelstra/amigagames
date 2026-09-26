@@ -120,10 +120,26 @@ int main(void) {
         sample(&j,&f); assert(j&&f);
         reset(); {BOOL l,r,u,d; joy=0x100; primary=0;
           playerReadFlightInput(&l,&r,&u,&d,&f);
-          assert(u==(action==CONTROL_JOYSTICK) && f);
+          assert(u && f);
           pin(PORT2_BUTTONS_PULLUP,1);
           playerReadFlightInput(&l,&r,&u,&d,&f);
           assert(u&&f);
+          joy=0;
+          playerReadFlightInput(&l,&r,&u,&d,&f);
+          assert(!u && f); /* Button 2 alone must not steer the ship. */
+          handleGameRawKey(0x11);
+          playerReadFlightInput(&l,&r,&u,&d,&f); assert(u);
+          handleGameRawKey(0x91);
+        }
+        { unsigned bits; BOOL l,r,u,d;
+          reset();
+          for(bits=0;bits<1024;bits++) {
+            joy=bits; playerReadFlightInput(&l,&r,&u,&d,&f);
+            assert(!!l==!!(bits&0x200));
+            assert(!!r==!!(bits&2));
+            assert(!!u==!!((bits^(bits>>1))&0x100));
+            assert(!!d==!!((bits^(bits>>1))&1));
+          }
         }
     }
     /* 0.1us model ticks, PAL and NTSC, every starting phase, including wrap.

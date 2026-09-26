@@ -1,3 +1,4 @@
+#include "whd_load_trace.h"
 #include "drowned_busy.h"
 #include <dos/dos.h>
 #include <exec/memory.h>
@@ -20,6 +21,9 @@
 #include "world_config.h"
 #include "disk_media.h"
 #include "drowned_fps.h"
+#ifdef SPARKPAW_WHD_BANKS
+#include "whd_banks.h"
+#endif
 #ifdef SPARKPAW_CAMPAIGN_DROWNED
 #include "drowned_campaign.h"
 #endif
@@ -42,6 +46,9 @@ static void cleanup(void)
     audioUnload();
     rendererCleanup();
     platformClose();
+#ifdef SPARKPAW_WHD_BANKS
+    whdBanksClose();
+#endif
 }
 
 static BOOL loadLevelFiles(void)
@@ -57,7 +64,7 @@ static BOOL loadLevelFiles(void)
     if(!diskMediaRequire(gameStormrailActive()?2:1)) return FALSE;
 #endif
 #endif
-    return rendererLoadGameplay()&&collisionLoad()&&audioLoad();
+    return WLT_CALL(WLT_FILES,rendererLoadGameplay())&&WLT_CALL(WLT_COLLISION,collisionLoad())&&WLT_CALL(WLT_AUDIO,audioLoad());
 }
 
 #ifdef SPARKPAW_CAMPAIGN
@@ -66,8 +73,13 @@ static BOOL switchPreparedLevel1ToStormrail(struct CampaignState *campaign,
 {
     /* All media need a visible load when OPTIONS replaces prepared Level 1.
        Callers already faded READY and released exclusive hardware ownership. */
+#ifndef SPARKPAW_WHD_BANKS
     if(!titleShowReplayLoading()) return FALSE;
+#endif
     rendererCleanup(); audioUnload();
+#ifdef SPARKPAW_WHD_BANKS
+    if(!whdBanksSelect(2)||!titleShowReplayLoading()) return FALSE;
+#endif
     gameSetStormrailActive(TRUE);
     assetsSetStormrailGameplay(TRUE);
     campaignStartAtStormrail(campaign,GAME_START_LIVES,PLAYER_MAX_HEALTH,0);
@@ -78,7 +90,7 @@ static BOOL switchPreparedLevel1ToStormrail(struct CampaignState *campaign,
 #ifdef SPARKPAW_MULTI_ADF
        !titleShowLevelCharging()||
 #endif
-       !rendererPrepareGameplay()) return FALSE;
+       !WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) return FALSE;
     titleFadeOut();
     return TRUE;
 }
@@ -172,6 +184,9 @@ int main(void)
     UBYTE replayProofCompletions=0;
 #endif
     BOOL platformReady=platformOpen();
+#ifdef SPARKPAW_WHD_BANKS
+    if(platformReady&&!WLT_CALL(WLT_BOOT_BANKS,whdBanksBoot())) { cleanup(); return 10; }
+#endif
 #ifdef SPARKPAW_CAMPAIGN
     struct CampaignState campaign;
     campaignReset(&campaign);
@@ -185,7 +200,7 @@ int main(void)
     gameSetStormrailActive(TRUE);
     assetsSetStormrailGameplay(TRUE);
     gameInit(0x53504157UL);
-    if(!platformReady||!loadLevelFiles()||!rendererPrepareGameplay()||
+    if(!platformReady||!loadLevelFiles()||!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())||
        !titleShowLevelComplete()) { cleanup(); return 10; }
     platformFinishTakeover(titleCopperList());
     if(titleRunLevelCompleteWithBonusMenu(0,0,0,0,TRUE)!=
@@ -204,12 +219,12 @@ int main(void)
     writeBackTitleStage("loading_visible",FALSE);
     if(!loadLevelFiles()) { cleanup(); return 10; }
     writeBackTitleStage("level1_files_loaded",FALSE);
-    if(!titleShowLevelCharging()||!rendererPrepareGameplay()) {
+    if(!titleShowLevelCharging()||!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
         cleanup(); return 10;
     }
     writeBackTitleStage("level1_renderer_ready",FALSE);
     titleWaitLevelCharging(100);
-    if(!titleShowLevelReady()) { cleanup(); return 10; }
+    if(!WLT_CALL(WLT_READY,titleShowLevelReady())) { cleanup(); return 10; }
     writeBackTitleStage("ready_visible",FALSE);
     platformFinishTakeover(titleCopperList());
     titleRunLevelReadyMenu(&controlMode,&startSection);
@@ -233,10 +248,10 @@ int main(void)
     writeStartupStage("pontoon_loading_files");
     if(!loadLevelFiles()){writeStartupStage("failed_pontoon_files");cleanup();return 10;}
     writeStartupStage("pontoon_preparing_renderer");
-    if(!rendererPrepareGameplay()) {
+    if(!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
         writeStartupStage("failed_pontoon_renderer");
 #else
-    if(!loadLevelFiles()||!rendererPrepareGameplay()) {
+    if(!loadLevelFiles()||!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
 #endif
         PutStr("Sparkpaw: Gate-6 runtime unavailable.\n");
         cleanup(); return 10;
@@ -308,7 +323,7 @@ int main(void)
         loadingShown=FALSE;
     } else {
         writeStartupStage("charging_visible_before_renderer_prepare");
-        if(!rendererPrepareGameplay()) loadingShown=FALSE;
+        if(!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) loadingShown=FALSE;
     }
     if(!loadingShown) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
@@ -316,7 +331,7 @@ int main(void)
     }
 #else
     if(!loadingShown||!loadLevelFiles()||!titleShowLevelCharging()||
-       !rendererPrepareGameplay()) {
+       !WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
         PutStr("Sparkpaw: runtime assets or Chip RAM unavailable.\n");
         if(!loadingShown) {
             PutStr((STRPTR)titleFailureReason()); PutStr("\n");
@@ -335,7 +350,7 @@ int main(void)
 #else
     titleWaitLevelCharging(100);
 #endif
-    if(!titleShowLevelReady()) {
+    if(!WLT_CALL(WLT_READY,titleShowLevelReady())) {
         PutStr("Sparkpaw: ready screen unavailable.\n");
         PutStr((STRPTR)titleFailureReason()); PutStr("\n");
         cleanup(); return 10;
@@ -672,6 +687,9 @@ campaignLoop:
 #endif
         platformReleaseForLoading(FALSE); platformBeginTakeover(); WaitTOF();
         rendererCleanup(); audioUnload(); titleRelease(); musicShutdown();
+#ifdef SPARKPAW_WHD_BANKS
+        if(!whdBanksSelect(3)) { cleanup(); return 10; }
+#endif
         outcome=drownedCampaignRun(&drownedEntry);
         if(outcome==DROWNED_CAMPAIGN_QUIT) {
             platformRestore(); cleanup(); return 0;
@@ -693,8 +711,8 @@ campaignLoop:
         /* Escape abandons the active run. Re-enter through the existing
            presentation/load lifecycle without replaying the story intro, and
            wait at START GAME with a fresh Level-1 preload. */
-        platformReleaseForLoading(FALSE);
-        rendererCleanup(); audioUnload();
+        WLT_CALL(WLT_RETURN_RELEASE,(platformReleaseForLoading(FALSE),TRUE));
+        WLT_CALL(WLT_RETURN_CLEANUP,(rendererCleanup(),audioUnload(),TRUE));
         gameSetStormrailActive(FALSE);
         assetsSetStormrailGameplay(FALSE);
         campaignReset(&campaign);
@@ -705,7 +723,10 @@ campaignLoop:
         drownedNeedsDisk1=FALSE;
 #endif
         startSection=CAMPAIGN_START_STORM_RUINS;
-        if(!titleShowMain()||!titlePrepareLevelLoading()) {
+#ifdef SPARKPAW_WHD_BANKS
+        if(!whdBanksSelect(1)) { cleanup(); return 10; }
+#endif
+        if(!WLT_CALL(WLT_RETURN_TITLE,titleShowMain())||!titlePrepareLevelLoading()) {
             PutStr("Sparkpaw: Escape ready restart unavailable.\n");
             cleanup(); return 10;
         }
@@ -717,12 +738,12 @@ campaignLoop:
                   (ULONG)levelTime.ds_Minute*60UL+(ULONG)levelTime.ds_Tick;
         gameInit(enemySeed^0x53504157UL);
         if(!titleShowLevelLoading()||!loadLevelFiles()||
-           !titleShowLevelCharging()||!rendererPrepareGameplay()) {
+           !titleShowLevelCharging()||!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
             PutStr("Sparkpaw: Escape Level-1 preload failed.\n");
             cleanup(); return 10;
         }
         titleWaitLevelCharging(100);
-        if(!titleShowLevelReady()) {
+        if(!WLT_CALL(WLT_READY,titleShowLevelReady())) {
             PutStr("Sparkpaw: Escape ready screen unavailable.\n");
             cleanup(); return 10;
         }
@@ -867,11 +888,18 @@ campaignLoop:
                 state=APP_DROWNED_ENTRY; continue;
             }
 #endif
+#ifndef SPARKPAW_WHD_BANKS
             if(!titleShowReplayLoading()) {
                 PutStr("Sparkpaw: Stormrail loading screen unavailable.\n");
                 cleanup(); return 10;
             }
+#endif
             rendererCleanup(); audioUnload();
+#ifdef SPARKPAW_WHD_BANKS
+            if(!whdBanksSelect(2)||!titleShowReplayLoading()) {
+                cleanup(); return 10;
+            }
+#endif
             gameSetStormrailActive(TRUE);
             assetsSetStormrailGameplay(TRUE);
             DateStamp(&levelTime);
@@ -884,7 +912,7 @@ campaignLoop:
 #ifdef SPARKPAW_MULTI_ADF
                !titleShowLevelCharging()||
 #endif
-               !rendererPrepareGameplay()) {
+               !WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
                 PutStr("Sparkpaw: Stormrail transition load failed.\n");
                 cleanup(); return 10;
             }
@@ -919,6 +947,9 @@ campaignLoop:
             gameSetStormrailActive(FALSE);
             assetsSetStormrailGameplay(FALSE);
             campaignReset(&campaign);
+#ifdef SPARKPAW_WHD_BANKS
+            if(!whdBanksSelect(1)) { cleanup(); return 10; }
+#endif
             if(!titleShowMainFromResults()||!titlePrepareLevelLoading()) {
                 PutStr("Sparkpaw: title restart unavailable.\n");
                 cleanup(); return 10;
@@ -945,7 +976,7 @@ campaignLoop:
 #ifdef SPARKPAW_CAMPAIGN_TRANSITION_TRACE
             writeBackTitleStage("level1_files_loaded",FALSE);
 #endif
-            if(!titleShowLevelCharging()||!rendererPrepareGameplay()) {
+            if(!titleShowLevelCharging()||!WLT_CALL(WLT_RENDERER,rendererPrepareGameplay())) {
                 PutStr("Sparkpaw: Level 1 restart load failed.\n");
                 cleanup(); return 10;
             }
@@ -953,7 +984,7 @@ campaignLoop:
             writeBackTitleStage("level1_renderer_ready",FALSE);
 #endif
             titleWaitLevelCharging(100);
-            if(!titleShowLevelReady()) { cleanup(); return 10; }
+            if(!WLT_CALL(WLT_READY,titleShowLevelReady())) { cleanup(); return 10; }
 #ifdef SPARKPAW_CAMPAIGN_TRANSITION_TRACE
             writeBackTitleStage("ready_visible",FALSE);
 #endif

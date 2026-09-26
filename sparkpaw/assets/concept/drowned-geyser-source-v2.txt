@@ -1,0 +1,13 @@
+Direction approved — integrated in isolated Slice3
+==============================
+Generated with built-in imagegen on 2026-09-13.
+Source: drowned-geyser-source-v2.png
+User feedback: existing jet is visually unlike water and its nozzle is ugly.
+Direction: boiling water from a recessed outlet behind a low iron lip.
+Four stages: bubbling, swelling, eruption, collapse.
+User approved direction; native conversion/animation complete. Slice3 playtest pending.
+This large concept is not a promise of native resolution, colour count or FPS.
+Keep current water palette ownership and native gameplay/HUD boundaries.
+
+Exact generation prompt:
+Use case: stylized-concept. Create a polished Amiga AGA pixel-art animation concept sheet for Drowned Turbines: a boiling-water pressure geyser emerging from a recessed industrial drain behind a low iron foreground lip. Four equally sized panels in one horizontal row: idle bubbling, swelling warning, full eruption, collapsing splash. Same fixed drain in every panel, strict side-on platform game view. Dark navy flat background. Each panel has generous empty space above, identical ground baseline. Drain is a LOW wide dark iron rectangular opening flush with walkway, front lip hides the outlet, dark slate metal with two restrained bronze rivets, NOT a raised brown nozzle or cone. Water reads as heavy liquid: cobalt/deep blue main body, medium blue connected lobes, small turquoise edges, sparse pale blue-white rounded foam caps, separate falling droplets and a little curling steam. Full jet narrow near bottom, irregular breaking crown at top, about three times drain height but dominant vertical feature. Idle shows two or three round bubbles. Rich clear readable pixel clusters, deliberate crisp stair-step outlines, no dithering/no grain/no blur/no gradients/no glow, no cyan flame or plasma, no huge white steam cloud. Around 48x80 logical pixels per panel enlarged nearest-neighbour, beautiful economical readable pixel art. No character, no text, no labels, no HUD. This is a concept sheet for review, not runtime sprite data.

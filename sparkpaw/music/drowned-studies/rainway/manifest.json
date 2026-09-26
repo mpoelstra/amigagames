@@ -1,0 +1,14 @@
+{
+  "title": "RAINWAY",
+  "bpm": 122,
+  "bars": 48,
+  "seconds": 94.35428571428571,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "module_bytes": 34446,
+  "score_bytes": 13372,
+  "bank_bytes": 21074,
+  "peak_dbfs": -10.7,
+  "sha256": "4e89189476dca75ed9a4a67724901d00c64ac929169971fc0acefb988e1348dc",
+  "host_preview_only": true
+}

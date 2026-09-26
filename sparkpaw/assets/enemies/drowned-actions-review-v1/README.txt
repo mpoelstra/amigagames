@@ -1,0 +1,1 @@
+Offline action audition. Idle,24tick charge,6tick fire recoil,hit,4x5tick collapse,40tick wreck hold. Hit/charge durations mirror current selectors; wreck hold and loop reset are review staging. No projectile, actual damage, respawn or runtime integration. Native body parts retained, no resizing. Death darkening uses existing steel role; small pressure leak. User review pending.

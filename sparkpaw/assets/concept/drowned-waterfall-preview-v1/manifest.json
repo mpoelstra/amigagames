@@ -1,0 +1,24 @@
+{
+  "status": "preview only; waterfall not approved",
+  "approved_water": "drowned-water-animation-v1, byte-preserved",
+  "rear_box": [
+    1224,
+    140,
+    1256,
+    184
+  ],
+  "waterfall_frames": 4,
+  "frame_ms": 120,
+  "combined_loop_ms": 2880,
+  "raw_planar_frame_bytes": 528,
+  "total_four_frame_bytes": 2112,
+  "checks": [
+    "SPBM exact roundtrip",
+    "fixed eight waterfall pens",
+    "exact GIF RGB",
+    "water v1 frame pixels unchanged below184",
+    "outside waterfall and foreground unchanged",
+    "frozen approved files hash-identical"
+  ],
+  "runtime": "not integrated; CPU/Chip cost unmeasured"
+}

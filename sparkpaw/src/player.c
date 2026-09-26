@@ -119,14 +119,13 @@ void playerReadFlightInput(BOOL *left,BOOL *right,BOOL *up,BOOL *down,
                            BOOL *fire)
 {
     UWORD value=*(volatile UWORD *)0xdff00c;
-    BOOL keyLeft,keyRight,keyDown,keyUp,keyFire,secondary;
+    BOOL keyLeft,keyRight,keyDown,keyUp,keyFire;
     platformReadGameKeys(&keyLeft,&keyRight,&keyDown,&keyUp,&keyFire);
     *left=((value&0x0200)!=0)||keyLeft;
     *right=((value&0x0002)!=0)||keyRight;
     *down=(((value^(value>>1))&0x0001)!=0)||keyDown;
-    secondary=platformSecondaryButtonHeld();
-    *up=controlJumpHeld(controlMode,((value^(value>>1))&0x0100)!=0,
-                        secondary)||keyUp;
+    /* Flying uses directions, independently of the platforming jump mode. */
+    *up=(((value^(value>>1))&0x0100)!=0)||keyUp;
     *fire=((*(volatile UBYTE *)0xbfe001&0x80)==0)||keyFire;
 }
 #endif

@@ -1,0 +1,64 @@
+{
+  "purpose": "v2 visual review: preserved bolt contour, nine existing core pixels maximum; no native acceptance",
+  "source": "assets/runtime/storm-rear.spbm",
+  "camera": 0,
+  "combined_patch": [
+    208,
+    35,
+    16,
+    50
+  ],
+  "planar_bytes_per_phase": 300,
+  "unique_states": 4,
+  "clouds": "static in this revision; full-level ambience remains deferred",
+  "frames": [
+    {
+      "name": "idle",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 0,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "soften",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 3,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "low",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 9,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "recover",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 3,
+        "crystal": 0
+      }
+    },
+    {
+      "name": "crystal",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 0,
+        "crystal": 1
+      }
+    },
+    {
+      "name": "rest",
+      "changed_indexed_pixels": {
+        "cloud": 0,
+        "lightning": 0,
+        "crystal": 0
+      }
+    }
+  ]
+}

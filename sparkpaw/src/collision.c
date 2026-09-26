@@ -18,6 +18,7 @@
 
 #include <dos/dos.h>
 #include <proto/dos.h>
+#include "whd_bank_io.h"
 #ifdef SPARKPAW_MULTI_ADF
 #include "disk_media.h"
 #undef Open

@@ -1,0 +1,20 @@
+{
+  "title": "TURBINE HEART",
+  "bpm": 132,
+  "seconds": 116.33197278911565,
+  "score_bytes": 17468,
+  "bank_bytes": 31942,
+  "lead_events": 108,
+  "mean_note_seconds": 1.08,
+  "longest_note_seconds": 1.82,
+  "peak_dbfs": -10.1,
+  "clipped_samples": 0,
+  "loop_join_step": 0,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "sha256": "eda307be70d0f09cd5e874aea1a6b1511a475f5ebfcaea3cde659a71f3c5b85e",
+  "preview_engine": "micromod",
+  "gain": "48/64",
+  "integrated": false,
+  "native_tested": false
+}

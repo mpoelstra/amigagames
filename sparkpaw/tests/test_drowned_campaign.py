@@ -8,6 +8,7 @@ shim=r'''
 #include <stdio.h>
 #include "drowned_campaign.h"
 #include "campaign_contract.h"
+#include "whd_load_trace.h"
 typedef int BOOL;
 #define TRUE 1
 #define FALSE 0

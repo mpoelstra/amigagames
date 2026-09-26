@@ -21,6 +21,7 @@ SHARED_GAMEPLAY = frozenset({
 })
 
 LEVEL1 = frozenset({
+    "l1-electric.bin",
     "storm-front.spbm", "storm-rear.spbm", "storm-collision.bin",
     "sparkpaw-sprites4.spbm", "clockwork-beetle.spbm",
     "clockwork-storm-strider.spbm", "strider-shot.raw", "jump.raw",

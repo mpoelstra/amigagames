@@ -1,0 +1,61 @@
+{
+  "title": "Undertow Circuit",
+  "bpm": 144,
+  "bars": 64,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "seconds": 106.57959183673469,
+  "module_bytes": 37266,
+  "sample_bytes": 19798,
+  "score_bytes": 17468,
+  "sha256": "90e18dbd4eafcfa6f152f0b4c5a2ae0e97f3b79b23f17c123705f77e3a11bb66",
+  "native_accepted": false,
+  "preview_engine": "micromod; not native ptplayer evidence",
+  "samples": [
+    {
+      "name": "SUBMERGED KICK",
+      "bytes": 1822,
+      "volume": 40
+    },
+    {
+      "name": "VALVE SNARE",
+      "bytes": 1574,
+      "volume": 31
+    },
+    {
+      "name": "RAIN TICK",
+      "bytes": 496,
+      "volume": 14
+    },
+    {
+      "name": "BRUSHED METAL",
+      "bytes": 1490,
+      "volume": 18
+    },
+    {
+      "name": "UNDERTOW BASS C",
+      "bytes": 2320,
+      "volume": 37
+    },
+    {
+      "name": "GLASS REED C",
+      "bytes": 3148,
+      "volume": 30
+    },
+    {
+      "name": "HOLLOW FIFTH C",
+      "bytes": 3480,
+      "volume": 26
+    },
+    {
+      "name": "PRESSURE TOM",
+      "bytes": 1656,
+      "volume": 28
+    },
+    {
+      "name": "RAIN LENS C",
+      "bytes": 3812,
+      "volume": 27
+    }
+  ]
+}

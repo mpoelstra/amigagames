@@ -14,6 +14,9 @@
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include "drowned_fps_counters.h"
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+void level1RearWriteDiagnostic(BPTR file);
+#endif
 #ifndef SPARKPAW_DROWNED_FPS_BUILD_ID
 #define SPARKPAW_DROWNED_FPS_BUILD_ID unbound
 #endif
@@ -67,10 +70,14 @@ void drownedFpsWrite(void)
 #endif
     FPrintf(file,"build_id=%s\n",FPS_STRING_VALUE(SPARKPAW_DROWNED_FPS_BUILD_ID));
 #ifdef SPARKPAW_LEVEL1_RING_TEST
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    FPrintf(file,"variant=level1_electric_v3_double_rear\n");
+#else
 #ifdef SPARKPAW_LEVEL1_TWO_COPY_RING
     FPrintf(file,"variant=B_level1_two_copies_base96\n");
 #else
     FPrintf(file,"variant=A_level1_three_copies_base512\n");
+#endif
 #endif
 #elif defined(SPARKPAW_DROWNED_BUSY)
     FPrintf(file,"variant=busy_sparse_discovery\n");
@@ -126,6 +133,9 @@ void drownedFpsWrite(void)
     FPrintf(file,"resets=%ld pauses=%ld max_publish_argument_line=%ld\n",fpsResets,fpsPauses,(ULONG)fpsMaxPublishLine);
     FPrintf(file,"prepared_chip=%ld largest_chip=%ld prepared_fast=%ld largest_fast=%ld\n",
             preparedChip,preparedLargest,preparedFast,preparedFastLargest);
+#ifdef SPARKPAW_LEVEL1_REAR_AMBIENCE
+    level1RearWriteDiagnostic(file);
+#endif
 #ifdef SPARKPAW_DROWNED_BUSY
     drownedBusyWrite(file);
 #endif

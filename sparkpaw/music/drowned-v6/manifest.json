@@ -1,0 +1,76 @@
+{
+  "title": "Undertow Circuit v6 review",
+  "bpm": 150,
+  "bars": 64,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "seconds": 102.4,
+  "module_bytes": 45302,
+  "sample_bytes": 27834,
+  "score_bytes": 17468,
+  "sha256": "bb1538b167038e6544056d91f909e7994345af787383a521be405c8763b9473d",
+  "native_accepted": false,
+  "preview_engine": "micromod; not native ptplayer evidence",
+  "samples": [
+    {
+      "name": "SUBMERGED KICK",
+      "bytes": 1822,
+      "volume": 40
+    },
+    {
+      "name": "VALVE SNARE",
+      "bytes": 1574,
+      "volume": 31
+    },
+    {
+      "name": "RAIN TICK",
+      "bytes": 496,
+      "volume": 14
+    },
+    {
+      "name": "BRUSHED METAL",
+      "bytes": 1490,
+      "volume": 18
+    },
+    {
+      "name": "UNDERTOW BASS C",
+      "bytes": 2320,
+      "volume": 37
+    },
+    {
+      "name": "WARM REED C",
+      "bytes": 4972,
+      "volume": 28
+    },
+    {
+      "name": "HOLLOW FIFTH C",
+      "bytes": 3480,
+      "volume": 26
+    },
+    {
+      "name": "PRESSURE TOM",
+      "bytes": 1656,
+      "volume": 28
+    },
+    {
+      "name": "RAIN LENS C",
+      "bytes": 3812,
+      "volume": 27
+    },
+    {
+      "name": "TURBINE PULSE C",
+      "bytes": 2568,
+      "volume": 24
+    },
+    {
+      "name": "GLASS CURRENT C",
+      "bytes": 2402,
+      "volume": 23
+    },
+    {
+      "name": "VALVE CHORD C",
+      "bytes": 1242,
+      "volume": 17
+    }
+  ]
+}

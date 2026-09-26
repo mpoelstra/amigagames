@@ -11,17 +11,29 @@
 void readyUiInit(struct ReadyUI *u,unsigned char **atlas)
 {
     unsigned long i,n=0;
-    unsigned k,b,id,control,count;
+    unsigned b,id,control,count;
     (void)atlas;
     for(i=0;i<sizeof(readyUiRle);) {
         control=readyUiRle[i++];count=(control&127)+1;
-        for(k=0;k<count;k++) u->cache[n++]=(control&128)?readyUiRle[i++]:0;
+        /* Decide once per run, then use the library's bulk copy/clear. */
+        if(control&128) { memcpy(u->cache+n,readyUiRle+i,count);i+=count; }
+        else memset(u->cache+n,0,count);
+        n+=count;
     }
     /* Delta-RLE saves disk space; reconstruct once while CHARGING is live. */
     for(b=0;b<5;b++) for(id=1;id<readyUiCounts[b];id++) {
         unsigned long at=readyUiOffsets[readyUiBases[b]+id];
         unsigned long previous=readyUiOffsets[readyUiBases[b]+id-1];
-        for(k=0;k<readyUiHeight[b]*28*7;k++) u->cache[at+k]^=u->cache[previous+k];
+        unsigned char *dst=u->cache+at;
+        const unsigned char *src=u->cache+previous;
+        unsigned remaining=readyUiHeight[b]*28*7;
+        /* Every band is a multiple of four bytes. Reconstruct in place;
+           no second cache or persistent allocation is needed. */
+        while(remaining) {
+            dst[0]^=src[0];dst[1]^=src[1];
+            dst[2]^=src[2];dst[3]^=src[3];
+            dst+=4;src+=4;remaining-=4;
+        }
     }
     for(b=0;b<5;b++) {
         u->selected[b]=readyUiMap[b];

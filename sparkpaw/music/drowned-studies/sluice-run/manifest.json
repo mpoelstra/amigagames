@@ -1,0 +1,14 @@
+{
+  "title": "SLUICE RUN",
+  "bpm": 116,
+  "bars": 48,
+  "seconds": 99.26530612244898,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "module_bytes": 34446,
+  "score_bytes": 13372,
+  "bank_bytes": 21074,
+  "peak_dbfs": -9.9,
+  "sha256": "e284ffda55a37d56d142d9d4e3f59f2fac2b609cb55b588b9a91b02511a7bb2a",
+  "host_preview_only": true
+}

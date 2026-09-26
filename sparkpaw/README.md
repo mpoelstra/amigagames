@@ -1,14 +1,79 @@
 # Sparkpaw: The Stormstone Quest
 
-## Unreleased CONTROL options candidate — 23 September 2026
+## 0.7.0-alpha.12 / Phase 7B.1 — flight controls and player ReadMe
 
-OPTIONS now selects JOYSTICK (Up jumps; button 2 is inactive) or JOYPAD
-(button 2 jumps; Up is inactive). The primary button shoots in either mode.
-W and Space remain active in both modes. Keyboard presses have independent
-edges from controller presses, preserving the alpha.9 pull-up and keyboard ACK
-corrections. MrDig says the focused candidate "lijkt goed"; the route and
-configuration were not supplied. This is not a new release or real-hardware
-verification.
+Skimmer directional Up works in both JOYSTICK and JOYPAD modes. On-foot jump
+selection stays unchanged. HD and both WHDLoad ReadMe files now open with
+MrDig's personal note and provide the story, current features, creator/contact
+information, itch links, installation and separate on-foot/flight controls.
+
+`make`, release packaging, full host suite and independent ZIP/LHA/three-ADF
+verification pass, including ReadMe parity in all six archives. Nine alpha.12
+artifacts and three extracted drawers are current in `dist`. Alpha.11 and the
+controls candidate are preserved under `dist/older-builds/alpha11-and-controls-20260926`.
+
+PAL A1200/AGA, 68020+, 2 MB Chip and 8 MB Fast (High RAM WHDLoad: 16 MB).
+Native flight confirmation, final-media replay, minimum-68020 cadence and real
+hardware remain pending. The hardware HUD-boundary issue remains open.
+Public itch still alpha.8; no itch upload or automatic FS-UAE test.
+
+[Release notes](docs/RELEASE_NOTES_0.7.0-alpha.12.md) ·
+[Verification and hashes](docs/RELEASE_VERIFICATION_0.7.0-alpha.12.md).
+Earlier entries below are historical records.
+
+## 0.7.0-alpha.11 / Phase 7B.1 — Level1 electrical ambience
+
+Integrates the visually approved v5 effects into Storm Ruins: tower lightning
+travels towards its crystal, sixteen discharge sites animate the sky, and the
+blue building slit blinks without changing shape. Included in the normal HD,
+standard/High RAM WHDLoad and three-disk ADF campaign releases.
+
+Requires PAL A1200/AGA, 68020, 2 MB Chip and 8 MB Fast (High RAM WHDLoad: 16 MB).
+Extra Level1 Chip allocation: 96,000 bytes; frame data: 99,268 Fast bytes,
+plus a second copy in the active standard-WHDLoad Level1 bank. Focused visuals
+accepted; final-media replay, minimum-68020 cadence and real hardware remain
+pending. The intermittent real-Amiga HUD-boundary glitch remains open.
+
+[Release notes](docs/RELEASE_NOTES_0.7.0-alpha.11.md) ·
+[Verification](docs/RELEASE_VERIFICATION_0.7.0-alpha.11.md).
+Alpha.10 and diagnostic evidence are preserved under dist/older-builds.
+No commit, push or itch upload. The entries below are historical records.
+
+## 0.7.0-alpha.10 / Phase 7B.1 — local release
+
+Native builds, host tests and independent ZIP/LHA/three-ADF checks pass.
+Nine alpha.10 release artifacts and three extracted drawers are in `dist`.
+Superseded releases and test drawers are preserved intact under
+`dist/older-builds/alpha10-cleanup-20260925`. No commit, push or public upload.
+
+Includes CONTROL options, faster READY menu preparation and the tested
+WHDLoad level-bank loading approach. Standard WHDLoad targets 8 MB Fast;
+a separate High RAM edition uses raw files with PRELOAD and targets 16 MB
+or more. Intro, menu and all level source assets are raw in both editions.
+Standard loads only common/intro/current-level banks; no stats prefetch.
+
+The controlled FS-UAE 68020 comparison measured CHARGING->READY at 8.86s
+instead of 20.68s with NOCACHE (57% shorter), with no reported flicker.
+This is not an alpha.8 or real-hardware speed comparison. Original alpha.8
+failed its ExpMem allocation in the 8 MB setup. Time before the first intro
+picture remains unoptimized; no new first-image timing claim.
+High RAM and the final trace-free packages require fresh user playtests.
+
+See [alpha.10 release notes](docs/RELEASE_NOTES_0.7.0-alpha.10.md) and
+[loading measurements](docs/WHDLOAD_LOADING_MEASUREMENTS.md). Public itch
+still offers alpha.8; local packaging does not upload a release. Historical
+entries below retain their original acceptance boundaries.
+
+## Current Level1 animation test
+
+Current test: `dist/L1-Electric-v5-030-HD/Level1-Test`. V5 fixes the rejected
+v4 building glow: only the five original cyan pixels blink, with fixed size.
+V4 sky and tower are unchanged. Follow its ReadMe for the PAL 68030 visual test.
+Earlier test drawers and evidence are preserved under `dist/older-builds`.
+Extra Chip allocation remains 96,000 bytes as observed in v3; frame data is
+99,268 Fast bytes. V5 visuals and minimum 68020 performance remain pending.
+Alpha.10 release artifacts are unchanged.
+[Implementation and verification](docs/LEVEL1_BACKGROUND_ANIMATION_RESEARCH.md).
 
 ## 0.7.0-alpha.9 / Phase 7B.1 local release — 23 September 2026
 

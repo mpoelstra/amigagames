@@ -1,0 +1,20 @@
+{
+  "title": "IRON TIDE",
+  "bpm": 140,
+  "seconds": 109.64462585034013,
+  "score_bytes": 17468,
+  "bank_bytes": 31942,
+  "lead_events": 104,
+  "mean_note_seconds": 1.05,
+  "longest_note_seconds": 1.71,
+  "peak_dbfs": -10.1,
+  "clipped_samples": 0,
+  "loop_join_step": 0,
+  "music_channels": 3,
+  "reserved_channel": 3,
+  "sha256": "8616f609c0dec4c7d2fc98d184c639be40a4c2adeec6128e731da31a6a652fa1",
+  "preview_engine": "micromod",
+  "gain": "48/64",
+  "integrated": false,
+  "native_tested": false
+}

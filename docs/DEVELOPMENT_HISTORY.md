@@ -1,5 +1,909 @@
 # Sparkpaw and Amiga prototypes: development history
 
+## 2026-09-26 — alpha.12 release: flight controls and complete ReadMe
+
+User explicitly requests new alpha, updated docs and commit/push of all work.
+Current release: 0.7.0-alpha.12 / Phase 7B.1. All three sections retained.
+Skimmer uses directional Up in both JOYSTICK/JOYPAD, independently of the
+on-foot jump mapping. ReadMe for HD and both WHDLoad editions starts with the
+user-authored personal note and includes plot, version/content, creator,
+contact/itch links and separate walking/flying/keyboard controls.
+
+`make`, `make release`, full host suite and independent checkpoint verifier
+PASS. Actual ReadMe readback/parity in all six archives, 75 runtime/bank assets,
+icons and all-file three-ADF verification PASS. Nine artifacts and three drawers
+are current in dist. Alpha.11 (181 files) and controls-test/evidence (77 files)
+archived byte-identically under `dist/older-builds/alpha11-and-controls-20260926`.
+Existing ignored builds/evidence remain local; repository changes include the
+accumulated WHDLoad work, Level1 studies, art/music sources and release skill.
+
+Public itch still alpha.8 (downloads/devlog checked); notes cover the full delta.
+No itch upload or emulator launch. The release and Git publication are explicitly
+authorized; native flight confirmation, final-media replay, minimum-68020 cadence
+and real hardware remain pending. Intermittent hardware HUD glitch stays open.
+See `sparkpaw/docs/RELEASE_VERIFICATION_0.7.0-alpha.12.md` for hashes/budgets;
+`RELEASE_NOTES_0.7.0-alpha.12.md` is the canonical English player copy.
+Historical entries below retain their original scope and acceptance status.
+
+## 2026-09-26 — User personal note opens player ReadMe
+
+Added the supplied user-authored personal note verbatim to
+`docs/PERSONAL_NOTE.txt` and made `tools/game_readme.py` prepend it to all
+HD/WHDLoad ReadMe variants. Only line wrapping, whitespace and plaintext
+email-link formatting change; spelling and attribution are intentionally
+preserved. Refreshed three review copies and the active controls-test ReadMe;
+previous text copies saved under `build/controls-readme-20260926/before-personal-note`.
+Verified opening words match the source, ASCII and <=80-column layout.
+Numbered release packages remain unchanged.
+
+Updated `.agents/skills/ship-sparkpaw-checkpoint/SKILL.md` to require complete
+player ReadMe content and actual ZIP/LHA ReadMe readback/parity for all three
+editions, including the personal note, plot, creator/contact/itch links,
+current version, controls and edition-specific installation requirements.
+No new build/release/commit/push; flight-controls native review still pending.
+
+## 2026-09-26 — ReadMe refresh and JOYPAD flight correction
+
+User requests general player ReadMe text and identifies Up not steering the
+Skimmer in JOYPAD mode. Fixed playerReadFlightInput to read directional Up
+regardless of platforming jump mode; button 2 no longer steers the ship.
+On-foot exclusive JOYSTICK Up / JOYPAD button-2 jump mapping retained.
+Actual input C tests pass, including both modes, 1,024 directional register
+values each, keyboard Up, held fire and second-button-only negative case.
+Complete native HD campaign compiles; 75 assets/references staged and 181
+current release files unchanged.
+
+`tools/game_readme.py` now supplies all three release ReadMe variants with
+general game description, accepted Archivolt plot, current campaign features,
+requirements/install instructions, separate walking/flying controls, MrDig
+Productions credit, Codex collaboration and official itch/profile URLs. Plain
+ASCII, <=80 columns. `make_campaign_release.py` consumes this shared source.
+Review copies: `build/controls-readme-20260926/ReadMe-HD.txt`,
+`ReadMe-WHDLoad.txt`, `ReadMe-WHDLoad-HighRAM.txt`.
+
+Unnumbered candidate: `dist/Controls-Readme-030-HD/Sparkpaw`. Use READY OPTIONS
+CONTROL=JOYPAD, start section Stormrail, fly all four directions and shoot for
+20 seconds; repeat JOYSTICK, optionally check on-foot jump mapping. No logging
+or diagnostic save gesture. Native feel remains pending. Existing alpha.11
+release archives are preserved; refreshed ReadMe text and control fix have not
+yet been published in numbered packages. No FS-UAE launch, release, commit or
+push performed for this follow-up.
+
+## 2026-09-26 — alpha.11 local release complete
+
+Approved v5 Level1 ambience integrated and packaged as 0.7.0-alpha.11.
+`make`, final `make release`, full host suite and independent checkpoint
+verification pass. Nine artifacts and three extracted drawers are current in
+dist: HD ZIP/LHA, standard WHDLoad ZIP/LHA, High RAM ZIP/LHA, three ADFs.
+All 75 runtime/bank assets, icons and disk file readback verified. Production
+omits animation test counters and diagnostic shortcuts. Source and approved
+v5 animation data match; prior graphics/audio unchanged.
+
+Alpha.10 (179 files) and v5 test/evidence (80 files) archived byte-identically
+under `dist/older-builds/alpha10-and-level1-tests-20260926`. Prior packaging
+attempts retained. Public itch still alpha.8; canonical English release notes
+cover that full delta. No commit, push, upload or automatic emulator launch.
+
+Disk1 has 22 free 512-byte blocks (11 KiB), passing the existing 16-block floor
+but below 16 KiB; this constrains further growth. Disk2/3 have 206/103 blocks.
+Details/hashes: `sparkpaw/docs/RELEASE_VERIFICATION_0.7.0-alpha.11.md`.
+Focused visuals accepted; final-media replay, minimum-68020 performance and
+real hardware remain pending. Intermittent hardware HUD-boundary glitch open.
+
+## 2026-09-26 — alpha.11: approved Level1 electrical ambience
+
+User accepted the fixed-size v5 building light and explicitly requested game
+integration and a new alpha release. Candidate identity: 0.7.0-alpha.11,
+Phase 7B.1 scenery refinement. Public downloads verified as alpha.8 with the
+itch detector; canonical English release notes include the full alpha.8 delta.
+
+Production enables the approved 48-phase sequence in the isolated Level1
+renderer: downward tower pulse/crystal response, sixteen sky-discharge sites,
+and blinking of exactly five original blue building pixels. Existing palette,
+gameplay, HUD and scrolling contracts retained. Inactive rear writes complete
+before Copper publication; source bitmap stays immutable. Normal campaign
+entry points retained, with no focused-start or diagnostic-save code enabled.
+
+HD loads the raw 99,268-byte frame file. ADF uses the existing CRC-checked packed
+asset reader; standard WHDLoad uses that reader's resident bank backend. The
+new file belongs only to Level1 (ADF Disk1 and WHD level1 bank), not Stormrail
+or Drowned. Extra Chip payload is 96,000 bytes at the native-observed stride;
+Fast frame copy 99,268 bytes plus small descriptors. Standard WHDLoad additionally
+retains 99,268 bytes in its active raw Level1 bank plus directory overhead.
+Loading CPU/storage costs do not establish spare gameplay frame time.
+
+The first ADF packaging attempt ran out of Disk1 space and was preserved under
+`build/alpha11-integration/adf-attempt1-preserved`. Host-only lossless SPL1/SPD1
+parsing improvements and Shrinkler preset 3 retain the established runtime
+formats and exact decoded data. Every packed asset is checked by the real C
+reader; final artifact/ADF results are recorded in RELEASE_VERIFICATION below.
+
+User acceptance covers focused FS-UAE v5 visuals; exact CPU configuration was
+not supplied. Minimum-68020 cadence, final HD/WHDLoad/ADF replay and real-A1200
+verification remain open, as does the intermittent hardware HUD-boundary glitch.
+No automatic FS-UAE launch, commit, push or itch upload is authorized/performed.
+Earlier entries below retain their historical status.
+
+## 2026-09-26 — Level1 v5 fixes building-light silhouette
+
+User rejected v4's enlarged building glow in the supplied FS-UAE screenshot.
+V5 modifies only the original five cyan pixels at rear x771/y117–121: brief
+blue dimming/blinks, fixed size, no halo and no white expansion. All 48 frames
+are verified unchanged from v4 outside that building patch; inside it all
+non-core pixels equal the original artwork. Sky and tower animation retained.
+Native compile, independent planar reconstruction and actual-C sanitizer buffer
+stress pass (2,048 cases, native-observed stride). Frame blob 99,268 bytes;
+Chip allocation unchanged (96,000 extra bytes observed in v3). No new cadence
+claim. User visual acceptance of v5 and minimum 68020 performance remain pending.
+
+Active test: `sparkpaw/dist/L1-Electric-v5-030-HD/Level1-Test`, same PAL 68030
+configuration. Inspect building for 10 seconds, unpaused left mouse press/release
+to save, wait 15 seconds after deliberate freeze. V4 including evidence archived
+byte-identically under `sparkpaw/dist/older-builds/L1-Electric-v4-030-HD-20260926`.
+179 release files and 79 production assets unchanged. Proofs and supplied original
+screenshot: `sparkpaw/build/level1-electric-v5-20260926/`. Status/history updated;
+no emulator launch, release, commit or push. Alpha.10 remains current.
+
+## 2026-09-26 — Level1 electric v4: more sky and building pulse
+
+User likes v3 in FS-UAE and requests more sky discharges plus a conspicuous
+pulse in the cyan slit of the building marked in their screenshot. Exact CPU
+configuration was not supplied. V4 doubles sky sites from 8 to 16, preserves
+the tower sequence, and pulses the existing slit at rear x771/y117–121 with
+a bright core and bounded blue spill. Existing eight pens and Copper palette
+remain unchanged. Review frames: `assets/concept/level1-rear-ambience-study-v4/`.
+
+Active focused HD test: `dist/L1-Electric-v4-030-HD/Level1-Test`, first PAL
+68030 visual gate with 2 MB Chip / 8 MB Fast. V3 and its complete user log were
+archived byte-identically to `dist/older-builds/L1-Electric-v3-030-HD-20260926/`.
+No release, commit, push or emulator launch. Alpha.10 remains current.
+
+V3 log: build_id=l1electric_v3_candidate; post_run=complete; 8,050 intervals /
+8,086 PAL fields (~49.78 FPS), 37 two-field, no three-plus, one zero interval;
+rear-specific unsafe=0. Broad ownership counters unavailable. Mostly late-level
+samples; not a matched 68020 performance acceptance. The log reports 96,000
+extra Chip bytes: actual 152-byte display stride gives 94,848 rear bytes plus
+1,152 staging. This corrects the earlier 91,008-byte host estimate. No further
+Chip allocation is added by v4. Fast frame file grows 58,756 -> 99,556 bytes
+(+40,800), plus descriptor/cache metadata. Executable 318,644 bytes (+556 vs
+v3); added loading time and CPU/Blitter duration remain unmeasured.
+
+V4 has 18 complete planar patches. Native build passes; independently decoded
+frames reconstruct all 48 source previews exactly. Actual C sanitizer harness
+passes 2,048 alternating camera/phase/reset cases at both earlier host stride
+and native-observed stride, allocation/file failures, active/source immutability
+and guards. Stress maximum 5,184 destination bytes / 8 patches (24 plane blits;
+15,552 aggregate Chip transfer bytes including CPU staging and Blitter reads/
+writes), not native worst-case time. Other tested native assembly units remain
+byte-identical to v3 (Stormrail, game, main, audio_mix, platform_amiga).
+Renderer algorithm unchanged; log variant=v3 describes that engine while v4's
+build_id identifies the new candidate. No full-suite rerun for this art/data
+iteration; previous full-suite pass belongs to v3.
+
+Staging verified 75 runtime assets, 60 literal executable references, 179 release
+files and all 79 production runtime files unchanged. Proofs, original screenshot,
+user log and source inventories: `build/level1-electric-v4-20260926/`.
+User should inspect denser sky, original tower and marked building for 60–90s,
+scroll back once, then press/release left mouse while unpaused to save this
+candidate's own renderdiag.log; deliberate freeze, wait 15s before emulator stop.
+V4 visual acceptance, minimum PAL A1200/AGA 68020 cadence and campaign/media
+integration remain pending. Earlier sections below are historical records.
+
+## 2026-09-26 — Approved Level1 electric v3 staged for native test
+
+User approved the v3 preview and explicitly requested a playable test. Candidate
+is staged in `sparkpaw/dist/L1-Electric-v3-030-HD/` (`Level1-Test`), unnumbered;
+release remains 0.7.0-alpha.10. First gate: user-run PAL A1200/68030 with
+2 MB Chip / 8 MB Fast, followed by paired baseline/candidate 68020 testing.
+No emulator was launched; native visual quality, cadence and load time are
+not yet accepted. Existing builds, rejected previews and local changes retained.
+
+The optional `SPARKPAW_LEVEL1_REAR_AMBIENCE` path reproduces all 48 approved
+indexed frames: existing-bolt downward pulse, crystal response, eight sky sites.
+Complete rectangular bitmap frames follow the Drowned art technique, but updates
+use a second guarded rear buffer tied to the inactive Copper/foreground index.
+All patch DMA completes before publication; the canonical bitmap stays immutable.
+Palette/Copper colours and HUD/gameplay logic are unchanged. Six simulation ticks
+per phase; pause freezes the sequence. No free gameplay time is assumed from
+WHDLoad loading gains.
+
+Incremental allocation: 89,856-byte rear display plus 1,152-byte Chip staging
+(91,008 Chip bytes total), 58,756 Fast bytes for the animation file plus small
+metadata/allocator overhead. File is 58,756 bytes; executable grows 2,836 bytes
+against the matching focused baseline. Host stress observed at most five patches,
+3,456 destination bytes / 15 plane blits per prepared frame (10,368 aggregate
+Chip transfer bytes including staging copy and blitter source/destination).
+These are transfer counts, not measured CPU/Blitter time or proven frame margin.
+Loading adds file read/allocation and second-buffer initialization; native cost
+remains unmeasured. Minimum stays PAL A1200/AGA, 68020, 2 MB Chip, 8 MB Fast.
+
+Native baseline/candidate compile and full host suite pass. Actual C sanitizer
+harness passes allocation/file failures and 2,048 alternating camera/phase/reset
+cases; active/source immutability, guard bytes and retirement checked. Independent
+planar decoding matches every approved frame. Native assembly remains identical
+for game, main, audio_mix, platform_amiga and Stormrail renderer; unflagged Level1
+assembly also matches pre-edit baseline. This does not establish native timing.
+
+Build/proof records: `sparkpaw/build/level1-electric-v3-20260926/`, including
+`verification.json`, `rear-host-proof.log`, `host-suite.log`, baseline/candidate
+and assembly. Staging verified 75 declared assets / 60 discovered references.
+Fifteen Drowned assets absent from the production source directory were copied
+from current alpha.10 into the candidate supplemental build directory only;
+provenance is in `supplemental-release-assets.json`. All 179 release files and
+79 production runtime files match their initial hashes. No release/commit/push.
+
+Short playtest: watch opening 10 seconds; play/scroll right and back for 60–90
+seconds, inspect bolt/crystal/sky alignment, HUD, audio and transitions. While
+unpaused press and release left mouse to save `renderdiag.log`; the focused test
+freezes deliberately. Wait 15 seconds before stopping/resetting the emulator.
+Full controls and limitations are in the drawer's `ReadMe.txt`.
+
+## 2026-09-26 — Visible Level1 electrical-pulse study v3
+
+After rejecting v2 as almost invisible, user asks for existing-bolt glow,
+top-to-bottom electrical travel and a crystal flash on every arrival, plus
+discharges throughout the sky. Created v3 indexed host previews covering the
+opening, tower detail, full rear panorama and four cameras. Preserved rejected
+versions and generators. No runtime/media/dist changes or native acceptance;
+the stronger, larger effect needs a new beam/transfer scheduling proof.
+
+## 2026-09-26 — Level1 ambience visual correction
+
+Owner rejected v1: effect must be subtler and follow existing art/lightning.
+Preserved all v1 outputs and generator snapshot; authored v2 over existing
+core/facet pixels without widening the bolt or crystal. Longer quiet loop,
+maximum nine bolt pixels plus one crystal pixel in separate phases. Clouds
+deferred during this focused review. V2 remains unaccepted; no runtime,
+production asset, dist, version, emulator, commit or push change.
+
+## 2026-09-25 — documentation reconciled; next research topic
+
+Current docs now explicitly distinguish alpha.10 from historical WHDLoad
+investigation entries and mark dist archival complete. BUILDING documents
+9artifacts/3ADFs/twoWHD profiles and the current campaign packaging entry point;
+the legacy standalone WHDLoad ReadMe template is labeled obsolete for alpha.10.
+No packaged alpha.10 files were changed by this documentation pass.
+
+Next requested topic: investigate feasibility of Level1 background animation.
+See `sparkpaw/docs/LEVEL1_BACKGROUND_ANIMATION_RESEARCH.md` for scope, source
+references and proof boundaries. No effect chosen or runtime implementation
+started. Target remains68020/2MBChip/8MBFast; Drowned rear-animation lessons
+require Level1-specific ownership/timing checks. WHDLoad loading results are
+not gameplay headroom evidence. Begin with source/budget investigation and a
+small visual proposal; user performs any FS-UAE test. No release/commit/push.
+
+
+## 2026-09-25 — dist cleanup completed at user request
+
+User explicitly requested only alpha.10 remain in dist. All superseded root
+items, including Controls-Mode-HD, restoredalpha8, alpha9 artifacts/drawers,
+WHD-NoCache-B-8M and the alpha9 .uaem sidecar, moved intact into
+`sparkpaw/dist/older-builds/alpha10-cleanup-20260925`.
+No deletion or overwrite. Full before/after SHA256 inventory verifies all
+27385 files unchanged through path mapping, including existing older-builds
+and alpha.10. Root now contains only alpha.10's9 artifacts/3drawers plus
+older-builds and Finder metadata. Proof: build/release-0.7.0-alpha.10/
+dist-cleanup-before.json and dist-cleanup-verified.json.
+Release acceptance boundaries unchanged; no emulator launch, commit or push.
+
+
+## 2026-09-25 — alpha.10 packaged and verified locally
+
+Local current release is 0.7.0-alpha.10 / Phase7B.1. Public itch downloads
+freshly checked: alpha.8. No upload, commit, push or FS-UAE launch performed.
+`make PYTHON=../.venv/bin/python3`, `make release PYTHON=../.venv/bin/python3`,
+full `make test PYTHON=../.venv/bin/python3` and independent
+`tools/verify_checkpoint_release.py` all PASS. Existing compiler optimizer /
+no-effect warnings and duplicate Makefile '&' target warnings remain.
+
+Dist contains 9 new artifacts: HD ZIP/LHA, standard8MB WHDLoad ZIP/LHA,
+separate HighRAM WHDLoad ZIP/LHA and Disk1/2/3 ADF; all3 extracted drawers.
+Native builds are isolated in `build/release-0.7.0-alpha.10/{hd,banks,highram,adf}`.
+Production binaries have no load trace/state flags or load-times.log string.
+Standard banks:74 raw canonical assets, actual C ASan/UBSan backend tests,
+malformed/failure lifecycle cases and all14/14/17 section dependency reads pass.
+Independent ZIP CRC/LHa test/Lhasa extraction parity passes for HD79 files,
+standardWHD11 files and HighRAM80 files. All Amiga components <=30 chars;
+icons tested; 3ADF filesystems and every file read back. Stable SP09D media
+identifiers are format-compatibility markers, not a displayed release version.
+HighRAM raw preload5,655,834 bytes + slave5,767,168 =11,423,002 bytes before
+host overhead; >=16MiB is a conservative target, not a hardware acceptance.
+
+Reports, archive byte sizes/SHA256: build/release-0.7.0-alpha.10/
+checkpoint-release-verification.json and release-artifacts.json.
+Full logs: build/alpha10-{make,release,tests,verification}.log.
+All27,206 files present in dist before this release and all79 runtime source
+files verified unchanged. Main previous build backed up under
+build/release-alpha10-preservation. Existing alpha9, restoredalpha8 and B test
+remain in dist temporarily: latest FS-UAE log is still active, and the stop
+question has not been answered. Do not move these mounted drawers until stop.
+Controls-Mode-HD is unrelated and remains protected. Archive intact, neverdelete.
+
+Final trace-free release has package/host verification only. A focused user
+check remains: standard8MB on same020 settings, intro->READY, Level1/Escape,
+then short Stormrail/Drowned starts; report flicker/load failure. No mouse-log
+save is present. HighRAM requires a separate >=16MiB playtest. No need to
+repeat broad startup debugging now. 57% remains the earlier same-code A/B
+CHARGING result, not a measured final-binary or hardware performance guarantee.
+
+
+## 2026-09-25 — alpha.10 release preparation; alpha.8 memory baseline rejected
+
+User supplied a screenshot of original alpha.8 WHDLoad 20.0 failing with
+"Can't allocate ExpMem." on the target FS-UAE setup. Preserved byte-for-byte
+as `sparkpaw/testresults/Phase 7B.1-alpha8-WHDLoad-ExpMem-failure.png` plus TXT.
+Its 8 MiB reservation cannot coexist with host overhead in total 8 MiB Fast.
+User's real Amiga has substantially more Fast RAM. This is NOT alpha.8 timing
+evidence: withdraw the remembered alpha.8 speed comparison on target memory.
+
+User authorizes next alpha if first-intro improvement needs more investigation.
+Bounded review finds raw executable and raw intro already present. Bank boot
+measurement begins after Kickstart/executable/platform startup and excludes
+host switch wall time, so it cannot explain the entire estimated 10 seconds.
+The deliberate 35-PAL-field display lock is retained. No new startup change,
+splash override or fresh emulator run; further cold-start profiling deferred.
+
+Preparing 0.7.0-alpha.10, same Phase 7B.1, public itch baseline alpha.8.
+Standard WHDLoad uses raw common/intro/current-level banks, raw executable,
+5 MiB game + 512 KiB Kickstart, no file caching/PRELOAD, and the played B
+NOCACHE option. READY run-copy/XOR optimization and fast decoder remain.
+The diagnostic collector and CPU-state probe are absent from production builds.
+Separate HighRAM binary uses raw individual assets and PRELOAD, normal CPU
+cache policy, target >=16 MiB Fast. No dynamic profile or stats prefetch.
+HighRAM package correctness is testable locally; gameplay is still unplayed.
+The 57.16% result is specifically the identical-code FS-UAE 020 comparison:
+CHARGING->READY20.68 ->8.86s, three visits each, user reports no flicker.
+Not an alpha.8 comparison, total startup gain, or real-hardware claim.
+Whole-campaign cadence and hardware cache effects remain unmeasured.
+
+Release tooling now uses isolated versioned build directories, keeps previous
+builds and evidence, and independently verifies both WHD profiles and 3 ADFs.
+The old skill's packed/PRELOAD3.5MiB prescription is superseded for the standard
+edition by the user's explicitly tested and requested banked8MiB workflow.
+CONTROL fcd8573 is included; no commit/push or public upload authorized.
+The intermittent real-Amiga two-line HUD-boundary glitch remains open.
+Build/package validation and final archival status will be recorded below.
+
+
+## 2026-09-25 — configuration A/B: NOCACHE faster; original alpha8 restored
+
+User played both on FS-UAE and explicitly stopped emulator. B feels twice as
+fast CHARGING->READY; no flicker in either. Startup still feels long but user
+now questions remembered alpha8 duration and requests original WHDLoad back.
+Both complete36-row/no-overflow logs preserved with SHA and parsed phases in
+`sparkpaw/build/whdload-cache-ab-results-20260925`. All rows ok=1.
+A CHARGING20.68s on ALL3 visits (renderer17.48+READY3.20).
+B CHARGING8.86s on ALL3 visits (renderer6.96+READY1.90),57.16% shorter.
+A setup/enemies/effects:2.80/5.54/8.46-8.48; B1.14/2.20/3.34s.
+Byte parity of played executable/slave/banks rechecked; saved icons confirm
+A SLAVE/PAL, B SLAVE/PAL/NOCACHE, with no other added option. Evidence now
+strongly isolates CPU-cache OPTION influence on this FS-UAE configuration;
+it does NOT prove why caches hurt, a real-hardware benefit, or a general
+production recommendation to disable caches. Do not keep calling NOCACHE
+only a slower control; it actually won this manual loading comparison.
+Gameplay cadence/full campaign and realhardware remain unmeasured.
+
+A completed drawer/log/launcher archived intact as
+`dist/older-builds/WHD-Cache-A-8M-measured`. B stays at `dist/WHD-NoCache-B-8M`
+for the requested startup comparison; original B log safely copied above.
+Original alpha8 WHD ZIP CRC passes and64 file payloads restored byte-for-byte
+to `dist/Sparkpaw-0.7.0-a8-WHDLoad`; source ZIP and all26885 pre-investigation
+dist files unchanged. Original slave, PRELOAD/PAL icon and executable retained.
+No new build/release/version/commit/push; alpha9 remains current release.
+Alpha8's original ExpMem0x800000 remains, not a claimed total8MiB fit; do not
+silently alter its slave or emulator RAM. If original fails memory gate,
+record exact error before designing a separate comparable configuration.
+
+Next user comparison: same FS-UAE settings, original alpha8 Sparkpaw icon;
+measure click-to-first-intro and CHARGING->READY separately. Note any WHDLoad
+splash-window wait separately if possible. Alpha8 has NO diagnostic log-save
+mouse gesture: exit normally using F10; do not request left-click/freeze.
+New source work deferred until this requested reference comparison. Current
+first-image10s remains user estimate, not inferred from bank guest timings.
+
+
+## 2026-09-25 — WHDLoad configuration audit and identical-code A/B prepared
+
+User correctly stresses raw intro/READY/Level1 and current-level banks are
+ALREADY implemented. Do not present that as work still to be done. No new
+runtime changes today. Audit binary SetCPU sequence at offset92: alpha8,
+alpha9 and current all203c0000393e223c00007f3f4ead0060 (same value/mask/call).
+Thus no demonstrated cache-policy change between releases. ExpMem differs:
+alpha8 0x800000, alpha9 0x380000, current0x580000. Alpha8's whole8MiB
+reservation must NOT be blindly reinstated on total8MiB target with host OS.
+Global S:WHDLoad.prefs read explicitly read-only from configured HDF partition0:
+all options commented out. No disk/config writes. Latest FS-UAE log Sept24
+14:07 confirms68020/MMU0/JIT0/real/cycle-exact and8MiB Fast. Saved config file
+still says030, demonstrating why actual run log matters. Preserve both facts;
+do not blame changed settings. Audit snapshots in
+`sparkpaw/build/whdload-config-audit-20260925/configuration-audit.json`.
+
+Configuration-only pair STAGED in dist; manual A/B test pending:
+WHD-Cache-A-8M and WHD-NoCache-B-8M. Both use byte-identical played ReadyFast
+executable SHA654ee3d446fd52f6a8e1c9dcc31be56a506729b961bba27257ca68697f390660,
+same slave/five raw banks/reservation. Only B adds NOCACHE to icon; ReadMe also
+differs. CPU cache is NOT file caching. Neither changes PRELOAD, file-cache
+exclusion, startup bank strategy or per-level loading. No new instrumentation,
+Supervisor probe or build/link placement changes. This deliberately tests
+whether instruction caching affects the fast/slow preparation regimes, NOT a
+proposed NOCACHE speed fix. Same behavior in A/B would narrow the hypothesis,
+not establish a root cause or prove alpha8 parity. Startup10s remains open.
+
+Prepare/stage tool `sparkpaw/tools/stage_whdload_cache_ab.py` verifies source
+inventory, exact executable and pair-only differences, protects releases and
+archives completed LoadState intact with its original log/launcher after
+stop evidence. The latest preserved FS-UAE log confirms streams flushed,
+emulation thread stopped and end of main; the async stop question is thus
+no longer needed for that completed session. Process listing was unavailable.
+LoadState archived hash-identically in older-builds/WHD-LoadState-8M-measured.
+Both dist A/B inventories and archived log match the saved proofs.
+Manual plan after staging: same020/8MiB/PAL, fresh emulator start for each,
+A thenB, intro then Level1/Escape twice, left-click READY, wait frozen, F10,
+stop. Separate logs. No full campaign/hardware test. No release/commit/push.
+Sources: https://whdload.de/docs/en/opt.html (NoCache vs NoFileCache) and
+https://whdload.de/docs/en/cache.html. All timing conclusions remain pending.
+
+
+## 2026-09-24 — LoadState log complete, initial loading also slow
+
+User reported F10 initially did not respond, then succeeded. Exact drawer
+`dist/WHD-LoadState-8M/data/load-times.log` exists,13916bytes, complete=1,
+43 phase rows plus43 state rows, overflow=0, all ok=1. Saved byte-identically
+with parsed rows in `sparkpaw/build/whdload-loadstate-analysis-20260924`.
+CHARGING renderer+READY:21.08s initially,21.04s and21.08s after Escape.
+Initial renderer879fields, returns877/879; READY175 each. Thus this run is
+already slow before gameplay; do NOT keep claiming only Escape triggers it.
+Diagnostic build/placement/instrumentation and run-state differences remain
+possible; this is not a matched fast/slow transition within this log.
+CACR remains1 at all snapshots (no observed register transition); this alone
+cannot exclude cache mapping/placement effects. Ordinary prep DMA991/INTENA
+24620 remain consistent. CIA-A TOD closely matches guest VBlank durations
+except boot/release boundaries. boot_banks9guest fields /12TOD ticks is NOT
+click-to-first-picture wall time and does not explain the reported10seconds.
+No proven cause/fix yet. F10's delayed response did not truncate this log;
+its specific delay cause is unmeasured. No new runtime edit, build, archive,
+release, commit, push or emulator launch. Current drawer retained intact.
+
+
+## 2026-09-24 — LoadState diagnostic isolates slow Level1 returns
+
+User asked to continue and explicitly confirmed FS-UAE stopped. Source audit
+of platformReleaseForLoading, audio stop/unload, ptplayer adapter, music and
+KickEmu has NOT proved a fix. Slow return spans raw assets/collision/audio,
+renderer and READY, so another isolated codec change cannot explain it.
+Same-Level1 bank selection skips actual DOS/disk work; later-level selection
+reads a bank. This is a useful comparison, not proof of cache/IRQ causation.
+
+Next `dist/WHD-LoadState-8M` / Sparkpaw icon is diagnostic-only relative to
+ReadyFast. Same optimized menu, raw banks, slave/cache policy and display code.
+`--load-state` requires `--load-trace`; records before/after CACR (read through
+Exec Supervisor,68020+), DMACONR, INTENAR, INTREQR, CIA-B CRA/CRB and CIA-A TOD.
+No CACR writes, cache flush, interrupt changes, or CIA ICR reads (read clears
+pending state). New phases: boot_banks, return_release, return_cleanup,
+return_title. State lines reference zero-based phase-row indices; decimal
+values. Existing nested renderer/menu phases must not be counted twice.
+CIA-A TOD delta is supplementary: do not assume WHDLoad OS switches preserve
+wall-clock meaning. boot_banks excludes WHDLoad/Kickstart/program/platform
+startup; still ask approximate click-to-first-picture time. No synthetic CPU
+benchmark or deliberate disk reload is introduced. Snapshot table increases
+diagnostic BSS, not persistent asset cache. Slow-return improvement not promised.
+
+Native build `build/whdload-loadstate-v2-20260924`:626708bytes, SHA256
+b59aaf2898b1baf0f3dcff33b8efffbd76cb19822835ddf8f69010e5c5da9ee6.
+First build retained: compiler could not open /var/tmp temporary file;
+escalated retry succeeded. No emulator was started. Actual native object
+contains MOVEC CACR->D0 and RTE, no MOVEC write. State/basic collector sanitizer
+tests, bank lifecycle/fault tests,74 asset reader checks,14/14/17 section
+reachability and Drowned/menu-resume/Stormrail loading tests pass. Full suite
+not repeated for this diagnostic-only change; prior ReadyFast full suite
+passed. Native Supervisor/state reads still require user's emulator gate.
+
+ReadyFast drawer including original log and launcher archived hash-identically
+at `dist/older-builds/WHD-ReadyFast-8M-measured`. Staged inventory verified and
+all26885 initial dist files unchanged. Manual test same020/2MiB Chip/8MiB Fast/
+PAL/noJIT: let intro run, Level1 brief play ->Escape twice, same settings,
+left-click final READY, wait frozen, F10 flush/exit then stop FS-UAE. Read this
+drawer's `data/load-times.log`. No SOUNDTEST detour or later-level/hardware test
+required. If startup fails, capture/report exact error, no blind retries.
+No release, version bump, commit or push. Alpha9 stays current.
+
+Reference checked: https://whdload.de/docs/en/cache.html and
+https://www.whdload.de/docs/autodoc.html (resload_SetCPU/SetCACR). WHDLoad owns
+cache policy; we sample rather than force CACR bits. A CACR value alone is
+not proof of per-region cacheability on MMU systems.
+
+
+## 2026-09-24 — ReadyFast result: successful menu optimization, slow returns recur
+
+User: initial CHARGING ~8s, both Level1 Escape returns ~17s, WHDLoad launch to
+first intro ~10s. Complete36-row/no-overflow log saved byte-identically in
+`sparkpaw/build/whdload-readyfast-analysis-20260924`. All phases ok=1.
+Initial renderer6.30 +READY1.76 =8.06s (previous9.72); menu cache0.60s versus
+2.24 before. Renderer subphases: setup0.96, enemies2.00, effects3.12,
+targets0.22, final0.00. Nested subphases already included in total.
+BOTH Level1 returns: renderer17.48 +READY3.20 =20.68s; cache1.62/1.64s.
+Setup2.80, enemies5.54, effects8.48/8.50, targets0.60, final0.06/0.04.
+Even assets1.92 versus0.58, collision0.26 versus0.10, audio1.10 versus0.40:
+broad phase slowdown, not just menu reconstruction or a fixed wait. Minimum
+wait remains0. Earlier26.66s return anomaly has now recurred in a distinct
+build; do not call it resolved or blame user settings. Exact mechanism is
+still unproven (CPU/cache/interrupt/platform restore remain hypotheses).
+
+Boot currently loads common+intro+Level1 banks before first intro:2837614
+source bytes, plus WHDLoad/Kickstart/program startup and display preparation.
+Thus raw intro does NOT imply an immediate first picture. User's10s startup
+is valid observed wall time, not established by the current loading counters.
+It should remain an optimization target, not be marked acceptable/normal.
+No matched alpha8 startup timing. Later bank reads may differ from same-Level1
+return: bank selector skips disk read when section stays1; this correlation
+does not prove a WHDLoad cache-reset cause. No speculative runtime fix made
+in this result review. Current ReadyFast drawer stays intact; emulator stop
+has not been reconfirmed for this run. No release, commit, push or emulator run.
+
+
+## 2026-09-24 — READY cache optimization and renderer subphase candidate
+
+After measured raw-bank success, user asks to continue. FS-UAE explicitly
+confirmed stopped. Next candidate `dist/WHD-ReadyFast-8M` / Sparkpaw icon:
+READY RLE chooses literal/zero once per run and uses memcpy/memset; delta
+reconstruction processes four bytes per loop with bounded pointer increments.
+No new menu cache or persistent allocation, no lazy work during READY input,
+no framebuffer ownership, fade, music, gameplay or bank policy changes.
+Native assembly confirms inline longword copy/clear and four XOR bytes per
+loop. The archived before-assembly multiplies band height by196 on EVERY
+byte; the candidate computes that length once per band. Exact speedup is NOT known until manual 020 measurement; do not promise
+the full2.24s disappears. Source changes apply to HD and ADF menu preparation;
+ADF pixel tests pass but native ADF/hardware acceptance remains untested.
+
+Loading-only collector adds five nested renderer phases (setup, enemies,
+effects, targets, final) within renderer_prepare. They must NOT be added to
+parent time. Existing historical Stage2 optimized renderer was ~5.9s, but that
+is a different workload/build, not a matched alpha8 comparison. No alpha8
+source tag exists locally; the archived alpha8 artifacts remain protected.
+Do not invent a precise alpha8 CHARGING baseline.
+
+Build `build/whdload-readyfast-v2-20260924`:625704 bytes,
+SHA256654ee3d446fd52f6a8e1c9dcc31be56a506729b961bba27257ca68697f390660.
+All five raw banks, slave and icon match played LevelRaw byte-for-byte.
+74 actual-reader asset checks, bank lifecycle/fault sanitizer checks,
+14/14/17 section dependency checks and loading collector tests pass.
+READY exhaustive parity:1436 HD states/6262 transitions,50 ADF states/328
+transitions, cache allocations unchanged309471/104847 Fast bytes.
+Full host suite PASSED with make test PYTHON=../.venv/bin/python3. Initial
+system-Python attempt lacked dependencies; retained log, reran using project
+venv. Played LevelRaw drawer+log+launcher archived hash-identically as
+`dist/older-builds/WHD-LevelRaw-8M-measured`. ReadyFast is now staged and its
+inventory verified; all26885 original dist files unchanged. Emulator result
+remains pending.
+
+Focused manual gate: same020/2MiB Chip/8MiB Fast/PAL/noJIT. Inspect initial
+intro/title/CHARGING/READY; briefly navigate OPTIONS and SOUNDTEST for text,
+music and dust, play Level1 briefly, Escape, left-click final READY once.
+Expected frozen save state; wait, F10 to flush/exit WHDLoad, then stop FS-UAE.
+No full campaign or real-hardware run requested yet. Read THIS drawer's
+`data/load-times.log`. No release/version bump, commit, push or emulator launch.
+
+
+## 2026-09-24 — raw current-level user test measured
+
+User reports everything seems faster; CHARGING after intro/title and after
+Escape now feels longest. Complete LevelRaw log:36 rows, all ok=1, overflow=0;
+original bytes and parsed rows preserved in
+`sparkpaw/build/whdload-levelraw-analysis-20260924` (repo-relative).
+Guest PAL-field scoped loading: Stormrail19.44 ->5.96s; Drowned34.40 ->9.24s.
+Stormrail assets13.88 ->0.40s, renderer unchanged5.08s. Drowned assets14.90
+->0.70s and renderer18.02 ->7.06s (includes previously packed late assets).
+CHARGING renderer6.30 +READY3.42 =9.72s at ALL four visits; minimum wait0.
+Previous26.66s anomaly did not recur; cause remains unexplained.
+Drowned renderer-end free Fast735488bytes; endpoint only, no peak proof.
+Disk/host-switch wall time excluded. User has not supplied a separate explicit
+flicker verdict or new hardware result. Keep candidate in place, no archive
+or replacement while emulator stop is unconfirmed. Next investigation is
+Level1 renderer preparation6.30s plus READY3.42s (menu reconstruction2.24s
+included), preserving READY cache/display ownership and8MiB memory budget.
+No runtime code change, release, commit or push in this results review.
+
+
+## 2026-09-24 — loading log analyzed; raw current-level experiment
+
+Completed36-row/no-overflow LevelTimes log preserved with SHA-256 and parsed
+rows in `sparkpaw/build/whdload-times-analysis-20260924`. Typical CHARGING:
+renderer6.30s +READY3.42s =9.72s; menu cache2.24s is INCLUDED in READY, minimum
+wait remainder0. Stormrail scoped total19.44s (assets13.88/renderer5.08),
+Drowned34.40s (assets14.90/renderer18.02). Drowned's renderer phase ALSO decodes
+pontoon/background data, so do not call all18.02seconds pure graphics setup.
+First Level1 return is a real unexplained outlier:26.66s renderer+READY, while
+all three other visits are9.72s. User denies pause/turbo/settings changes.
+Guest PAL-field timing does not measure disk/host-switch wall time.
+
+New `sparkpaw/dist/WHD-LevelRaw-8M` / Sparkpaw icon changes only Level2/3 bank
+storage to raw. Timed executable, slave, icon and all startup banks remain
+byte-identical. Only the current level is fetched; no whole-game preload or
+stats work.5MiB game +512KiB Kickstart reservation unchanged. Estimated Drowned
+free Fast at the previously measured renderer endpoint:735491bytes after
+994949extra source bytes. This is NOT a peak/fragmentation or8MiB-fit proof.
+Actual74asset parity, bank/collector and14/14/17dependency checks pass; runtime
+acceptance pending. No new native/full-suite run needed for identical code.
+
+User completed the instructed save/F10/stop workflow. The completed timing
+map, original log and launcher were archived hash-identically at
+`dist/older-builds/WHD-LevelTimes-8M-measured`; working non-diagnostic baseline
+also remains archived. New proof: `build/whdload-levelraw-v2-20260924`.
+Test same020/8MiB: START AT Stormrail -> brief play -> Escape, then Drowned ->
+brief play -> Escape; left-click final READY, wait/freeze, F10, stop emulator.
+Read `data/load-times.log` from the NEW drawer. Watch for larger black disk-read
+intervals or allocation failures. CHARGING and its unexplained outlier remain
+open. Full report: `sparkpaw/docs/WHDLOAD_LOADING_MEASUREMENTS.md`.
+No emulator launch, release, version bump, commit or push.
+
+## 2026-09-24 — later levels load; phase-timing diagnostic prepared
+
+User confirms that levels load after the shared-file correction. Approximate
+FS-UAE observations: CHARGING -> READY ~10 seconds, Stormrail visible LOADING
+~20 seconds, Drowned LOADING ~30–35 seconds. These are user estimates, not
+instrumented measurements; no new real-hardware acceptance. Preserve the now
+working corrected LevelBanks build as the functional reference.
+
+Next diagnostic: `sparkpaw/dist/WHD-LevelTimes-8M`, Sparkpaw icon. Native build
+and proof folder `sparkpaw/build/whdload-times-20260923` (work crossed midnight).
+Only loading instrumentation: per-section gameplay assets, collision, audio,
+renderer preparation, remaining CHARGING minimum wait, READY total and nested
+READY menu-cache reconstruction. Up to192 RAM rows, no writes until explicit
+LEFT MOUSE at READY. No gameplay profiler or optimization is enabled.
+Guest graphics VBlank counter, 50 fields/sec with PAL: this measures guest
+preparation elapsed fields, NOT physical disk/host OS-switch wall time.
+ready_menu_cache is INCLUDED in ready_total and must not be added twice.
+Free Chip/Fast snapshots are phase endpoints, not complete high-water marks.
+
+Manual test: same FS-UAE020 /2 MiB Chip /8 MiB Fast /PAL /no JIT configuration;
+intro may be skipped. Start Level1 briefly -> Escape; START AT Stormrail ->
+brief play -> Escape; START AT Drowned -> brief play -> Escape. At final READY,
+press/release LEFT MOUSE ONCE: deliberately frozen save state. Wait a few
+seconds, then F10 to exit WHDLoad/flush pending writes before stopping FS-UAE.
+Read `dist/WHD-LevelTimes-8M/data/load-times.log`; require complete=1 and
+no overflow. No full campaign or real-hardware run requested. Log persistence
+and native timing remain pending the user's test; no emulator was launched.
+
+Native diagnostic:624800bytes. Banks/slave/icon are byte-identical to the
+working candidate, so the 74-asset decoded proof carries over by exact parity.
+Actual per-section selector tests pass14/14/17 calls; bank lifetime and malformed
+input tests pass. Actual collector ASan/UBSan tests cover nesting, phase section
+ownership, timer wrap, failed calls, saturation and explicit-only log writes.
+A non-diagnostic rebuild is BYTE-IDENTICAL to the working622476-byte executable
+(SHA256649a3126867025c6c19795bb98f1ca899a305d9acb3f991ccf6836b51b4d9370),
+proving disabled hooks preserve this build. Its proof is in
+`build/whdload-trace-off-proof-20260924`. The extracted-C Drowned-driver and Stormrail-start test harnesses now include
+the real disabled trace macro header; ownership/failure assertions are retained.
+All make-test checks pass across host-suite-v2.log and host-suite-tail.log after
+those harness fixes; initial failed runs are also preserved. All26885 original
+dist files remain byte-identical; validation.json records the checks.
+
+User freshly confirmed FS-UAE stopped. Working LevelBanks is archived intact under
+`dist/older-builds/WHD-LevelBanks-8M-working`, including all launchers/evidence
+with verified hash parity; the diagnostic is now staged. No new release, commit or push; alpha.9
+remains unchanged. Do not infer the bottleneck from total load times alone:
+use the upcoming log to decide whether the next bounded change targets asset
+decode/copy, renderer construction or the repeatedly built READY cache.
+
+## 2026-09-23 — LevelBanks startup accepted by report; shared-file correction
+
+User reports the LevelBanks candidate's intro starts/transitions correctly,
+music ends in sync, TITLE appears quickly, and intro -> READY has no flicker.
+Level 1 played twice and Escape returned through TITLE/CHARGING. This is
+FS-UAE evidence in the ongoing 020 test context; RAM/JIT settings were not
+restated, and it is not real-hardware or complete-campaign acceptance.
+Both START AT Stormrail and Drowned show LOADING, then return to Workbench.
+User estimates CHARGING around 10 seconds BOTH at startup and after Escape.
+This is approximate observation, not logged phase timing.
+
+Confirmed packaging defect: three cross-level dependencies were incorrectly
+owned only by the Level-1 bank. Real collisionLoad still opens
+storm-collision.bin for Stormrail. Drowned's assetsLoadGameplay uses
+sparkpaw-sprites4.spbm and sparkpaw-extra-life.spbm. Those files were absent
+from its resident banks after selecting the next section. The existing code
+then returns a load failure and exits; a CPU exception is not established.
+The new host dependency test executes these actual C selectors with each
+native module's compile flags and the real bank backend: old package misses
+exactly 1/2 files for sections 2/3, fixed package misses none (14/14/17 calls).
+It stubs allocation/rendering and therefore does not prove native gameplay.
+The earlier all-file parity tests missed this phase-reachability contract.
+
+Correction staged at the SAME `sparkpaw/dist/WHD-LevelBanks-8M` / Sparkpaw icon.
+Only move these three raw entries into common.spb; no duplicate assets. Native
+executable, slave, icon and every individual asset remain byte-identical, as do
+intro/Level-2/Level-3 banks. Total startup source buffers remain 2837614 bytes,
+post-intro maximum 2064538 bytes. No renderer, timer, audio or cache-policy edit.
+New proofs: `sparkpaw/build/whdload-banks-shared-20260923`;
+before/fixed selector proofs: `build/whd-bank-dependencies-before2-20260923`
+and `build/whd-bank-dependencies-fixed-20260923` inside sparkpaw.
+All 74 decoded source checks and sanitized bank lifetime/fault/bounds tests pass.
+Native/full-suite evidence belongs to the unchanged earlier executable; no
+unnecessary full-suite rebuild was made for this packaging correction.
+
+User confirmed FS-UAE stopped. Previous drawer and launcher archived intact,
+hash-verified as `dist/older-builds/WHD-LevelBanks-8M-shared-miss`. Status of
+that build: intro/Level 1 accepted by report; later sections rejected.
+Focused retest: skip intro if desired, START AT Stormrail -> play 10 seconds
+-> Escape, then Drowned -> play -> Escape. Report gameplay entry, return and
+visible loading glitches. No repeated hardware transfer/full campaign needed.
+No emulator launch, release, version change, commit or push.
+
+CHARGING remains OPEN, unchanged by this package-only repair. Its visible
+period contains rendererPrepareGameplay, an elapsed minimum of 100 PAL fields
+(~2 seconds, not an unconditional extra 2 seconds), then READY image/menu
+preparation before fading. readyUiInit reconstructs a 306544-byte embedded
+RLE/delta cache every READY entry, even with raw external assets. Thus the
+previous shorthand "no decompression until READY" applied only to external
+assets and missed this embedded menu-cache work. Neither its time nor renderer
+preparation has been measured separately. Do not attribute all 10 seconds to
+that cache, disk reads, RAM pressure or a longer programmed hold. Next timing
+probe should separate renderer preparation, minimum-wait remainder, READY
+asset copies and UI cache reconstruction; buffer counters in RAM and export
+only by an explicit safe action, never during visible loading/menu phases.
+
+## 2026-09-23 — WHDLoad level-bank candidate (manual 8-MiB gate pending)
+
+New unnumbered candidate: `sparkpaw/dist/WHD-LevelBanks-8M`, launch Sparkpaw.
+Build/proofs: `sparkpaw/build/whdload-banks-v2-20260923`.
+The WHD-only reader uses explicit phase containers through large DOS Reads;
+inspected kickfs dispatches these to resload_LoadFileOffset directly. There is
+no injected slave callback ABI. The slave reserves 5 MiB game Fast + 512 KiB
+Kickstart, disables file caching with ws_DontCache="#?", and omits PRELOAD.
+Game-owned bank buffers live INSIDE the 5-MiB budget, not in an additional host
+cache. Default HD/ADF/packed-release paths remain compile-isolated.
+
+Raw executable (622476 bytes), common/menu/audio and all intro/Level-1 assets.
+Three bulk reads at startup fetch common, intro and Level 1; this is raw disk
+I/O before the first image, not an eager whole-campaign decompression pass.
+Intro source bank is freed after the final/skip fade. Later sections are read
+only after leaving results/READY, while black, before the loading image.
+Only the current level bank is retained; sources for future levels do not grow
+the resident set. Common Soundtest audio stays available without hidden I/O.
+Existing final Chip/Fast assets still own their normal copied/decoded buffers.
+No stats prefetch, replay mutation or dynamic high-memory profile.
+
+Bank buffers: startup 2837614 bytes (2.71 MiB), post-intro maximum 2064538
+(1.97 MiB). These are exact SOURCE-buffer sizes, not whole-game high-water
+measurements or proof of 8-MiB fit. Faster decoder remains for later graphics.
+Remaining 2.5 MiB outside ExpMem is for WHDLoad/host overhead; no throughput,
+first-image delay, flicker-free behavior or hardware speedup is assumed.
+Native build, all 74 decoded source comparisons, sanitized bank lifecycle /
+bounds / allocation-short-read failures / 10 malformed containers pass; the
+existing 240 reader integrity cases and full `make test` suite also pass.
+The log is in the build directory; manual runtime acceptance remains separate.
+All 26885 original dist files remain byte-identical, and the staged package
+matches its verified inventory.
+
+User confirmed FS-UAE stopped before replacing FastDecode. Its full contents
+and any launcher are archived hash-identically under
+`dist/older-builds/WHD-FastDecode-8M-startup-slow`;
+archival and release parity manifests accompany the new build. The earlier
+failed compile directory is retained too. CONTROL and all prior evidence/builds
+remain intact. No emulator launch, release, version bump, commit or push.
+First gate: 68020/2 MiB Chip/8 MiB Fast/PAL/no JIT, unskipped intro -> READY,
+10 seconds Level 1 -> Escape twice; if stable, START AT Stormrail and Drowned,
+Escape back. Report first-image wait, intro gaps/music sync, visible-screen
+flicker and approximate level/menu loading. No real-hardware replay yet.
+Future authorized releases still require separate 8-MiB and all-raw packages.
+
+## 2026-09-23 — external WHDLoad loader research
+
+Inspected official RuffNTumble source, bundled Oscar and Battle Isle sources,
+and Flashback install documentation. Direct range/full-file WHDLoad loading is
+used in these examples; Battle Isle combines it with KickEmu. Sparkpaw's DOS /
+kickfs / streaming-reader chain adds copying and dispatch. Correction: its
+512-byte application reads are buffered by kickfs IOCACHE=4096, not one
+physical read per 512 bytes. Disk is not faster than RAM; raw disk loading may
+beat RAM plus slow decoding, which requires native measurement. Per-level
+loading reduces residency/startup work, not media latency. No new runtime
+change or test build in this research. See
+`sparkpaw/docs/WHDLOAD_SLAVE_LOADING_RESEARCH.md` for source locations,
+provenance, limitations and the bounded direct-WHDLoad backend direction.
+
+## 2026-09-23 — 68020 startup requirement; two future WHDLoad packages
+
+MrDig now tests in FS-UAE/68020 and reports that intro still starts far too
+late and black gaps remain between plates. This rejects FastDecode as meeting
+the startup goal; it does not establish a new flicker verdict or a measured
+speed delta versus alpha.9. No new machine RAM details were restated.
+The next 8-MiB design MUST use uncompressed executable, intro images/music,
+title/music, loading/charging/READY and all Level-1 assets. Faster decoding may
+remain for compressed later-section assets (explicit user clarification).
+Longer Level-2/3 loading is acceptable on 8 MiB; stats prefetch remains excluded.
+Use 68020 as the first timing gate per the user's new test choice; a fast 030
+emulator result is no longer sufficient to accept intro timing.
+
+For a future authorized release, provide TWO SEPARATE WHDLoad packages:
+8-MiB startup-priority and a fully uncompressed higher-Fast-RAM package with
+its own verified requirement. No automatic RAM-selecting combined package.
+This is a release-design requirement, NOT authorization to release now.
+
+Further user observation: disk activity is visible only at Sparkpaw startup,
+not during its later waits (platform not restated). This supports CPU decode
+as a hypothesis; absence of a visible LED is not a cache-miss measurement.
+Do not equate black/flickering output with proven physical disk access.
+WHDLoad PRELOAD caches stored bytes; it does not decode Sparkpaw's formats.
+
+Budget audit: the 40 boot/Level-1 files alone total 2397907 raw bytes; with the
+617748-byte hybrid executable reference that is 3015655 bytes before filesystem
+metadata. With current 0x380000 ExpMem, only 1702937 of 8 MiB remain BEFORE host
+overhead. Excluding later files alone is therefore not a proven fix. WHDLoad
+ws_DontCache supports exclusions, but forcing the current small-read loader to
+uncached data risks repeated OS switches/flicker. Need a measured game-memory
+budget and coalesced late-load lifecycle, not another optimistic larger cache
+candidate. No new build staged in this scope clarification. Existing FastDecode
+and all prior work preserved; stop state for its current user run is unknown.
+Details: `sparkpaw/docs/WHDLOAD_LOADING_INVESTIGATION.md`.
+
+## 2026-09-23 — raw-mix WHDLoad candidate rejected for flicker
+
+Current replacement is `sparkpaw/dist/WHD-FastDecode-8M` (Sparkpaw icon).
+Verified payload is 1910389 bytes: only 156 bytes above alpha.9, leaving
+2808203 bytes before host overhead after the unchanged 3.5-MiB reservation.
+Slave and icon are byte-identical to alpha.9; 73/74 asset files are identical,
+with only the current CONTROL menu repacked. Native build, Shrinkler verification,
+240 sanitized reader cases and all asset-source comparisons pass. All 26885
+original dist files remain byte-identical. Test intro to READY, Level 1 for
+10 seconds, Escape back: flicker-free FS-UAE acceptance first, speed second.
+The startup Shrinkler wait is unchanged. No runtime acceptance yet.
+
+MrDig reports renewed flickering TITLE and LOADING after intro and during
+level loads in WHD-FastLoad-8M, in the requested FS-UAE test context; exact
+settings were not restated. Reject this candidate. Its 3320535-byte preload
+payload versus the accepted 1910233-byte alpha.9 payload consumed an extra
+1410302 bytes of host cache headroom. Partial PRELOAD/OS switching is the
+leading explanation, not a directly measured cache-miss result. Do not
+repeat that optimistic 1.3-MiB-before-overhead budget or claim raw loading fixed
+real-hardware startup. User confirmed FS-UAE stopped; all 79 files and any
+launcher were archived hash-identically to
+`dist/older-builds/WHD-FastLoad-8M-rejected`; manifest in
+`build/whdload-fastload-hybrid-20260923/rejected-archive.json`.
+
+A new bounded fast-decoder candidate retains compressed storage and the
+accepted slave/PRELOAD policy. It handles run state per token and uses a
+256-entry CRC32 table, retaining integrity/bounds checks and the same 4-KiB
+window. No eager unpack, stats prefetch, high-memory branch or runtime cache
+change. Native build and 240 sanitized hybrid/legacy/fast reader cases pass;
+new staging/user result follows in WHDLOAD_LOADING_INVESTIGATION.md.
+Release remains alpha.9; no commit/push/release or emulator launch.
+
+## 2026-09-23 — WHDLoad fast-loading 8 MiB candidate; user test pending
+
+At MrDig's request, staged `sparkpaw/dist/WHD-FastLoad-8M` for a first manual
+FS-UAE/68030, 2 MiB Chip/8 MiB Fast/no-JIT gate. Hybrid asset reads use raw
+intro/title/loading/READY/HUD and selected Level-1 data, retaining compressed
+large foreground/strider and most later-section assets. Executable is no longer
+Shrinkler-packed. Exact corrected alpha.9 slave/PRELOAD retained. Payload
+3320535 bytes plus 3.5 MiB ExpMem leaves 1398057 bytes BEFORE host overhead;
+full cache coverage/flicker-free operation and speed remain unverified.
+Native build, full `make test`, 160 sanitized reader cases and all 74 asset
+checks pass. Existing 26885 dist files remain byte-identical; CONTROL and
+other prior builds retained.
+No emulator launch, release, commit or push. Local release stays alpha.9;
+this candidate includes unreleased fcd8573 CONTROL. Only 8 MiB is in scope:
+dynamic high-memory selection was discussed then deferred by the user.
+Next-section preparation during stats was discussed, then explicitly deferred
+by MrDig because of risk. It is outside current scope; results/REPLAY are
+unchanged. Do not implement prefetch as an automatic follow-up.
+Details and exact test: `sparkpaw/docs/WHDLOAD_LOADING_INVESTIGATION.md`.
+
+## 2026-09-23 — WHDLoad loading regression on real 68030; investigation open
+
+MrDig reports alpha.9 WHDLoad slower than alpha.8 on real A1200/68030
+approximately 34.5 MHz: delayed intro, roughly one-second black plate gaps
+while music continues, earlier music ending, longer LOADING/CHARGING and level
+loads. Packed-baseline acceptance was FS-UAE only. Package inspection confirms
+alpha.8 raw assets versus alpha.9 runtime-packed assets and Shrinkler startup;
+all 74 alpha.9 packed assets match the accepted campaign baseline, with the
+correct 0x380000 slave reservation. Decode/CRC work during black plate loads is
+the leading hypothesis, not a measured full explanation of CHARGING or cache
+coverage. Menu return reloads Level 1 and needs separate timing. See
+`sparkpaw/docs/WHDLOAD_LOADING_INVESTIGATION.md` (from repo root) for package
+sizes, source paths, evidence limits and the focused existing-build comparison.
+No runtime code/build/release/commit/push or emulator launch. Current release
+remains alpha.9; fcd8573 CONTROL remains unreleased. Existing dist/research files
+preserved; whole-dist hash inventory saved under build/whdload-loading-investigation-20260923.
+
 ## 2026-09-23 — Sparkpaw CONTROL options candidate
 
 Changed OPTIONS from SECOND BUTTON JUMP/FIRE to CONTROL JOYSTICK/JOYPAD.
@@ -10252,3 +11156,25 @@ only new Level1 pair is active. Archive Busy2 plus .uaem byte-identically after
 stopped confirmation. pgrep unavailable in sandbox; no emulator launched.
 No commit,push or release. Alpha.8 remains official. Interlude optimization is
 deferred at user's request, not inferred from Drowned performance evidence.
+# 2026-09-25 — Level1 background animation investigated
+
+Owner confirmed the proposed three-part direction: subtle cloud-edge accents,
+authored animation rectangles over the already painted tower lightning, as
+with Drowned's waterfalls, and a small crystal pulse
+responding to it. Sequence and scope recorded in the
+Level1 research document. No art frames or playable candidate created yet.
+
+Subsequently generated a reproducible offline indexed-pixel storyboard and
+full-panorama comparison in `sparkpaw/assets/concept/level1-rear-ambience-study-v1/`.
+It leaves production media/runtime intact. The early rear row of the existing
+lightning makes a Drowned-style update-window assumption unsafe; native
+scheduling proof remains required before any playable candidate.
+
+Inspected the alpha.10 Level1 renderer flags, rear asset, shared PF2 palette,
+Copper bands, quarter-speed rear scrolling, two-copy foreground ring, guarded
+rear display, historical cadence evidence and Drowned Turbines animation
+lessons. Calculated incremental planar/transfer bounds for sparse sky accents,
+tower crystal and lightning; identified palette and buffer-ownership risks.
+Recommended a native-size sky-accent study before any isolated, unnumbered
+runtime candidate. Detailed findings: `sparkpaw/docs/LEVEL1_BACKGROUND_ANIMATION_RESEARCH.md`.
+No runtime, assets, dist, release, commit or push changed; no FS-UAE launch.

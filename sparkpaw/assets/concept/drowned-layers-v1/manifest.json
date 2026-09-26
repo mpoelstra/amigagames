@@ -1,0 +1,105 @@
+{
+  "status": "offline layer study; not a playable slice",
+  "world": [
+    960,
+    208
+  ],
+  "rear": [
+    512,
+    208
+  ],
+  "camera_range": [
+    0,
+    640
+  ],
+  "fetch_width": 352,
+  "water_x": [
+    240,
+    608
+  ],
+  "water_y": 197,
+  "water_frames": 16,
+  "water_frame_ticks": 2,
+  "hud_y": 208,
+  "hud_changed": false,
+  "platforms": [
+    {
+      "x": 128,
+      "y": 144,
+      "width": 104
+    },
+    {
+      "x": 432,
+      "y": 128,
+      "width": 104
+    },
+    {
+      "x": 720,
+      "y": 160,
+      "width": 104
+    }
+  ],
+  "front_palette": "unchanged FRONT16",
+  "rear_palette": [
+    [
+      0,
+      0,
+      17
+    ],
+    [
+      17,
+      34,
+      51
+    ],
+    [
+      34,
+      51,
+      68
+    ],
+    [
+      34,
+      68,
+      85
+    ],
+    [
+      34,
+      68,
+      119
+    ],
+    [
+      51,
+      85,
+      119
+    ],
+    [
+      51,
+      102,
+      136
+    ],
+    [
+      102,
+      136,
+      170
+    ]
+  ],
+  "planar_bytes": {
+    "front": 99840,
+    "rear": 39936,
+    "water": 7040,
+    "total": 146816
+  },
+  "verified": [
+    "641 camera origins have complete rear fetch and front coverage",
+    "all 14080 water pixels match existing generator formula",
+    "SPBM pixel and palette round-trip",
+    "HUD unchanged for all 16 tested water phases",
+    "existing runtime assets and dist top-level files hash-unchanged"
+  ],
+  "not_verified": [
+    "native scrolling/Copper timing",
+    "physics or route reachability",
+    "new enemy art, pressure/sluis interaction or soundtrack",
+    "complete Chip/Fast allocation peak or ADF fit"
+  ],
+  "source_sha256": "6027d0736ee2676c4151e3cc631c94919d9d40668a00d0fe2ad2375efc1bbb6b"
+}

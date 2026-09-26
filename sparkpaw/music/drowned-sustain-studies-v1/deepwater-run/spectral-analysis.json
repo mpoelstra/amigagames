@@ -1,0 +1,254 @@
+{
+  "file": "sparkpaw/music/drowned-sustain-studies-v1/deepwater-run/preview.wav",
+  "seconds": 123.86,
+  "peak_dbfs": -9.9,
+  "rms_dbfs": -21.1,
+  "median_centroid_hz": 735,
+  "upper_band_ratio": 0.083,
+  "tonal_change_mean": 0.671,
+  "tonal_change_max": 1.057,
+  "largest_tonal_shifts_s": [
+    120.0,
+    104.0,
+    56.0,
+    8.0
+  ],
+  "beat_candidates": [
+    {
+      "bpm": 124.0,
+      "correlation": 0.413
+    },
+    {
+      "bpm": 120.5,
+      "correlation": 0.413
+    },
+    {
+      "bpm": 127.5,
+      "correlation": 0.356
+    },
+    {
+      "bpm": 132.5,
+      "correlation": 0.356
+    },
+    {
+      "bpm": 117.0,
+      "correlation": 0.303
+    },
+    {
+      "bpm": 136.0,
+      "correlation": 0.164
+    }
+  ],
+  "pitch_classes": [
+    {
+      "note": "F",
+      "share": 0.14
+    },
+    {
+      "note": "C",
+      "share": 0.127
+    },
+    {
+      "note": "Ab",
+      "share": 0.125
+    },
+    {
+      "note": "Eb",
+      "share": 0.112
+    },
+    {
+      "note": "Bb",
+      "share": 0.097
+    },
+    {
+      "note": "C#",
+      "share": 0.08
+    },
+    {
+      "note": "D",
+      "share": 0.074
+    },
+    {
+      "note": "E",
+      "share": 0.07
+    },
+    {
+      "note": "G",
+      "share": 0.063
+    },
+    {
+      "note": "A",
+      "share": 0.046
+    },
+    {
+      "note": "F#",
+      "share": 0.038
+    },
+    {
+      "note": "B",
+      "share": 0.028
+    }
+  ],
+  "sections": [
+    {
+      "at_s": 0.0,
+      "rms": 0.087,
+      "centroid_hz": 720,
+      "top_pitch_classes": [
+        "F",
+        "C#",
+        "C"
+      ]
+    },
+    {
+      "at_s": 8.0,
+      "rms": 0.09,
+      "centroid_hz": 682,
+      "top_pitch_classes": [
+        "Eb",
+        "Ab",
+        "Bb"
+      ]
+    },
+    {
+      "at_s": 16.0,
+      "rms": 0.086,
+      "centroid_hz": 747,
+      "top_pitch_classes": [
+        "F",
+        "Ab",
+        "C"
+      ]
+    },
+    {
+      "at_s": 24.0,
+      "rms": 0.087,
+      "centroid_hz": 711,
+      "top_pitch_classes": [
+        "C",
+        "Eb",
+        "Ab"
+      ]
+    },
+    {
+      "at_s": 32.0,
+      "rms": 0.09,
+      "centroid_hz": 753,
+      "top_pitch_classes": [
+        "F",
+        "Ab",
+        "C"
+      ]
+    },
+    {
+      "at_s": 40.0,
+      "rms": 0.091,
+      "centroid_hz": 779,
+      "top_pitch_classes": [
+        "Bb",
+        "Eb",
+        "Ab"
+      ]
+    },
+    {
+      "at_s": 48.0,
+      "rms": 0.091,
+      "centroid_hz": 769,
+      "top_pitch_classes": [
+        "Ab",
+        "C#",
+        "Eb"
+      ]
+    },
+    {
+      "at_s": 56.0,
+      "rms": 0.091,
+      "centroid_hz": 731,
+      "top_pitch_classes": [
+        "C",
+        "F",
+        "E"
+      ]
+    },
+    {
+      "at_s": 64.0,
+      "rms": 0.087,
+      "centroid_hz": 718,
+      "top_pitch_classes": [
+        "Ab",
+        "C#",
+        "C"
+      ]
+    },
+    {
+      "at_s": 72.0,
+      "rms": 0.09,
+      "centroid_hz": 675,
+      "top_pitch_classes": [
+        "F",
+        "Bb",
+        "Eb"
+      ]
+    },
+    {
+      "at_s": 80.0,
+      "rms": 0.087,
+      "centroid_hz": 753,
+      "top_pitch_classes": [
+        "Ab",
+        "F",
+        "C#"
+      ]
+    },
+    {
+      "at_s": 88.0,
+      "rms": 0.087,
+      "centroid_hz": 727,
+      "top_pitch_classes": [
+        "Ab",
+        "C",
+        "G"
+      ]
+    },
+    {
+      "at_s": 96.0,
+      "rms": 0.087,
+      "centroid_hz": 752,
+      "top_pitch_classes": [
+        "F",
+        "C",
+        "Ab"
+      ]
+    },
+    {
+      "at_s": 104.0,
+      "rms": 0.088,
+      "centroid_hz": 763,
+      "top_pitch_classes": [
+        "Bb",
+        "Eb",
+        "F"
+      ]
+    },
+    {
+      "at_s": 112.0,
+      "rms": 0.088,
+      "centroid_hz": 738,
+      "top_pitch_classes": [
+        "Eb",
+        "C#",
+        "Ab"
+      ]
+    },
+    {
+      "at_s": 120.0,
+      "rms": 0.086,
+      "centroid_hz": 761,
+      "top_pitch_classes": [
+        "C",
+        "G",
+        "E"
+      ]
+    }
+  ]
+}

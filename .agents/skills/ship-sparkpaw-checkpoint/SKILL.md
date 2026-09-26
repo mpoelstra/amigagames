@@ -48,9 +48,10 @@ make release PYTHON=../.venv/bin/python3
 
 Do not ship if either command fails. Review warnings and package validation,
 including executable, ADF and WHDLoad archive checks performed by the release
-tooling. Confirm that `sparkpaw/dist` contains the current consistently versioned artifacts: HD LHA/ZIP, Disk1/Disk2 ADF and
-WHDLoad LHA/ZIP (six files for the campaign), plus the same-version HD review
-drawer. Preserve explicitly protected alpha.68 baselines; archive superseded
+tooling. Confirm that `sparkpaw/dist` contains nine consistently versioned
+artifacts: HD LHA/ZIP, Disk1/Disk2/Disk3 ADF, standard WHDLoad LHA/ZIP and
+High RAM WHDLoad LHA/ZIP, plus all three matching extracted drawers.
+Preserve explicitly protected alpha.68 baselines; archive superseded
 local releases byte-identically. Never relabel a single-level WHDLoad build. A source ZIP is opt-in
 and must only be produced when MrDig explicitly requests it. Do not delete
 ignored local evidence or backups while cleaning release outputs. Never infer
@@ -86,10 +87,40 @@ commit a host binary into the repository.
 For releases with Workbench launchers, verify both HD and WHDLoad project icons
 with `amigainfo`: each must retain the shared 86x93 embedded 34-colour NewIcons
 layer and 86x93 three-bitplane standard OS 2.x/3.x fallback. HD must use
-`DefaultTool=Sparkpaw`; WHDLoad must use `DefaultTool=WHDLoad` plus `SLAVE`,
-`PRELOAD` and `PAL`. Do not substitute a 16-colour RomIcon fallback: classic
+`DefaultTool=Sparkpaw`; both WHDLoad editions use `DefaultTool=WHDLoad`
+plus `SLAVE` and `PAL`. Standard 8 MB banked WHDLoad uses `NOCACHE` and
+no `PRELOAD`; High RAM uses `PRELOAD`. Check against the current packager.
+Do not substitute a 16-colour RomIcon fallback: classic
 icons store only pen numbers, and the supplied FS-UAE Workbench does not own the
 RomIcon/FullPalette pen mapping. Keep `tests/test_sparkpaw_icon.py` passing.
+
+## Verify player ReadMe completeness
+
+Before packaging, review `tools/game_readme.py` and each generated HD,
+standard WHDLoad and High RAM `ReadMe.txt` for completeness and accuracy:
+
+- Begin with the user-authored personal note from `docs/PERSONAL_NOTE.txt`,
+  including its attribution and contact address. Preserve the wording;
+  only plain-text link formatting, whitespace and line wrapping may change.
+- Include the game title, actual version and edition, general introduction,
+  established story, current playable content and alpha status.
+- Include MrDig / MrDig Productions information, the official itch game URL,
+  and contact/feedback instructions. Do not invent personal details.
+- Verify machine/RAM requirements, launch/installation and quit instructions
+  against the actual edition. Standard and High RAM WHDLoad must describe
+  their own PRELOAD/cache settings rather than sharing contradictory advice.
+- Explain menus, keyboard, on-foot JOYSTICK/JOYPAD controls and Skimmer flight
+  separately. Match the implemented controls and distinguish pending fixes
+  from the contents of an existing release.
+- Keep the text readable on Amiga: plain ASCII, short lines, clear headings,
+  and no developer-only implementation detail in ordinary player instructions.
+
+After packaging, extract and read the actual `ReadMe.txt` from every HD and
+WHDLoad ZIP/LHA. Require byte parity with the intended edition's generated
+text, a complete opening personal note, current version/edition, working
+references to included files and all sections above. A source-template check
+alone is insufficient. Record this check in the release verification report.
+Preserve older release packages; never silently rewrite a numbered release.
 
 ## Synchronize the checkpoint record
 
@@ -157,13 +188,13 @@ Run tools/verify_checkpoint_release.py after packaging: require per-volume
 ADF dependencies, all-file readback, independent ZIP/LHA extraction and icons.
 WHDLoad must compile campaign plus quit hooks; verify slave version and actual
 shortened extraction drawer in ReadMe. Native acceptance is medium-specific.
-For a packed/preloaded campaign WHDLoad release, compare the new slave header
-against the last user-accepted packed candidate: require `ExpMem` at byte 28
-after `WHDLOADS` to be `$380000` (3.5 MB), and require the icon's `PRELOAD`.
-The generic slave build uses `$580000` and can cause title/loading flicker
-and slow loading by leaving too little host memory for PRELOAD. Compare packed
-asset hashes and executable behavior claims separately; a passing archive
-check does not prove startup behavior. Preserve a rejected test package in
+The current standard banked and High RAM editions both use `ExpMem` at byte 28
+after `WHDLOADS` of `$580000`. Verify their distinct cache/PRELOAD policies
+and memory budgets with `tools/verify_campaign_release.py`. The historical
+packed/PRELOAD `$380000` candidate is not the current 8 MB banked profile;
+never substitute that header or enable PRELOAD on the standard edition.
+Compare asset hashes and executable behavior claims separately; a passing
+archive check does not prove startup behavior. Preserve a rejected test package in
 `dist/older-builds` before replacing its versioned candidate, and request a
 focused user startup/loading retest before acceptance.
 Document classic LHa's 496-byte tally-tick.raw lh0 incompressible fallback if
